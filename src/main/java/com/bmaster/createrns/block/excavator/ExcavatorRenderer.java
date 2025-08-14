@@ -1,8 +1,7 @@
-package com.github.bmasta.createrns.block.excavator;
+package com.bmaster.createrns.block.excavator;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.AllPartialModels;
-import com.simibubi.create.content.kinetics.drill.DrillBlock;
 import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.render.CachedBuffers;
 import net.minecraft.client.renderer.RenderType;

@@ -1,7 +1,7 @@
-package com.github.bmasta.createrns.block.excavator;
+package com.bmaster.createrns.block.excavator;
 
-import com.github.bmasta.createrns.capability.orechunkdata.IOreChunkData;
-import com.github.bmasta.createrns.capability.orechunkdata.OreChunkPurity;
+import com.bmaster.createrns.capability.orechunkdata.IOreChunkData;
+import com.bmaster.createrns.capability.orechunkdata.OreChunkPurity;
 import net.minecraft.world.item.ItemStack;
 
 public class ExcavationProcess {

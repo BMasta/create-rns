@@ -1,7 +1,7 @@
-package com.github.bmasta.createrns.capability.orechunkdata;
+package com.bmaster.createrns.capability.orechunkdata;
 
-import com.github.bmasta.createrns.CreateRNS;
-import com.github.bmasta.createrns.capability.ModCapabilities;
+import com.bmaster.createrns.AllContent;
+import com.bmaster.createrns.CreateRNS;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -51,6 +51,6 @@ public class OreChunkDataProvider implements ICapabilitySerializable<CompoundTag
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         if (chunk.getLevel().isClientSide()) return LazyOptional.empty();
-        return ModCapabilities.ORE_CHUNK_DATA.orEmpty(cap, opt);
+        return AllContent.ORE_CHUNK_DATA.orEmpty(cap, opt);
     }
 }

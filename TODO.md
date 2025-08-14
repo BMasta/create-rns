@@ -4,12 +4,12 @@
   - [x] Dependency version management and gradle options.
   - [x] Excavator accepts create mod rotation and generates stress when working.
   - [x] Excavator shows goggle tooltip.
-  - [ ] Excavator does not work when overstressed/not in a network
-  - [ ] Excavator does not consume stress when not mining.
-  - [ ] Excavator has an animated model with spinning shaft when working.
-  - [ ] Excavator integrates with belts/funnels/etc. (might be a freebie).
-- [ ] Explore common minecraft libraries for forge and see if some of them can replace my own code (cuz it sucks).
+  - [x] Excavator has an animated model with spinning shaft when working.
+  - [ ] Excavator only works when supplied with sufficient stress and rotation speed.
+  - [ ] Excavator tooltip shows stress impact
 - [ ] Add ore chunk locator item that can tune onto an ore type among available ores and scan for the nearest ore chunk of that type.
+- [ ] Excavator makes sound when working
+- [ ] Excavator emits particles when working
 - [ ] Handle client/server config
   - [ ] Add config variable for picking an ore distribution algorithm.
   - [ ] Add config variable for allowed ores, how common their ore chunks should be, and how much ore is yielded on each excavation.

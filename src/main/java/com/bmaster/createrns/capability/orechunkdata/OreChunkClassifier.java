@@ -1,4 +1,4 @@
-package com.github.bmasta.createrns.capability.orechunkdata;
+package com.bmaster.createrns.capability.orechunkdata;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;

@@ -1,5 +1,6 @@
-package com.github.bmasta.createrns;
+package com.bmaster.createrns;
 
+import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import net.minecraftforge.common.MinecraftForge;
@@ -23,7 +24,7 @@ public class CreateRNS {
     public CreateRNS(FMLJavaModLoadingContext context) {
         IEventBus modEventBus = context.getModEventBus();
         REGISTRATE.registerEventListeners(modEventBus);
-        Content.register();
+        AllContent.register();
 
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);

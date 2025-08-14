@@ -1,7 +1,7 @@
 {
 	"format_version": "1.21.6",
 	"credit": "Made with Blockbench",
-	"parent": "create_rns:block/excavator",
+	"parent": "block/block",
 	"textures": {
 		"0": "create:block/axis",
 		"1": "create:block/axis_top",

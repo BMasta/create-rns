@@ -1,7 +1,7 @@
-package com.github.bmasta.createrns.event;
+package com.bmaster.createrns.event;
 
-import com.github.bmasta.createrns.CreateRNS;
-import com.github.bmasta.createrns.capability.orechunkdata.OreChunkDataProvider;
+import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.capability.orechunkdata.OreChunkDataProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.event.AttachCapabilitiesEvent;

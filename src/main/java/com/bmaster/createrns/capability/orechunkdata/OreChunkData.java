@@ -1,6 +1,6 @@
-package com.github.bmasta.createrns.capability.orechunkdata;
+package com.bmaster.createrns.capability.orechunkdata;
 
-import com.github.bmasta.createrns.CreateRNS;
+import com.bmaster.createrns.CreateRNS;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.util.INBTSerializable;

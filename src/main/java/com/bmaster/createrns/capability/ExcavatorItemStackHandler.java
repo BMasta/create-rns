@@ -1,4 +1,4 @@
-package com.github.bmasta.createrns.capability;
+package com.bmaster.createrns.capability;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.Item;

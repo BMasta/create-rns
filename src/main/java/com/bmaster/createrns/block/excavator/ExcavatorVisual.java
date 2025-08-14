@@ -1,4 +1,4 @@
-package com.github.bmasta.createrns.block.excavator;
+package com.bmaster.createrns.block.excavator;
 
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityVisual;
 import dev.engine_room.flywheel.api.instance.Instance;

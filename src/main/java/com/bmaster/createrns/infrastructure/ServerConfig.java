@@ -1,5 +1,6 @@
-package com.github.bmasta.createrns;
+package com.bmaster.createrns.infrastructure;
 
+import com.bmaster.createrns.CreateRNS;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -21,7 +22,7 @@ public class ServerConfig {
             .comment("Ore chunks for these items will spawn in the overworld")
             .defineListAllowEmpty("items", List.of(), ServerConfig::validateItemName);
 
-    static final ForgeConfigSpec SPEC = BUILDER.build();
+    public static final ForgeConfigSpec SPEC = BUILDER.build();
 
     public static Set<Item> items;
 

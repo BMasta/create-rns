@@ -1,6 +1,6 @@
-package com.github.bmasta.createrns.block.excavator;
+package com.bmaster.createrns.block.excavator;
 
-import com.github.bmasta.createrns.Content;
+import com.bmaster.createrns.AllContent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -147,7 +147,7 @@ public class ExcavatorMenu extends AbstractContainerMenu {
             return false;
         }
         return AbstractContainerMenu.stillValid(
-                ContainerLevelAccess.create(level, blockEntity.getBlockPos()), player, Content.EXCAVATOR_BLOCK.get()
+                ContainerLevelAccess.create(level, blockEntity.getBlockPos()), player, AllContent.EXCAVATOR_BLOCK.get()
         );
     }
 

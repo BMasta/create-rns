@@ -1,6 +1,6 @@
-package com.github.bmasta.createrns.block.excavator;
+package com.bmaster.createrns.block.excavator;
 
-import com.github.bmasta.createrns.CreateRNS;
+import com.bmaster.createrns.CreateRNS;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;

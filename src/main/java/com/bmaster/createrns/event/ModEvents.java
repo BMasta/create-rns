@@ -1,7 +1,7 @@
-package com.github.bmasta.createrns.event;
+package com.bmaster.createrns.event;
 
-import com.github.bmasta.createrns.CreateRNS;
-import com.github.bmasta.createrns.capability.orechunkdata.IOreChunkData;
+import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.capability.orechunkdata.IOreChunkData;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;

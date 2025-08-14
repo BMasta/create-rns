@@ -1,6 +1,6 @@
-package com.github.bmasta.createrns.block.excavator;
+package com.bmaster.createrns.block.excavator;
 
-import com.github.bmasta.createrns.Content;
+import com.bmaster.createrns.AllContent;
 import com.simibubi.create.content.kinetics.base.KineticBlock;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
@@ -87,7 +87,7 @@ public class ExcavatorBlock extends KineticBlock implements IBE<ExcavatorBlockEn
 
     @Override
     public BlockEntityType<? extends ExcavatorBlockEntity> getBlockEntityType() {
-        return Content.EXCAVATOR_BE.get();
+        return AllContent.EXCAVATOR_BE.get();
     }
 
     @Override

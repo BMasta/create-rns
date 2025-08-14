@@ -1,4 +1,4 @@
-package com.github.bmasta.createrns.capability.orechunkdata;
+package com.bmaster.createrns.capability.orechunkdata;
 
 public enum OreChunkPurity {
     NONE(1),

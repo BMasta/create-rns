@@ -1,9 +1,8 @@
-package com.github.bmasta.createrns.block.excavator;
+package com.bmaster.createrns.block.excavator;
 
-import com.github.bmasta.createrns.CreateRNS;
-import com.github.bmasta.createrns.Content;
-import com.github.bmasta.createrns.capability.ExcavatorItemStackHandler;
-import com.github.bmasta.createrns.capability.ModCapabilities;
+import com.bmaster.createrns.AllContent;
+import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.capability.ExcavatorItemStackHandler;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -46,7 +45,7 @@ public class ExcavatorBlockEntity extends KineticBlockEntity implements MenuProv
     }
 
     public ExcavatorBlockEntity(BlockPos pos, BlockState state) {
-        super(Content.EXCAVATOR_BE.get(), pos, state);
+        super(AllContent.EXCAVATOR_BE.get(), pos, state);
     }
 
     public ItemStackHandler getInventory() {
@@ -61,7 +60,7 @@ public class ExcavatorBlockEntity extends KineticBlockEntity implements MenuProv
         // Try initializing excavation process
         if (process == null) {
             LevelChunk chunk = level.getChunkAt(this.getBlockPos());
-            chunk.getCapability(ModCapabilities.ORE_CHUNK_DATA).ifPresent(data -> {
+            chunk.getCapability(AllContent.ORE_CHUNK_DATA).ifPresent(data -> {
                 // Create the excavation process object
                 process = new ExcavationProcess(data);
 
@@ -147,16 +146,6 @@ public class ExcavatorBlockEntity extends KineticBlockEntity implements MenuProv
         if (process != null) {
             ghostItem = process.excavatedItemStack.getItem();
         }
-        return new ExcavatorMenu(Content.EXCAVATOR_MENU.get(), pContainerId, pPlayerInventory, this, ghostItem);
-    }
-
-    @Override
-    public float calculateStressApplied() {
-//        float stress;
-//        if (process == null || !process.isPossible()) stress = 0F;
-//        else stress = super.calculateStressApplied();
-//        CreateRNS.LOGGER.info("Stress applied: {}", stress);
-//        return stress;
-        return super.calculateStressApplied();
+        return new ExcavatorMenu(AllContent.EXCAVATOR_MENU.get(), pContainerId, pPlayerInventory, this, ghostItem);
     }
 }

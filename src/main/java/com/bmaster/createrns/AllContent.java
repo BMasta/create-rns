@@ -1,6 +1,7 @@
-package com.github.bmasta.createrns;
+package com.bmaster.createrns;
 
-import com.github.bmasta.createrns.block.excavator.*;
+import com.bmaster.createrns.block.excavator.*;
+import com.bmaster.createrns.capability.orechunkdata.IOreChunkData;
 import com.simibubi.create.api.stress.BlockStressValues;
 import com.simibubi.create.foundation.data.SharedProperties;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
@@ -14,9 +15,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.common.capabilities.CapabilityToken;
 
 
-public class Content {
+public class AllContent {
 
     // Blocks
     public static final BlockEntry<ExcavatorBlock> EXCAVATOR_BLOCK = CreateRNS.REGISTRATE.block("excavator",
@@ -54,6 +58,10 @@ public class Content {
                     ExcavatorMenu::new,
                     () -> ExcavatorScreen::new
             ).register();
+
+    // Capabilities
+    public static final Capability<IOreChunkData> ORE_CHUNK_DATA =
+            CapabilityManager.get(new CapabilityToken<IOreChunkData>() {});
 
     public static void register() {
     }

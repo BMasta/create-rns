@@ -1,9 +1,6 @@
-package com.github.bmasta.createrns.event;
+package com.bmaster.createrns.event;
 
-import com.github.bmasta.createrns.Content;
-import com.github.bmasta.createrns.CreateRNS;
-import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+import com.bmaster.createrns.CreateRNS;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
