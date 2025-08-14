@@ -1,4 +1,4 @@
-package com.github.bmasta.createrns.excavator;
+package com.github.bmasta.createrns.block.excavator;
 
 import com.github.bmasta.createrns.CreateRNS;
 import com.github.bmasta.createrns.Content;
@@ -152,6 +152,11 @@ public class ExcavatorBlockEntity extends KineticBlockEntity implements MenuProv
 
     @Override
     public float calculateStressApplied() {
+//        float stress;
+//        if (process == null || !process.isPossible()) stress = 0F;
+//        else stress = super.calculateStressApplied();
+//        CreateRNS.LOGGER.info("Stress applied: {}", stress);
+//        return stress;
         return super.calculateStressApplied();
     }
 }

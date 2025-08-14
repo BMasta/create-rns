@@ -1,7 +1,7 @@
 {
   "variants": {
-    "": {
-      "model": "create_rns:block/excavator"
-    }
+    "": [
+      {"model": "create_rns:block/excavator"}
+    ]
   }
 }

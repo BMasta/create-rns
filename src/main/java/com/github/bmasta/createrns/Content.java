@@ -1,9 +1,6 @@
 package com.github.bmasta.createrns;
 
-import com.github.bmasta.createrns.excavator.ExcavatorBlock;
-import com.github.bmasta.createrns.excavator.ExcavatorBlockEntity;
-import com.github.bmasta.createrns.excavator.ExcavatorMenu;
-import com.github.bmasta.createrns.excavator.ExcavatorScreen;
+import com.github.bmasta.createrns.block.excavator.*;
 import com.simibubi.create.api.stress.BlockStressValues;
 import com.simibubi.create.foundation.data.SharedProperties;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
@@ -24,7 +21,7 @@ public class Content {
     // Blocks
     public static final BlockEntry<ExcavatorBlock> EXCAVATOR_BLOCK = CreateRNS.REGISTRATE.block("excavator",
                     ExcavatorBlock::new)
-            .initialProperties(SharedProperties::wooden)
+            .initialProperties(SharedProperties::stone)
             .properties(BlockBehaviour.Properties::noOcclusion)
             .onRegister((b) ->
                     BlockStressValues.IMPACTS.register(b, () -> 32.0))
@@ -35,7 +32,9 @@ public class Content {
     public static final BlockEntityEntry<ExcavatorBlockEntity> EXCAVATOR_BE = CreateRNS.REGISTRATE.blockEntity("excavator",
                     (BlockEntityType<ExcavatorBlockEntity> t, BlockPos p, BlockState s) ->
                             new ExcavatorBlockEntity(t, p, s))
+            .visual(() -> ExcavatorVisual::new)
             .validBlock(EXCAVATOR_BLOCK)
+            .renderer(() -> ExcavatorRenderer::new)
             .register();
 
     // Creative tabs

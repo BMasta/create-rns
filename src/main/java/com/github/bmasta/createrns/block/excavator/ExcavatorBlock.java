@@ -1,4 +1,4 @@
-package com.github.bmasta.createrns.excavator;
+package com.github.bmasta.createrns.block.excavator;
 
 import com.github.bmasta.createrns.Content;
 import com.simibubi.create.content.kinetics.base.KineticBlock;
@@ -27,6 +27,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class ExcavatorBlock extends KineticBlock implements IBE<ExcavatorBlockEntity> {
     public ExcavatorBlock(Properties props) {
         super(props);
+    }
+
+    public static Direction.Axis getRotationAxis() {
+        return Direction.Axis.Y;
     }
 
     @ParametersAreNonnullByDefault
@@ -88,7 +92,7 @@ public class ExcavatorBlock extends KineticBlock implements IBE<ExcavatorBlockEn
 
     @Override
     public Direction.Axis getRotationAxis(BlockState state) {
-        return Direction.Axis.Y;
+        return getRotationAxis();
     }
 
     @Override

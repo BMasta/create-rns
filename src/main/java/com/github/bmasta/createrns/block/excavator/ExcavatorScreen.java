@@ -1,4 +1,4 @@
-package com.github.bmasta.createrns.excavator;
+package com.github.bmasta.createrns.block.excavator;
 
 import com.github.bmasta.createrns.CreateRNS;
 import com.mojang.blaze3d.systems.RenderSystem;

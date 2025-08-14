@@ -1,10 +1,11 @@
 # TO DO
 - [x] Implement algorithms to fairly distribute ore chunks around the world.
 - [ ] Basic integration with create mod.
-  - [ ] Dependency version management and gradle options.
-  - [ ] Excavator accepts create mod rotation.
-  - [ ] Excavator generates stress when working.
-  - [ ] Excavator shows goggle tooltip.
+  - [x] Dependency version management and gradle options.
+  - [x] Excavator accepts create mod rotation and generates stress when working.
+  - [x] Excavator shows goggle tooltip.
+  - [ ] Excavator does not work when overstressed/not in a network
+  - [ ] Excavator does not consume stress when not mining.
   - [ ] Excavator has an animated model with spinning shaft when working.
   - [ ] Excavator integrates with belts/funnels/etc. (might be a freebie).
 - [ ] Explore common minecraft libraries for forge and see if some of them can replace my own code (cuz it sucks).
