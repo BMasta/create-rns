@@ -5,16 +5,17 @@
   - [x] Miner accepts create mod rotation and generates stress when working.
   - [x] Miner shows goggle tooltip.
   - [x] Miner has an animated model with spinning shaft when working.
-  - [ ] Miner only works when supplied with sufficient stress and rotation speed.
+  - [x] Miner only works when supplied with sufficient stress and rotation speed.
+  - [x] Miner productivity scales with rotation speed.
   - [ ] Miner tooltip shows stress impact
 - [ ] Add ore chunk locator item that can tune onto an ore type among available ores and scan for the nearest ore chunk of that type.
 - [ ] Miner makes sound when working
 - [ ] Miner emits particles when working
 - [ ] Handle client/server config
   - [ ] Add config variable for picking an ore distribution algorithm.
-  - [ ] Add config variable for allowed ores, how common their ore chunks should be, and how much ore is yielded on each excavation.
+  - [ ] Add config variable for allowed ores, how common their ore chunks should be, and how much ore is yielded on each mining operation.
   - [ ] Add config variable for recomputing ore chunk data on existing chunks when they are loaded.
-  - [ ] Add config variable for chunk purities and their corresponding excavation time.
+  - [ ] Add config variable for chunk purities and their corresponding mining time.
 - [ ] Add recipes for all items.
 - [ ] Integration with JEI.
 - [ ] Add sound to miner when it's running

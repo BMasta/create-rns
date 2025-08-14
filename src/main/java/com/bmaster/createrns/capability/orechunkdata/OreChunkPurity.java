@@ -1,18 +1,18 @@
 package com.bmaster.createrns.capability.orechunkdata;
 
 public enum OreChunkPurity {
-    NONE(1),
-    IMPURE(20 * 60),
-    NORMAL(20 * 30),
-    PURE(20 * 15);
+    NONE(0),
+    IMPURE(2F),
+    NORMAL(1F),
+    PURE(0.5F);
 
-    private final int ticksToMine;
+    private final float multiplier;
 
-    OreChunkPurity(int ticksToMine) {
-        this.ticksToMine = ticksToMine;
+    OreChunkPurity(float multiplier) {
+        this.multiplier = multiplier;
     }
 
-    public int getTicksToMine() {
-        return this.ticksToMine;
+    public float getMultiplier() {
+        return this.multiplier;
     }
 }

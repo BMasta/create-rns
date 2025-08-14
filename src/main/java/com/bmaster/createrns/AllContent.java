@@ -28,7 +28,7 @@ public class AllContent {
             .initialProperties(SharedProperties::stone)
             .properties(BlockBehaviour.Properties::noOcclusion)
             .onRegister((b) ->
-                    BlockStressValues.IMPACTS.register(b, () -> 32.0))
+                    BlockStressValues.IMPACTS.register(b, () -> 4.0))
             .item().build()
             .register();
 

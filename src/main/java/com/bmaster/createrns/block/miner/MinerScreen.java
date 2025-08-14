@@ -51,8 +51,14 @@ public class MinerScreen extends AbstractContainerScreen<MinerMenu> {
     }
 
     private void renderProgressBar(GuiGraphics pGuiGraphics) {
-        int filled_segment_count = (int) Math.round(
-                (double) menu.getProgress() / menu.getMaxProgress() * PROGRESS_BAR_SEGMENT_COUNT);
+        int filled_segment_count;
+        if (menu.getMaxProgress() > 0) {
+            filled_segment_count = (int) Math.round(
+                    (double) menu.getProgress() / menu.getMaxProgress() * PROGRESS_BAR_SEGMENT_COUNT);
+        }  else {
+            // Progress is not possible
+            filled_segment_count = 0;
+        }
 
         int pbFilledTexX = imageWidth;
         int pbFilledTexY = 0;

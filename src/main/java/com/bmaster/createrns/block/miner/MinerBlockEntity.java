@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.List;
 
 public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider {
     public MiningProcess process;
@@ -61,10 +62,10 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
         if (process == null) {
             LevelChunk chunk = level.getChunkAt(this.getBlockPos());
             chunk.getCapability(AllContent.ORE_CHUNK_DATA).ifPresent(data -> {
-                // Create the excavation process object
-                process = new MiningProcess(data);
+                // Create the mining process object
+                process = MiningProcess.from(data);
 
-                // Restrict inventory to only accept the item type being excavated
+                // Restrict inventory to only accept the item type being mined
                 inventory.setMinedItem(process.minedItemStack.getItem());
 
                 // If we got progress data from NBT, now is the time to set it
@@ -72,12 +73,14 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
                     process.setProgress(setProgressWhenPossibleTo);
                 }
             });
+            // Better luck next time
+            if (process == null) return;
         }
-        // Better luck next time
-        if (process == null) return;
 
-        process.advance();
-        setChanged();
+        if (isMining()) {
+            process.advance((int) Math.abs(getSpeed()));
+            setChanged();
+        }
 
         if (process.isDone()) {
             ItemStack yield = process.collect();
@@ -85,9 +88,15 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
                 CreateRNS.LOGGER.info("Mined {} -> {} at {},{}", inventory.getStackInSlot(0).getCount() - 1,
                         inventory.getStackInSlot(0).getCount(), getBlockPos().getX(), getBlockPos().getZ());
             } else {
-                CreateRNS.LOGGER.info("Could not excavate at {},{}", getBlockPos().getX(), getBlockPos().getZ());
+                CreateRNS.LOGGER.info("Could not mine at {},{}", getBlockPos().getX(), getBlockPos().getZ());
             }
         }
+    }
+
+    public boolean isMining() {
+        boolean is =  process != null && process.isPossible() && !process.isDone() &&
+                getSpeed() != 0 && isSpeedRequirementFulfilled();
+        return is;
     }
 
     @Override
@@ -117,7 +126,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
     @Override
     public void read(@NotNull CompoundTag tag, boolean clientPacket) {
         super.read(tag, clientPacket);
-        // Excavation process is not yet created, so we save the progress value for later
+        // Mining process is not yet created, so we save the progress value for later
         setProgressWhenPossibleTo = tag.getInt("Progress");
         inventory.deserializeNBT(tag.getCompound("Items"));
     }
@@ -147,5 +156,10 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
             ghostItem = process.minedItemStack.getItem();
         }
         return new MinerMenu(AllContent.MINER_MENU.get(), pContainerId, pPlayerInventory, this, ghostItem);
+    }
+
+    @Override
+    protected void addStressImpactStats(List<Component> tooltip, float stressAtBase) {
+        super.addStressImpactStats(tooltip, stressAtBase);
     }
 }

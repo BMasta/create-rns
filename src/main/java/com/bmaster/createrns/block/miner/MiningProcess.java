@@ -1,81 +1,72 @@
 package com.bmaster.createrns.block.miner;
 
 import com.bmaster.createrns.capability.orechunkdata.IOreChunkData;
-import com.bmaster.createrns.capability.orechunkdata.OreChunkPurity;
 import net.minecraft.world.item.ItemStack;
 
 public class MiningProcess {
+    private static final float BASE_MAX_PROGRESS = 20 * 256 * 30; // 30 seconds at 256 RPM without multipliers
+
     public final ItemStack minedItemStack;
 
     private final boolean isPossible;
-    private int ticksToMine;
-    private boolean isActive;
-    private int ticksMined = 0;
+    private int progress = 0;
+    private int maxProgress;
 
-    public MiningProcess(IOreChunkData data) {
-        if (data.isOreChunk()) {
-            isPossible = true;
-            // TODO: may be false once energy requirements are added
-            isActive = true;
-            minedItemStack = data.getMinedItemStack();
-            ticksToMine = data.getPurity().getTicksToMine();
+    public static MiningProcess from(IOreChunkData data) {
+        return new MiningProcess(data.getMinedItemStack().copy(), data.getPurity().getMultiplier(), data.isOreChunk());
+    }
+
+    private MiningProcess(ItemStack minedItemStack, float progressMultiplier, boolean isPossible) {
+        this.isPossible = isPossible;
+        if (isPossible) {
+            this.minedItemStack = minedItemStack;
+            this.maxProgress = Math.round(BASE_MAX_PROGRESS * progressMultiplier);
         } else {
-            isPossible = false;
-            isActive = false;
-            minedItemStack = ItemStack.EMPTY;
-            ticksToMine = OreChunkPurity.NONE.getTicksToMine();
+            this.minedItemStack = ItemStack.EMPTY;
+            this.maxProgress = 0;
         }
     }
 
-    public void advance() {
-        if (isPossible && isActive && (ticksMined < ticksToMine)) {
-            ticksMined++;
+    public void advance(int by) {
+        if (!isDone()) {
+            progress += by;
         }
+        if (progress > maxProgress) progress = maxProgress;
     }
 
     public ItemStack collect() {
         if (isDone()) {
-            ticksMined = 0;
+            progress = 0;
             return minedItemStack.copy();
         }
         return ItemStack.EMPTY;
     }
 
     public int getProgress() {
-        return ticksMined;
+        return progress;
     }
 
-    public void setProgress(int ticks) {
-        ticksMined = ticks;
+    /// Server thread should never call this method.
+    public void setProgress(int val) {
+        progress = val;
     }
 
     public int getMaxProgress() {
-        return ticksToMine;
+
+        return maxProgress;
     }
 
-    public void setMaxProgress(int ticks) {
-        ticksToMine = ticks;
+    /// Server thread should never call this method.
+    public void setMaxProgress(int val) {
+        maxProgress = val;
     }
 
     public boolean isPossible() {
         return isPossible;
     }
 
-    public boolean isActive() {
-        return isPossible && isActive;
-    }
-
     public boolean isDone() {
-        return (isPossible && isActive && (ticksMined >= ticksToMine));
+        return (progress >= maxProgress);
     }
 
-    public void activate() {
-        if (isPossible) {
-            isActive = true;
-        }
-    }
-
-    public void deactivate() {
-        isActive = false;
-    }
 }

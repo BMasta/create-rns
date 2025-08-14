@@ -102,6 +102,6 @@ public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity> {
 
     @Override
     public SpeedLevel getMinimumRequiredSpeedLevel() {
-        return SpeedLevel.MEDIUM;
+        return SpeedLevel.FAST;
     }
 }
