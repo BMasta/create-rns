@@ -4,10 +4,13 @@ import com.bmaster.createrns.block.miner.*;
 import com.bmaster.createrns.capability.orechunkdata.IOreChunkData;
 import com.simibubi.create.api.stress.BlockStressValues;
 import com.simibubi.create.foundation.data.SharedProperties;
+import com.simibubi.create.foundation.item.ItemDescription;
+import com.simibubi.create.foundation.item.KineticStats;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.entry.MenuEntry;
 import com.tterrag.registrate.util.entry.RegistryEntry;
+import net.createmod.catnip.lang.FontHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -21,6 +24,14 @@ import net.minecraftforge.common.capabilities.CapabilityToken;
 
 
 public class AllContent {
+    // Item tooltips
+    static {
+        CreateRNS.REGISTRATE.setTooltipModifierFactory(item -> {
+            CreateRNS.LOGGER.info("Processing item {}", item);
+            return new ItemDescription.Modifier(item, FontHelper.Palette.STANDARD_CREATE)
+                    .andThen(KineticStats.create(item));
+        });
+    }
 
     // Blocks
     public static final BlockEntry<MinerBlock> MINER_BLOCK = CreateRNS.REGISTRATE.block("miner",
