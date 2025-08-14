@@ -1,8 +1,8 @@
-package com.bmaster.createrns.block.excavator;
+package com.bmaster.createrns.block.miner;
 
 import com.bmaster.createrns.AllContent;
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.capability.ExcavatorItemStackHandler;
+import com.bmaster.createrns.capability.MinerItemStackHandler;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -27,11 +27,11 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
-public class ExcavatorBlockEntity extends KineticBlockEntity implements MenuProvider {
-    public ExcavationProcess process;
+public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider {
+    public MiningProcess process;
 
     public static final int INVENTORY_SIZE = 1;
-    private final ExcavatorItemStackHandler inventory = new ExcavatorItemStackHandler(INVENTORY_SIZE) {
+    private final MinerItemStackHandler inventory = new MinerItemStackHandler(INVENTORY_SIZE) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
@@ -40,12 +40,12 @@ public class ExcavatorBlockEntity extends KineticBlockEntity implements MenuProv
     private LazyOptional<IItemHandler> inventoryCap = LazyOptional.empty();
     private int setProgressWhenPossibleTo = -1;
 
-    public ExcavatorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+    public MinerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
 
-    public ExcavatorBlockEntity(BlockPos pos, BlockState state) {
-        super(AllContent.EXCAVATOR_BE.get(), pos, state);
+    public MinerBlockEntity(BlockPos pos, BlockState state) {
+        super(AllContent.MINER_BE.get(), pos, state);
     }
 
     public ItemStackHandler getInventory() {
@@ -57,15 +57,15 @@ public class ExcavatorBlockEntity extends KineticBlockEntity implements MenuProv
         super.tick();
         if (level == null || level.isClientSide()) return;
 
-        // Try initializing excavation process
+        // Try initializing mining process
         if (process == null) {
             LevelChunk chunk = level.getChunkAt(this.getBlockPos());
             chunk.getCapability(AllContent.ORE_CHUNK_DATA).ifPresent(data -> {
                 // Create the excavation process object
-                process = new ExcavationProcess(data);
+                process = new MiningProcess(data);
 
                 // Restrict inventory to only accept the item type being excavated
-                inventory.setExcavatedItem(process.excavatedItemStack.getItem());
+                inventory.setMinedItem(process.minedItemStack.getItem());
 
                 // If we got progress data from NBT, now is the time to set it
                 if (setProgressWhenPossibleTo >= 0) {
@@ -82,7 +82,7 @@ public class ExcavatorBlockEntity extends KineticBlockEntity implements MenuProv
         if (process.isDone()) {
             ItemStack yield = process.collect();
             if (inventory.insertItem(0, yield, false) == ItemStack.EMPTY) {
-                CreateRNS.LOGGER.info("Excavated {} -> {} at {},{}", inventory.getStackInSlot(0).getCount() - 1,
+                CreateRNS.LOGGER.info("Mined {} -> {} at {},{}", inventory.getStackInSlot(0).getCount() - 1,
                         inventory.getStackInSlot(0).getCount(), getBlockPos().getX(), getBlockPos().getZ());
             } else {
                 CreateRNS.LOGGER.info("Could not excavate at {},{}", getBlockPos().getX(), getBlockPos().getZ());
@@ -134,7 +134,7 @@ public class ExcavatorBlockEntity extends KineticBlockEntity implements MenuProv
     @NotNull
     @Override
     public Component getDisplayName() {
-        return Component.translatable("container.%s.excavator".formatted(CreateRNS.MOD_ID));
+        return Component.translatable("container.%s.miner".formatted(CreateRNS.MOD_ID));
     }
 
     @Nullable
@@ -144,8 +144,8 @@ public class ExcavatorBlockEntity extends KineticBlockEntity implements MenuProv
     createMenu(int pContainerId, Inventory pPlayerInventory, Player pPlayer) {
         Item ghostItem = null;
         if (process != null) {
-            ghostItem = process.excavatedItemStack.getItem();
+            ghostItem = process.minedItemStack.getItem();
         }
-        return new ExcavatorMenu(AllContent.EXCAVATOR_MENU.get(), pContainerId, pPlayerInventory, this, ghostItem);
+        return new MinerMenu(AllContent.MINER_MENU.get(), pContainerId, pPlayerInventory, this, ghostItem);
     }
 }

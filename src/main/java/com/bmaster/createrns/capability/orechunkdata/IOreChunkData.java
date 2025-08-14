@@ -8,7 +8,7 @@ public interface IOreChunkData {
 
     OreChunkPurity getPurity();
 
-    ItemStack getExcavatedItemStack();
+    ItemStack getMinedItemStack();
 
     CompoundTag serializeNBT();
 

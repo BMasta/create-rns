@@ -1,5 +1,5 @@
 {
-  "block.create_rns.excavator": "Excavator",
-  "container.create_rns.excavator": "Excavator",
+  "block.create_rns.miner": "Miner",
+  "container.create_rns.miner": "Miner",
   "creativetab.create_rns": "Create: Rock & Stone"
 }

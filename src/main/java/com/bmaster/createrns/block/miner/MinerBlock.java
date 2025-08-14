@@ -1,4 +1,4 @@
-package com.bmaster.createrns.block.excavator;
+package com.bmaster.createrns.block.miner;
 
 import com.bmaster.createrns.AllContent;
 import com.simibubi.create.content.kinetics.base.KineticBlock;
@@ -24,8 +24,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-public class ExcavatorBlock extends KineticBlock implements IBE<ExcavatorBlockEntity> {
-    public ExcavatorBlock(Properties props) {
+public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity> {
+    public MinerBlock(Properties props) {
         super(props);
     }
 
@@ -36,7 +36,7 @@ public class ExcavatorBlock extends KineticBlock implements IBE<ExcavatorBlockEn
     @ParametersAreNonnullByDefault
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
-        return new ExcavatorBlockEntity(pPos, pState);
+        return new MinerBlockEntity(pPos, pState);
     }
 
     @SuppressWarnings("deprecation")
@@ -46,13 +46,13 @@ public class ExcavatorBlock extends KineticBlock implements IBE<ExcavatorBlockEn
                                           InteractionHand pHand, BlockHitResult pHit) {
         if (!pLevel.isClientSide() && pPlayer instanceof ServerPlayer serverPlayer) {
             BlockEntity be = pLevel.getBlockEntity(pPos);
-            if (be instanceof ExcavatorBlockEntity excavatorBE) {
-                NetworkHooks.openScreen(serverPlayer, excavatorBE, buf -> {
-                    buf.writeBlockPos(excavatorBE.getBlockPos());
+            if (be instanceof MinerBlockEntity minerBE) {
+                NetworkHooks.openScreen(serverPlayer, minerBE, buf -> {
+                    buf.writeBlockPos(minerBE.getBlockPos());
                     // Send an item to the client, so it can render it as a placeholder in the yield slot
                     ItemStack ghostItemStack = ItemStack.EMPTY;
-                    if (excavatorBE.process != null) {
-                        ghostItemStack = new ItemStack(excavatorBE.process.excavatedItemStack.getItem());
+                    if (minerBE.process != null) {
+                        ghostItemStack = new ItemStack(minerBE.process.minedItemStack.getItem());
                     }
                     buf.writeItem(ghostItemStack);
                 });
@@ -66,7 +66,7 @@ public class ExcavatorBlock extends KineticBlock implements IBE<ExcavatorBlockEn
     public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pMovedByPiston) {
         if (!pState.is(pNewState.getBlock())) {
             BlockEntity be = pLevel.getBlockEntity(pPos);
-            if (be instanceof ExcavatorBlockEntity) {
+            if (be instanceof MinerBlockEntity) {
                 be.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(iItemHandler -> {
                     for (int i = 0; i < iItemHandler.getSlots(); ++i) {
                         ItemStack stack = iItemHandler.getStackInSlot(i);
@@ -81,13 +81,13 @@ public class ExcavatorBlock extends KineticBlock implements IBE<ExcavatorBlockEn
     }
 
     @Override
-    public Class<ExcavatorBlockEntity> getBlockEntityClass() {
-        return ExcavatorBlockEntity.class;
+    public Class<MinerBlockEntity> getBlockEntityClass() {
+        return MinerBlockEntity.class;
     }
 
     @Override
-    public BlockEntityType<? extends ExcavatorBlockEntity> getBlockEntityType() {
-        return AllContent.EXCAVATOR_BE.get();
+    public BlockEntityType<? extends MinerBlockEntity> getBlockEntityType() {
+        return AllContent.MINER_BE.get();
     }
 
     @Override

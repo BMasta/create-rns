@@ -1,4 +1,4 @@
-package com.bmaster.createrns.block.excavator;
+package com.bmaster.createrns.block.miner;
 
 import com.bmaster.createrns.AllContent;
 import net.minecraft.core.BlockPos;
@@ -13,7 +13,7 @@ import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 import net.minecraft.world.level.Level;
 
-public class ExcavatorMenu extends AbstractContainerMenu {
+public class MinerMenu extends AbstractContainerMenu {
     public static final int YIELD_SLOT_INDEX = 0;
 
     public static final int SLOT_SIZE = 18;
@@ -33,13 +33,13 @@ public class ExcavatorMenu extends AbstractContainerMenu {
     private final Item ghostItem;
     private final ContainerLevelAccess access;
     // Note to self: do not rely on the client-side block entity too much as it can easily become stale.
-    private final ExcavatorBlockEntity blockEntity;
+    private final MinerBlockEntity blockEntity;
 
     // Client side only
     private int clientProgress, clientMaxProgress;
 
     // Server-side constructor
-    public ExcavatorMenu(MenuType<?> type,  int id, Inventory pPlayerInv, ExcavatorBlockEntity pBE, Item ghostItem) {
+    public MinerMenu(MenuType<?> type, int id, Inventory pPlayerInv, MinerBlockEntity pBE, Item ghostItem) {
         super(type, id);
         this.ghostItem = ghostItem;
         this.blockEntity = pBE;
@@ -94,7 +94,7 @@ public class ExcavatorMenu extends AbstractContainerMenu {
     }
 
     // Client-side constructor
-    public ExcavatorMenu(MenuType<?> type, int id, Inventory inv, FriendlyByteBuf buf) {
+    public MinerMenu(MenuType<?> type, int id, Inventory inv, FriendlyByteBuf buf) {
         this(type, id, inv, getBlockEntity(inv, buf), buf.readItem().getItem());
     }
 
@@ -110,10 +110,10 @@ public class ExcavatorMenu extends AbstractContainerMenu {
         return ghostItem;
     }
 
-    private static ExcavatorBlockEntity getBlockEntity(Inventory inv, FriendlyByteBuf buf) {
+    private static MinerBlockEntity getBlockEntity(Inventory inv, FriendlyByteBuf buf) {
         BlockPos pos = buf.readBlockPos();
         BlockEntity be = inv.player.level().getBlockEntity(pos);
-        if (be instanceof ExcavatorBlockEntity ex) return ex;
+        if (be instanceof MinerBlockEntity ex) return ex;
         throw new IllegalStateException("BlockEntity not found at " + pos);
     }
 
@@ -147,7 +147,7 @@ public class ExcavatorMenu extends AbstractContainerMenu {
             return false;
         }
         return AbstractContainerMenu.stillValid(
-                ContainerLevelAccess.create(level, blockEntity.getBlockPos()), player, AllContent.EXCAVATOR_BLOCK.get()
+                ContainerLevelAccess.create(level, blockEntity.getBlockPos()), player, AllContent.MINER_BLOCK.get()
         );
     }
 
@@ -161,17 +161,17 @@ public class ExcavatorMenu extends AbstractContainerMenu {
             ItemStack original = slot.getItem();
             moved = original.copy();
 
-            final int EXCAVATOR_START = 0;
-            final int EXCAVATOR_END = ExcavatorBlockEntity.INVENTORY_SIZE;
-            final int PLAYER_START = EXCAVATOR_END;
-            final int PLAYER_END = EXCAVATOR_END + 36;
+            final int MINER_START = 0;
+            final int MINER_END = MinerBlockEntity.INVENTORY_SIZE;
+            final int PLAYER_START = MINER_END;
+            final int PLAYER_END = MINER_END + 36;
 
-            if (index < EXCAVATOR_END) {
+            if (index < MINER_END) {
                 if (!moveItemStackTo(original, PLAYER_START, PLAYER_END, true)) {
                     return ItemStack.EMPTY;
                 }
             } else {
-                if (!moveItemStackTo(original, EXCAVATOR_START, EXCAVATOR_END, false)) {
+                if (!moveItemStackTo(original, MINER_START, MINER_END, false)) {
                     return ItemStack.EMPTY;
                 }
             }

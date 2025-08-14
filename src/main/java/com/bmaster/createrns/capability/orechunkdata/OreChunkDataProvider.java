@@ -24,7 +24,7 @@ public class OreChunkDataProvider implements ICapabilitySerializable<CompoundTag
         this.chunk = chunk;
         chunk.setUnsaved(true);
         if (data.isOreChunk()) {
-            CreateRNS.LOGGER.info("Ore chunk {}/{} at {},{}", data.getExcavatedItemStack().getItem(),
+            CreateRNS.LOGGER.info("Ore chunk {}/{} at {},{}", data.getMinedItemStack().getItem(),
                     data.getPurity().name(),chunk.getPos().getBlockX(8), chunk.getPos().getBlockZ(8));
         }
     }
@@ -41,7 +41,7 @@ public class OreChunkDataProvider implements ICapabilitySerializable<CompoundTag
             // If chunk data is extracted from NBT, no reason to save
             chunk.setUnsaved(false);
             if (data.isOreChunk()) {
-                CreateRNS.LOGGER.info("[Loaded] Ore chunk {}/{} at {},{}", data.getExcavatedItemStack().getItem(),
+                CreateRNS.LOGGER.info("[Loaded] Ore chunk {}/{} at {},{}", data.getMinedItemStack().getItem(),
                         data.getPurity().name(), chunk.getPos().getBlockX(8), chunk.getPos().getBlockZ(8));
             }
         }

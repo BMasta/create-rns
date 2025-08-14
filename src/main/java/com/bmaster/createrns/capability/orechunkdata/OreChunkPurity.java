@@ -6,13 +6,13 @@ public enum OreChunkPurity {
     NORMAL(20 * 30),
     PURE(20 * 15);
 
-    private final int ticksPerExcavation;
+    private final int ticksToMine;
 
-    OreChunkPurity(int ticksPerExcavation) {
-        this.ticksPerExcavation = ticksPerExcavation;
+    OreChunkPurity(int ticksToMine) {
+        this.ticksToMine = ticksToMine;
     }
 
-    public int getTicksPerExcavation() {
-        return this.ticksPerExcavation;
+    public int getTicksToMine() {
+        return this.ticksToMine;
     }
 }

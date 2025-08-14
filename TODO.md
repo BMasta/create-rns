@@ -2,14 +2,14 @@
 - [x] Implement algorithms to fairly distribute ore chunks around the world.
 - [ ] Basic integration with create mod.
   - [x] Dependency version management and gradle options.
-  - [x] Excavator accepts create mod rotation and generates stress when working.
-  - [x] Excavator shows goggle tooltip.
-  - [x] Excavator has an animated model with spinning shaft when working.
-  - [ ] Excavator only works when supplied with sufficient stress and rotation speed.
-  - [ ] Excavator tooltip shows stress impact
+  - [x] Miner accepts create mod rotation and generates stress when working.
+  - [x] Miner shows goggle tooltip.
+  - [x] Miner has an animated model with spinning shaft when working.
+  - [ ] Miner only works when supplied with sufficient stress and rotation speed.
+  - [ ] Miner tooltip shows stress impact
 - [ ] Add ore chunk locator item that can tune onto an ore type among available ores and scan for the nearest ore chunk of that type.
-- [ ] Excavator makes sound when working
-- [ ] Excavator emits particles when working
+- [ ] Miner makes sound when working
+- [ ] Miner emits particles when working
 - [ ] Handle client/server config
   - [ ] Add config variable for picking an ore distribution algorithm.
   - [ ] Add config variable for allowed ores, how common their ore chunks should be, and how much ore is yielded on each excavation.
@@ -17,14 +17,14 @@
   - [ ] Add config variable for chunk purities and their corresponding excavation time.
 - [ ] Add recipes for all items.
 - [ ] Integration with JEI.
-- [ ] Add sound to excavator when it's running
+- [ ] Add sound to miner when it's running
 - [ ] Explore data generator usage for resource generation when possible.
 - [ ] Add in-game commands.
   - [ ] Teleport to a desired ore chunk or show its coordinates (admin).
   - [ ] Generate an ore chunk with specified properties.
-- [ ] Add multiple tiers of excavators with improved mining speed.
+- [ ] Add multiple tiers of miners with improved mining speed.
 - [ ] Implement a create mod bearing for a multiblock contraption that acts as a drill.
-  - [ ] What does the "drill" drill? Air? Should there spawn a physical ore pile in ore chunks? (also applies to basic excavator).
+  - [ ] What does the "drill" drill? Air? Should there spawn a physical ore pile in ore chunks? (also applies to basic miner).
   - [ ] Where does the yield go? If it goes into the contraption inventory, the item extraction becomes awkward and unnatural.
 - [ ] Integration with map mods.
   - [ ] Show scanned ore chunks as custom waypoints.

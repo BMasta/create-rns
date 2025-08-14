@@ -9,12 +9,12 @@ public class OreChunkData implements IOreChunkData, INBTSerializable<CompoundTag
     public static final OreChunkData EMPTY = new OreChunkData(false, ItemStack.EMPTY, OreChunkPurity.NONE);
 
     private boolean isOreChunk;
-    private ItemStack excavatedItemStack;
+    private ItemStack minedItemStack;
     private OreChunkPurity purity;
 
-    public OreChunkData(boolean isOreChunk, ItemStack excavatedItemStack, OreChunkPurity purity) {
+    public OreChunkData(boolean isOreChunk, ItemStack minedItemStack, OreChunkPurity purity) {
         this.isOreChunk = isOreChunk;
-        this.excavatedItemStack = excavatedItemStack;
+        this.minedItemStack = minedItemStack;
         this.purity = purity;
     }
 
@@ -24,8 +24,8 @@ public class OreChunkData implements IOreChunkData, INBTSerializable<CompoundTag
     }
 
     @Override
-    public ItemStack getExcavatedItemStack() {
-        return excavatedItemStack;
+    public ItemStack getMinedItemStack() {
+        return minedItemStack;
     }
 
     @Override
@@ -38,7 +38,7 @@ public class OreChunkData implements IOreChunkData, INBTSerializable<CompoundTag
         CompoundTag tag = new CompoundTag();
         tag.putBoolean("IsOreChunk", isOreChunk);
         if (isOreChunk) {
-            tag.put("Yield", excavatedItemStack.serializeNBT());
+            tag.put("Yield", minedItemStack.serializeNBT());
             tag.putString("Purity", purity.name());
         }
         return tag;
@@ -51,14 +51,14 @@ public class OreChunkData implements IOreChunkData, INBTSerializable<CompoundTag
         if (isOreChunk) {
             CompoundTag yield = tag.getCompound("Yield");
             if (!yield.isEmpty()) {
-                excavatedItemStack = ItemStack.of(yield);
+                minedItemStack = ItemStack.of(yield);
             }
-            CreateRNS.LOGGER.info("Deserialized item stack as {} from {}", excavatedItemStack,
+            CreateRNS.LOGGER.info("Deserialized item stack as {} from {}", minedItemStack,
                     tag.getCompound("Yield"));
 
             purity = OreChunkPurity.valueOf(tag.getString("Purity"));
         } else {
-            excavatedItemStack = ItemStack.EMPTY;
+            minedItemStack = ItemStack.EMPTY;
             purity = OreChunkPurity.NONE;
         }
     }

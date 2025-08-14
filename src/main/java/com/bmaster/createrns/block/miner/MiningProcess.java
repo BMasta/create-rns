@@ -1,60 +1,60 @@
-package com.bmaster.createrns.block.excavator;
+package com.bmaster.createrns.block.miner;
 
 import com.bmaster.createrns.capability.orechunkdata.IOreChunkData;
 import com.bmaster.createrns.capability.orechunkdata.OreChunkPurity;
 import net.minecraft.world.item.ItemStack;
 
-public class ExcavationProcess {
-    public final ItemStack excavatedItemStack;
+public class MiningProcess {
+    public final ItemStack minedItemStack;
 
     private final boolean isPossible;
-    private int ticksPerExcavation;
+    private int ticksToMine;
     private boolean isActive;
-    private int ticksExcavated = 0;
+    private int ticksMined = 0;
 
-    public ExcavationProcess(IOreChunkData data) {
+    public MiningProcess(IOreChunkData data) {
         if (data.isOreChunk()) {
             isPossible = true;
             // TODO: may be false once energy requirements are added
             isActive = true;
-            excavatedItemStack = data.getExcavatedItemStack();
-            ticksPerExcavation = data.getPurity().getTicksPerExcavation();
+            minedItemStack = data.getMinedItemStack();
+            ticksToMine = data.getPurity().getTicksToMine();
         } else {
             isPossible = false;
             isActive = false;
-            excavatedItemStack = ItemStack.EMPTY;
-            ticksPerExcavation = OreChunkPurity.NONE.getTicksPerExcavation();
+            minedItemStack = ItemStack.EMPTY;
+            ticksToMine = OreChunkPurity.NONE.getTicksToMine();
         }
     }
 
     public void advance() {
-        if (isPossible && isActive && (ticksExcavated < ticksPerExcavation)) {
-            ticksExcavated++;
+        if (isPossible && isActive && (ticksMined < ticksToMine)) {
+            ticksMined++;
         }
     }
 
     public ItemStack collect() {
         if (isDone()) {
-            ticksExcavated = 0;
-            return excavatedItemStack.copy();
+            ticksMined = 0;
+            return minedItemStack.copy();
         }
         return ItemStack.EMPTY;
     }
 
     public int getProgress() {
-        return ticksExcavated;
+        return ticksMined;
     }
 
     public void setProgress(int ticks) {
-        ticksExcavated = ticks;
+        ticksMined = ticks;
     }
 
     public int getMaxProgress() {
-        return ticksPerExcavation;
+        return ticksToMine;
     }
 
     public void setMaxProgress(int ticks) {
-        ticksPerExcavation = ticks;
+        ticksToMine = ticks;
     }
 
     public boolean isPossible() {
@@ -66,7 +66,7 @@ public class ExcavationProcess {
     }
 
     public boolean isDone() {
-        return (isPossible && isActive && (ticksExcavated >= ticksPerExcavation));
+        return (isPossible && isActive && (ticksMined >= ticksToMine));
     }
 
     public void activate() {
