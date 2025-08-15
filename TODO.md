@@ -7,7 +7,7 @@
   - [x] Miner has an animated model with spinning shaft when working.
   - [x] Miner only works when supplied with sufficient stress and rotation speed.
   - [x] Miner productivity scales with rotation speed.
-  - [ ] Miner tooltip shows stress impact
+  - [x] Miner tooltip shows stress impact
 - [ ] Add ore chunk locator item that can tune onto an ore type among available ores and scan for the nearest ore chunk of that type.
 - [ ] Miner makes sound when working
 - [ ] Miner emits particles when working

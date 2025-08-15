@@ -2,45 +2,59 @@ package com.bmaster.createrns;
 
 import com.bmaster.createrns.block.miner.*;
 import com.bmaster.createrns.capability.orechunkdata.IOreChunkData;
+import com.bmaster.createrns.item.DepositScannerItem;
 import com.simibubi.create.api.stress.BlockStressValues;
+import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.SharedProperties;
 import com.simibubi.create.foundation.item.ItemDescription;
 import com.simibubi.create.foundation.item.KineticStats;
-import com.tterrag.registrate.util.entry.BlockEntityEntry;
-import com.tterrag.registrate.util.entry.BlockEntry;
-import com.tterrag.registrate.util.entry.MenuEntry;
-import com.tterrag.registrate.util.entry.RegistryEntry;
+import com.simibubi.create.foundation.item.TooltipModifier;
+import com.simibubi.create.infrastructure.config.CStress;
+import com.tterrag.registrate.util.entry.*;
 import net.createmod.catnip.lang.FontHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
+
+import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
 
 
 public class AllContent {
     // Item tooltips
     static {
-        CreateRNS.REGISTRATE.setTooltipModifierFactory(item -> {
-            CreateRNS.LOGGER.info("Processing item {}", item);
-            return new ItemDescription.Modifier(item, FontHelper.Palette.STANDARD_CREATE)
-                    .andThen(KineticStats.create(item));
-        });
+        CreateRNS.REGISTRATE.setTooltipModifierFactory(item ->
+                new ItemDescription.Modifier(item, FontHelper.Palette.STANDARD_CREATE)
+                        .andThen(TooltipModifier.mapNull(KineticStats.create(item))));
     }
+
+    // Items
+    public static final ItemEntry<DepositScannerItem> DEPOSIT_SCANNER_ITEM = CreateRNS.REGISTRATE.item(
+                    "deposit_scanner", DepositScannerItem::new)
+            .properties(p -> p.stacksTo(1))
+            .model(AssetLookup.itemModelWithPartials())
+            .register();
 
     // Blocks
     public static final BlockEntry<MinerBlock> MINER_BLOCK = CreateRNS.REGISTRATE.block("miner",
                     MinerBlock::new)
             .initialProperties(SharedProperties::stone)
-            .properties(BlockBehaviour.Properties::noOcclusion)
-            .onRegister((b) ->
-                    BlockStressValues.IMPACTS.register(b, () -> 4.0))
-            .item().build()
+            .properties(p -> p.noOcclusion().mapColor(MapColor.PODZOL))
+            .transform(axeOrPickaxe())
+            .blockstate((c, p) ->
+                    p.simpleBlock(c.get(), AssetLookup.standardModel(c, p)))
+            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 4))
+            .item()
+            .model(AssetLookup.existingItemModel())
+            .build()
             .register();
 
     // Block entities
@@ -59,6 +73,7 @@ public class AllContent {
                             .title(Component.translatable("creativetab.%s".formatted(CreateRNS.MOD_ID)))
                             .displayItems((pParameters, pOutput) -> {
                                 pOutput.accept(MINER_BLOCK.get().asItem());
+                                pOutput.accept(DEPOSIT_SCANNER_ITEM.get().asItem());
                             })
                             .build())
             .register();
