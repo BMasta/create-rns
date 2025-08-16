@@ -1,6 +1,7 @@
 package com.bmaster.createrns.infrastructure;
 
 import com.bmaster.createrns.CreateRNS;
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -17,27 +18,35 @@ import java.util.stream.Collectors;
 public class ServerConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
-    // a list of strings that are treated as resource locations for items
-    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> OVERWORLD_ORES = BUILDER
+    // ------------------------------------------------ Config values ----------------------------------------------- //
+    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> OVERWORLD_ORES_CV = BUILDER
             .comment("Ore chunks for these items will spawn in the overworld")
-            .defineListAllowEmpty("items", List.of(), ServerConfig::validateItemName);
+            .defineListAllowEmpty("overworldOres", List.of(), ServerConfig::isValidRL);
+
+    // -------------------------------------------------------------------------------------------------------------- //
 
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
-    public static Set<Item> items;
+    // ------------------------------------------------ Baked values ------------------------------------------------ //
+    public static List<Item> OVERWORLD_ORES;
 
-    private static boolean validateItemName(final Object obj) {
-        return obj instanceof final String itemName && ForgeRegistries.ITEMS.containsKey(
-                ResourceLocation.parse(itemName));
+    // -------------------------------------------------------------------------------------------------------------- //
+
+    private static boolean isValidRL(final Object obj) {
+        return (obj instanceof String s) && ResourceLocation.tryParse(s) != null;
     }
 
     @SubscribeEvent
     static void onLoadReload(final ModConfigEvent event) {
         if (event instanceof ModConfigEvent.Unloading) return;
+        if (event.getConfig().getSpec() != ServerConfig.SPEC) return;
 
-        // convert the list of strings into a set of items
-        items = OVERWORLD_ORES.get().stream()
-                .map(itemName -> ForgeRegistries.ITEMS.getValue(ResourceLocation.parse(itemName)))
-                .collect(Collectors.toSet());
+        // Convert item id's into items
+        OVERWORLD_ORES = OVERWORLD_ORES_CV.get().stream()
+                .map(ResourceLocation::parse)
+                .map(ForgeRegistries.ITEMS::getValue)
+                .filter(java.util.Objects::nonNull)
+                .toList();
+        CreateRNS.LOGGER.info("OVERWORLD_ORES is {}", OVERWORLD_ORES);
     }
 }
