@@ -20,8 +20,6 @@ public class ClientForgeEvents {
         }
     }
 
-
-
     @SubscribeEvent
     public static void onWorldScroll(MouseScrollingEvent e) {
         Minecraft mc = Minecraft.getInstance();

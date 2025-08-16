@@ -3,10 +3,9 @@ package com.bmaster.createrns.item.DepositScanner;
 import com.bmaster.createrns.AllContent;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler.Mode;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.simibubi.create.AllItems;
+import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer;
-import dev.engine_room.flywheel.lib.transform.PoseTransformStack;
 import dev.engine_room.flywheel.lib.transform.TransformStack;
 import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.animation.LerpedFloat.Chaser;
@@ -17,13 +16,10 @@ import net.createmod.catnip.animation.LerpedFloat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-
-import java.util.Vector;
 
 /// A humble rip-off of Create's linked controller
 public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer {
@@ -48,6 +44,7 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
         if (Minecraft.getInstance().isPaused()) return;
 
         boolean active = DepositScannerClientHandler.MODE != Mode.IDLE;
+
         equipProgress.chase(active ? 1 : 0, .2f, Chaser.EXP);
         equipProgress.tickChaser();
 
@@ -58,13 +55,11 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
             scrollProgress.updateChaseTarget(scrollProgress.getValue());
         }
 
-        CreateRNS.LOGGER.info("Chasing {}/{}", scrollProgress.getValue(), scrollProgress.getChaseTarget());
         scrollProgress.tickChaser();
     }
 
     protected static void scrollUp() {
-        // AllSoundEvents.CONTROLLER_CLICK.playAt(player.level(), player.blockPosition(), 1f, .5f, true);
-            scrollProgress.updateChaseTarget(scrollProgress.getChaseTarget() + 90);
+        scrollProgress.updateChaseTarget(scrollProgress.getChaseTarget() + 90);
     }
 
     protected static void scrollDown() {
@@ -80,18 +75,12 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
     protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer,
                           ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buffer, int light,
                           int overlay) {
-        renderNormal(stack, model, renderer, transformType, ms, light);
-    }
-
-    private static void renderNormal(ItemStack stack, CustomRenderedItemModel model,
-                                       PartialItemModelRenderer renderer, ItemDisplayContext transformType, PoseStack ms,
-                                       int light) {
         render(stack, model, renderer, transformType, ms, light);
     }
 
     private static void render(ItemStack stack, CustomRenderedItemModel model,
-                                 PartialItemModelRenderer renderer, ItemDisplayContext transformType, PoseStack ms,
-                                 int light) {
+                               PartialItemModelRenderer renderer, ItemDisplayContext transformType, PoseStack ms,
+                               int light) {
         float pt = AnimationTickHolder.getPartialTicks();
         var msr = TransformStack.of(ms);
         boolean active = false;
@@ -102,7 +91,7 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
         ItemDisplayContext offHand =
                 rightHanded ? ItemDisplayContext.FIRST_PERSON_LEFT_HAND : ItemDisplayContext.FIRST_PERSON_RIGHT_HAND;
 
-        boolean noControllerInMain = AllContent.DEPOSIT_SCANNER_ITEM.isIn(mc.player.getMainHandItem());
+        boolean noControllerInMain = !AllContent.DEPOSIT_SCANNER_ITEM.isIn(mc.player.getMainHandItem());
 
         ms.pushPose();
         if (transformType == mainHand || (transformType == offHand && noControllerInMain)) {
@@ -138,7 +127,7 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
 
         ms.pushPose();
         msr.translate(centerX, centerY, centerZ);
-        msr.rotateZDegrees(scrollProgress.getValue() % 360);
+        msr.rotateZDegrees(scrollProgress.getValue(pt) % 360);
         msr.translate(-centerX, -centerY, -centerZ);
         renderer.renderSolid(wheel, light);
         ms.popPose();

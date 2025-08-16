@@ -3,17 +3,10 @@ package com.bmaster.createrns.item.DepositScanner;
 import com.bmaster.createrns.AllContent;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.simibubi.create.AllSoundEvents;
-import com.simibubi.create.foundation.utility.ControlsUtil;
-import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Vector;
 
 public class DepositScannerClientHandler {
     public static Mode MODE = Mode.IDLE;
@@ -34,23 +27,34 @@ public class DepositScannerClientHandler {
     public static void scrollDown() {
         if (MODE != Mode.IDLE) {
             DepositScannerItemRenderer.scrollDown();
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player != null) {
+                AllSoundEvents.SCROLL_VALUE.playAt(player.level(), player.blockPosition(), 1f, 1f, true);
+            }
         }
     }
 
     public static void scrollUp() {
         if (MODE != Mode.IDLE) {
             DepositScannerItemRenderer.scrollUp();
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player != null) {
+                AllSoundEvents.SCROLL_VALUE.playAt(player.level(), player.blockPosition(), 1f, 1f, true);
+            }
         }
     }
 
     public static void tick() {
         DepositScannerItemRenderer.tick();
+        refreshMode();
+    }
 
-        if (MODE == Mode.IDLE)
-            return;
+    private static void refreshMode() {
+        if (MODE == Mode.IDLE) return;
 
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
+        if (player == null) return;
         ItemStack heldItem = player.getMainHandItem();
 
         if (player.isSpectator()) {
@@ -82,7 +86,7 @@ public class DepositScannerClientHandler {
         }
     }
 
-    protected static void onReset() {
+    private static void onReset() {
         DepositScannerItemRenderer.resetWheel();
     }
 }
