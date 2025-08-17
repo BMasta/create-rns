@@ -18,7 +18,7 @@ public class OreChunkDataProvider implements ICapabilitySerializable<CompoundTag
     private final LevelChunk chunk;
 
     public OreChunkDataProvider(LevelChunk chunk, boolean forceRecompute) {
-        this.data = OreChunkClassifier.DEFAULT.classify(chunk);
+        this.data = OreChunkClassifier.INSTANCE.classify(chunk);
         this.opt = LazyOptional.of(() -> data);
         this.forceRecompute = forceRecompute;
         this.chunk = chunk;

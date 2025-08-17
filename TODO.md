@@ -8,7 +8,7 @@
   - [x] Miner only works when supplied with sufficient stress and rotation speed.
   - [x] Miner productivity scales with rotation speed.
   - [x] Miner tooltip shows stress impact
-- [ ] Add ore chunk locator item that can tune onto an ore type among available ores and scan for the nearest ore chunk of that type.
+- [ ] Add deposit scanner item that can tune onto an ore type among available ores and scan for the nearest ore chunk of that type.
 - [ ] Miner makes sound when working
 - [ ] Miner emits particles when working
 - [ ] Handle client/server config

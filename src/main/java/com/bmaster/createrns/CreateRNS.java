@@ -1,6 +1,7 @@
 package com.bmaster.createrns;
 
 import com.bmaster.createrns.infrastructure.ServerConfig;
+import com.bmaster.createrns.item.DepositScanner.DepositScannerChannel;
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import net.minecraftforge.common.MinecraftForge;
@@ -40,7 +41,7 @@ public class CreateRNS {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
-        LOGGER.info("HELLO FROM COMMON SETUP");
+        event.enqueueWork(DepositScannerChannel::init);
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent event) {

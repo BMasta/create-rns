@@ -23,14 +23,9 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 import org.joml.Vector3f;
 
 /// A humble rip-off of Create's linked controller
-@Mod.EventBusSubscriber(modid = CreateRNS.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer {
     protected enum RenderType {
         NORMAL
@@ -43,36 +38,20 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
 
     private static final LerpedFloat equipProgress;
     private static final LerpedFloat scrollProgress;
+    private static final LerpedFloat pressProgress;
 
     static {
-        equipProgress = LerpedFloat.linear().startWithValue(0);
+        equipProgress = LerpedFloat.linear().startWithValue(0).chase(0, 0.3f, Chaser.EXP);
         scrollProgress = LerpedFloat.linear().startWithValue(0).chase(0, 0.5f, Chaser.EXP);
-    }
-
-    @SubscribeEvent
-    public static void onWorldScroll(InputEvent.MouseScrollingEvent e) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null || mc.screen != null) return;
-
-        if (mc.player.getMainHandItem().is(AllContent.DEPOSIT_SCANNER_ITEM.get()) ||
-                mc.player.getOffhandItem().is(AllContent.DEPOSIT_SCANNER_ITEM.get())) {
-            if (e.getScrollDelta() > 0) {
-                DepositScannerClientHandler.scrollUp();
-            } else {
-                DepositScannerClientHandler.scrollDown();
-            }
-            if (DepositScannerClientHandler.MODE == DepositScannerClientHandler.Mode.ACTIVE) {
-                e.setCanceled(true);
-            }
-        }
+        pressProgress = LerpedFloat.linear().startWithValue(0).chase(0, 0.6f, Chaser.EXP);
     }
 
     protected static void tick() {
         if (Minecraft.getInstance().isPaused()) return;
 
-        boolean active = DepositScannerClientHandler.MODE != Mode.IDLE;
+        boolean active = DepositScannerClientHandler.mode != Mode.IDLE;
 
-        equipProgress.chase(active ? 1 : 0, .2f, Chaser.EXP);
+        equipProgress.updateChaseTarget(active ? 1 : 0);
         equipProgress.tickChaser();
 
         if (!active) return;
@@ -81,8 +60,10 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
             scrollProgress.startWithValue(scrollProgress.getValue() % 360);
             scrollProgress.updateChaseTarget(scrollProgress.getValue());
         }
+        pressProgress.updateChaseTarget(DepositScannerClientHandler.isSelectionLocked() ? 1 : 0);
 
         scrollProgress.tickChaser();
+        pressProgress.tickChaser();
     }
 
     protected static void scrollUp() {
@@ -108,30 +89,27 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
     private static void staticRender(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer,
                                      ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buf,
                                      int light, int overlay) {
+        var mc = Minecraft.getInstance();
+        var p = mc.player;
+        if (p == null) return;
+
+        boolean rightHanded = mc.options.mainHand().get() == HumanoidArm.RIGHT;
+        var mainDisplay = rightHanded ? ItemDisplayContext.FIRST_PERSON_RIGHT_HAND : ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
+        var offDisplay = rightHanded ? ItemDisplayContext.FIRST_PERSON_LEFT_HAND : ItemDisplayContext.FIRST_PERSON_RIGHT_HAND;
+        int handModifier = transformType == ItemDisplayContext.FIRST_PERSON_LEFT_HAND ? -1 : 1;
         float pt = AnimationTickHolder.getPartialTicks();
         var msr = TransformStack.of(ms);
-        Minecraft mc = Minecraft.getInstance();
-
-        // Mr. Hands
-        boolean rightHanded = mc.options.mainHand().get() == HumanoidArm.RIGHT;
-        ItemDisplayContext mainHand = rightHanded ?
-                ItemDisplayContext.FIRST_PERSON_RIGHT_HAND : ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
-        ItemDisplayContext offHand = rightHanded ?
-                ItemDisplayContext.FIRST_PERSON_LEFT_HAND : ItemDisplayContext.FIRST_PERSON_RIGHT_HAND;
-        int handModifier = transformType == ItemDisplayContext.FIRST_PERSON_LEFT_HAND ? -1 : 1;
-
         float equip = equipProgress.getValue(pt);
         boolean equipInProgress = !Mth.equal(equip, 0);
-        boolean noScannerInMain = !AllContent.DEPOSIT_SCANNER_ITEM.isIn(mc.player.getMainHandItem());
         boolean active = false;
 
         ms.pushPose();
 
         // Two-arm equip
-        if (equipInProgress && transformType == mainHand && mc.player.getOffhandItem().isEmpty()) {
-            ItemTransform transform = model.getTransforms().getTransform(transformType);
+        if (equipInProgress && transformType == mainDisplay && p.getOffhandItem().isEmpty()) {
+            var transform = model.getTransforms().getTransform(transformType);
             float viewAngleMultiplier = AnimationFunctions.easeIn(
-                    Mth.clamp(mc.player.getViewXRot(pt), 0, 45) / 45);
+                    Mth.clamp(p.getViewXRot(pt), 0, 45) / 45);
 
             undoModelTransform(transform, ms, msr, pt, handModifier);
 
@@ -154,7 +132,7 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
             active = true;
         }
         // One-arm equip
-        else if (equipInProgress && (transformType == mainHand || transformType == offHand)) {
+        else if (equipInProgress && (transformType == mainDisplay || transformType == offDisplay)) {
             msr.translate(0, equip / 4, equip / 4 * handModifier);
             msr.rotateYDegrees(equip * -30 * handModifier);
             msr.rotateZDegrees(equip * -30);
@@ -163,14 +141,13 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
         }
         // In inventory
         else if (transformType == ItemDisplayContext.GUI) {
-            if (stack == mc.player.getMainHandItem()) active = true;
-            if (stack == mc.player.getOffhandItem() && noScannerInMain) active = true;
+            if (stack == p.getMainHandItem()) active = true;
+            if (stack == p.getOffhandItem()) active = true;
         }
 
-        active &= DepositScannerClientHandler.MODE != Mode.IDLE;
+        active &= DepositScannerClientHandler.mode != Mode.IDLE;
 
         renderer.render(active ? POWERED.get() : model.getOriginalModel(), light);
-
         renderSelectedItem(ms, msr, buf, light, overlay);
 
         if (!active) {
@@ -207,12 +184,13 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
                                     int light, float partialTicks) {
         BakedModel wheel = WHEEL.get();
         // Subtract 0.5 to convert from corner-based to center-based
+        float pressed = -0.4f / 16f;
         float centerX = 8f / 16f - 0.5f;
         float centerY = 2f / 16f - 0.5f;
         float centerZ = 4.5f / 16f - 0.5f;
 
         ms.pushPose();
-        msr.translate(centerX, centerY, centerZ);
+        msr.translate(centerX, centerY + pressed * pressProgress.getValue(partialTicks), centerZ);
         msr.rotateZDegrees(scrollProgress.getValue(partialTicks) % 360);
         msr.translate(-centerX, -centerY, -centerZ);
         renderer.renderSolid(wheel, light);
