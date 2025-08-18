@@ -12,6 +12,9 @@ import net.minecraft.world.level.ChunkPos;
 import org.lwjgl.glfw.GLFW;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerItemRenderer.AntennaStatus;
 
+import static com.bmaster.createrns.item.DepositScanner.DepositScannerServerHandler.MIN_PING_INTERVAL;
+import static com.bmaster.createrns.item.DepositScanner.DepositScannerServerHandler.MAX_PING_INTERVAL;
+
 public class DepositScannerClientHandler {
     public static AntennaStatus antennaStatus = AntennaStatus.INACTIVE;
     public static Mode mode = Mode.IDLE;
@@ -20,19 +23,18 @@ public class DepositScannerClientHandler {
         IDLE, ACTIVE
     }
 
-    public static final int MIN_PING_INTERVAL = 3;
-    public static final int MAX_PING_INTERVAL = 60;
-
     private static int selectedIndex = 0;
     private static int pingInterval = MAX_PING_INTERVAL;
     private static int ticksSinceLastPing = 0;
     private static boolean selectionLocked = false;
     private static boolean pingResultPending = false;
+    private static boolean needScanRecompute = true;
     private static ChunkPos occupiedOreChunk;
 
 
     public static void toggle() {
         if (mode == Mode.IDLE) {
+            needScanRecompute = true;
             mode = Mode.ACTIVE;
         } else {
             mode = Mode.IDLE;
@@ -50,6 +52,7 @@ public class DepositScannerClientHandler {
         selectionLocked = !selectionLocked;
 
         if (selectionLocked) {
+            needScanRecompute = true;
             ticksSinceLastPing = pingInterval; // Ping right away
             AllSoundEvents.CONTROLLER_CLICK.playAt(p.level(), p.blockPosition(), 1f, .75f, true);
         } else {
@@ -116,16 +119,18 @@ public class DepositScannerClientHandler {
     }
 
     private static void pingForItem() {
-        DepositScannerC2SPacket.send(getSelectedItem().getItem());
+        DepositScannerC2SPacket.send(getSelectedItem().getItem(), needScanRecompute);
     }
 
-    protected static void setPingResult(AntennaStatus status, int interval, boolean found) {
+    protected static void processScanReply(AntennaStatus status, int interval, boolean found) {
         var p = Minecraft.getInstance().player;
         if (p == null || !p.level().isClientSide()) return;
 
+        // Delay ping processing so it can be synchronized with the renderer
         pingResultPending = true;
         antennaStatus = status;
         pingInterval = (antennaStatus == AntennaStatus.INACTIVE) ? MAX_PING_INTERVAL : interval;
+        needScanRecompute = (antennaStatus == AntennaStatus.INACTIVE);
 
         if (found) {
             pingInterval = MIN_PING_INTERVAL;
@@ -163,23 +168,30 @@ public class DepositScannerClientHandler {
         if (mode == Mode.IDLE) return;
 
         Minecraft mc = Minecraft.getInstance();
-        LocalPlayer player = mc.player;
-        if (player == null) return;
-        ItemStack heldItem = player.getMainHandItem();
+        LocalPlayer p = mc.player;
+        if (p == null) return;
 
-        if (player.isSpectator()) {
+        if (p.isSpectator()) {
             mode = Mode.IDLE;
             onReset();
             return;
         }
 
-        if (!AllContent.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
-            heldItem = player.getOffhandItem();
-            if (!AllContent.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
-                mode = Mode.IDLE;
-                onReset();
-                return;
+        boolean inHotbarOrOffhand = false;
+        if (p.getOffhandItem().is(AllContent.DEPOSIT_SCANNER_ITEM.get())) {
+            inHotbarOrOffhand = true;
+        }
+        else {
+            // Search in hotbar
+            var inv = p.getInventory();
+            for (int i = 0; i < 9 && !inHotbarOrOffhand; ++i) {
+                if (inv.getItem(i).is(AllContent.DEPOSIT_SCANNER_ITEM.get())) inHotbarOrOffhand = true;
             }
+        }
+        if (!inHotbarOrOffhand) {
+            mode = Mode.IDLE;
+            onReset();
+            return;
         }
 
         if (mc.screen != null) {

@@ -164,11 +164,6 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
 
             active = true;
         }
-        // In inventory
-        else if (transformType == ItemDisplayContext.GUI) {
-            if (stack == p.getMainHandItem()) active = true;
-            if (stack == p.getOffhandItem()) active = true;
-        }
 
         active &= DepositScannerClientHandler.mode != Mode.IDLE;
 

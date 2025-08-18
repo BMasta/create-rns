@@ -92,7 +92,10 @@ public class ForgeEvents {
                     } else {
                         DepositScannerClientHandler.scrollDown();
                     }
-                    e.setCanceled(true);
+                    // Do not consume the scroll event if selection is locked
+                    if (!DepositScannerClientHandler.isSelectionLocked()) {
+                        e.setCanceled(true);
+                    }
                 }
             }
         }

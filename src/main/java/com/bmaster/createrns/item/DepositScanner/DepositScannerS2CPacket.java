@@ -1,13 +1,21 @@
 package com.bmaster.createrns.item.DepositScanner;
 
+import com.bmaster.createrns.CreateRNS;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerItemRenderer.AntennaStatus;
+import net.minecraftforge.network.PacketDistributor;
 
 import java.util.function.Supplier;
 
 public record DepositScannerS2CPacket(AntennaStatus antennaStatus, int interval, boolean found) {
+    public static void send(ServerPlayer receiver, AntennaStatus status, int interval, boolean oreChunkFound) {
+        DepositScannerChannel.CHANNEL.send(PacketDistributor.PLAYER.with(() -> receiver),
+                new DepositScannerS2CPacket(status, interval, oreChunkFound));
+    }
+
     public static void encode(DepositScannerS2CPacket p, FriendlyByteBuf buf) {
         buf.writeEnum(p.antennaStatus);
         buf.writeInt(p.interval);
@@ -23,7 +31,7 @@ public record DepositScannerS2CPacket(AntennaStatus antennaStatus, int interval,
         ctx.enqueueWork(() -> {
             var mc = Minecraft.getInstance();
             if (mc.player == null || !mc.player.level().isClientSide()) return;
-            DepositScannerClientHandler.setPingResult(p.antennaStatus, p.interval, p.found);
+            DepositScannerClientHandler.processScanReply(p.antennaStatus, p.interval, p.found);
         });
         ctx.setPacketHandled(true);
     }
