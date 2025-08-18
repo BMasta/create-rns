@@ -1,9 +1,7 @@
 package com.bmaster.createrns.util;
 
-import com.bmaster.createrns.CreateRNS;
 import com.google.common.hash.Hashing;
 import it.unimi.dsi.fastutil.HashCommon;
-import net.minecraft.world.level.ChunkPos;
 
 public class Hasher {
     private long hash = 0;

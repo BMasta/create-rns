@@ -3,19 +3,14 @@ package com.bmaster.createrns.event;
 import com.bmaster.createrns.AllContent;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.capability.orechunkdata.OreChunkDataProvider;
-import com.bmaster.createrns.item.DepositScanner.DepositScannerC2SPacket;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler;
-import com.bmaster.createrns.item.DepositScanner.DepositScannerItemRenderer;
-import com.simibubi.create.Create;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = CreateRNS.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -61,7 +56,6 @@ public class ForgeEvents {
                     e.setSwingHand(false);
                     e.setCanceled(true);
                     if (scannerLastLeftClickedAt + SCANNER_INTERACT_COOLDOWN < t) {
-                        CreateRNS.LOGGER.info("Left click");
                         scannerLastLeftClickedAt = t;
                         DepositScannerClientHandler.toggleSelectionLocked();
                     }
@@ -71,7 +65,6 @@ public class ForgeEvents {
                     e.setSwingHand(false);
                     e.setCanceled(true);
                     if (scannerLastRightClickedAt + SCANNER_INTERACT_COOLDOWN < t) {
-                        CreateRNS.LOGGER.info("Use");
                         scannerLastRightClickedAt = t;
                         DepositScannerClientHandler.toggle();
                         p.getCooldowns().addCooldown(AllContent.DEPOSIT_SCANNER_ITEM.get(), 2);

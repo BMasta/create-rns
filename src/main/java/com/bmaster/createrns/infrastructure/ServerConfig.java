@@ -47,6 +47,5 @@ public class ServerConfig {
                 .map(ForgeRegistries.ITEMS::getValue)
                 .filter(java.util.Objects::nonNull)
                 .toList();
-        CreateRNS.LOGGER.info("OVERWORLD_ORES is {}", OVERWORLD_ORES);
     }
 }

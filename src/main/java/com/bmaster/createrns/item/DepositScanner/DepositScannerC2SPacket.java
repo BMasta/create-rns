@@ -1,6 +1,5 @@
 package com.bmaster.createrns.item.DepositScanner;
 
-import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.capability.orechunkdata.OreChunkClassifier;
 import com.bmaster.createrns.util.Utils;
 import net.minecraft.core.BlockPos;
@@ -22,6 +21,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public record DepositScannerC2SPacket(Item item) {
+
     private static final int MAX_CHESSBOARD_CHUNK_DISTANCE = 100;
     private static final int MAX_BLOCK_DISTANCE = MAX_CHESSBOARD_CHUNK_DISTANCE * 16;
 
@@ -46,7 +46,7 @@ public record DepositScannerC2SPacket(Item item) {
         ctx.enqueueWork(() -> {
             ServerPlayer sp = ctx.getSender();
             if (sp == null) return;
-            if(!(sp.level() instanceof ServerLevel sl)) return;
+            if (!(sp.level() instanceof ServerLevel sl)) return;
 
             Optional<ChunkPos> posOpt = OreChunkClassifier.INSTANCE.getNearestOreChunk(sp.chunkPosition(), sl.getSeed(),
                     p.item, MAX_CHESSBOARD_CHUNK_DISTANCE);
@@ -67,11 +67,13 @@ public record DepositScannerC2SPacket(Item item) {
                     var distance = Math.min(MAX_BLOCK_DISTANCE, Math.sqrt(playerPos.distSqr(chunkCenterPos)));
 
                     float curYaw = sp.getYRot();
-                    float targetYaw = getYaw(sp.blockPosition(),  chunkCenterPos);
+                    float targetYaw = getYaw(sp.blockPosition(), chunkCenterPos);
                     float diff = Mth.wrapDegrees(targetYaw - curYaw);
 
-                    // [5, 60] ticks == [0.25, 3] seconds
-                    interval = 5 + (int) (55 * distance / MAX_BLOCK_DISTANCE);
+                    interval = DepositScannerClientHandler.MIN_PING_INTERVAL +
+                            (int) ((DepositScannerClientHandler.MAX_PING_INTERVAL -
+                                    DepositScannerClientHandler.MIN_PING_INTERVAL) *
+                                    Utils.easeOut((float) distance / MAX_BLOCK_DISTANCE, 2));
 
                     if (Math.abs(diff) < 30) {
                         status = AntennaStatus.BOTH_ACTIVE;
@@ -80,8 +82,6 @@ public record DepositScannerC2SPacket(Item item) {
                     } else {
                         status = AntennaStatus.RIGHT_ACTIVE;
                     }
-//                    CreateRNS.LOGGER.info("cy={}, ty={} diff={} dist={} int={}", curYaw, targetYaw,
-//                            diff, distance, interval);
                 }
             }
 

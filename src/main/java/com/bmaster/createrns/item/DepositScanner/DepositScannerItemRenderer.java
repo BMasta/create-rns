@@ -1,6 +1,5 @@
 package com.bmaster.createrns.item.DepositScanner;
 
-import com.bmaster.createrns.AllContent;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler.Mode;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
@@ -35,14 +34,23 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
         NORMAL
     }
 
+    private static final PartialModel UNPOWERED = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
+            CreateRNS.MOD_ID, "item/deposit_scanner/unpowered"));
+    private static final PartialModel ANTENNA_UNPOWERED = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
+            CreateRNS.MOD_ID, "item/deposit_scanner/antenna_unpowered"));
     private static final PartialModel POWERED = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
             CreateRNS.MOD_ID, "item/deposit_scanner/powered"));
+    private static final PartialModel ANTENNA_POWERED = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
+            CreateRNS.MOD_ID, "item/deposit_scanner/antenna_powered"));
     private static final PartialModel WHEEL = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
             CreateRNS.MOD_ID, "item/deposit_scanner/wheel"));
 
     private static final LerpedFloat equipProgress;
     private static final LerpedFloat scrollProgress;
     private static final LerpedFloat pressProgress;
+
+    private static boolean poweredIndefinitely = false;
+    private static int poweredTicks = 0;
 
     static {
         equipProgress = LerpedFloat.linear().startWithValue(0).chase(0, 0.3f, Chaser.EXP);
@@ -59,6 +67,7 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
         equipProgress.tickChaser();
 
         if (!active) return;
+        if (poweredTicks > 0) poweredTicks--;
 
         if (scrollProgress.settled()) {
             scrollProgress.startWithValue(scrollProgress.getValue() % 360);
@@ -68,6 +77,18 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
 
         scrollProgress.tickChaser();
         pressProgress.tickChaser();
+    }
+
+    protected static void powerFor(int ticks) {
+        poweredTicks = ticks;
+    }
+
+    protected static void powerOn() {
+        poweredIndefinitely = true;
+    }
+
+    protected static void powerOff() {
+        poweredIndefinitely = false;
     }
 
     protected static void scrollUp() {
@@ -151,7 +172,8 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
 
         active &= DepositScannerClientHandler.mode != Mode.IDLE;
 
-        renderer.render(active ? POWERED.get() : model.getOriginalModel(), light);
+        var partialBase = (active && (poweredIndefinitely || poweredTicks > 0)) ? POWERED : UNPOWERED;
+        renderer.render(active ? partialBase.get() : model.getOriginalModel(), light);
         renderSelectedItem(ms, msr, buf, light, overlay);
 
         if (!active) {
@@ -160,6 +182,7 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
         }
 
         renderWheel(ms, msr, renderer, light, pt);
+        renderAntennas(ms, renderer, light);
 
         ms.popPose();
     }
@@ -182,6 +205,29 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
         msr.rotateXDegrees(-rot.x() * equip * handModifier);
 
         ms.translate(-trn.x() / 16f * equip, -trn.y() / 16f * equip, -trn.z() / 16f * equip);
+    }
+
+    private static void renderAntennas(PoseStack ms, PartialItemModelRenderer renderer, int light) {
+        ms.pushPose();
+        PartialModel partialAntenna1;
+        PartialModel partialAntenna2;
+        if (poweredIndefinitely || poweredTicks > 0) {
+            partialAntenna1 = switch (DepositScannerClientHandler.antennaStatus) {
+                case INACTIVE, RIGHT_ACTIVE -> ANTENNA_UNPOWERED;
+                case LEFT_ACTIVE, BOTH_ACTIVE -> ANTENNA_POWERED;
+            };
+            partialAntenna2 = switch (DepositScannerClientHandler.antennaStatus) {
+                case INACTIVE, LEFT_ACTIVE -> ANTENNA_UNPOWERED;
+                case RIGHT_ACTIVE, BOTH_ACTIVE -> ANTENNA_POWERED;
+            };
+        } else {
+            partialAntenna1 = ANTENNA_UNPOWERED;
+            partialAntenna2 = ANTENNA_UNPOWERED;
+        }
+        renderer.render(partialAntenna1.get(), light);
+        ms.translate(0, 0, -0.5f);
+        renderer.render(partialAntenna2.get(), light);
+        ms.popPose();
     }
 
     private static void renderWheel(PoseStack ms, PoseTransformStack msr, PartialItemModelRenderer renderer,

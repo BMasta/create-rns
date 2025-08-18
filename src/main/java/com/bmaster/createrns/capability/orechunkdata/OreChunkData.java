@@ -1,6 +1,5 @@
 package com.bmaster.createrns.capability.orechunkdata;
 
-import com.bmaster.createrns.CreateRNS;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.util.INBTSerializable;
@@ -46,15 +45,12 @@ public class OreChunkData implements IOreChunkData, INBTSerializable<CompoundTag
 
     @Override
     public void deserializeNBT(CompoundTag tag) {
-        CreateRNS.LOGGER.info("Deserializing {}", tag);
         isOreChunk = tag.getBoolean("IsOreChunk");
         if (isOreChunk) {
             CompoundTag yield = tag.getCompound("Yield");
             if (!yield.isEmpty()) {
                 minedItemStack = ItemStack.of(yield);
             }
-            CreateRNS.LOGGER.info("Deserialized item stack as {} from {}", minedItemStack,
-                    tag.getCompound("Yield"));
 
             purity = OreChunkPurity.valueOf(tag.getString("Purity"));
         } else {
