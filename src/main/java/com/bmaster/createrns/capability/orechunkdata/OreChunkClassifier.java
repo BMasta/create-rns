@@ -134,7 +134,7 @@ public class OreChunkClassifier {
             acceptedOreStack = acceptedOres.get(0);
         } else {
             // If more than one ore got accepted, pick randomly
-            float tiebreakRoll = hasher.roll() * acceptedOres.size();
+            float tiebreakRoll = hasher.roll() * (acceptedOres.size() - 1);
             int idx = Math.round(tiebreakRoll);
             acceptedOreStack = acceptedOres.get(idx);
         }

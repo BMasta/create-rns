@@ -3,8 +3,10 @@ package com.bmaster.createrns.event;
 import com.bmaster.createrns.AllContent;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.capability.orechunkdata.OreChunkDataProvider;
+import com.bmaster.createrns.item.DepositScanner.DepositScannerC2SPacket;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerItemRenderer;
+import com.simibubi.create.Create;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -18,6 +20,10 @@ import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = CreateRNS.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ForgeEvents {
+    private static final int SCANNER_INTERACT_COOLDOWN = 5;
+    private static long scannerLastLeftClickedAt = 0;
+    private static long scannerLastRightClickedAt = 0;
+
     @SubscribeEvent
     public static void tick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) {
@@ -42,24 +48,34 @@ public class ForgeEvents {
         var p = mc.player;
 
         if (p != null && mc.screen == null) {
+            var l = p.level();
+            var t = l.getGameTime();
             var mainItem = p.getMainHandItem();
             var offItem = p.getOffhandItem();
 
             // Scanner
-            if (mainItem.is(AllContent.DEPOSIT_SCANNER_ITEM.get()) ||
-                    offItem.is(AllContent.DEPOSIT_SCANNER_ITEM.get())) {
-                // Cancel attack event
+            if (l.isClientSide() && (mainItem.is(AllContent.DEPOSIT_SCANNER_ITEM.get()) ||
+                    offItem.is(AllContent.DEPOSIT_SCANNER_ITEM.get()))) {
+                // Cancel attack animations and lock selection
                 if (e.isAttack() && DepositScannerClientHandler.mode == DepositScannerClientHandler.Mode.ACTIVE) {
                     e.setSwingHand(false);
                     e.setCanceled(true);
+                    if (scannerLastLeftClickedAt + SCANNER_INTERACT_COOLDOWN < t) {
+                        CreateRNS.LOGGER.info("Left click");
+                        scannerLastLeftClickedAt = t;
+                        DepositScannerClientHandler.toggleSelectionLocked();
+                    }
                 }
                 // Cancel use animations and usage of item in other hand, toggle scanner mode
                 if (e.isUseItem()) {
                     e.setSwingHand(false);
                     e.setCanceled(true);
-                    if (p.level().isClientSide) DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
-                            () -> DepositScannerClientHandler::toggle);
-                    p.getCooldowns().addCooldown(AllContent.DEPOSIT_SCANNER_ITEM.get(), 2);
+                    if (scannerLastRightClickedAt + SCANNER_INTERACT_COOLDOWN < t) {
+                        CreateRNS.LOGGER.info("Use");
+                        scannerLastRightClickedAt = t;
+                        DepositScannerClientHandler.toggle();
+                        p.getCooldowns().addCooldown(AllContent.DEPOSIT_SCANNER_ITEM.get(), 2);
+                    }
                 }
             }
         }
@@ -74,8 +90,8 @@ public class ForgeEvents {
             var offItem = p.getOffhandItem();
 
             // Scanner
-            if (mainItem.is(AllContent.DEPOSIT_SCANNER_ITEM.get()) ||
-                    offItem.is(AllContent.DEPOSIT_SCANNER_ITEM.get())) {
+            if (p.level().isClientSide() && (mainItem.is(AllContent.DEPOSIT_SCANNER_ITEM.get()) ||
+                    offItem.is(AllContent.DEPOSIT_SCANNER_ITEM.get()))) {
                 // Handle scroll when active
                 if (DepositScannerClientHandler.mode == DepositScannerClientHandler.Mode.ACTIVE) {
                     if (e.getScrollDelta() > 0) {

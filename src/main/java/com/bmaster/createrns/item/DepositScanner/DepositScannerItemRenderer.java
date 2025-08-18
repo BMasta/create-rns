@@ -27,6 +27,10 @@ import org.joml.Vector3f;
 
 /// A humble rip-off of Create's linked controller
 public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer {
+    public enum AntennaStatus {
+        INACTIVE, LEFT_ACTIVE, RIGHT_ACTIVE, BOTH_ACTIVE
+    }
+
     protected enum RenderType {
         NORMAL
     }
