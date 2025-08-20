@@ -51,15 +51,6 @@ public class ForgeEvents {
             // Scanner
             if (l.isClientSide() && (mainItem.is(AllContent.DEPOSIT_SCANNER_ITEM.get()) ||
                     offItem.is(AllContent.DEPOSIT_SCANNER_ITEM.get()))) {
-                // Cancel attack animations and lock selection
-                if (e.isAttack() && DepositScannerClientHandler.mode == DepositScannerClientHandler.Mode.ACTIVE) {
-                    e.setSwingHand(false);
-                    e.setCanceled(true);
-                    if (scannerLastLeftClickedAt + SCANNER_INTERACT_COOLDOWN < t) {
-                        scannerLastLeftClickedAt = t;
-                        DepositScannerClientHandler.toggleSelectionLocked();
-                    }
-                }
                 // Cancel use animations and usage of item in other hand, toggle scanner mode
                 if (e.isUseItem()) {
                     e.setSwingHand(false);
@@ -92,10 +83,7 @@ public class ForgeEvents {
                     } else {
                         DepositScannerClientHandler.scrollDown();
                     }
-                    // Do not consume the scroll event if selection is locked
-                    if (!DepositScannerClientHandler.isSelectionLocked()) {
-                        e.setCanceled(true);
-                    }
+                    e.setCanceled(true);
                 }
             }
         }

@@ -2,6 +2,7 @@ package com.bmaster.createrns.item.DepositScanner;
 
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler.Mode;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.simibubi.create.Create;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer;
 import dev.engine_room.flywheel.lib.transform.PoseTransformStack;
@@ -15,6 +16,7 @@ import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import net.createmod.catnip.animation.LerpedFloat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.ItemTransform;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.resources.ResourceLocation;
@@ -30,24 +32,17 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
         INACTIVE, LEFT_ACTIVE, RIGHT_ACTIVE, BOTH_ACTIVE
     }
 
-    protected enum RenderType {
-        NORMAL
-    }
-
-    private static final PartialModel UNPOWERED = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
-            CreateRNS.MOD_ID, "item/deposit_scanner/unpowered"));
-    private static final PartialModel ANTENNA_UNPOWERED = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
-            CreateRNS.MOD_ID, "item/deposit_scanner/antenna_unpowered"));
     private static final PartialModel POWERED = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
             CreateRNS.MOD_ID, "item/deposit_scanner/powered"));
+    private static final PartialModel ANTENNA_UNPOWERED = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
+            CreateRNS.MOD_ID, "item/deposit_scanner/antenna_unpowered"));
     private static final PartialModel ANTENNA_POWERED = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
             CreateRNS.MOD_ID, "item/deposit_scanner/antenna_powered"));
-    private static final PartialModel WHEEL = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
-            CreateRNS.MOD_ID, "item/deposit_scanner/wheel"));
+    private static final PartialModel WHEEL = PartialModel.of(Create.asResource(
+            "block/cogwheel_shaftless"));
 
     private static final LerpedFloat equipProgress;
     private static final LerpedFloat scrollProgress;
-    private static final LerpedFloat pressProgress;
 
     private static boolean poweredIndefinitely = false;
     private static int poweredTicks = 0;
@@ -55,7 +50,6 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
     static {
         equipProgress = LerpedFloat.linear().startWithValue(0).chase(0, 0.3f, Chaser.EXP);
         scrollProgress = LerpedFloat.linear().startWithValue(0).chase(0, 0.5f, Chaser.EXP);
-        pressProgress = LerpedFloat.linear().startWithValue(0).chase(0, 0.6f, Chaser.EXP);
     }
 
     protected static void tick() {
@@ -73,10 +67,8 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
             scrollProgress.startWithValue(scrollProgress.getValue() % 360);
             scrollProgress.updateChaseTarget(scrollProgress.getValue());
         }
-        pressProgress.updateChaseTarget(DepositScannerClientHandler.isSelectionLocked() ? 1 : 0);
 
         scrollProgress.tickChaser();
-        pressProgress.tickChaser();
     }
 
     protected static void powerFor(int ticks) {
@@ -120,7 +112,6 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
 
         boolean rightHanded = mc.options.mainHand().get() == HumanoidArm.RIGHT;
         var mainDisplay = rightHanded ? ItemDisplayContext.FIRST_PERSON_RIGHT_HAND : ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
-        var offDisplay = rightHanded ? ItemDisplayContext.FIRST_PERSON_LEFT_HAND : ItemDisplayContext.FIRST_PERSON_RIGHT_HAND;
         int handModifier = transformType == ItemDisplayContext.FIRST_PERSON_LEFT_HAND ? -1 : 1;
         float pt = AnimationTickHolder.getPartialTicks();
         var msr = TransformStack.of(ms);
@@ -138,8 +129,7 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
 
             undoModelTransform(transform, ms, msr, pt, handModifier);
 
-            // ItemInHandRenderer.ITEM_POS_X is private, so enjoy the magic number
-            ms.translate(-0.56f * equip * handModifier, 0.1 * equip, 0f * equip);
+            ms.translate(-0.69f * equip * handModifier, 0.1 * equip, 0f * equip);
 
             // Base model is already rotated 90 deg
             msr.rotateYDegrees(-90 * equip);
@@ -156,26 +146,29 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
 
             active = true;
         }
-        // One-arm equip
-        else if (equipInProgress && (transformType == mainDisplay || transformType == offDisplay)) {
-            msr.translate(0, equip / 4, equip / 4 * handModifier);
-            msr.rotateYDegrees(equip * -30 * handModifier);
-            msr.rotateZDegrees(equip * -30);
-
+        // Left hand equip
+        else if (equipInProgress && transformType == ItemDisplayContext.FIRST_PERSON_LEFT_HAND) {
+            msr.translate(equip * -1.5 / 16, equip * 2.5 / 16, equip * (1.25 / 16) * handModifier);
+            msr.rotateYDegrees(equip * 12 * handModifier);
+            active = true;
+        }
+        // Right hand equip
+        else if (equipInProgress && transformType == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND) {
+            msr.translate(equip * -1.5 / 16, equip * 3 / 16, equip * 2 / 16 * handModifier);
+            msr.rotateYDegrees(equip * 12 * handModifier);
             active = true;
         }
 
         active &= DepositScannerClientHandler.mode != Mode.IDLE;
 
-        var partialBase = (active && (poweredIndefinitely || poweredTicks > 0)) ? POWERED : UNPOWERED;
-        renderer.render(active ? partialBase.get() : model.getOriginalModel(), light);
-        renderSelectedItem(ms, msr, buf, light, overlay);
+        renderer.render(active ? POWERED.get() : model.getOriginalModel(), light);
 
         if (!active) {
             ms.popPose();
             return;
         }
 
+        renderSelectedItem(ms, msr, buf, light, overlay);
         renderWheel(ms, msr, renderer, light, pt);
         renderAntennas(ms, renderer, light);
 
@@ -228,17 +221,17 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
     private static void renderWheel(PoseStack ms, PoseTransformStack msr, PartialItemModelRenderer renderer,
                                     int light, float partialTicks) {
         BakedModel wheel = WHEEL.get();
-        // Subtract 0.5 to convert from corner-based to center-based
-        float pressed = -0.4f / 16f;
-        float centerX = 8f / 16f - 0.5f;
-        float centerY = 2f / 16f - 0.5f;
-        float centerZ = 4.5f / 16f - 0.5f;
+
+        float x = 0;
+        float y = -6f / 16f;
+        float z = -3.5f / 16f;
 
         ms.pushPose();
-        msr.translate(centerX, centerY + pressed * pressProgress.getValue(partialTicks), centerZ);
+        msr.translate(x, y, z);
         msr.rotateZDegrees(scrollProgress.getValue(partialTicks) % 360);
-        msr.translate(-centerX, -centerY, -centerZ);
-        renderer.renderSolid(wheel, light);
+        msr.rotateXDegrees(90);
+        ms.scale(0.2f, 0.2f, 0.2f);
+        renderer.render(wheel, RenderType.solid(), light);
         ms.popPose();
     }
 

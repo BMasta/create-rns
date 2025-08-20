@@ -26,7 +26,6 @@ public class DepositScannerClientHandler {
     private static int selectedIndex = 0;
     private static int pingInterval = MAX_PING_INTERVAL;
     private static int ticksSinceLastPing = 0;
-    private static boolean selectionLocked = false;
     private static boolean pingResultPending = false;
     private static boolean needScanRecompute = true;
     private static ChunkPos occupiedOreChunk;
@@ -42,30 +41,14 @@ public class DepositScannerClientHandler {
         }
     }
 
-    public static boolean isSelectionLocked() {
-        return selectionLocked;
-    }
-
-    public static void toggleSelectionLocked() {
-        var p = Minecraft.getInstance().player;
-        if (mode != Mode.ACTIVE || p == null) return;
-        selectionLocked = !selectionLocked;
-
-        if (selectionLocked) {
-            needScanRecompute = true;
-            ticksSinceLastPing = pingInterval; // Ping right away
-            AllSoundEvents.CONTROLLER_CLICK.playAt(p.level(), p.blockPosition(), 1f, .75f, true);
-        } else {
-            occupiedOreChunk = null; // Invalidate cached chunk if present
-            AllSoundEvents.CONTROLLER_CLICK.playAt(p.level(), p.blockPosition(), 1f, .5f, true);
-        }
-    }
-
     public static void scrollDown() {
-        if (mode != Mode.ACTIVE || selectionLocked) return;
+        if (mode != Mode.ACTIVE) return;
 
         selectedIndex++;
         DepositScannerItemRenderer.scrollDown();
+        occupiedOreChunk = null; // Invalidate cached chunk if present
+        needScanRecompute = true;
+
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null) {
             AllSoundEvents.SCROLL_VALUE.playAt(player.level(), player.blockPosition(), 1f, 1f, true);
@@ -73,10 +56,13 @@ public class DepositScannerClientHandler {
     }
 
     public static void scrollUp() {
-        if (mode != Mode.ACTIVE || selectionLocked) return;
+        if (mode != Mode.ACTIVE) return;
 
         selectedIndex--;
         DepositScannerItemRenderer.scrollUp();
+        occupiedOreChunk = null; // Invalidate cached chunk if present
+        needScanRecompute = true;
+
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null) {
             AllSoundEvents.SCROLL_VALUE.playAt(player.level(), player.blockPosition(), 1f, 1f, true);
@@ -89,7 +75,7 @@ public class DepositScannerClientHandler {
         refreshMode();
 
         var p = Minecraft.getInstance().player;
-        if (mode != Mode.ACTIVE || !selectionLocked || p == null) return;
+        if (mode != Mode.ACTIVE || p == null) return;
 
         ticksSinceLastPing++;
         if (ticksSinceLastPing >= pingInterval) {
@@ -170,6 +156,7 @@ public class DepositScannerClientHandler {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer p = mc.player;
         if (p == null) return;
+        ItemStack heldItem = p.getMainHandItem();
 
         if (p.isSpectator()) {
             mode = Mode.IDLE;
@@ -177,21 +164,13 @@ public class DepositScannerClientHandler {
             return;
         }
 
-        boolean inHotbarOrOffhand = false;
-        if (p.getOffhandItem().is(AllContent.DEPOSIT_SCANNER_ITEM.get())) {
-            inHotbarOrOffhand = true;
-        }
-        else {
-            // Search in hotbar
-            var inv = p.getInventory();
-            for (int i = 0; i < 9 && !inHotbarOrOffhand; ++i) {
-                if (inv.getItem(i).is(AllContent.DEPOSIT_SCANNER_ITEM.get())) inHotbarOrOffhand = true;
+        if (!AllContent.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
+            heldItem = p.getOffhandItem();
+            if (!AllContent.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
+                mode = Mode.IDLE;
+                onReset();
+                return;
             }
-        }
-        if (!inHotbarOrOffhand) {
-            mode = Mode.IDLE;
-            onReset();
-            return;
         }
 
         if (mc.screen != null) {
