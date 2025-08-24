@@ -12,9 +12,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.level.ChunkEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -93,14 +95,13 @@ public class ForgeEvents {
     }
 
     @SubscribeEvent
-    public static void onClientLogout(net.minecraftforge.client.event.ClientPlayerNetworkEvent.LoggingOut e) {
+    public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut e) {
         scannerLastRightClickedAt = 0;
         DepositScannerClientHandler.clearState();
     }
 
-
     @SubscribeEvent
-    public static void onChunkLoad(net.minecraftforge.event.level.ChunkEvent.Load e) {
+    public static void onChunkLoad(ChunkEvent.Load e) {
         if (!(e.getLevel() instanceof ServerLevel sl)) return;
         var depIdxOpt = IDepositIndex.fromLevel(sl).resolve();
         if (depIdxOpt.isEmpty()) return;

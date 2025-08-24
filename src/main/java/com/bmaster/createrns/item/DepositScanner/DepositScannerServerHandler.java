@@ -12,40 +12,41 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.*;
 
 public class DepositScannerServerHandler {
     public static final int MIN_PING_INTERVAL = 3;
     public static final int MAX_PING_INTERVAL = 60;
+    public static final float FOUND_DISTANCE = 10f;
 
     private static final int SEARCH_RADIUS_CHUNKS = 100;
     private static final int MAX_BLOCK_DISTANCE = SEARCH_RADIUS_CHUNKS * 16;
 
-    private static final float FOUND_DISTANCE = 10;
-
-    public static void processScanRequest(ServerPlayer sp, Item ore, boolean recompute) {
+    public static void processScanRequest(ServerPlayer sp, Item yield, boolean recompute) {
         if (!(sp.level() instanceof ServerLevel sl)) return;
         var depIdxOpt = IDepositIndex.fromLevel(sl).resolve();
         if (depIdxOpt.isEmpty()) {
             CreateRNS.LOGGER.error("Deposit index is not present on level {}", sl.dimension());
-            DepositScannerS2CPacket.send(sp, AntennaStatus.INACTIVE, 0, false);
+            DepositScannerS2CPacket.send(sp, AntennaStatus.INACTIVE, 0, null);
             return;
         }
         var depIdx = depIdxOpt.get();
 
         // TODO: Scan for all structures in the spec
-        var structure = DepositSpecLookup.getSpec(sl, ore).structures().get(0);
+        var structure = DepositSpecLookup.getSpec(sl, yield).structures().get(0);
         var depPos = depIdx.getNearest(structure.unwrapKey().orElseThrow(), sp, SEARCH_RADIUS_CHUNKS, !recompute);
         var state = getScannerState(sp, depPos);
 
-        DepositScannerS2CPacket.send(sp, state.antennaStatus, state.interval, state.found);
+        DepositScannerS2CPacket.send(sp, state.antennaStatus, state.interval, state.foundDepositCenter);
     }
 
     private static ScannerState getScannerState(ServerPlayer sp, BlockPos targetPos) {
         var playerPos = sp.blockPosition();
         var distance = Math.sqrt(playerPos.distSqr(targetPos));
         if (distance > MAX_BLOCK_DISTANCE) {
-            return new ScannerState(AntennaStatus.INACTIVE, 0, false);
+            return new ScannerState(AntennaStatus.INACTIVE, 0, null);
         }
 
         AntennaStatus status;
@@ -70,7 +71,7 @@ public class DepositScannerServerHandler {
 
         found = (distance <= FOUND_DISTANCE);
 
-        return new ScannerState(status, interval, found);
+        return new ScannerState(status, interval, found ? targetPos : null);
     }
 
     private static float getYaw(BlockPos from, BlockPos to) {
@@ -83,5 +84,5 @@ public class DepositScannerServerHandler {
         );
     }
 
-    private record ScannerState(AntennaStatus antennaStatus, int interval, boolean found) {}
+    private record ScannerState(AntennaStatus antennaStatus, int interval, @Nullable BlockPos foundDepositCenter) {}
 }
