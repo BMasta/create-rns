@@ -47,8 +47,6 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
             if (dist < closestDist) {
                 closestDist = dist;
                 closestBP = new BlockPos(d);
-                CreateRNS.LOGGER.info("New generated candidate for closest at {},{},{}",
-                        closestBP.getX(), closestBP.getY(), closestBP.getZ());
             }
         }
 
@@ -58,17 +56,10 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
             if (dist < closestDist) {
                 closestDist = dist;
                 closestBP = new BlockPos(d);
-                CreateRNS.LOGGER.info("New ungenerated candidate for closest at {},{},{}",
-                        closestBP.getX(), closestBP.getY(), closestBP.getZ());
             }
         }
 
         boolean withinMaxDistance = (Math.sqrt(closestDist) <= (searchRadiusChunks << 4));
-        if (closestBP != null) {
-            CreateRNS.LOGGER.info("Closest deposit at {},{},{} within max distance? {}",
-                    closestBP.getX(), closestBP.getY(), closestBP.getZ(), withinMaxDistance);
-        }
-
         return withinMaxDistance ? closestBP : null;
     }
 
@@ -82,14 +73,11 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
 
         // Remove newly-generated deposit start from the list of ungenerated deposits
         for (var t : ungeneratedDeposits.object2ObjectEntrySet()) {
-            var dList = t.getValue();
-            dList.removeIf(d -> Utils.isPosInChunk(d, startChunk));
+            var dSet = t.getValue();
+            dSet.removeIf(d -> Utils.isPosInChunk(d, startChunk));
             CreateRNS.LOGGER.info("Generated deposit start at {},{} removed from ungenerated",
-                    startChunk.x, startChunk.z);
+                    startChunk.getBlockX(8), startChunk.getBlockZ(8));
         }
-
-        CreateRNS.LOGGER.info("Generated deposit start at {},{} added to generated",
-                startChunk.x, startChunk.z);
 
         // Add to the list of generated deposits
         generatedDeposits.computeIfAbsent(depositKey.location(), k -> new ObjectOpenHashSet<>()).add(
@@ -97,21 +85,9 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
     }
 
     @Override
-    public void remove(ResourceKey<Structure> depositKey, StructureStart ss) {
-        if (!ss.isValid()) {
-            CreateRNS.LOGGER.error("Attempted to remove an invalid deposit start from deposit index");
-            return;
-        }
-
+    public void remove(ResourceKey<Structure> depositKey, BlockPos centerPos) {
         var set = generatedDeposits.get(depositKey.location());
-        if (set != null) set.remove(ss.getBoundingBox().getCenter());
-    }
-
-    @Override
-    public boolean contains(ResourceKey<Structure> depositKey, StructureStart ss) {
-        if (!ss.isValid()) return false;
-        var set = generatedDeposits.get(depositKey.location());
-        return set != null && set.contains(ss.getBoundingBox().getCenter());
+        if (set != null) set.remove(centerPos);
     }
 
     @Override

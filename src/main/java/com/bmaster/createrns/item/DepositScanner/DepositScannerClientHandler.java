@@ -7,11 +7,12 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.simibubi.create.AllSoundEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
-import static com.bmaster.createrns.item.DepositScanner.DepositScannerServerHandler.MIN_PING_INTERVAL;
-import static com.bmaster.createrns.item.DepositScanner.DepositScannerServerHandler.MAX_PING_INTERVAL;
+import static com.bmaster.createrns.item.DepositScanner.DepositScannerServerHandler.*;
 
 public class DepositScannerClientHandler {
     public enum Mode {
@@ -89,6 +90,18 @@ public class DepositScannerClientHandler {
         var p = Minecraft.getInstance().player;
         if (state.mode != Mode.ACTIVE || p == null) return;
 
+
+        if (state.cachedDepositPos != null) {
+            if (Math.sqrt(p.blockPosition().distSqr(state.cachedDepositPos)) <= FOUND_DISTANCE) {
+                // Still within close proximity of the deposit
+                return;
+            } else {
+                // Far enough away to start pinging again
+                state.depProximity = DepositProximity.LEFT;
+                state.cachedDepositPos = null;
+            }
+        }
+
         state.ticksSinceLastPing++;
         if (state.ticksSinceLastPing >= state.pingInterval) {
             state.ticksSinceLastPing = 0;
@@ -107,7 +120,7 @@ public class DepositScannerClientHandler {
         DepositScannerC2SPacket.send(getSelectedItem().getItem(), state.needScanRecompute);
     }
 
-    protected static void processScanReply(AntennaStatus status, int interval, boolean found) {
+    protected static void processScanReply(AntennaStatus status, int interval, @Nullable BlockPos foundDepositCenter) {
         var p = Minecraft.getInstance().player;
         if (p == null || !p.level().isClientSide()) return;
 
@@ -116,8 +129,9 @@ public class DepositScannerClientHandler {
         state.antennaStatus = status;
         state.pingInterval = (state.antennaStatus == AntennaStatus.INACTIVE) ? MAX_PING_INTERVAL : interval;
         state.needScanRecompute = (state.antennaStatus == AntennaStatus.INACTIVE);
+        state.cachedDepositPos = foundDepositCenter;
 
-        if (found) {
+        if (foundDepositCenter != null) {
             state.pingInterval = MIN_PING_INTERVAL;
             state.antennaStatus = AntennaStatus.BOTH_ACTIVE;
             if (state.depProximity == DepositProximity.AWAY) state.depProximity = DepositProximity.FOUND;
@@ -203,9 +217,9 @@ public class DepositScannerClientHandler {
         private AntennaStatus antennaStatus = AntennaStatus.INACTIVE;
         private int pingInterval = MAX_PING_INTERVAL;
         private DepositProximity depProximity = DepositProximity.AWAY;
-
         private int selectedIndex = 0;
         private int ticksSinceLastPing = pingInterval;
+        private BlockPos cachedDepositPos = null;
         private boolean pingResultPending = false;
         private boolean needScanRecompute = true;
     }

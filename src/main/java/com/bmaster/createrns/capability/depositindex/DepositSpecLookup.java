@@ -31,9 +31,7 @@ public class DepositSpecLookup {
         var regEntries = access.registryOrThrow(DepositSpec.REGISTRY_KEY).entrySet();
 
         yieldToSpec = new HashMap<>(regEntries.size());
-        CreateRNS.LOGGER.info("Building DepositSpec lookup");
         regEntries.forEach(e -> {
-            CreateRNS.LOGGER.info("Processing registry element {}: {}", e.getKey(), e.getValue());
             yieldToSpec.put(e.getValue().yield(), e.getValue());
         });
 
@@ -43,7 +41,6 @@ public class DepositSpecLookup {
                 .map(hs -> hs.unwrapKey().orElse(null))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toUnmodifiableSet());
-        CreateRNS.LOGGER.info("All deposit structure keys: {}", allStructureKeys);
     }
 
     public static List<Item> getAllYields(Level l) {
@@ -55,10 +52,7 @@ public class DepositSpecLookup {
         if (allStructureKeys == null) build(sl);
         var reg = sl.registryAccess().registryOrThrow(Registries.STRUCTURE);
 
-        return (Structure checkedStructure) -> {
-            boolean contains = reg.getResourceKey(checkedStructure).filter(allStructureKeys::contains).isPresent();
-            CreateRNS.LOGGER.info("Structure '{}' is a deposit? {}", checkedStructure, contains);
-            return contains;
-        };
+        return (Structure checkedStructure) ->
+                reg.getResourceKey(checkedStructure).filter(allStructureKeys::contains).isPresent();
     }
 }
