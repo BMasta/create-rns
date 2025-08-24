@@ -61,9 +61,9 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
         // Try initializing mining process
         if (process == null) {
             LevelChunk chunk = level.getChunkAt(this.getBlockPos());
-            chunk.getCapability(AllContent.ORE_CHUNK_DATA).ifPresent(data -> {
+            chunk.getCapability(AllContent.DEPOSIT_INDEX).ifPresent(data -> {
                 // Create the mining process object
-                process = MiningProcess.from(data);
+                process = new MiningProcess(ItemStack.EMPTY, 1f, false);
 
                 // Restrict inventory to only accept the item type being mined
                 inventory.setMinedItem(process.minedItemStack.getItem());
@@ -94,9 +94,8 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
     }
 
     public boolean isMining() {
-        boolean is =  process != null && process.isPossible() && !process.isDone() &&
+        return process != null && process.isPossible() && !process.isDone() &&
                 getSpeed() != 0 && isSpeedRequirementFulfilled();
-        return is;
     }
 
     @Override

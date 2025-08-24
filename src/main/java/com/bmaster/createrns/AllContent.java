@@ -1,9 +1,8 @@
 package com.bmaster.createrns;
 
 import com.bmaster.createrns.block.miner.*;
-import com.bmaster.createrns.capability.orechunkdata.IOreChunkData;
+import com.bmaster.createrns.capability.depositindex.IDepositIndex;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerItem;
-import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.api.stress.BlockStressValues;
 import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.SharedProperties;
@@ -14,9 +13,6 @@ import com.tterrag.registrate.util.entry.*;
 import net.createmod.catnip.lang.FontHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -87,8 +83,8 @@ public class AllContent {
             ).register();
 
     // Capabilities
-    public static final Capability<IOreChunkData> ORE_CHUNK_DATA =
-            CapabilityManager.get(new CapabilityToken<IOreChunkData>() {});
+    public static final Capability<IDepositIndex> DEPOSIT_INDEX =
+            CapabilityManager.get(new CapabilityToken<>() {});
 
     public static void register() {
     }

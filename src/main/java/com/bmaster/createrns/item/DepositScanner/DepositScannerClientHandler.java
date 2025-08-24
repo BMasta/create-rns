@@ -1,53 +1,62 @@
 package com.bmaster.createrns.item.DepositScanner;
 
 import com.bmaster.createrns.AllContent;
+import com.bmaster.createrns.capability.depositindex.DepositSpecLookup;
 import com.bmaster.createrns.infrastructure.ServerConfig;
-import com.bmaster.createrns.util.Utils;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.simibubi.create.AllSoundEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ChunkPos;
 import org.lwjgl.glfw.GLFW;
-import com.bmaster.createrns.item.DepositScanner.DepositScannerItemRenderer.AntennaStatus;
 
 import static com.bmaster.createrns.item.DepositScanner.DepositScannerServerHandler.MIN_PING_INTERVAL;
 import static com.bmaster.createrns.item.DepositScanner.DepositScannerServerHandler.MAX_PING_INTERVAL;
 
 public class DepositScannerClientHandler {
-    public static AntennaStatus antennaStatus = AntennaStatus.INACTIVE;
-    public static Mode mode = Mode.IDLE;
-
     public enum Mode {
         IDLE, ACTIVE
     }
 
-    private static int selectedIndex = 0;
-    private static int pingInterval = MAX_PING_INTERVAL;
-    private static int ticksSinceLastPing = 0;
-    private static boolean pingResultPending = false;
-    private static boolean needScanRecompute = true;
-    private static ChunkPos occupiedOreChunk;
+    public enum AntennaStatus {
+        INACTIVE, LEFT_ACTIVE, RIGHT_ACTIVE, BOTH_ACTIVE
+    }
 
+    public enum DepositProximity {
+        AWAY, FOUND, NEAR, LEFT
+    }
+
+    private static State state = new State();
+
+    public static Mode getMode() {
+        return state.mode;
+    }
+
+    public static AntennaStatus getAntennaStatus() {
+        return state.antennaStatus;
+    }
+
+    public static DepositProximity getDepositProximity() {
+        return state.depProximity;
+    }
 
     public static void toggle() {
-        if (mode == Mode.IDLE) {
-            needScanRecompute = true;
-            mode = Mode.ACTIVE;
+        if (state.mode == Mode.IDLE) {
+            state.ticksSinceLastPing = state.pingInterval; // Ping as soon as possible
+            state.needScanRecompute = true;
+            state.mode = Mode.ACTIVE;
         } else {
-            mode = Mode.IDLE;
-            onReset();
+            state.mode = Mode.IDLE;
+            onIdle();
         }
     }
 
     public static void scrollDown() {
-        if (mode != Mode.ACTIVE) return;
+        if (state.mode != Mode.ACTIVE) return;
 
-        selectedIndex++;
+        state.selectedIndex++;
+        state.needScanRecompute = true;
         DepositScannerItemRenderer.scrollDown();
-        occupiedOreChunk = null; // Invalidate cached chunk if present
-        needScanRecompute = true;
 
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null) {
@@ -56,12 +65,11 @@ public class DepositScannerClientHandler {
     }
 
     public static void scrollUp() {
-        if (mode != Mode.ACTIVE) return;
+        if (state.mode != Mode.ACTIVE) return;
 
-        selectedIndex--;
+        state.selectedIndex--;
+        state.needScanRecompute = true;
         DepositScannerItemRenderer.scrollUp();
-        occupiedOreChunk = null; // Invalidate cached chunk if present
-        needScanRecompute = true;
 
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null) {
@@ -69,43 +77,34 @@ public class DepositScannerClientHandler {
         }
     }
 
+    public static void clearState() {
+        state = new State();
+    }
+
     public static void tick() {
-        if (pingResultPending) processPing();
+        if (state.pingResultPending) processPing();
         DepositScannerItemRenderer.tick();
         refreshMode();
 
         var p = Minecraft.getInstance().player;
-        if (mode != Mode.ACTIVE || p == null) return;
+        if (state.mode != Mode.ACTIVE || p == null) return;
 
-        ticksSinceLastPing++;
-        if (ticksSinceLastPing >= pingInterval) {
-            ticksSinceLastPing = 0;
-
-            boolean inOreChunk = (occupiedOreChunk != null) && Utils.isPosInChunk(p.blockPosition(), occupiedOreChunk);
-
-            // Invalidate cached chunk if we left its vicinity
-            if (occupiedOreChunk != null && !inOreChunk) {
-                occupiedOreChunk = null;
-            }
-
-            if (occupiedOreChunk == null) {
-                DepositScannerItemRenderer.powerOff();
-                pingForItem();
-            } else {
-                DepositScannerItemRenderer.powerOn();
-            }
+        state.ticksSinceLastPing++;
+        if (state.ticksSinceLastPing >= state.pingInterval) {
+            state.ticksSinceLastPing = 0;
+            pingForItem();
         }
     }
 
     public static ItemStack getSelectedItem() {
-        if (ServerConfig.OVERWORLD_ORES.isEmpty()) return ItemStack.EMPTY;
-        int size = ServerConfig.OVERWORLD_ORES.size();
-        int normalizedIndex = (selectedIndex % size + size) % size;
-        return new ItemStack(ServerConfig.OVERWORLD_ORES.get(normalizedIndex));
+        var allItems = DepositSpecLookup.getAllYields(Minecraft.getInstance().level);
+        int size = allItems.size();
+        int normalizedIndex = (state.selectedIndex % size + size) % size;
+        return new ItemStack(allItems.get(normalizedIndex));
     }
 
     private static void pingForItem() {
-        DepositScannerC2SPacket.send(getSelectedItem().getItem(), needScanRecompute);
+        DepositScannerC2SPacket.send(getSelectedItem().getItem(), state.needScanRecompute);
     }
 
     protected static void processScanReply(AntennaStatus status, int interval, boolean found) {
@@ -113,45 +112,51 @@ public class DepositScannerClientHandler {
         if (p == null || !p.level().isClientSide()) return;
 
         // Delay ping processing so it can be synchronized with the renderer
-        pingResultPending = true;
-        antennaStatus = status;
-        pingInterval = (antennaStatus == AntennaStatus.INACTIVE) ? MAX_PING_INTERVAL : interval;
-        needScanRecompute = (antennaStatus == AntennaStatus.INACTIVE);
+        state.pingResultPending = true;
+        state.antennaStatus = status;
+        state.pingInterval = (state.antennaStatus == AntennaStatus.INACTIVE) ? MAX_PING_INTERVAL : interval;
+        state.needScanRecompute = (state.antennaStatus == AntennaStatus.INACTIVE);
 
         if (found) {
-            pingInterval = MIN_PING_INTERVAL;
-            antennaStatus = AntennaStatus.BOTH_ACTIVE;
-
-            // Cache discovered ore chunk
-            if (occupiedOreChunk == null || !Utils.isPosInChunk(p.blockPosition(), occupiedOreChunk)) {
-                occupiedOreChunk = new ChunkPos(p.blockPosition());
-            }
+            state.pingInterval = MIN_PING_INTERVAL;
+            state.antennaStatus = AntennaStatus.BOTH_ACTIVE;
+            if (state.depProximity == DepositProximity.AWAY) state.depProximity = DepositProximity.FOUND;
+        } else {
+            if (state.depProximity == DepositProximity.NEAR) state.depProximity = DepositProximity.LEFT;
         }
     }
 
     private static void processPing() {
-        if (!pingResultPending) return;
+        if (!state.pingResultPending) return;
         var p = Minecraft.getInstance().player;
         if (p == null || !p.level().isClientSide()) return;
 
-        pingResultPending = false;
+        state.pingResultPending = false;
 
-        // Render as powered
-        DepositScannerItemRenderer.powerFor(2);
-
-        if (occupiedOreChunk != null && Utils.isPosInChunk(p.blockPosition(), occupiedOreChunk)) {
-            AllSoundEvents.FWOOMP.playAt(p.level(), p.blockPosition(), 1f, 2f, true);
-        } else {
-            // Play ding
-            int max = MAX_PING_INTERVAL - MIN_PING_INTERVAL;
-            float pitchMultiplier = 1 - ((float) (pingInterval - MIN_PING_INTERVAL) / max);
-            AllSoundEvents.CONFIRM_2.playAt(p.level(), p.blockPosition(), 1f,
-                    0.8f + 0.4f * pitchMultiplier, true);
+        switch(state.depProximity) {
+            case FOUND -> {
+                // FWOOMP!
+                AllSoundEvents.FWOOMP.playAt(p.level(), p.blockPosition(), 1f, 2f, true);
+                state.depProximity = DepositProximity.NEAR;
+            }
+            case LEFT -> {
+                state.ticksSinceLastPing = state.pingInterval; // Ping as soon as possible
+                state.depProximity = DepositProximity.AWAY;
+            }
+            case AWAY -> {
+                // Render as powered for a brief moment
+                DepositScannerItemRenderer.powerFor(2);
+                // Play ding
+                int max = MAX_PING_INTERVAL - MIN_PING_INTERVAL;
+                float pitchMultiplier = 1 - ((float) (state.pingInterval - MIN_PING_INTERVAL) / max);
+                AllSoundEvents.CONFIRM_2.playAt(p.level(), p.blockPosition(), 1f,
+                        0.8f + 0.4f * pitchMultiplier, true);
+            }
         }
     }
 
     private static void refreshMode() {
-        if (mode == Mode.IDLE) return;
+        if (state.mode == Mode.IDLE) return;
 
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer p = mc.player;
@@ -159,37 +164,49 @@ public class DepositScannerClientHandler {
         ItemStack heldItem = p.getMainHandItem();
 
         if (p.isSpectator()) {
-            mode = Mode.IDLE;
-            onReset();
+            state.mode = Mode.IDLE;
+            onIdle();
             return;
         }
 
         if (!AllContent.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
             heldItem = p.getOffhandItem();
             if (!AllContent.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
-                mode = Mode.IDLE;
-                onReset();
+                state.mode = Mode.IDLE;
+                onIdle();
                 return;
             }
         }
 
         if (mc.screen != null) {
-            mode = Mode.IDLE;
-            onReset();
+            state.mode = Mode.IDLE;
+            onIdle();
             return;
         }
 
         if (InputConstants.isKeyDown(mc.getWindow()
                 .getWindow(), GLFW.GLFW_KEY_ESCAPE)) {
-            mode = Mode.IDLE;
-            onReset();
+            state.mode = Mode.IDLE;
+            onIdle();
             return;
         }
     }
 
-    private static void onReset() {
-        ticksSinceLastPing = pingInterval; // Ping as soon as scanner becomes active
-        occupiedOreChunk = null;
+    private static void onIdle() {
+        state.ticksSinceLastPing = state.pingInterval; // Ping as soon as scanner becomes active
         DepositScannerItemRenderer.resetWheel();
+    }
+
+    private static class State {
+        private Mode mode = Mode.IDLE;
+
+        private AntennaStatus antennaStatus = AntennaStatus.INACTIVE;
+        private int pingInterval = MAX_PING_INTERVAL;
+        private DepositProximity depProximity = DepositProximity.AWAY;
+
+        private int selectedIndex = 0;
+        private int ticksSinceLastPing = pingInterval;
+        private boolean pingResultPending = false;
+        private boolean needScanRecompute = true;
     }
 }
