@@ -5,7 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
-import com.bmaster.createrns.item.DepositScanner.DepositScannerItemRenderer.AntennaStatus;
+import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler.AntennaStatus;
 import net.minecraftforge.network.PacketDistributor;
 
 import java.util.function.Supplier;

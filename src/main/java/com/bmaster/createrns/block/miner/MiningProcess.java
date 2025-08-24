@@ -1,6 +1,5 @@
 package com.bmaster.createrns.block.miner;
 
-import com.bmaster.createrns.capability.orechunkdata.IOreChunkData;
 import net.minecraft.world.item.ItemStack;
 
 public class MiningProcess {
@@ -12,11 +11,7 @@ public class MiningProcess {
     private int progress = 0;
     private int maxProgress;
 
-    public static MiningProcess from(IOreChunkData data) {
-        return new MiningProcess(data.getMinedItemStack().copy(), data.getPurity().getMultiplier(), data.isOreChunk());
-    }
-
-    private MiningProcess(ItemStack minedItemStack, float progressMultiplier, boolean isPossible) {
+    public MiningProcess(ItemStack minedItemStack, float progressMultiplier, boolean isPossible) {
         this.isPossible = isPossible;
         if (isPossible) {
             this.minedItemStack = minedItemStack;

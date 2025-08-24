@@ -1,0 +1,4 @@
+{
+  "structures": ["create_rns:ore_deposit"],
+  "yield": "minecraft:iron_ingot"
+}

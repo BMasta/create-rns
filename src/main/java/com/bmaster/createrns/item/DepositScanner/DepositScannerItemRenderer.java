@@ -1,5 +1,6 @@
 package com.bmaster.createrns.item.DepositScanner;
 
+import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler.DepositProximity;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler.Mode;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.Create;
@@ -28,10 +29,6 @@ import org.joml.Vector3f;
 
 /// A humble rip-off of Create's linked controller
 public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer {
-    public enum AntennaStatus {
-        INACTIVE, LEFT_ACTIVE, RIGHT_ACTIVE, BOTH_ACTIVE
-    }
-
     private static final PartialModel POWERED = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
             CreateRNS.MOD_ID, "item/deposit_scanner/powered"));
     private static final PartialModel ANTENNA_UNPOWERED = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
@@ -43,8 +40,6 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
 
     private static final LerpedFloat equipProgress;
     private static final LerpedFloat scrollProgress;
-
-    private static boolean poweredIndefinitely = false;
     private static int poweredTicks = 0;
 
     static {
@@ -55,7 +50,7 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
     protected static void tick() {
         if (Minecraft.getInstance().isPaused()) return;
 
-        boolean active = DepositScannerClientHandler.mode != Mode.IDLE;
+        boolean active = DepositScannerClientHandler.getMode() != Mode.IDLE;
 
         equipProgress.updateChaseTarget(active ? 1 : 0);
         equipProgress.tickChaser();
@@ -73,14 +68,6 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
 
     protected static void powerFor(int ticks) {
         poweredTicks = ticks;
-    }
-
-    protected static void powerOn() {
-        poweredIndefinitely = true;
-    }
-
-    protected static void powerOff() {
-        poweredIndefinitely = false;
     }
 
     protected static void scrollUp() {
@@ -159,16 +146,16 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
             active = true;
         }
 
-        active &= DepositScannerClientHandler.mode != Mode.IDLE;
+        active &= DepositScannerClientHandler.getMode() != Mode.IDLE;
 
         renderer.render(active ? POWERED.get() : model.getOriginalModel(), light);
+        renderSelectedItem(ms, msr, buf, light, overlay);
 
         if (!active) {
             ms.popPose();
             return;
         }
 
-        renderSelectedItem(ms, msr, buf, light, overlay);
         renderWheel(ms, msr, renderer, light, pt);
         renderAntennas(ms, renderer, light);
 
@@ -199,12 +186,15 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
         ms.pushPose();
         PartialModel partialAntenna1;
         PartialModel partialAntenna2;
-        if (poweredIndefinitely || poweredTicks > 0) {
-            partialAntenna1 = switch (DepositScannerClientHandler.antennaStatus) {
+        boolean nearDeposit = DepositScannerClientHandler.getDepositProximity() == DepositProximity.FOUND ||
+                DepositScannerClientHandler.getDepositProximity() == DepositProximity.NEAR;
+
+        if (nearDeposit || poweredTicks > 0) {
+            partialAntenna1 = switch (DepositScannerClientHandler.getAntennaStatus()) {
                 case INACTIVE, RIGHT_ACTIVE -> ANTENNA_UNPOWERED;
                 case LEFT_ACTIVE, BOTH_ACTIVE -> ANTENNA_POWERED;
             };
-            partialAntenna2 = switch (DepositScannerClientHandler.antennaStatus) {
+            partialAntenna2 = switch (DepositScannerClientHandler.getAntennaStatus()) {
                 case INACTIVE, LEFT_ACTIVE -> ANTENNA_UNPOWERED;
                 case RIGHT_ACTIVE, BOTH_ACTIVE -> ANTENNA_POWERED;
             };

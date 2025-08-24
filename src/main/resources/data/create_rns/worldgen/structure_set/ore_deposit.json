@@ -1,0 +1,11 @@
+{
+  "structures": [
+    {"structure": "create_rns:ore_deposit", "weight": 1}
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 6,
+    "separation": 2,
+    "salt": 123456789
+  }
+}
