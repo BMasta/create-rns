@@ -16,7 +16,8 @@ public interface IDepositIndex {
                                   boolean knownOnly);
 
     void add(ResourceKey<Structure> depositKey, StructureStart ss, ServerLevel sl);
-    void remove(ResourceKey<Structure> depositKey, BlockPos centerPos);
+
+    void markAsFound(BlockPos centerPos);
 
     static LazyOptional<IDepositIndex> fromLevel(ServerLevel level) {
         return level.getCapability(AllContent.DEPOSIT_INDEX);
