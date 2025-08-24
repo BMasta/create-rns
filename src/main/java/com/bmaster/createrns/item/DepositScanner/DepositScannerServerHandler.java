@@ -1,7 +1,6 @@
 package com.bmaster.createrns.item.DepositScanner;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.capability.depositindex.DepositSpec;
 import com.bmaster.createrns.capability.depositindex.DepositSpecLookup;
 import com.bmaster.createrns.capability.depositindex.IDepositIndex;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler.AntennaStatus;
@@ -39,6 +38,8 @@ public class DepositScannerServerHandler {
         var depPos = depIdx.getNearest(structure.unwrapKey().orElseThrow(), sp, SEARCH_RADIUS_CHUNKS, !recompute);
         var state = getScannerState(sp, depPos);
 
+        if (state.foundDepositCenter != null) depIdx.markAsFound(state.foundDepositCenter);
+
         DepositScannerS2CPacket.send(sp, state.antennaStatus, state.interval, state.foundDepositCenter);
     }
 
@@ -65,10 +66,9 @@ public class DepositScannerServerHandler {
             status = AntennaStatus.RIGHT_ACTIVE;
         }
 
-        // Calculate ping interval based on distance to target
+        // Calculate ping interval based on distance to target and if distance is close enough to consider deposit found
         interval = MIN_PING_INTERVAL + (int) ((MAX_PING_INTERVAL - MIN_PING_INTERVAL) *
                 Utils.easeOut((float) distance / MAX_BLOCK_DISTANCE, 2));
-
         found = (distance <= FOUND_DISTANCE);
 
         return new ScannerState(status, interval, found ? targetPos : null);
