@@ -30,18 +30,6 @@ public class MiningAreaOutlineRenderer {
         if (selectedCluster.addAll(be.reservedDepositBlocks)) outlineChanged = true;
     }
 
-    public static void refreshOutline() {
-        if (!outlineActive) return;
-        Player p = Minecraft.getInstance().player;
-        if (p == null) return;
-        var l = p.level();
-
-        selectedCluster.clear();
-        outlineChanged = true;
-        MinerBlockEntity.getInstances(l, p.blockPosition(), OUTLINE_RADIUS)
-                .forEach(MiningAreaOutlineRenderer::addReservedDepositBlocksToOutline);
-    }
-
     public static void clearOutline() {
         outlineActive = false;
     }
@@ -91,7 +79,10 @@ public class MiningAreaOutlineRenderer {
         if (holdingCorrectItem && lookingAtMiner) {
             ttl = MAX_TTL;
             outlineActive = true;
-            refreshOutline();
+            outlineChanged = true;
+            selectedCluster.clear();
+            MinerBlockEntity.getInstances(l, p.blockPosition(), OUTLINE_RADIUS)
+                    .forEach(MiningAreaOutlineRenderer::addReservedDepositBlocksToOutline);
         }
     }
 }
