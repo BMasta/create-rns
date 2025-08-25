@@ -4,19 +4,24 @@ import com.bmaster.createrns.AllContent;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.capability.MinerItemStackHandler;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
@@ -26,20 +31,44 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider {
-    public MiningProcess process;
-
     public static final int INVENTORY_SIZE = 1;
+    private static final int MINEABLE_DEPOSIT_RADIUS = 1; // 3x3
+    private static final int MINEABLE_DEPOSIT_DEPTH = 5;
+    private static final Object2ObjectOpenHashMap<Level, ObjectOpenHashSet<MinerBlockEntity>> INSTANCES =
+            new Object2ObjectOpenHashMap<>();
+
+    public MiningProcess process;
+    public Set<BlockPos> reservedDepositBlocks = new HashSet<>();
+
     private final MinerItemStackHandler inventory = new MinerItemStackHandler(INVENTORY_SIZE) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
         }
-    };;
+    };
     private LazyOptional<IItemHandler> inventoryCap = LazyOptional.empty();
     private int setProgressWhenPossibleTo = -1;
+
+    public static Set<MinerBlockEntity> getInstances(Level level) {
+        var levelSet = INSTANCES.get(level);
+        if (levelSet == null) return Set.of();
+        return levelSet.stream().collect(Collectors.toUnmodifiableSet());
+    }
+
+    public static Set<MinerBlockEntity> getInstances(Level level, BlockPos pos, float radius) {
+        var levelSet = INSTANCES.get(level);
+        if (levelSet == null) return Set.of();
+        return levelSet.stream()
+                .filter(i -> Math.sqrt(i.getBlockPos().distSqr(pos)) <= radius)
+                .collect(Collectors.toUnmodifiableSet());
+    }
 
     public MinerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -53,6 +82,30 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
         return inventory;
     }
 
+    public boolean isMining() {
+        return process != null && process.isPossible() && !process.isDone() &&
+                getSpeed() != 0 && isSpeedRequirementFulfilled();
+    }
+
+    public void reserveDepositBlocks() {
+        if (level == null || level.isClientSide) return;
+        var pos = this.getBlockPos();
+        int px = pos.getX(), py = pos.getY(), pz = pos.getZ();
+        int minBuildHeight = level.getMinBuildHeight(), maxBuildHeight = level.getMaxBuildHeight();
+
+        int yMin = Mth.clamp(py - MINEABLE_DEPOSIT_DEPTH, minBuildHeight, maxBuildHeight);
+        int yMax = Mth.clamp(py - 1, minBuildHeight, maxBuildHeight);
+
+        BlockPos min = new BlockPos(px - MINEABLE_DEPOSIT_RADIUS, yMin, pz - MINEABLE_DEPOSIT_RADIUS);
+        BlockPos max = new BlockPos(px + MINEABLE_DEPOSIT_RADIUS, yMax, pz + MINEABLE_DEPOSIT_RADIUS);
+
+        reservedDepositBlocks = BlockPos.betweenClosedStream(min, max)
+                .filter(bp -> level.getBlockState(bp).is(Blocks.RAW_GOLD_BLOCK))
+                .map(BlockPos::immutable)
+                .collect(Collectors.toSet());
+        setChanged();
+    }
+
     @Override
     public void tick() {
         super.tick();
@@ -60,19 +113,18 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
 
         // Try initializing mining process
         if (process == null) {
-            LevelChunk chunk = level.getChunkAt(this.getBlockPos());
-            chunk.getCapability(AllContent.DEPOSIT_INDEX).ifPresent(data -> {
-                // Create the mining process object
-                process = new MiningProcess(ItemStack.EMPTY, 1f, false);
+            // Create the mining process object
+            int nDepBlocks = reservedDepositBlocks.size();
+            process = new MiningProcess(new ItemStack(Items.GOLD_NUGGET, nDepBlocks),
+                    0.2f, nDepBlocks > 0);
 
-                // Restrict inventory to only accept the item type being mined
-                inventory.setMinedItem(process.minedItemStack.getItem());
+            // Restrict inventory to only accept the item type being mined
+            inventory.setMinedItem(process.minedItemStack.getItem());
 
-                // If we got progress data from NBT, now is the time to set it
-                if (setProgressWhenPossibleTo >= 0) {
-                    process.setProgress(setProgressWhenPossibleTo);
-                }
-            });
+            // If we got progress data from NBT, now is the time to set it
+            if (setProgressWhenPossibleTo >= 0) {
+                process.setProgress(setProgressWhenPossibleTo);
+            }
             // Better luck next time
             if (process == null) return;
         }
@@ -93,24 +145,27 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
         }
     }
 
-    public boolean isMining() {
-        return process != null && process.isPossible() && !process.isDone() &&
-                getSpeed() != 0 && isSpeedRequirementFulfilled();
-    }
-
     @Override
     public void onLoad() {
         super.onLoad();
 
         // Initialize the inventory capability when the BE is first loaded
         inventoryCap = LazyOptional.of(() -> inventory);
+
+        MinerBlockEntity.INSTANCES.computeIfAbsent(this.level, k -> new ObjectOpenHashSet<>()).add(this);
     }
 
     @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        // Clean up when chunk unloads or block is broken
+    public void invalidate() {
+        super.invalidate();
+
         inventoryCap.invalidate();
+
+        var levelSet = MinerBlockEntity.INSTANCES.get(level);
+        levelSet.remove(this);
+        if (levelSet.isEmpty()) MinerBlockEntity.INSTANCES.remove(level);
+
+        if (level != null && level.isClientSide()) MiningAreaOutlineRenderer.refreshOutline();
     }
 
     @NotNull
@@ -123,20 +178,30 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
     }
 
     @Override
-    public void read(@NotNull CompoundTag tag, boolean clientPacket) {
-        super.read(tag, clientPacket);
-        // Mining process is not yet created, so we save the progress value for later
-        setProgressWhenPossibleTo = tag.getInt("Progress");
-        inventory.deserializeNBT(tag.getCompound("Items"));
-    }
-
-    @Override
     public void write(@NotNull CompoundTag tag, boolean clientPacket) {
         super.write(tag, clientPacket);
         tag.put("Items", inventory.serializeNBT());
         if (process != null) {
             tag.putInt("Progress", process.getProgress());
         }
+
+        var packed = reservedDepositBlocks.stream().mapToLong(BlockPos::asLong).toArray();
+        tag.putLongArray("ReservedDepositBlocks", packed);
+    }
+
+    @Override
+    public void read(@NotNull CompoundTag tag, boolean clientPacket) {
+        super.read(tag, clientPacket);
+
+        // Mining process is not yet created, so we save the progress value for later
+        setProgressWhenPossibleTo = tag.getInt("Progress");
+        inventory.deserializeNBT(tag.getCompound("Items"));
+
+        reservedDepositBlocks.clear();
+        var packed = tag.getLongArray("ReservedDepositBlocks");
+        for (var l : packed) reservedDepositBlocks.add(BlockPos.of(l));
+
+        if (clientPacket) MiningAreaOutlineRenderer.addReservedDepositBlocksToOutline(this);
     }
 
     @NotNull

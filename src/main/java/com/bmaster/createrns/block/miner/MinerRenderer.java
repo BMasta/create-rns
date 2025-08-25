@@ -22,7 +22,6 @@ public class MinerRenderer extends KineticBlockEntityRenderer<MinerBlockEntity> 
     protected void renderSafe(MinerBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer,
                               int light, int overlay) {
         final Axis axis = Axis.Y;
-        final BlockPos pos = be.getBlockPos();
         float time = AnimationTickHolder.getRenderTime(be.getLevel());
 
         SuperByteBuffer shaft = CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF, be.getBlockState(),

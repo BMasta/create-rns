@@ -2,6 +2,7 @@ package com.bmaster.createrns.event;
 
 import com.bmaster.createrns.AllContent;
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.block.miner.MiningAreaOutlineRenderer;
 import com.bmaster.createrns.capability.depositindex.*;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerS2CPacket;
@@ -29,6 +30,7 @@ public class ForgeEvents {
     public static void tick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) {
             DepositScannerClientHandler.tick();
+            MiningAreaOutlineRenderer.tick();
         }
     }
 
@@ -95,12 +97,6 @@ public class ForgeEvents {
     }
 
     @SubscribeEvent
-    public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut e) {
-        scannerLastRightClickedAt = 0;
-        DepositScannerClientHandler.clearState();
-    }
-
-    @SubscribeEvent
     public static void onChunkLoad(ChunkEvent.Load e) {
         if (!(e.getLevel() instanceof ServerLevel sl)) return;
         var depIdxOpt = IDepositIndex.fromLevel(sl).resolve();
@@ -116,5 +112,12 @@ public class ForgeEvents {
                     .getResourceKey(start.getStructure())
                     .ifPresent(structKey -> depIdx.add(structKey, start, sl));
         }
+    }
+
+    @SubscribeEvent
+    public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut e) {
+        scannerLastRightClickedAt = 0;
+        DepositScannerClientHandler.clearState();
+        MiningAreaOutlineRenderer.clearOutline();
     }
 }
