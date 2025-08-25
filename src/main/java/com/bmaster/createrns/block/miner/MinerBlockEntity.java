@@ -3,6 +3,7 @@ package com.bmaster.createrns.block.miner;
 import com.bmaster.createrns.AllContent;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.capability.MinerItemStackHandler;
+import com.bmaster.createrns.util.Utils;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -31,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -41,8 +41,6 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
     public static final int INVENTORY_SIZE = 1;
     private static final int MINEABLE_DEPOSIT_RADIUS = 1; // 3x3
     private static final int MINEABLE_DEPOSIT_DEPTH = 5;
-    private static final Object2ObjectOpenHashMap<Level, ObjectOpenHashSet<MinerBlockEntity>> INSTANCES =
-            new Object2ObjectOpenHashMap<>();
 
     public MiningProcess process;
     public Set<BlockPos> reservedDepositBlocks = new HashSet<>();
@@ -55,20 +53,6 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
     };
     private LazyOptional<IItemHandler> inventoryCap = LazyOptional.empty();
     private int setProgressWhenPossibleTo = -1;
-
-    public static Set<MinerBlockEntity> getInstances(Level level) {
-        var levelSet = INSTANCES.get(level);
-        if (levelSet == null) return Set.of();
-        return levelSet.stream().collect(Collectors.toUnmodifiableSet());
-    }
-
-    public static Set<MinerBlockEntity> getInstances(Level level, BlockPos pos, float radius) {
-        var levelSet = INSTANCES.get(level);
-        if (levelSet == null) return Set.of();
-        return levelSet.stream()
-                .filter(i -> Math.sqrt(i.getBlockPos().distSqr(pos)) <= radius)
-                .collect(Collectors.toUnmodifiableSet());
-    }
 
     public MinerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -152,7 +136,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
         // Initialize the inventory capability when the BE is first loaded
         inventoryCap = LazyOptional.of(() -> inventory);
 
-        MinerBlockEntity.INSTANCES.computeIfAbsent(this.level, k -> new ObjectOpenHashSet<>()).add(this);
+        MinerBlockEntityInstanceHolder.addInstance(this);
     }
 
     @Override
@@ -161,11 +145,8 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
 
         inventoryCap.invalidate();
 
-        var levelSet = MinerBlockEntity.INSTANCES.get(level);
-        levelSet.remove(this);
-        if (levelSet.isEmpty()) MinerBlockEntity.INSTANCES.remove(level);
-
-        if (level != null && level.isClientSide()) MiningAreaOutlineRenderer.clearOutline();
+        MinerBlockEntityInstanceHolder.removeInstance(this);
+        if (level != null && level.isClientSide()) MiningAreaOutlineRenderer.refreshOutline();
     }
 
     @NotNull
