@@ -5,25 +5,18 @@ import net.minecraft.world.item.ItemStack;
 public class MiningProcess {
     private static final float BASE_MAX_PROGRESS = 20 * 256 * 30; // 30 seconds at 256 RPM without multipliers
 
-    public final ItemStack minedItemStack;
 
-    private final boolean isPossible;
-    private int progress = 0;
+    private ItemStack yield;
     private int maxProgress;
+    private int progress = 0;
 
-    public MiningProcess(ItemStack minedItemStack, float progressMultiplier, boolean isPossible) {
-        this.isPossible = isPossible;
-        if (isPossible) {
-            this.minedItemStack = minedItemStack;
-            this.maxProgress = Math.round(BASE_MAX_PROGRESS * progressMultiplier);
-        } else {
-            this.minedItemStack = ItemStack.EMPTY;
-            this.maxProgress = 0;
-        }
+    public MiningProcess(ItemStack yield, float progressMultiplier) {
+        this.yield = yield;
+        this.maxProgress = Math.round(BASE_MAX_PROGRESS * progressMultiplier);
     }
 
     public void advance(int by) {
-        if (!isDone()) {
+        if (isPossible() && !isDone()) {
             progress += by;
         }
         if (progress > maxProgress) progress = maxProgress;
@@ -32,7 +25,7 @@ public class MiningProcess {
     public ItemStack collect() {
         if (isDone()) {
             progress = 0;
-            return minedItemStack.copy();
+            return yield.copy();
         }
         return ItemStack.EMPTY;
     }
@@ -57,11 +50,22 @@ public class MiningProcess {
     }
 
     public boolean isPossible() {
-        return isPossible;
+        return !yield.isEmpty();
     }
 
     public boolean isDone() {
-        return (progress >= maxProgress);
+        return isPossible() && progress >= maxProgress;
     }
 
+    public ItemStack getYield() {
+        return yield;
+    }
+
+    public void setYield(ItemStack yield) {
+        this.yield = yield;
+    }
+
+    public void setYieldCount(int count) {
+        this.yield.setCount(count);
+    }
 }

@@ -3,10 +3,7 @@ package com.bmaster.createrns.block.miner;
 import com.bmaster.createrns.AllContent;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.capability.MinerItemStackHandler;
-import com.bmaster.createrns.util.Utils;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -19,7 +16,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -39,8 +35,8 @@ import java.util.stream.Collectors;
 
 public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider {
     public static final int INVENTORY_SIZE = 1;
-    private static final int MINEABLE_DEPOSIT_RADIUS = 1; // 3x3
-    private static final int MINEABLE_DEPOSIT_DEPTH = 5;
+    public static final int MINEABLE_DEPOSIT_RADIUS = 1; // 3x3
+    public static final int MINEABLE_DEPOSIT_DEPTH = 5;
 
     public MiningProcess process;
     public Set<BlockPos> reservedDepositBlocks = new HashSet<>();
@@ -83,10 +79,18 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
         BlockPos min = new BlockPos(px - MINEABLE_DEPOSIT_RADIUS, yMin, pz - MINEABLE_DEPOSIT_RADIUS);
         BlockPos max = new BlockPos(px + MINEABLE_DEPOSIT_RADIUS, yMax, pz + MINEABLE_DEPOSIT_RADIUS);
 
-        reservedDepositBlocks = BlockPos.betweenClosedStream(min, max)
+        var depBlockStream = BlockPos.betweenClosedStream(min, max)
                 .filter(bp -> level.getBlockState(bp).is(Blocks.RAW_GOLD_BLOCK))
-                .map(BlockPos::immutable)
-                .collect(Collectors.toSet());
+                .map(BlockPos::immutable);
+
+        // Exclude deposit blocks reserved by nearby miners
+        for (var m : MinerBlockEntityInstanceHolder.getInstancesWithIntersectingMiningArea(this)) {
+            if (m.equals(this)) continue;
+            depBlockStream = depBlockStream.filter(bp -> !m.reservedDepositBlocks.contains(bp));
+        }
+        reservedDepositBlocks = depBlockStream.collect(Collectors.toUnmodifiableSet());
+        if (process != null) process.setYieldCount(reservedDepositBlocks.size());
+
         setChanged();
     }
 
@@ -99,11 +103,10 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
         if (process == null) {
             // Create the mining process object
             int nDepBlocks = reservedDepositBlocks.size();
-            process = new MiningProcess(new ItemStack(Items.GOLD_NUGGET, nDepBlocks),
-                    0.2f, nDepBlocks > 0);
+            process = new MiningProcess(new ItemStack(Items.GOLD_NUGGET, nDepBlocks), 0.2f);
 
             // Restrict inventory to only accept the item type being mined
-            inventory.setMinedItem(process.minedItemStack.getItem());
+            inventory.setMinedItem(process.getYield().getItem());
 
             // If we got progress data from NBT, now is the time to set it
             if (setProgressWhenPossibleTo >= 0) {
@@ -181,6 +184,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
         reservedDepositBlocks.clear();
         var packed = tag.getLongArray("ReservedDepositBlocks");
         for (var l : packed) reservedDepositBlocks.add(BlockPos.of(l));
+        if (process != null) process.setYieldCount(reservedDepositBlocks.size());
 
         if (clientPacket) MiningAreaOutlineRenderer.addReservedDepositBlocksToOutline(this);
     }
@@ -198,7 +202,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
     createMenu(int pContainerId, Inventory pPlayerInventory, Player pPlayer) {
         Item ghostItem = null;
         if (process != null) {
-            ghostItem = process.minedItemStack.getItem();
+            ghostItem = process.getYield().getItem();
         }
         return new MinerMenu(AllContent.MINER_MENU.get(), pContainerId, pPlayerInventory, this, ghostItem);
     }
