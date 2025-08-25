@@ -24,6 +24,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import java.util.Set;
+
 public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity> {
     public MinerBlock(Properties props) {
         super(props);
@@ -52,7 +54,7 @@ public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity> {
                     // Send an item to the client, so it can render it as a placeholder in the yield slot
                     ItemStack ghostItemStack = ItemStack.EMPTY;
                     if (minerBE.process != null) {
-                        ghostItemStack = new ItemStack(minerBE.process.minedItemStack.getItem());
+                        ghostItemStack = new ItemStack(minerBE.process.getYield().getItem());
                     }
                     buf.writeItem(ghostItemStack);
                 });
@@ -74,21 +76,39 @@ public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity> {
 
     @ParametersAreNonnullByDefault
     @Override
-    public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pMovedByPiston) {
-        if (!pState.is(pNewState.getBlock())) {
-            BlockEntity be = pLevel.getBlockEntity(pPos);
-            if (be instanceof MinerBlockEntity) {
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        Set<MinerBlockEntity> nearbyMiners = null;
+        if (!state.is(newState.getBlock())) {
+            BlockEntity be = level.getBlockEntity(pos);
+            if (be instanceof MinerBlockEntity minerBE) {
+                // Pop inventory contents on the ground
                 be.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(iItemHandler -> {
                     for (int i = 0; i < iItemHandler.getSlots(); ++i) {
                         ItemStack stack = iItemHandler.getStackInSlot(i);
                         if (!stack.isEmpty()) {
-                            Block.popResource(pLevel, pPos, stack);
+                            Block.popResource(level, pos, stack);
                         }
                     }
                 });
+
+                // Collect all nearby miner BEs
+                if (!level.isClientSide) {
+                    nearbyMiners = MinerBlockEntityInstanceHolder.getInstancesWithIntersectingMiningArea(minerBE);
+                }
             }
         }
-        super.onRemove(pState, pLevel, pPos, pNewState, pMovedByPiston);
+        super.onRemove(state, level, pos, newState, movedByPiston);
+
+        if (nearbyMiners != null) {
+            // Now that our own BE is removed, let other miners re-reserve their deposit blocks
+            for (var m : nearbyMiners) {
+                var mPos = m.getBlockPos();
+                if (mPos.equals(pos)) continue;
+                m.reserveDepositBlocks();
+                var mState = level.getBlockState(mPos);
+                level.sendBlockUpdated(mPos, mState, mState, Block.UPDATE_CLIENTS);
+            }
+        }
     }
 
     @Override

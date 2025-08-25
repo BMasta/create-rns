@@ -31,7 +31,6 @@ public class MinerMenu extends AbstractContainerMenu {
 
     // Server and client side
     private final Item ghostItem;
-    private final ContainerLevelAccess access;
     // Note to self: do not rely on the client-side block entity too much as it can easily become stale.
     private final MinerBlockEntity blockEntity;
 
@@ -43,7 +42,6 @@ public class MinerMenu extends AbstractContainerMenu {
         super(type, id);
         this.ghostItem = ghostItem;
         this.blockEntity = pBE;
-        this.access = ContainerLevelAccess.create(pPlayerInv.player.level(), blockEntity.getBlockPos());
 
         // Add Yield slot
         this.addSlot(new SlotItemHandler(

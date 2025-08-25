@@ -27,11 +27,18 @@ public class MinerBlockEntityInstanceHolder {
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-    public static Set<MinerBlockEntity> getInstancesWithinChebyshevDistance(Level level, BlockPos pos, int distance) {
-        var levelSet = INSTANCES.get(level);
+    public static Set<MinerBlockEntity> getInstancesWithIntersectingMiningArea(MinerBlockEntity be) {
+        if (!be.hasLevel()) return Set.of();
+        var levelSet = INSTANCES.get(be.getLevel());
         if (levelSet == null) return Set.of();
+        var pos = be.getBlockPos();
+        var horiDist = MinerBlockEntity.MINEABLE_DEPOSIT_RADIUS * 2;
+        var vertDist = MinerBlockEntity.MINEABLE_DEPOSIT_DEPTH;
+
         return levelSet.stream()
-                .filter(i -> Utils.distChebyshev(i.getBlockPos(), pos) <= distance)
+                .filter(i -> Math.abs(i.getBlockPos().getX() - pos.getX()) <= horiDist)
+                .filter(i -> Math.abs(i.getBlockPos().getZ() - pos.getZ()) <= horiDist)
+                .filter(i -> Math.abs(i.getBlockPos().getY() - pos.getY()) <= vertDist)
                 .collect(Collectors.toUnmodifiableSet());
     }
 
