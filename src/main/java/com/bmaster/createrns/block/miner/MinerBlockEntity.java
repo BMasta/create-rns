@@ -165,7 +165,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
         levelSet.remove(this);
         if (levelSet.isEmpty()) MinerBlockEntity.INSTANCES.remove(level);
 
-        if (level != null && level.isClientSide()) MiningAreaOutlineRenderer.refreshOutline();
+        if (level != null && level.isClientSide()) MiningAreaOutlineRenderer.clearOutline();
     }
 
     @NotNull
