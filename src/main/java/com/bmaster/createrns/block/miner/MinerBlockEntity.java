@@ -125,8 +125,8 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
                     CreateRNS.LOGGER.info("Mined {} {}, at {},{}", is.getItem(), is.getCount(),
                             getBlockPos().getX(), getBlockPos().getZ());
                 } else {
-                    CreateRNS.LOGGER.info("Could not fully mine {} at {},{}", is.getItem(),
-                            getBlockPos().getX(), getBlockPos().getZ());
+                    CreateRNS.LOGGER.info("Could not fully mine {} at {},{} ({} remaining)", is.getItem(),
+                            getBlockPos().getX(), getBlockPos().getZ(), is.getCount());
                 }
             }
         }

@@ -8,7 +8,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
+import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MiningProcess {
     private static final float BASE_MAX_PROGRESS = 20 * 256 * 30; // 30 seconds at 256 RPM without multipliers
@@ -16,7 +18,7 @@ public class MiningProcess {
 
     private Set<ItemStack> yield;
     private int maxProgress;
-    private int progress = 0;
+    private int progress;
 
     public MiningProcess(ServerLevel sl, Set<BlockPos> depositBlocks, float progressMultiplier) {
         setYield(sl, depositBlocks);
@@ -33,7 +35,7 @@ public class MiningProcess {
     public Set<ItemStack> collect() {
         if (isDone()) {
             progress = 0;
-            return yield;
+            return yield.stream().map(ItemStack::copy).collect(Collectors.toSet());
         }
         return Set.of(ItemStack.EMPTY);
     }
@@ -70,6 +72,7 @@ public class MiningProcess {
     }
 
     public void setYield(Level l, Set<BlockPos> depositBlocks) {
+        this.progress = 0;
         this.yield = depositBlocks.stream()
                 .map(bp -> l.getBlockState(bp).getBlock())
                 .filter(db -> db.defaultBlockState().is(RNSTags.Block.DEPOSIT_BLOCKS))
