@@ -30,7 +30,6 @@ public class MinerMenu extends AbstractContainerMenu {
     private static final int CD_ARG_COUNT = 2;
 
     // Server and client side
-    private final Item ghostItem;
     // Note to self: do not rely on the client-side block entity too much as it can easily become stale.
     private final MinerBlockEntity blockEntity;
 
@@ -38,9 +37,8 @@ public class MinerMenu extends AbstractContainerMenu {
     private int clientProgress, clientMaxProgress;
 
     // Server-side constructor
-    public MinerMenu(MenuType<?> type, int id, Inventory pPlayerInv, MinerBlockEntity pBE, Item ghostItem) {
+    public MinerMenu(MenuType<?> type, int id, Inventory pPlayerInv, MinerBlockEntity pBE) {
         super(type, id);
-        this.ghostItem = ghostItem;
         this.blockEntity = pBE;
 
         // Add Yield slot
@@ -93,7 +91,7 @@ public class MinerMenu extends AbstractContainerMenu {
 
     // Client-side constructor
     public MinerMenu(MenuType<?> type, int id, Inventory inv, FriendlyByteBuf buf) {
-        this(type, id, inv, getBlockEntity(inv, buf), buf.readItem().getItem());
+        this(type, id, inv, getBlockEntity(inv, buf));
     }
 
     public int getProgress() {
@@ -102,10 +100,6 @@ public class MinerMenu extends AbstractContainerMenu {
 
     public int getMaxProgress() {
         return clientMaxProgress;
-    }
-
-    public Item getGhostItem() {
-        return ghostItem;
     }
 
     private static MinerBlockEntity getBlockEntity(Inventory inv, FriendlyByteBuf buf) {

@@ -33,8 +33,7 @@ public class DepositScannerServerHandler {
         }
         var depIdx = depIdxOpt.get();
 
-        // TODO: Scan for all structures in the spec
-        var structure = DepositSpecLookup.getSpec(sl, yield).structures().get(0);
+        var structure = DepositSpecLookup.getSpec(sl, yield).structure();
         var depPos = depIdx.getNearest(structure.unwrapKey().orElseThrow(), sp, SEARCH_RADIUS_CHUNKS, !recompute);
         var state = getScannerState(sp, depPos);
 

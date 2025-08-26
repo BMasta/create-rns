@@ -9,20 +9,26 @@ import com.simibubi.create.foundation.data.SharedProperties;
 import com.simibubi.create.foundation.item.ItemDescription;
 import com.simibubi.create.foundation.item.KineticStats;
 import com.simibubi.create.foundation.item.TooltipModifier;
+import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.util.entry.*;
+import com.tterrag.registrate.util.nullness.NonNullFunction;
 import net.createmod.catnip.lang.FontHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
 
-import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
+import static com.simibubi.create.foundation.data.TagGen.*;
 
 
 public class AllContent {
@@ -44,7 +50,10 @@ public class AllContent {
     public static final BlockEntry<MinerBlock> MINER_BLOCK = CreateRNS.REGISTRATE.block("miner",
                     MinerBlock::new)
             .initialProperties(SharedProperties::stone)
-            .properties(p -> p.noOcclusion().mapColor(MapColor.PODZOL))
+            .properties(p -> p
+                    .noOcclusion()
+                    .mapColor(MapColor.PODZOL)
+                    .pushReaction(PushReaction.BLOCK))
             .transform(axeOrPickaxe())
             .blockstate((c, p) ->
                     p.simpleBlock(c.get(), AssetLookup.standardModel(c, p)))
@@ -53,6 +62,15 @@ public class AllContent {
             .model(AssetLookup.existingItemModel())
             .build()
             .register();
+
+    public static final BlockEntry<Block> IRON_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block("deposit_iron", Block::new)
+            .transform(deposit(MapColor.RAW_IRON)).item().build().register();
+
+    public static final BlockEntry<Block> COPPER_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block("deposit_copper", Block::new)
+            .transform(deposit(MapColor.COLOR_ORANGE)).item().build().register();
+
+    public static final BlockEntry<Block> GOLD_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block("deposit_gold", Block::new)
+            .transform(deposit(MapColor.GOLD)).item().build().register();
 
     // Block entities
     public static final BlockEntityEntry<MinerBlockEntity> MINER_BE = CreateRNS.REGISTRATE.blockEntity("miner",
@@ -71,6 +89,9 @@ public class AllContent {
                             .displayItems((pParameters, pOutput) -> {
                                 pOutput.accept(MINER_BLOCK.get().asItem());
                                 pOutput.accept(DEPOSIT_SCANNER_ITEM.get().asItem());
+                                pOutput.accept(IRON_DEPOSIT_BLOCK.get().asItem());
+                                pOutput.accept(COPPER_DEPOSIT_BLOCK.get().asItem());
+                                pOutput.accept(GOLD_DEPOSIT_BLOCK.get().asItem());
                             })
                             .build())
             .register();
@@ -87,5 +108,24 @@ public class AllContent {
             CapabilityManager.get(new CapabilityToken<>() {});
 
     public static void register() {
+    }
+
+    public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> deposit(
+            MapColor mapColor
+    ) {
+        return b -> b
+                .initialProperties(() -> Blocks.RAW_IRON_BLOCK)
+                .properties(p -> p
+                        .mapColor(mapColor)
+                        .strength(50.0F, 1200f)
+                        .pushReaction(PushReaction.BLOCK)
+                        .noLootTable())
+                .transform(pickaxeOnly())
+                .tag(BlockTags.MINEABLE_WITH_PICKAXE)
+                .tag(BlockTags.NEEDS_DIAMOND_TOOL)
+                .tag(RNSTags.Block.DEPOSIT_BLOCKS)
+                .item()
+                .tag(RNSTags.Item.DEPOSIT_BLOCKS)
+                .getParent();
     }
 }

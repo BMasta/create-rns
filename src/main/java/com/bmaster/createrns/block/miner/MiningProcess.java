@@ -1,17 +1,25 @@
 package com.bmaster.createrns.block.miner;
 
+import com.bmaster.createrns.RNSTags;
+import com.bmaster.createrns.capability.depositindex.DepositSpecLookup;
+import com.bmaster.createrns.util.ItemsToStackSetCollector;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+
+import java.util.Set;
 
 public class MiningProcess {
     private static final float BASE_MAX_PROGRESS = 20 * 256 * 30; // 30 seconds at 256 RPM without multipliers
 
 
-    private ItemStack yield;
+    private Set<ItemStack> yield;
     private int maxProgress;
     private int progress = 0;
 
-    public MiningProcess(ItemStack yield, float progressMultiplier) {
-        this.yield = yield;
+    public MiningProcess(ServerLevel sl, Set<BlockPos> depositBlocks, float progressMultiplier) {
+        setYield(sl, depositBlocks);
         this.maxProgress = Math.round(BASE_MAX_PROGRESS * progressMultiplier);
     }
 
@@ -22,12 +30,12 @@ public class MiningProcess {
         if (progress > maxProgress) progress = maxProgress;
     }
 
-    public ItemStack collect() {
+    public Set<ItemStack> collect() {
         if (isDone()) {
             progress = 0;
-            return yield.copy();
+            return yield;
         }
-        return ItemStack.EMPTY;
+        return Set.of(ItemStack.EMPTY);
     }
 
     public int getProgress() {
@@ -57,15 +65,15 @@ public class MiningProcess {
         return isPossible() && progress >= maxProgress;
     }
 
-    public ItemStack getYield() {
+    public Set<ItemStack> getYield() {
         return yield;
     }
 
-    public void setYield(ItemStack yield) {
-        this.yield = yield;
-    }
-
-    public void setYieldCount(int count) {
-        this.yield.setCount(count);
+    public void setYield(Level l, Set<BlockPos> depositBlocks) {
+        this.yield = depositBlocks.stream()
+                .map(bp -> l.getBlockState(bp).getBlock())
+                .filter(db -> db.defaultBlockState().is(RNSTags.Block.DEPOSIT_BLOCKS))
+                .map(db -> DepositSpecLookup.getSpec(l, db).yield())
+                .collect(new ItemsToStackSetCollector());
     }
 }

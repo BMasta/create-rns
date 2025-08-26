@@ -1,0 +1,5 @@
+{
+  "yield": "minecraft:gold_ingot",
+  "depositBlock": "create_rns:deposit_gold",
+  "structure": "create_rns:deposit_gold"
+}

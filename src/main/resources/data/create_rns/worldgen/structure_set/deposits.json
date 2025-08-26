@@ -1,0 +1,13 @@
+{
+  "structures": [
+    {"structure": "create_rns:deposit_iron", "weight": 1},
+    {"structure": "create_rns:deposit_copper", "weight": 1},
+    {"structure": "create_rns:deposit_gold", "weight": 1}
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 32,
+    "separation": 6,
+    "salt": 591646342
+  }
+}

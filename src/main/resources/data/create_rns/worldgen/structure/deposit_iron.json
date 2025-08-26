@@ -1,6 +1,6 @@
 {
   "type": "minecraft:jigsaw",
-  "start_pool": "create_rns:ore_deposit/start",
+  "start_pool": "create_rns:deposit_iron/start",
   "size": 1,
   "start_height": { "absolute": 30 },
   "project_start_to_heightmap": "OCEAN_FLOOR_WG",

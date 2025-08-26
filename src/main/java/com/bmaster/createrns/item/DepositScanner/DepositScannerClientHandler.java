@@ -2,7 +2,6 @@ package com.bmaster.createrns.item.DepositScanner;
 
 import com.bmaster.createrns.AllContent;
 import com.bmaster.createrns.capability.depositindex.DepositSpecLookup;
-import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.simibubi.create.AllSoundEvents;
 import net.minecraft.client.Minecraft;
@@ -54,28 +53,16 @@ public class DepositScannerClientHandler {
 
     public static void scrollDown() {
         if (state.mode != Mode.ACTIVE) return;
-
         state.selectedIndex++;
-        state.needScanRecompute = true;
         DepositScannerItemRenderer.scrollDown();
-
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null) {
-            AllSoundEvents.SCROLL_VALUE.playAt(player.level(), player.blockPosition(), 1f, 1f, true);
-        }
+        afterScroll();
     }
 
     public static void scrollUp() {
         if (state.mode != Mode.ACTIVE) return;
-
         state.selectedIndex--;
-        state.needScanRecompute = true;
         DepositScannerItemRenderer.scrollUp();
-
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null) {
-            AllSoundEvents.SCROLL_VALUE.playAt(player.level(), player.blockPosition(), 1f, 1f, true);
-        }
+        afterScroll();
     }
 
     public static void clearState() {
@@ -166,6 +153,22 @@ public class DepositScannerClientHandler {
                 AllSoundEvents.CONFIRM_2.playAt(p.level(), p.blockPosition(), 1f,
                         0.8f + 0.4f * pitchMultiplier, true);
             }
+        }
+    }
+
+    private static void afterScroll() {
+        if (state.mode != Mode.ACTIVE) return;
+
+        state.needScanRecompute = true;
+
+        if (state.cachedDepositPos != null) {
+            state.cachedDepositPos = null;
+            state.depProximity = DepositProximity.LEFT;
+        }
+
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player != null) {
+            AllSoundEvents.SCROLL_VALUE.playAt(player.level(), player.blockPosition(), 1f, 1f, true);
         }
     }
 
