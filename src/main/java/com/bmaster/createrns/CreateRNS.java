@@ -25,6 +25,7 @@ public class CreateRNS {
     public CreateRNS(FMLJavaModLoadingContext context) {
         IEventBus modEventBus = context.getModEventBus();
         REGISTRATE.registerEventListeners(modEventBus);
+        RNSTags.register();
         AllContent.register();
 
         // Register the commonSetup method for modloading

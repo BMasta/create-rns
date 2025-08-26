@@ -33,23 +33,6 @@ public class MinerScreen extends AbstractContainerScreen<MinerMenu> {
                 this.imageWidth, this.imageHeight);
     }
 
-    private void renderGhostItem(GuiGraphics pGuiGraphics) {
-        Slot slot = this.menu.slots.get(MinerMenu.YIELD_SLOT_INDEX);
-        Item ghostItem = menu.getGhostItem();
-        if (ghostItem != null && !slot.hasItem()) {
-            int x = leftPos + MinerMenu.YIELD_PIXEL_OFFSET_X;
-            int y = topPos + MinerMenu.YIELD_PIXEL_OFFSET_Y;
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            RenderSystem.setShaderColor(1f, 1f, 1f, 0.45f);
-
-            pGuiGraphics.renderItem(new ItemStack(ghostItem, 1), x, y);
-
-            RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-            RenderSystem.disableBlend();
-        }
-    }
-
     private void renderProgressBar(GuiGraphics pGuiGraphics) {
         int filled_segment_count;
         if (menu.getMaxProgress() > 0) {
@@ -79,7 +62,6 @@ public class MinerScreen extends AbstractContainerScreen<MinerMenu> {
     @Override
     protected void renderBg(GuiGraphics pGuiGraphics, float pPartialTick, int pMouseX, int pMouseY) {
         renderBaseMenu(pGuiGraphics);
-        renderGhostItem(pGuiGraphics);
         renderProgressBar(pGuiGraphics);
     }
 

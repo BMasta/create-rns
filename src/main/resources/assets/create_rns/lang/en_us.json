@@ -1,5 +1,8 @@
 {
   "block.create_rns.miner": "Miner",
+  "block.create_rns.deposit_iron": "Iron Deposit",
+  "block.create_rns.deposit_copper": "Copper Deposit",
+  "block.create_rns.deposit_gold": "Gold Deposit",
   "container.create_rns.miner": "Miner",
   "item.create_rns.deposit_scanner": "Deposit Scanner",
   "creativetab.create_rns": "Create: Rock & Stone"

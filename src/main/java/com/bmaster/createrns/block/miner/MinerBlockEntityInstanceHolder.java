@@ -36,6 +36,7 @@ public class MinerBlockEntityInstanceHolder {
         var vertDist = MinerBlockEntity.MINEABLE_DEPOSIT_DEPTH;
 
         return levelSet.stream()
+                .filter(m -> !m.getBlockPos().equals(be.getBlockPos()))
                 .filter(i -> Math.abs(i.getBlockPos().getX() - pos.getX()) <= horiDist)
                 .filter(i -> Math.abs(i.getBlockPos().getZ() - pos.getZ()) <= horiDist)
                 .filter(i -> Math.abs(i.getBlockPos().getY() - pos.getY()) <= vertDist)

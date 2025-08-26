@@ -1,4 +1,7 @@
 {
+  "block.create_rns.deposit_copper": "Deposit Copper",
+  "block.create_rns.deposit_gold": "Deposit Gold",
+  "block.create_rns.deposit_iron": "Deposit Iron",
   "block.create_rns.miner": "Miner",
   "item.create_rns.deposit_scanner": "Deposit Scanner",
   "itemGroup.create_rns.create_rns": "Create Rns"

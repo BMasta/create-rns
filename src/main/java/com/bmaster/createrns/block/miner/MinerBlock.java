@@ -51,12 +51,6 @@ public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity> {
             if (be instanceof MinerBlockEntity minerBE) {
                 NetworkHooks.openScreen(serverPlayer, minerBE, buf -> {
                     buf.writeBlockPos(minerBE.getBlockPos());
-                    // Send an item to the client, so it can render it as a placeholder in the yield slot
-                    ItemStack ghostItemStack = ItemStack.EMPTY;
-                    if (minerBE.process != null) {
-                        ghostItemStack = new ItemStack(minerBE.process.getYield().getItem());
-                    }
-                    buf.writeItem(ghostItemStack);
                 });
             }
         }
@@ -102,9 +96,8 @@ public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity> {
         if (nearbyMiners != null) {
             // Now that our own BE is removed, let other miners re-reserve their deposit blocks
             for (var m : nearbyMiners) {
-                var mPos = m.getBlockPos();
-                if (mPos.equals(pos)) continue;
                 m.reserveDepositBlocks();
+                var mPos = m.getBlockPos();
                 var mState = level.getBlockState(mPos);
                 level.sendBlockUpdated(mPos, mState, mState, Block.UPDATE_CLIENTS);
             }

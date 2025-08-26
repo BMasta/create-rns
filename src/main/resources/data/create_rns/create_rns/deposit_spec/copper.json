@@ -1,0 +1,5 @@
+{
+  "yield": "minecraft:copper_ingot",
+  "depositBlock": "create_rns:deposit_copper",
+  "structure": "create_rns:deposit_copper"
+}

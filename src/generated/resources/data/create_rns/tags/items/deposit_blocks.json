@@ -1,6 +1,5 @@
 {
   "values": [
-    "create_rns:miner",
     "create_rns:deposit_iron",
     "create_rns:deposit_copper",
     "create_rns:deposit_gold"
