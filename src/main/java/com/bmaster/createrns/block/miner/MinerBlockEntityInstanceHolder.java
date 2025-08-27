@@ -1,5 +1,6 @@
 package com.bmaster.createrns.block.miner;
 
+import com.bmaster.createrns.block.DepositBlock;
 import com.bmaster.createrns.util.Utils;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -40,6 +41,24 @@ public class MinerBlockEntityInstanceHolder {
                 .filter(i -> Math.abs(i.getBlockPos().getX() - pos.getX()) <= horiDist)
                 .filter(i -> Math.abs(i.getBlockPos().getZ() - pos.getZ()) <= horiDist)
                 .filter(i -> Math.abs(i.getBlockPos().getY() - pos.getY()) <= vertDist)
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
+    public static Set<MinerBlockEntity> getInstancesThatMine(Level l, BlockPos bp) {
+        var levelSet = INSTANCES.get(l);
+        if (levelSet == null) return Set.of();
+
+        var maxHoriDist = MinerBlockEntity.MINEABLE_DEPOSIT_RADIUS;
+        var minTopDist = 1; // Miner must be at least 1 block above to mine
+        var maxTopDist = MinerBlockEntity.MINEABLE_DEPOSIT_DEPTH;
+
+        return levelSet.stream()
+                .filter(i -> {
+                    var mPos = i.getBlockPos();
+                    var signedVertDiff = mPos.getY() - bp.getY();
+                    var horiDist = Math.max(Math.abs(mPos.getX() - bp.getX()), Math.abs(mPos.getZ() - bp.getZ()));
+                    return (minTopDist <= signedVertDiff && signedVertDiff <= maxTopDist) && (horiDist <= maxHoriDist);
+                })
                 .collect(Collectors.toUnmodifiableSet());
     }
 

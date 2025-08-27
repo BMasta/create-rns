@@ -1,5 +1,6 @@
 package com.bmaster.createrns;
 
+import com.bmaster.createrns.block.DepositBlock;
 import com.bmaster.createrns.block.miner.*;
 import com.bmaster.createrns.capability.depositindex.IDepositIndex;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerItem;
@@ -63,13 +64,16 @@ public class AllContent {
             .build()
             .register();
 
-    public static final BlockEntry<Block> IRON_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block("deposit_iron", Block::new)
+    public static final BlockEntry<DepositBlock> IRON_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block("deposit_iron",
+                    DepositBlock::new)
             .transform(deposit(MapColor.RAW_IRON)).item().build().register();
 
-    public static final BlockEntry<Block> COPPER_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block("deposit_copper", Block::new)
+    public static final BlockEntry<DepositBlock> COPPER_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block("deposit_copper",
+                    DepositBlock::new)
             .transform(deposit(MapColor.COLOR_ORANGE)).item().build().register();
 
-    public static final BlockEntry<Block> GOLD_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block("deposit_gold", Block::new)
+    public static final BlockEntry<DepositBlock> GOLD_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block("deposit_gold",
+                    DepositBlock::new)
             .transform(deposit(MapColor.GOLD)).item().build().register();
 
     // Block entities

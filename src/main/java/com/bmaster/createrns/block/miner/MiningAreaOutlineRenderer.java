@@ -20,16 +20,7 @@ public class MiningAreaOutlineRenderer {
     private static final ObjectOpenHashSet<BlockPos> selectedCluster = new ObjectOpenHashSet<>();
     private static int ttl = 0;
 
-    public static void addReservedDepositBlocksToOutline(MinerBlockEntity be) {
-        if (!outlineActive) return;
-        Player p = Minecraft.getInstance().player;
-        if (p == null) return;
-        if (Math.sqrt(be.getBlockPos().distManhattan(p.blockPosition())) > OUTLINE_MAX_DIST) return;
-
-        if (selectedCluster.addAll(be.reservedDepositBlocks)) outlineChanged = true;
-    }
-
-    public static void refreshOutline() {
+    public static void clearAndAddNearbyMiners() {
         if (!outlineActive) return;
         Player p = Minecraft.getInstance().player;
         if (p == null) return;
@@ -38,7 +29,25 @@ public class MiningAreaOutlineRenderer {
         selectedCluster.clear();
         outlineChanged = true;
         MinerBlockEntityInstanceHolder.getInstancesWithinManhattanDistance(l, p.blockPosition(), OUTLINE_MAX_DIST)
-                .forEach(MiningAreaOutlineRenderer::addReservedDepositBlocksToOutline);
+                .forEach(MiningAreaOutlineRenderer::addMiner);
+    }
+
+    public static void addMiner(MinerBlockEntity be) {
+        if (!outlineActive) return;
+        Player p = Minecraft.getInstance().player;
+        if (p == null) return;
+        if (Math.sqrt(be.getBlockPos().distManhattan(p.blockPosition())) > OUTLINE_MAX_DIST) return;
+
+        if (selectedCluster.addAll(be.reservedDepositBlocks)) outlineChanged = true;
+    }
+
+    public static void removeMiner(MinerBlockEntity be) {
+        if (!outlineActive) return;
+        Player p = Minecraft.getInstance().player;
+        if (p == null) return;
+        if (Math.sqrt(be.getBlockPos().distManhattan(p.blockPosition())) > OUTLINE_MAX_DIST) return;
+
+        if (selectedCluster.removeAll(be.reservedDepositBlocks)) outlineChanged = true;
     }
 
     public static void clearOutline() {
@@ -90,7 +99,7 @@ public class MiningAreaOutlineRenderer {
         if (holdingCorrectItem && lookingAtMiner) {
             ttl = MAX_TTL;
             outlineActive = true;
-            refreshOutline();
+            clearAndAddNearbyMiners();
         }
     }
 }

@@ -69,7 +69,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
     }
 
     public void reserveDepositBlocks() {
-        if (!(level instanceof ServerLevel sl) || level.isClientSide) return;
+        if (level == null) return;
         var pos = this.getBlockPos();
         int px = pos.getX(), py = pos.getY(), pz = pos.getZ();
         int minBuildHeight = level.getMinBuildHeight(), maxBuildHeight = level.getMaxBuildHeight();
@@ -89,8 +89,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
             depBlockStream = depBlockStream.filter(bp -> !m.reservedDepositBlocks.contains(bp));
         }
         reservedDepositBlocks = depBlockStream.collect(Collectors.toUnmodifiableSet());
-        if (process != null) process.setYield(sl, reservedDepositBlocks);
-
+        if (process != null) process.setYield(level, reservedDepositBlocks);
         setChanged();
     }
 
@@ -149,7 +148,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
         inventoryCap.invalidate();
 
         MinerBlockEntityInstanceHolder.removeInstance(this);
-        if (level != null && level.isClientSide()) MiningAreaOutlineRenderer.refreshOutline();
+        if (level != null && level.isClientSide()) MiningAreaOutlineRenderer.removeMiner(this);
     }
 
     @NotNull
@@ -181,12 +180,12 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
         setProgressWhenPossibleTo = tag.getInt("Progress");
         inventory.deserializeNBT(tag.getCompound("Items"));
 
+        if (clientPacket) MiningAreaOutlineRenderer.removeMiner(this);
         reservedDepositBlocks.clear();
         var packed = tag.getLongArray("ReservedDepositBlocks");
         for (var l : packed) reservedDepositBlocks.add(BlockPos.of(l));
         if (level != null && process != null) process.setYield(level, reservedDepositBlocks);
-
-        if (clientPacket) MiningAreaOutlineRenderer.addReservedDepositBlocksToOutline(this);
+        if (clientPacket)MiningAreaOutlineRenderer.addMiner(this);
     }
 
     @NotNull
