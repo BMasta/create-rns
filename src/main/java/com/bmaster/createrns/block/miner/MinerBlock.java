@@ -1,6 +1,6 @@
 package com.bmaster.createrns.block.miner;
 
-import com.bmaster.createrns.AllContent;
+import com.bmaster.createrns.RNSContent;
 import com.simibubi.create.content.kinetics.base.KineticBlock;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
@@ -111,7 +111,7 @@ public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity> {
 
     @Override
     public BlockEntityType<? extends MinerBlockEntity> getBlockEntityType() {
-        return AllContent.MINER_BE.get();
+        return RNSContent.MINER_BE.get();
     }
 
     @Override

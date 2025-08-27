@@ -1,9 +1,8 @@
 package com.bmaster.createrns.block.miner;
 
-import com.bmaster.createrns.AllContent;
+import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags;
-import com.bmaster.createrns.capability.MinerItemStackHandler;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -15,9 +14,7 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
@@ -56,7 +53,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
     }
 
     public MinerBlockEntity(BlockPos pos, BlockState state) {
-        super(AllContent.MINER_BE.get(), pos, state);
+        super(RNSContent.MINER_BE.get(), pos, state);
     }
 
     public ItemStackHandler getInventory() {
@@ -199,7 +196,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
     @Override
     public @org.jetbrains.annotations.Nullable AbstractContainerMenu
     createMenu(int pContainerId, Inventory pPlayerInventory, Player pPlayer) {
-        return new MinerMenu(AllContent.MINER_MENU.get(), pContainerId, pPlayerInventory, this);
+        return new MinerMenu(RNSContent.MINER_MENU.get(), pContainerId, pPlayerInventory, this);
     }
 
     @Override

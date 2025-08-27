@@ -1,6 +1,6 @@
 package com.bmaster.createrns.item.DepositScanner;
 
-import com.bmaster.createrns.AllContent;
+import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.capability.depositindex.DepositSpecLookup;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.simibubi.create.AllSoundEvents;
@@ -186,9 +186,9 @@ public class DepositScannerClientHandler {
             return;
         }
 
-        if (!AllContent.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
+        if (!RNSContent.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
             heldItem = p.getOffhandItem();
-            if (!AllContent.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
+            if (!RNSContent.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
                 state.mode = Mode.IDLE;
                 onIdle();
                 return;

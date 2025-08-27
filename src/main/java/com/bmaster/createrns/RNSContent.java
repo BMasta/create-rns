@@ -32,7 +32,7 @@ import net.minecraftforge.common.capabilities.CapabilityToken;
 import static com.simibubi.create.foundation.data.TagGen.*;
 
 
-public class AllContent {
+public class RNSContent {
     // Item tooltips
     static {
         CreateRNS.REGISTRATE.setTooltipModifierFactory(item ->

@@ -6,9 +6,7 @@ import com.mojang.logging.LogUtils;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
-import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -26,7 +24,7 @@ public class CreateRNS {
         IEventBus modEventBus = context.getModEventBus();
         REGISTRATE.registerEventListeners(modEventBus);
         RNSTags.register();
-        AllContent.register();
+        RNSContent.register();
 
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);

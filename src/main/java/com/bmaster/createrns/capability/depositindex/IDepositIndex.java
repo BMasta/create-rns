@@ -1,11 +1,10 @@
 package com.bmaster.createrns.capability.depositindex;
 
-import com.bmaster.createrns.AllContent;
+import com.bmaster.createrns.RNSContent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.minecraftforge.common.util.LazyOptional;
@@ -20,6 +19,6 @@ public interface IDepositIndex {
     void markAsFound(BlockPos centerPos);
 
     static LazyOptional<IDepositIndex> fromLevel(ServerLevel level) {
-        return level.getCapability(AllContent.DEPOSIT_INDEX);
+        return level.getCapability(RNSContent.DEPOSIT_INDEX);
     }
 }

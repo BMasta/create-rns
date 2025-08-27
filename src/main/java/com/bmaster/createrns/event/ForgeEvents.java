@@ -1,6 +1,6 @@
 package com.bmaster.createrns.event;
 
-import com.bmaster.createrns.AllContent;
+import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.block.miner.MiningAreaOutlineRenderer;
 import com.bmaster.createrns.capability.depositindex.*;
@@ -54,8 +54,8 @@ public class ForgeEvents {
             var offItem = p.getOffhandItem();
 
             // Scanner
-            if (l.isClientSide() && (mainItem.is(AllContent.DEPOSIT_SCANNER_ITEM.get()) ||
-                    offItem.is(AllContent.DEPOSIT_SCANNER_ITEM.get()))) {
+            if (l.isClientSide() && (mainItem.is(RNSContent.DEPOSIT_SCANNER_ITEM.get()) ||
+                    offItem.is(RNSContent.DEPOSIT_SCANNER_ITEM.get()))) {
                 // Cancel use animations and usage of item in other hand, toggle scanner mode
                 if (e.isUseItem()) {
                     e.setSwingHand(false);
@@ -63,7 +63,7 @@ public class ForgeEvents {
                     if (scannerLastRightClickedAt + SCANNER_INTERACT_COOLDOWN < t) {
                         scannerLastRightClickedAt = t;
                         DepositScannerClientHandler.toggle();
-                        p.getCooldowns().addCooldown(AllContent.DEPOSIT_SCANNER_ITEM.get(), 2);
+                        p.getCooldowns().addCooldown(RNSContent.DEPOSIT_SCANNER_ITEM.get(), 2);
                     }
                 }
             }
@@ -79,8 +79,8 @@ public class ForgeEvents {
             var offItem = p.getOffhandItem();
 
             // Scanner
-            if (p.level().isClientSide() && (mainItem.is(AllContent.DEPOSIT_SCANNER_ITEM.get()) ||
-                    offItem.is(AllContent.DEPOSIT_SCANNER_ITEM.get()))) {
+            if (p.level().isClientSide() && (mainItem.is(RNSContent.DEPOSIT_SCANNER_ITEM.get()) ||
+                    offItem.is(RNSContent.DEPOSIT_SCANNER_ITEM.get()))) {
                 // Handle scroll when active
                 if (DepositScannerClientHandler.getMode() == DepositScannerClientHandler.Mode.ACTIVE) {
                     if (e.getScrollDelta() > 0) {

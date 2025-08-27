@@ -1,6 +1,6 @@
 package com.bmaster.createrns.block.miner;
 
-import com.bmaster.createrns.AllContent;
+import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
 import com.simibubi.create.AllItems;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -64,7 +64,7 @@ public class MiningAreaOutlineRenderer {
         var l = p.level();
 
         var mainHandItem = p.getMainHandItem();
-        boolean holdingCorrectItem = AllItems.WRENCH.isIn(mainHandItem) || AllContent.MINER_BLOCK.isIn(mainHandItem);
+        boolean holdingCorrectItem = AllItems.WRENCH.isIn(mainHandItem) || RNSContent.MINER_BLOCK.isIn(mainHandItem);
 
         if (holdingCorrectItem) ttl = MAX_TTL;
         else ttl--;
@@ -93,7 +93,7 @@ public class MiningAreaOutlineRenderer {
         var l = p.level();
 
         var mainHandItem = p.getMainHandItem();
-        boolean holdingCorrectItem = AllItems.WRENCH.isIn(mainHandItem) || AllContent.MINER_BLOCK.isIn(mainHandItem);
+        boolean holdingCorrectItem = AllItems.WRENCH.isIn(mainHandItem) || RNSContent.MINER_BLOCK.isIn(mainHandItem);
         boolean lookingAtMiner = mc.hitResult instanceof BlockHitResult ray && l.getBlockEntity(ray.getBlockPos()) instanceof MinerBlockEntity;
 
         if (holdingCorrectItem && lookingAtMiner) {

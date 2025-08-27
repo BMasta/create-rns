@@ -1,6 +1,6 @@
 package com.bmaster.createrns.capability.depositindex;
 
-import com.bmaster.createrns.AllContent;
+import com.bmaster.createrns.RNSContent;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.common.capabilities.Capability;
@@ -30,6 +30,6 @@ public class DepositIndexProvider implements ICapabilitySerializable<CompoundTag
     @NotNull
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        return AllContent.DEPOSIT_INDEX.orEmpty(cap, opt);
+        return RNSContent.DEPOSIT_INDEX.orEmpty(cap, opt);
     }
 }

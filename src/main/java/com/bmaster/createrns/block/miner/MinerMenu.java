@@ -1,12 +1,11 @@
 package com.bmaster.createrns.block.miner;
 
-import com.bmaster.createrns.AllContent;
+import com.bmaster.createrns.RNSContent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.SlotItemHandler;
@@ -139,7 +138,7 @@ public class MinerMenu extends AbstractContainerMenu {
             return false;
         }
         return AbstractContainerMenu.stillValid(
-                ContainerLevelAccess.create(level, blockEntity.getBlockPos()), player, AllContent.MINER_BLOCK.get()
+                ContainerLevelAccess.create(level, blockEntity.getBlockPos()), player, RNSContent.MINER_BLOCK.get()
         );
     }
 
