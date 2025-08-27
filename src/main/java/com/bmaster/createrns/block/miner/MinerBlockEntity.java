@@ -5,6 +5,7 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.sound.SoundScapes;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -19,8 +20,10 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
@@ -70,26 +73,14 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
 
     public void reserveDepositBlocks() {
         if (level == null) return;
-        var pos = this.getBlockPos();
-        int px = pos.getX(), py = pos.getY(), pz = pos.getZ();
-        int minBuildHeight = level.getMinBuildHeight(), maxBuildHeight = level.getMaxBuildHeight();
 
-        int yMin = Mth.clamp(py - MINEABLE_DEPOSIT_DEPTH, minBuildHeight, maxBuildHeight);
-        int yMax = Mth.clamp(py - 1, minBuildHeight, maxBuildHeight);
-
-        BlockPos min = new BlockPos(px - MINEABLE_DEPOSIT_RADIUS, yMin, pz - MINEABLE_DEPOSIT_RADIUS);
-        BlockPos max = new BlockPos(px + MINEABLE_DEPOSIT_RADIUS, yMax, pz + MINEABLE_DEPOSIT_RADIUS);
-
-        var depBlockStream = BlockPos.betweenClosedStream(min, max)
-                .filter(bp -> level.getBlockState(bp).is(RNSTags.Block.DEPOSIT_BLOCKS))
-                .map(BlockPos::immutable);
+        reservedDepositBlocks = getDepositVein();
 
         // Exclude deposit blocks reserved by nearby miners
         for (var m : MinerBlockEntityInstanceHolder.getInstancesWithIntersectingMiningArea(this)) {
-            depBlockStream = depBlockStream.filter(bp -> !m.reservedDepositBlocks.contains(bp));
+            reservedDepositBlocks.removeAll(m.reservedDepositBlocks);
         }
 
-        reservedDepositBlocks = depBlockStream.collect(Collectors.toUnmodifiableSet());
         if (process != null) process.setYield(level, reservedDepositBlocks);
         particleOptions = null; // Mark for recalculation (lazy)
 
@@ -111,18 +102,15 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
     public void serverTick() {
         if (!(level instanceof ServerLevel sl)) return;
 
-        // Try initializing mining process
+        // Initialize mining process if not already
         if (process == null) {
             // Create the mining process object
-            int nDepBlocks = reservedDepositBlocks.size();
             process = new MiningProcess(sl, reservedDepositBlocks, 0.2f);
 
             // If we got progress data from NBT, now is the time to set it
             if (setProgressWhenPossibleTo >= 0) {
                 process.setProgress(setProgressWhenPossibleTo);
             }
-            // Better luck next time
-            if (process == null) return;
         }
 
         if (isMining()) {
@@ -248,5 +236,38 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
     @Override
     protected void addStressImpactStats(List<Component> tooltip, float stressAtBase) {
         super.addStressImpactStats(tooltip, stressAtBase);
+    }
+
+    private BoundingBox getMiningArea(@NotNull Level l) {
+        var pos = this.getBlockPos();
+        int px = pos.getX(), py = pos.getY(), pz = pos.getZ();
+        int minBuildHeight = l.getMinBuildHeight(), maxBuildHeight = l.getMaxBuildHeight();
+
+        int yMin = Mth.clamp(py - MINEABLE_DEPOSIT_DEPTH, minBuildHeight, maxBuildHeight);
+        int yMax = Mth.clamp(py - 1, minBuildHeight, maxBuildHeight);
+
+        return new BoundingBox(
+                px - MINEABLE_DEPOSIT_RADIUS, yMin, pz - MINEABLE_DEPOSIT_RADIUS,
+                px + MINEABLE_DEPOSIT_RADIUS, yMax, pz + MINEABLE_DEPOSIT_RADIUS);
+    }
+
+    private Set<BlockPos> getDepositVein() {
+        if (level == null) return Set.of();
+
+        var depTag = RNSTags.Block.DEPOSIT_BLOCKS;
+        var ma = getMiningArea(level);
+        Queue<BlockPos> q = new ArrayDeque<>();
+        LongOpenHashSet visited = new LongOpenHashSet(ma.getXSpan() * ma.getYSpan() * ma.getZSpan());
+
+        q.offer(worldPosition.below());
+        while (!q.isEmpty()) {
+            var bp = q.poll();
+
+            if (visited.contains(bp.asLong()) || !ma.isInside(bp) || !level.getBlockState(bp).is(depTag)) continue;
+            visited.add(bp.asLong());
+
+            Direction.stream().forEach(d -> q.add(bp.relative(d)));
+        }
+        return visited.longStream().mapToObj(BlockPos::of).collect(Collectors.toSet());
     }
 }
