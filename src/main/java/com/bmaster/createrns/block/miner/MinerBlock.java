@@ -60,12 +60,11 @@ public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity> {
     @Override
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
         super.onPlace(state, level, pos, oldState, isMoving);
-        if (oldState.is(state.getBlock())) return;
+        if (level.isClientSide || oldState.is(state.getBlock()) ||
+                !(level.getBlockEntity(pos) instanceof MinerBlockEntity be)) return;
 
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof MinerBlockEntity be) {
-            be.reserveDepositBlocks();
-            level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
-        }
+        be.reserveDepositBlocks();
+        level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
     }
 
     @ParametersAreNonnullByDefault
@@ -99,6 +98,7 @@ public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity> {
                 m.reserveDepositBlocks();
                 var mPos = m.getBlockPos();
                 var mState = level.getBlockState(mPos);
+                // onRemove is not called for client levels, so a sync is necessary
                 level.sendBlockUpdated(mPos, mState, mState, Block.UPDATE_CLIENTS);
             }
         }
