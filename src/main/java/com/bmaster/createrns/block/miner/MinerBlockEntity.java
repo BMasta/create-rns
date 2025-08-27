@@ -4,6 +4,7 @@ import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import com.simibubi.create.foundation.sound.SoundScapes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -61,8 +62,8 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
     }
 
     public boolean isMining() {
-        return process != null && process.isPossible() && !process.isDone() &&
-                getSpeed() != 0 && isSpeedRequirementFulfilled();
+        if (level == null) return false;
+        return !reservedDepositBlocks.isEmpty() && isSpeedRequirementFulfilled();
     }
 
     public void reserveDepositBlocks() {
@@ -129,6 +130,15 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
     }
 
     @Override
+    public void tickAudio() {
+        if (!isMining()) return;
+        float speed = Math.abs(getSpeed());
+
+        float pitch = Mth.clamp((speed / 256f) + .45f, .85f, 1f);
+        SoundScapes.play(SoundScapes.AmbienceGroup.CRUSHING, worldPosition, pitch);
+    }
+
+    @Override
     public void onLoad() {
         super.onLoad();
 
@@ -182,7 +192,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
         var packed = tag.getLongArray("ReservedDepositBlocks");
         for (var l : packed) reservedDepositBlocks.add(BlockPos.of(l));
         if (level != null && process != null) process.setYield(level, reservedDepositBlocks);
-        if (clientPacket)MiningAreaOutlineRenderer.addMiner(this);
+        if (clientPacket) MiningAreaOutlineRenderer.addMiner(this);
     }
 
     @NotNull
