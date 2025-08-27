@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "create_rns:block/deposit_iron"
+    "all": "create_rns:block/gold_deposit_block"
   }
 }

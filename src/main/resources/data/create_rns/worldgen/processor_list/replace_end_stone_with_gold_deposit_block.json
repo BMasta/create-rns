@@ -6,7 +6,7 @@
         {
           "input_predicate": {"predicate_type": "minecraft:block_match", "block": "minecraft:end_stone"},
           "location_predicate": {"predicate_type": "minecraft:always_true"},
-          "output_state": {"Name": "create_rns:deposit_copper"}
+          "output_state": {"Name": "create_rns:gold_deposit_block"}
         }
       ]
     }

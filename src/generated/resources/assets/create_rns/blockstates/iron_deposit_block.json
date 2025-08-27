@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "create_rns:block/iron_deposit_block"
+    }
+  }
+}

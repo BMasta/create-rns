@@ -1,9 +1,9 @@
 {
-  "block.create_rns.deposit_copper": "Deposit Copper",
-  "block.create_rns.deposit_gold": "Deposit Gold",
-  "block.create_rns.deposit_iron": "Deposit Iron",
-  "block.create_rns.deposit_redstone": "Deposit Redstone",
+  "block.create_rns.copper_deposit_block": "Copper Deposit Block",
+  "block.create_rns.gold_deposit_block": "Gold Deposit Block",
+  "block.create_rns.iron_deposit_block": "Iron Deposit Block",
   "block.create_rns.miner": "Miner",
+  "block.create_rns.redstone_deposit_block": "Redstone Deposit Block",
   "item.create_rns.deposit_scanner": "Deposit Scanner",
   "itemGroup.create_rns.create_rns": "Create Rns"
 }

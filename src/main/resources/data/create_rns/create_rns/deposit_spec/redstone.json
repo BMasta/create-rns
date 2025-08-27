@@ -1,5 +1,5 @@
 {
   "yield": "minecraft:redstone",
-  "depositBlock": "create_rns:deposit_redstone",
+  "depositBlock": "create_rns:redstone_deposit_block",
   "structure": "create_rns:deposit_redstone"
 }

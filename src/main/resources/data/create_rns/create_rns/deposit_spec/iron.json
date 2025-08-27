@@ -1,5 +1,5 @@
 {
   "yield": "minecraft:iron_ingot",
-  "depositBlock": "create_rns:deposit_iron",
+  "depositBlock": "create_rns:iron_deposit_block",
   "structure": "create_rns:deposit_iron"
 }

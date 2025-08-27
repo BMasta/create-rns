@@ -7,7 +7,7 @@
         "element_type": "minecraft:single_pool_element",
         "location": "create_rns:ore_deposit_medium",
         "projection": "rigid",
-        "processors": "create_rns:replace_end_stone_with_deposit_copper"
+        "processors": "create_rns:replace_end_stone_with_copper_deposit_block"
       }
     }
   ]

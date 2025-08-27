@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "create_rns:block/gold_deposit_block"
+    }
+  }
+}

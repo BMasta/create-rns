@@ -63,20 +63,20 @@ public class RNSContent {
             .build()
             .register();
 
-    public static final BlockEntry<DepositBlock> IRON_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block("deposit_iron",
-                    DepositBlock::new)
+    public static final BlockEntry<DepositBlock> IRON_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
+                    "iron_deposit_block", DepositBlock::new)
             .transform(deposit(MapColor.RAW_IRON)).item().build().register();
 
-    public static final BlockEntry<DepositBlock> COPPER_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block("deposit_copper",
-                    DepositBlock::new)
+    public static final BlockEntry<DepositBlock> COPPER_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
+                    "copper_deposit_block", DepositBlock::new)
             .transform(deposit(MapColor.COLOR_ORANGE)).item().build().register();
 
-    public static final BlockEntry<DepositBlock> GOLD_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block("deposit_gold",
-                    DepositBlock::new)
+    public static final BlockEntry<DepositBlock> GOLD_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
+                    "gold_deposit_block", DepositBlock::new)
             .transform(deposit(MapColor.GOLD)).item().build().register();
 
-    public static final BlockEntry<DepositBlock> REDSTONE_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block("deposit_redstone",
-                    DepositBlock::new)
+    public static final BlockEntry<DepositBlock> REDSTONE_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
+                    "redstone_deposit_block", DepositBlock::new)
             .transform(deposit(MapColor.FIRE)).item().build().register();
 
     // Block entities
