@@ -1,0 +1,14 @@
+{
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "create_rns:ore_deposit_medium",
+        "projection": "rigid",
+        "processors": "create_rns:replace_end_stone_with_deposit_redstone"
+      }
+    }
+  ]
+}

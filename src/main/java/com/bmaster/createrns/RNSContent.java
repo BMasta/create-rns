@@ -31,7 +31,6 @@ import net.minecraftforge.common.capabilities.CapabilityToken;
 
 import static com.simibubi.create.foundation.data.TagGen.*;
 
-
 public class RNSContent {
     // Item tooltips
     static {
@@ -76,6 +75,10 @@ public class RNSContent {
                     DepositBlock::new)
             .transform(deposit(MapColor.GOLD)).item().build().register();
 
+    public static final BlockEntry<DepositBlock> REDSTONE_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block("deposit_redstone",
+                    DepositBlock::new)
+            .transform(deposit(MapColor.FIRE)).item().build().register();
+
     // Block entities
     public static final BlockEntityEntry<MinerBlockEntity> MINER_BE = CreateRNS.REGISTRATE.blockEntity("miner",
                     (BlockEntityType<MinerBlockEntity> t, BlockPos p, BlockState s) ->
@@ -96,6 +99,7 @@ public class RNSContent {
                                 pOutput.accept(IRON_DEPOSIT_BLOCK.get().asItem());
                                 pOutput.accept(COPPER_DEPOSIT_BLOCK.get().asItem());
                                 pOutput.accept(GOLD_DEPOSIT_BLOCK.get().asItem());
+                                pOutput.accept(REDSTONE_DEPOSIT_BLOCK.get().asItem());
                             })
                             .build())
             .register();

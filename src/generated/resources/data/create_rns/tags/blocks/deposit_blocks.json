@@ -2,6 +2,7 @@
   "values": [
     "create_rns:deposit_iron",
     "create_rns:deposit_copper",
-    "create_rns:deposit_gold"
+    "create_rns:deposit_gold",
+    "create_rns:deposit_redstone"
   ]
 }
