@@ -7,6 +7,9 @@ import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.sound.SoundScapes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -27,9 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider {
@@ -39,6 +40,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
 
     public MiningProcess process;
     public Set<BlockPos> reservedDepositBlocks = new HashSet<>();
+    public List<BlockState> particleOptions = null;
 
     private final ItemStackHandler inventory = new ItemStackHandler(INVENTORY_SIZE) {
         @Override
@@ -86,14 +88,27 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
         for (var m : MinerBlockEntityInstanceHolder.getInstancesWithIntersectingMiningArea(this)) {
             depBlockStream = depBlockStream.filter(bp -> !m.reservedDepositBlocks.contains(bp));
         }
+
         reservedDepositBlocks = depBlockStream.collect(Collectors.toUnmodifiableSet());
         if (process != null) process.setYield(level, reservedDepositBlocks);
+        particleOptions = null; // Mark for recalculation (lazy)
+
         setChanged();
     }
 
     @Override
     public void tick() {
         super.tick();
+        clientTick();
+        serverTick();
+    }
+
+    public void clientTick() {
+        if (level == null || !level.isClientSide) return;
+        if (isMining()) spawnParticles();
+    }
+
+    public void serverTick() {
         if (!(level instanceof ServerLevel sl)) return;
 
         // Try initializing mining process
@@ -136,6 +151,26 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
 
         float pitch = Mth.clamp((speed / 256f) + .45f, .85f, 1f);
         SoundScapes.play(SoundScapes.AmbienceGroup.CRUSHING, worldPosition, pitch);
+    }
+
+    protected void spawnParticles() {
+        if (level == null) return;
+        if (particleOptions == null) {
+            particleOptions = reservedDepositBlocks.stream()
+                    .map(bp -> level.getBlockState(bp))
+                    .toList();
+        }
+
+        var r = level.random;
+        BlockState selectedParticle = particleOptions.get(r.nextInt(0, particleOptions.size()));
+        ParticleOptions particleData = new BlockParticleOption(ParticleTypes.BLOCK, selectedParticle);
+
+        for (int i = 0; i < 2; i++)
+            level.addParticle(particleData,
+                    worldPosition.getX() + r.nextFloat(),
+                    worldPosition.getY() - 0.5 + r.nextFloat(),
+                    worldPosition.getZ() + r.nextFloat(),
+                    0, 0, 0);
     }
 
     @Override
@@ -191,6 +226,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
         reservedDepositBlocks.clear();
         var packed = tag.getLongArray("ReservedDepositBlocks");
         for (var l : packed) reservedDepositBlocks.add(BlockPos.of(l));
+        particleOptions = null; // Mark for recalculation (lazy)
         if (level != null && process != null) process.setYield(level, reservedDepositBlocks);
         if (clientPacket) MiningAreaOutlineRenderer.addMiner(this);
     }
