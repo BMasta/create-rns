@@ -38,7 +38,7 @@ public final class DynamicDatapackResources implements PackResources {
     }
 
     public void putJson(String path, JsonElement json) {
-        var rl = loc(path); // "create_rns/worldgen/structure/deposit/iron.json"
+        var rl = loc(path);
         var test = json.toString();
         serverData.put(rl, GSON.toJson(json).getBytes(StandardCharsets.UTF_8));
     }
