@@ -1,4 +1,4 @@
-package com.bmaster.createrns.capability.depositindex;
+package com.bmaster.createrns.deposit.spec;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;

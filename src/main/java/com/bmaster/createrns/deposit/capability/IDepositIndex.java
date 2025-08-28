@@ -1,4 +1,4 @@
-package com.bmaster.createrns.capability.depositindex;
+package com.bmaster.createrns.deposit.capability;
 
 import com.bmaster.createrns.RNSContent;
 import net.minecraft.core.BlockPos;

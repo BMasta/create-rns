@@ -2,7 +2,7 @@ package com.bmaster.createrns;
 
 import com.bmaster.createrns.block.DepositBlock;
 import com.bmaster.createrns.block.miner.*;
-import com.bmaster.createrns.capability.depositindex.IDepositIndex;
+import com.bmaster.createrns.deposit.capability.IDepositIndex;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerItem;
 import com.simibubi.create.api.stress.BlockStressValues;
 import com.simibubi.create.foundation.data.AssetLookup;

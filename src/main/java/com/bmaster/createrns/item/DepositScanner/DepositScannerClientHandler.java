@@ -1,7 +1,7 @@
 package com.bmaster.createrns.item.DepositScanner;
 
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.capability.depositindex.DepositSpecLookup;
+import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.simibubi.create.AllSoundEvents;
 import net.minecraft.client.Minecraft;

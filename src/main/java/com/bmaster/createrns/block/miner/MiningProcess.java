@@ -1,7 +1,7 @@
 package com.bmaster.createrns.block.miner;
 
 import com.bmaster.createrns.RNSTags;
-import com.bmaster.createrns.capability.depositindex.DepositSpecLookup;
+import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
 import com.bmaster.createrns.util.ItemsToStackSetCollector;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;

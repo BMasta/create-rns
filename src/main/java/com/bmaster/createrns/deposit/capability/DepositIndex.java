@@ -1,4 +1,4 @@
-package com.bmaster.createrns.capability.depositindex;
+package com.bmaster.createrns.deposit.capability;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.util.Utils;
@@ -18,9 +18,7 @@ import net.minecraftforge.common.util.INBTSerializable;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag> {
     // Generated found deposits are represented as bounding box centers of deposit structures (not bound to res. loc.)

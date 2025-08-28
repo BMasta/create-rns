@@ -1,8 +1,8 @@
 package com.bmaster.createrns.item.DepositScanner;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.capability.depositindex.DepositSpecLookup;
-import com.bmaster.createrns.capability.depositindex.IDepositIndex;
+import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
+import com.bmaster.createrns.deposit.capability.IDepositIndex;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler.AntennaStatus;
 import com.bmaster.createrns.util.Utils;
 import net.minecraft.core.BlockPos;
@@ -12,8 +12,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 public class DepositScannerServerHandler {
     public static final int MIN_PING_INTERVAL = 3;
