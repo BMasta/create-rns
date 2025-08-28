@@ -1,10 +1,6 @@
-package com.bmaster.createrns;
+package com.bmaster.createrns.datapack;
 
-import com.bmaster.createrns.datapackgen.DepositStructure;
-import com.bmaster.createrns.datapackgen.DepositStructureSet;
-import com.bmaster.createrns.datapackgen.DepositStructureStart;
-import com.bmaster.createrns.datapackgen.ReplaceWithProcessor;
-import com.bmaster.createrns.util.GeneratedDataPackResources;
+import com.bmaster.createrns.CreateRNS;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.network.chat.Component;
@@ -15,28 +11,27 @@ import net.minecraft.server.packs.repository.PackSource;
 
 import java.util.List;
 
-public class RNSDatapacks {
+public class DynamicDatapack {
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-    private static final GeneratedDataPackResources depositsResources = new GeneratedDataPackResources(
+    private static final DynamicDatapackResources depositsResources = new DynamicDatapackResources(
             "%s:dynamic_data".formatted(CreateRNS.MOD_ID));
 
     static {
         depositsResources.putJson("create_rns/worldgen/processor_list/deposit/iron.json", gson.toJsonTree(
-                new ReplaceWithProcessor(
-                        ResourceLocation.withDefaultNamespace("end_stone"),
-                        ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "iron_deposit_block"))));
+                new ReplaceWithProcessor("minecraft:end_stone", "create_rns:iron_deposit_block")));
 
         depositsResources.putJson("create_rns/worldgen/template_pool/deposit_iron/start.json", gson.toJsonTree(
                 new DepositStructureStart(List.of(
-                        new DepositStructureStart.WeightedElement(1,
-                                new DepositStructureStart.Element())))));
+                        new DepositStructureStart.WeightedElement(1, "create_rns:ore_deposit_medium",
+                                "create_rns:deposit/iron")))));
 
         depositsResources.putJson("create_rns/worldgen/structure/deposit_iron.json", gson.toJsonTree(
-                new DepositStructure()));
+                new DepositStructure("create_rns:deposit_iron/start", 30)));
 
         depositsResources.putJson("create_rns/worldgen/structure_set/deposits.json", gson.toJsonTree(
-                new DepositStructureSet()));
+                new DepositStructureSet(List.of(
+                        new DepositStructureSet.WeightedStructure("create_rns:deposit_iron", 1)))));
     }
 
     public static final Pack DEPOSITS_DATAPACK = Pack.readMetaAndCreate(

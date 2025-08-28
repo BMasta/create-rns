@@ -1,20 +1,17 @@
-package com.bmaster.createrns.datapackgen;
+package com.bmaster.createrns.datapack;
 
 import com.google.gson.annotations.SerializedName;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
+import java.util.Set;
 
 public class ReplaceWithProcessor {
+    @SerializedName("processors")
     public List<Processor> processors;
 
-    public ReplaceWithProcessor(ResourceLocation matchBlockId, ResourceLocation replaceWithBlockId) {
-        var rule = new Rule(
-                new BlockMatchPredicate(matchBlockId.toString()),
-                new AlwaysTruePredicate(),
-                new OutputState(replaceWithBlockId.toString())
-        );
-        var processor = new Processor(List.of(rule));
+    public ReplaceWithProcessor(String matchBlockId, String replaceWithBlockId) {
+        var processor = new Processor(matchBlockId, replaceWithBlockId);
         this.processors = List.of(processor);
     }
 
@@ -22,10 +19,16 @@ public class ReplaceWithProcessor {
         @SerializedName("processor_type")
         public String processorType = "minecraft:rule";
 
+        @SerializedName("rules")
         public List<Rule> rules;
 
-        public Processor(List<Rule> rules) {
-            this.rules = rules;
+        public Processor(String matchBlockId, String replaceWithBlockId) {
+            var rule = new Rule(
+                    new BlockMatchPredicate(matchBlockId),
+                    new AlwaysTruePredicate(),
+                    new OutputState(replaceWithBlockId)
+            );
+            this.rules = List.of(rule);
         }
     }
 

@@ -1,4 +1,4 @@
-package com.bmaster.createrns.util;
+package com.bmaster.createrns.datapack;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -25,16 +25,16 @@ import java.util.stream.Collectors;
 
 import static net.minecraft.util.datafix.fixes.BlockEntitySignTextStrictJsonFix.GSON;
 
-public final class GeneratedDataPackResources implements PackResources {
+public final class DynamicDatapackResources implements PackResources {
     private final String packId;
 
     private final Map<ResourceLocation, byte[]> serverData = new Object2ObjectOpenHashMap<>();
     private final PackMetadataSection metadata;
 
-    public GeneratedDataPackResources(String packId) {
+    public DynamicDatapackResources(String packId) {
         this.packId = packId;
         int packFormat = SharedConstants.getCurrentVersion().getPackVersion(PackType.SERVER_DATA);
-        this.metadata = new PackMetadataSection(Component.empty(), packFormat);
+        this.metadata = new PackMetadataSection(Component.literal(packId), packFormat);
     }
 
     public void putJson(String path, JsonElement json) {

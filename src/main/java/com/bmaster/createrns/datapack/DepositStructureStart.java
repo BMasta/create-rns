@@ -1,11 +1,14 @@
-package com.bmaster.createrns.datapackgen;
+package com.bmaster.createrns.datapack;
 
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
 public class DepositStructureStart {
+    @SerializedName("fallback")
     public String fallback;
+
+    @SerializedName("elements")
     public List<WeightedElement> elements;
 
     public DepositStructureStart(List<WeightedElement> elements) {
@@ -13,15 +16,17 @@ public class DepositStructureStart {
         this.elements = elements;
     }
 
-    // ---------- nested types ----------
-
     public static final class WeightedElement {
+        @SerializedName("weight")
         public int weight;
+
+        @SerializedName("element")
         public Element element;
 
-        public WeightedElement(int weight, Element element) {
+        public WeightedElement(int weight, String nbt, String processor) {
             this.weight = weight;
-            this.element = element;
+
+            this.element = new Element(nbt, processor);
         }
     }
 
@@ -29,13 +34,18 @@ public class DepositStructureStart {
         @SerializedName("element_type")
         public String elementType = "minecraft:single_pool_element";
 
-        public String location = "create_rns:ore_deposit_medium";
+        @SerializedName("location")
+        public String location;
 
+        @SerializedName("projection")
         public String projection = "rigid";
 
-        public String processors = "create_rns:deposit/iron";
+        @SerializedName("processors")
+        public String processors;
 
-        public Element() {
+        public Element(String nbt, String processor) {
+            this.location = nbt;
+            this.processors = processor;
         }
     }
 }

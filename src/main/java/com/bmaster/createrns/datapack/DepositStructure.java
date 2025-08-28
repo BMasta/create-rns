@@ -1,4 +1,4 @@
-package com.bmaster.createrns.datapackgen;
+package com.bmaster.createrns.datapack;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -9,19 +9,21 @@ public class DepositStructure {
     public String type = "minecraft:jigsaw";
 
     @SerializedName("start_pool")
-    public String startPool = "create_rns:deposit_iron/start";
+    public String startPool;
 
+    @SerializedName("size")
     public int size = 1;
 
     @SerializedName("start_height")
-    public StartHeight startHeight = new StartHeight(30);
+    public StartHeight startHeight;
 
     @SerializedName("project_start_to_heightmap")
     public String projectStartToHeightmap = "OCEAN_FLOOR_WG";
 
-    /** Note: using the exact value you specified. */
+    @SerializedName("step")
     public String step = "underground_ores";
 
+    @SerializedName("biomes")
     public String biomes = "#minecraft:is_overworld";
 
     @SerializedName("terrain_adaptation")
@@ -36,8 +38,17 @@ public class DepositStructure {
     @SerializedName("spawn_overrides")
     public Map<String, Object> spawnOverrides = Collections.emptyMap();
 
+    public DepositStructure(String structureStart, int absoluteStartHeight) {
+        startPool = structureStart;
+        startHeight = new StartHeight(absoluteStartHeight);
+    }
+
     public static final class StartHeight {
+        @SerializedName("absolute")
         public int absolute;
-        public StartHeight(int absolute) { this.absolute = absolute; }
+
+        public StartHeight(int absolute) {
+            this.absolute = absolute;
+        }
     }
 }
