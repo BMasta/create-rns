@@ -17,13 +17,14 @@ public class DepositStructureStart {
     }
 
     public static final class WeightedElement {
-        @SerializedName("weight")
-        public int weight;
-
         @SerializedName("element")
         public Element element;
 
-        public WeightedElement(int weight, String nbt, String processor) {
+        @SerializedName("weight")
+        public int weight;
+
+
+        public WeightedElement(String nbt, int weight, String processor) {
             this.weight = weight;
 
             this.element = new Element(nbt, processor);

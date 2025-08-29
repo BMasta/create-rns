@@ -13,14 +13,17 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class DynamicDatapack {
     public static final Function<String, ResourceLocation> PROCESSOR_RL = name ->
@@ -47,15 +50,26 @@ public class DynamicDatapack {
     }
 
     public static void addVanillaDeposits() {
+        var bulkNBTPool = Set.of(
+                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_small"), 5),
+                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium"), 5),
+                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_large"), 1)
+        );
+        var preciousNBTPool = Set.of(
+                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_small"), 25),
+                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium"), 5),
+                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_large"), 1)
+        );
+
         var mediumNBT = ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium");
         var ironDeposit = new Deposit("iron", RNSContent.IRON_DEPOSIT_BLOCK.get(),
-                mediumNBT, 0, 1);
+                bulkNBTPool, 0, 10);
         var copperDeposit = new Deposit("copper", RNSContent.COPPER_DEPOSIT_BLOCK.get(),
-                mediumNBT, 0, 1);
-        var goldDeposit = new Deposit("gold", RNSContent.GOLD_DEPOSIT_BLOCK.get(),
-                mediumNBT, 0, 1);
+                bulkNBTPool, 0, 5);
         var redstoneDeposit = new Deposit("redstone", RNSContent.REDSTONE_DEPOSIT_BLOCK.get(),
-                mediumNBT, 0, 1);
+                preciousNBTPool, 0, 2);
+        var goldDeposit = new Deposit("gold", RNSContent.GOLD_DEPOSIT_BLOCK.get(),
+                preciousNBTPool, 0, 2);
         var dSet = new DepositSet(Set.of(ironDeposit, copperDeposit, goldDeposit, redstoneDeposit));
         add(dSet);
     }
@@ -100,16 +114,17 @@ public class DynamicDatapack {
     public static class Deposit {
         public final String name;
         public final @Nullable Block replacePlaceholderWith;
-        public final ResourceLocation nbt;
+        public final Collection<Tuple<ResourceLocation, Integer>> nbts_and_weights;
         public final int depth;
         public final int weight;
 
         private boolean added = false;
 
-        public Deposit(String name, @Nullable Block replacePlaceholderWith, ResourceLocation nbt, int depth, int weight) {
+        public Deposit(String name, @Nullable Block replacePlaceholderWith,
+                       Collection<Tuple<ResourceLocation, Integer>> nbts_and_weights, int depth, int weight) {
             this.name = name;
             this.replacePlaceholderWith = replacePlaceholderWith;
-            this.nbt = nbt;
+            this.nbts_and_weights = nbts_and_weights;
             this.depth = depth;
             this.weight = weight;
         }
@@ -124,7 +139,7 @@ public class DynamicDatapack {
                 throw new IllegalArgumentException("Could not create deposit '%s': Weight cannot be negative".formatted(name));
             }
 
-            String processor = NOOP_PROCESSOR;
+            String processor;
 
             // Create processor that replaces placeholder blocks with the specified block
             if (replacePlaceholderWith != null) {
@@ -138,12 +153,16 @@ public class DynamicDatapack {
                         new ReplaceWithProcessor(PLACEHOLDER_BLOCK, depBlockRL.toString())));
 
                 processor = PROCESSOR_RL.apply(name).toString();
+            } else {
+                processor = NOOP_PROCESSOR;
             }
 
             // Create structure start
             var sStartPath = STRUCT_START_PATH.formatted(CreateRNS.MOD_ID, name);
-            depositsResources.putJson(sStartPath, gson.toJsonTree(new DepositStructureStart(List.of(
-                    new DepositStructureStart.WeightedElement(1, nbt.toString(), processor)))));
+            var elements = nbts_and_weights.stream().map(t ->
+                            new DepositStructureStart.WeightedElement(t.getA().toString(), t.getB(), processor))
+                    .collect(Collectors.toList());
+            depositsResources.putJson(sStartPath, gson.toJsonTree(new DepositStructureStart(elements)));
 
             // Create structure
             var sPath = STRUCT_PATH.formatted(CreateRNS.MOD_ID, name);
