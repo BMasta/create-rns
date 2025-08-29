@@ -1,6 +1,11 @@
 package com.bmaster.createrns.datapack;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.datapack.json.DepositStructure;
+import com.bmaster.createrns.datapack.json.DepositStructureSet;
+import com.bmaster.createrns.datapack.json.DepositStructureStart;
+import com.bmaster.createrns.datapack.json.ReplaceWithProcessor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.network.chat.Component;
@@ -15,16 +20,20 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 public class DynamicDatapack {
+    public static final Function<String, ResourceLocation> PROCESSOR_RL = name ->
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "deposit/%s".formatted(name));
+    public static final Function<String, ResourceLocation> STRUCT_START_RL = name ->
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "deposit_%s/start".formatted(name));
+    public static final Function<String, ResourceLocation> STRUCT_RL = name ->
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "deposit_%s".formatted(name));
+
     private static final String PROCESSOR_PATH = "%s/worldgen/processor_list/deposit/%s.json";
     private static final String STRUCT_START_PATH = "%s/worldgen/template_pool/deposit_%s/start.json";
     private static final String STRUCT_PATH = "%s/worldgen/structure/deposit_%s.json";
     private static final String STRUCT_SET_PATH = "%s/worldgen/structure_set/deposits.json";
-
-    private static final String PROCESSOR_RL = "%s:deposit/%s";
-    private static final String STRUCT_START_RL = "%s:deposit_%s/start";
-    private static final String STRUCT_RL = "%s:deposit_%s";
 
     private static final String NOOP_PROCESSOR = "minecraft:empty";
     private static final String PLACEHOLDER_BLOCK = "minecraft:end_stone";
@@ -34,7 +43,21 @@ public class DynamicDatapack {
             "%s:dynamic_data".formatted(CreateRNS.MOD_ID));
 
     public static void add(DepositSet dSet) {
-        dSet.addToDatapack();
+        dSet.addToResources();
+    }
+
+    public static void addVanillaDeposits() {
+        var mediumNBT = ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium");
+        var ironDeposit = new Deposit("iron", RNSContent.IRON_DEPOSIT_BLOCK.get(),
+                mediumNBT, 0, 1);
+        var copperDeposit = new Deposit("copper", RNSContent.COPPER_DEPOSIT_BLOCK.get(),
+                mediumNBT, 0, 1);
+        var goldDeposit = new Deposit("gold", RNSContent.GOLD_DEPOSIT_BLOCK.get(),
+                mediumNBT, 0, 1);
+        var redstoneDeposit = new Deposit("redstone", RNSContent.REDSTONE_DEPOSIT_BLOCK.get(),
+                mediumNBT, 0, 1);
+        var dSet = new DepositSet(Set.of(ironDeposit, copperDeposit, goldDeposit, redstoneDeposit));
+        add(dSet);
     }
 
     public static Pack finish() {
@@ -56,14 +79,14 @@ public class DynamicDatapack {
             this.deposits = deposits;
         }
 
-        private void addToDatapack() {
+        private void addToResources() {
             if (added) return;
 
             List<DepositStructureSet.WeightedStructure> wsList = new ArrayList<>();
             for (var d : deposits) {
-                d.addToDatapack();
-                var sRL = STRUCT_RL.formatted(CreateRNS.MOD_ID, d.name);
-                wsList.add(new DepositStructureSet.WeightedStructure(sRL, d.weight));
+                d.addToResources();
+                var sRL = STRUCT_RL.apply(d.name);
+                wsList.add(new DepositStructureSet.WeightedStructure(sRL.toString(), d.weight));
             }
 
             // Create structure set
@@ -91,7 +114,7 @@ public class DynamicDatapack {
             this.weight = weight;
         }
 
-        private void addToDatapack() {
+        private void addToResources() {
             if (added) return;
 
             if (depth < 0) {
@@ -114,7 +137,7 @@ public class DynamicDatapack {
                 depositsResources.putJson(procPath, gson.toJsonTree(
                         new ReplaceWithProcessor(PLACEHOLDER_BLOCK, depBlockRL.toString())));
 
-                processor = PROCESSOR_RL.formatted(CreateRNS.MOD_ID, name);
+                processor = PROCESSOR_RL.apply(name).toString();
             }
 
             // Create structure start
@@ -124,8 +147,8 @@ public class DynamicDatapack {
 
             // Create structure
             var sPath = STRUCT_PATH.formatted(CreateRNS.MOD_ID, name);
-            var sStartRl = STRUCT_START_RL.formatted(CreateRNS.MOD_ID, name);
-            depositsResources.putJson(sPath, gson.toJsonTree(new DepositStructure(sStartRl, -depth)));
+            var sStartRl = STRUCT_START_RL.apply(name);
+            depositsResources.putJson(sPath, gson.toJsonTree(new DepositStructure(sStartRl.toString(), -depth)));
 
             added = true;
         }

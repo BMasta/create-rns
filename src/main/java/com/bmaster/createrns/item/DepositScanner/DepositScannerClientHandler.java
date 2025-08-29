@@ -97,7 +97,9 @@ public class DepositScannerClientHandler {
     }
 
     public static ItemStack getSelectedItem() {
-        var allItems = DepositSpecLookup.getAllYields(Minecraft.getInstance().level);
+        var l = Minecraft.getInstance().level;
+        if (l == null) return ItemStack.EMPTY;
+        var allItems = DepositSpecLookup.getAllYields(l.registryAccess());
         int size = allItems.size();
         int normalizedIndex = (state.selectedIndex % size + size) % size;
         return new ItemStack(allItems.get(normalizedIndex));

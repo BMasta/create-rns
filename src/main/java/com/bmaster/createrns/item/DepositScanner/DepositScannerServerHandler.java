@@ -31,7 +31,7 @@ public class DepositScannerServerHandler {
         }
         var depIdx = depIdxOpt.get();
 
-        var structure = DepositSpecLookup.getSpec(sl, yield).structure();
+        var structure = DepositSpecLookup.getSpec(sl.registryAccess(), yield).structure();
         var depPos = depIdx.getNearest(structure.unwrapKey().orElseThrow(), sp, SEARCH_RADIUS_CHUNKS, !recompute);
         var state = getScannerState(sp, depPos);
 

@@ -38,13 +38,7 @@ public final class DynamicDatapackResources implements PackResources {
     }
 
     public void putJson(String path, JsonElement json) {
-        var rl = loc(path);
-        var test = json.toString();
-        serverData.put(rl, GSON.toJson(json).getBytes(StandardCharsets.UTF_8));
-    }
-
-    public void putBinary(String path, byte[] bytes) {
-        serverData.put(loc(path), bytes);
+        serverData.put(loc(path), GSON.toJson(json).getBytes(StandardCharsets.UTF_8));
     }
 
     private static ResourceLocation loc(String path) {

@@ -1,10 +1,8 @@
-package com.bmaster.createrns.datapack;
+package com.bmaster.createrns.datapack.json;
 
 import com.google.gson.annotations.SerializedName;
-import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
-import java.util.Set;
 
 public class ReplaceWithProcessor {
     @SerializedName("processors")

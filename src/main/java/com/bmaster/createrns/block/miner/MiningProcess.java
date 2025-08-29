@@ -75,7 +75,7 @@ public class MiningProcess {
         this.yield = depositBlocks.stream()
                 .map(bp -> l.getBlockState(bp).getBlock())
                 .filter(db -> db.defaultBlockState().is(RNSTags.Block.DEPOSIT_BLOCKS))
-                .map(db -> DepositSpecLookup.getSpec(l, db).yield())
+                .map(db -> DepositSpecLookup.getSpec(l.registryAccess(), db).yield())
                 .collect(new ItemsToStackSetCollector());
     }
 }

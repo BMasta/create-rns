@@ -1,13 +1,20 @@
 package com.bmaster.createrns.deposit.spec;
 
+import com.bmaster.createrns.datapack.DynamicDatapack;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.apache.logging.log4j.core.jmx.Server;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.*;
@@ -20,18 +27,17 @@ public class DepositSpecLookup {
     private static List<Item> allYields;
     private static Set<ResourceKey<Structure>> allStructureKeys;
 
-    public static DepositSpec getSpec(Level l, Item yield) {
-        if (yieldToSpec == null) build(l);
+    public static DepositSpec getSpec(RegistryAccess access, Item yield) {
+        if (yieldToSpec == null) build(access);
         return yieldToSpec.get(yield);
     }
 
-    public static DepositSpec getSpec(Level l, Block depositBlock) {
-        if (depoBlockToSpec == null) build(l);
+    public static DepositSpec getSpec(RegistryAccess access, Block depositBlock) {
+        if (depoBlockToSpec == null) build(access);
         return depoBlockToSpec.get(depositBlock);
     }
 
-    public static void build(Level l) {
-        var access = l.registryAccess();
+    public static void build(RegistryAccess access) {
         var regEntries = access.registryOrThrow(DepositSpec.REGISTRY_KEY).entrySet();
 
         depoBlockToSpec = new HashMap<>(regEntries.size());
@@ -72,14 +78,14 @@ public class DepositSpecLookup {
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-    public static List<Item> getAllYields(Level l) {
-        if (allYields == null) build(l);
+    public static List<Item> getAllYields(RegistryAccess access) {
+        if (allYields == null) build(access);
         return allYields;
     }
 
-    public static Predicate<Structure> isDeposit(ServerLevel sl) {
-        if (allStructureKeys == null) build(sl);
-        var reg = sl.registryAccess().registryOrThrow(Registries.STRUCTURE);
+    public static Predicate<Structure> isDeposit(RegistryAccess access) {
+        if (allStructureKeys == null) build(access);
+        var reg = access.registryOrThrow(Registries.STRUCTURE);
 
         return (Structure checkedStructure) ->
                 reg.getResourceKey(checkedStructure).filter(allStructureKeys::contains).isPresent();

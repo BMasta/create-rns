@@ -3,9 +3,12 @@ package com.bmaster.createrns.event;
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.block.miner.MiningAreaOutlineRenderer;
+import com.bmaster.createrns.datapack.DynamicDatapack;
 import com.bmaster.createrns.deposit.capability.*;
+import com.bmaster.createrns.deposit.spec.DepositSpec;
 import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler;
+import com.simibubi.create.Create;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -105,7 +108,7 @@ public class ForgeEvents {
         ChunkPos pos = e.getChunk().getPos();
         var sm = sl.structureManager();
 
-        for (var start : sm.startsForStructure(pos, DepositSpecLookup.isDeposit(sl))) {
+        for (var start : sm.startsForStructure(pos, DepositSpecLookup.isDeposit(sl.registryAccess()))) {
             sl.registryAccess()
                     .registryOrThrow(Registries.STRUCTURE)
                     .getResourceKey(start.getStructure())
