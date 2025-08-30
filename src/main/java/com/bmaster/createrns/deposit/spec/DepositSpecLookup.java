@@ -1,20 +1,12 @@
 package com.bmaster.createrns.deposit.spec;
 
-import com.bmaster.createrns.datapack.DynamicDatapack;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.apache.logging.log4j.core.jmx.Server;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.*;
@@ -22,14 +14,14 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class DepositSpecLookup {
-    private static Map<Item, DepositSpec> yieldToSpec;
+    private static Map<Item, DepositSpec> scannerIconToSpec;
     private static Map<Block, DepositSpec> depoBlockToSpec;
-    private static List<Item> allYields;
+    private static List<Item> allIcons;
     private static Set<ResourceKey<Structure>> allStructureKeys;
 
-    public static DepositSpec getSpec(RegistryAccess access, Item yield) {
-        if (yieldToSpec == null) build(access);
-        return yieldToSpec.get(yield);
+    public static DepositSpec getSpec(RegistryAccess access, Item scannerIconItem) {
+        if (scannerIconToSpec == null) build(access);
+        return scannerIconToSpec.get(scannerIconItem);
     }
 
     public static DepositSpec getSpec(RegistryAccess access, Block depositBlock) {
@@ -52,19 +44,19 @@ public class DepositSpecLookup {
             }
         });
 
-        yieldToSpec = new HashMap<>(regEntries.size());
+        scannerIconToSpec = new HashMap<>(regEntries.size());
         regEntries.forEach(e -> {
             var spec = e.getValue();
-            var yield = spec.yield();
-            if (ForgeRegistries.ITEMS.getKey(yield) != null) {
-                if (yieldToSpec.containsKey(yield)) {
-                    throw new KeyAlreadyExistsException("Found multiple deposit specs with the same yield");
+            var scannerIcon = spec.scannerIconItem();
+            if (ForgeRegistries.ITEMS.getKey(scannerIcon) != null) {
+                if (scannerIconToSpec.containsKey(scannerIcon)) {
+                    throw new KeyAlreadyExistsException("Found multiple deposit specs with the same scanner icon");
                 }
-                yieldToSpec.put(yield, spec);
+                scannerIconToSpec.put(scannerIcon, spec);
             }
         });
 
-        allYields = yieldToSpec.keySet().stream()
+        allIcons = scannerIconToSpec.keySet().stream()
                 .sorted(Comparator.comparing(i -> {
                     var rl = ForgeRegistries.ITEMS.getKey(i);
                     if (rl == null)
@@ -72,15 +64,15 @@ public class DepositSpecLookup {
                     return rl;
                 })).toList();
 
-        allStructureKeys = yieldToSpec.values().stream()
+        allStructureKeys = scannerIconToSpec.values().stream()
                 .map(hs -> hs.structure().unwrapKey().orElse(null))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-    public static List<Item> getAllYields(RegistryAccess access) {
-        if (allYields == null) build(access);
-        return allYields;
+    public static List<Item> getAllScannerIcons(RegistryAccess access) {
+        if (allIcons == null) build(access);
+        return allIcons;
     }
 
     public static Predicate<Structure> isDeposit(RegistryAccess access) {

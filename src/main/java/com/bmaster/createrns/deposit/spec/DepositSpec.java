@@ -14,9 +14,9 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraftforge.registries.ForgeRegistries;
 
-public record DepositSpec(Item yield, Block depositBlock, Holder<Structure> structure) {
+public record DepositSpec(Item scannerIconItem, Block depositBlock, Holder<Structure> structure) {
     public static final Codec<DepositSpec> CODEC = RecordCodecBuilder.create(i -> i.group(
-            ForgeRegistries.ITEMS.getCodec().fieldOf("yield").forGetter(DepositSpec::yield),
+            ForgeRegistries.ITEMS.getCodec().fieldOf("scanner_icon_item").forGetter(DepositSpec::scannerIconItem),
             ForgeRegistries.BLOCKS.getCodec().fieldOf("depositBlock").forGetter(DepositSpec::depositBlock),
             RegistryFixedCodec.create(Registries.STRUCTURE).fieldOf("structure").forGetter(DepositSpec::structure)
     ).apply(i, DepositSpec::new));
