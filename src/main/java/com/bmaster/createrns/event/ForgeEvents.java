@@ -2,13 +2,10 @@ package com.bmaster.createrns.event;
 
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.block.miner.MiningAreaOutlineRenderer;
-import com.bmaster.createrns.datapack.DynamicDatapack;
+import com.bmaster.createrns.mining.MiningAreaOutlineRenderer;
 import com.bmaster.createrns.deposit.capability.*;
-import com.bmaster.createrns.deposit.spec.DepositSpec;
 import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler;
-import com.simibubi.create.Create;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;

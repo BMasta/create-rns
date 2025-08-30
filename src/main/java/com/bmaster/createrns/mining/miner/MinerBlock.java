@@ -1,14 +1,10 @@
-package com.bmaster.createrns.block.miner;
+package com.bmaster.createrns.mining.miner;
 
 import com.bmaster.createrns.RNSContent;
 import com.simibubi.create.content.kinetics.base.KineticBlock;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -16,10 +12,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.network.NetworkHooks;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -41,21 +34,14 @@ public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity> {
         return new MinerBlockEntity(pPos, pState);
     }
 
-    @SuppressWarnings("deprecation")
-    @ParametersAreNonnullByDefault
-    @Override
-    public @NotNull InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer,
-                                          InteractionHand pHand, BlockHitResult pHit) {
-        if (!pLevel.isClientSide() && pPlayer instanceof ServerPlayer serverPlayer) {
-            BlockEntity be = pLevel.getBlockEntity(pPos);
-            if (be instanceof MinerBlockEntity minerBE) {
-                NetworkHooks.openScreen(serverPlayer, minerBE, buf -> {
-                    buf.writeBlockPos(minerBE.getBlockPos());
-                });
-            }
-        }
-        return InteractionResult.sidedSuccess(pLevel.isClientSide());
-    }
+    // TODO: give stored items to the player on right click
+//    @SuppressWarnings("deprecation")
+//    @ParametersAreNonnullByDefault
+//    @Override
+//    public @NotNull InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer,
+//                                          InteractionHand pHand, BlockHitResult pHit) {
+//
+//    }
 
     @Override
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {

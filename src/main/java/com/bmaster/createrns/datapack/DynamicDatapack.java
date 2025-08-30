@@ -63,13 +63,13 @@ public class DynamicDatapack {
 
         var mediumNBT = ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium");
         var ironDeposit = new Deposit("iron", RNSContent.IRON_DEPOSIT_BLOCK.get(),
-                bulkNBTPool, 0, 10);
+                bulkNBTPool, 8, 10);
         var copperDeposit = new Deposit("copper", RNSContent.COPPER_DEPOSIT_BLOCK.get(),
-                bulkNBTPool, 0, 5);
+                bulkNBTPool, 8, 5);
         var redstoneDeposit = new Deposit("redstone", RNSContent.REDSTONE_DEPOSIT_BLOCK.get(),
-                preciousNBTPool, 0, 2);
+                preciousNBTPool, 12, 2);
         var goldDeposit = new Deposit("gold", RNSContent.GOLD_DEPOSIT_BLOCK.get(),
-                preciousNBTPool, 0, 2);
+                preciousNBTPool, 12, 2);
         var dSet = new DepositSet(Set.of(ironDeposit, copperDeposit, goldDeposit, redstoneDeposit));
         add(dSet);
     }

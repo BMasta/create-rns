@@ -1,7 +1,9 @@
-package com.bmaster.createrns.block.miner;
+package com.bmaster.createrns.mining;
 
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.mining.miner.MinerBlockEntity;
+import com.bmaster.createrns.mining.miner.MinerBlockEntityInstanceHolder;
 import com.simibubi.create.AllItems;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.createmod.catnip.outliner.Outliner;

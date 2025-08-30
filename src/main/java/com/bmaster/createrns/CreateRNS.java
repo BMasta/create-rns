@@ -25,6 +25,7 @@ public class CreateRNS {
         REGISTRATE.registerEventListeners(modEventBus);
         RNSTags.register();
         RNSContent.register();
+        RNSRecipes.register();
 
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);

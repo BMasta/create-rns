@@ -1,8 +1,11 @@
-package com.bmaster.createrns.block.miner;
+package com.bmaster.createrns.mining.miner;
 
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags;
+import com.bmaster.createrns.mining.MiningAreaOutlineRenderer;
+import com.bmaster.createrns.mining.MiningProcess;
+import com.bmaster.createrns.util.Utils;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.sound.SoundScapes;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -15,10 +18,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -31,13 +30,11 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider {
-    public static final int INVENTORY_SIZE = 1;
+public class MinerBlockEntity extends KineticBlockEntity {
+    public static final int INVENTORY_SIZE = 9;
     public static final int MINEABLE_DEPOSIT_RADIUS = 1; // 3x3
     public static final int MINEABLE_DEPOSIT_DEPTH = 5;
 
@@ -52,7 +49,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
         }
     };
     private LazyOptional<IItemHandler> inventoryCap = LazyOptional.empty();
-    private int setProgressWhenPossibleTo = -1;
+    private CompoundTag serializedMiningProcess = null;
 
     public MinerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -81,8 +78,12 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
             reservedDepositBlocks.removeAll(m.reservedDepositBlocks);
         }
 
-        if (process != null) process.setYield(level, reservedDepositBlocks);
-        particleOptions = null; // Mark for recalculation (lazy)
+        // Mark particle options for recalculation (lazy)
+        particleOptions = null;
+
+        // Recompute mining process yields based on claimed mining area (server side).
+        // This also happens on process initialization.
+        if (process != null && level instanceof ServerLevel sl) process.setYields(sl, reservedDepositBlocks);
 
         setChanged();
     }
@@ -105,29 +106,31 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
         // Initialize mining process if not already
         if (process == null) {
             // Create the mining process object
-            process = new MiningProcess(sl, reservedDepositBlocks, 0.2f);
+            process = new MiningProcess(sl, reservedDepositBlocks);
 
-            // If we got progress data from NBT, now is the time to set it
-            if (setProgressWhenPossibleTo >= 0) {
-                process.setProgress(setProgressWhenPossibleTo);
+            // If we got mining process data from NBT, now is the time to set it
+            if (serializedMiningProcess != null) {
+                process.setProgressFromNBT(serializedMiningProcess);
+                serializedMiningProcess = null;
             }
         }
 
-        if (isMining()) {
-            process.advance((int) Math.abs(getSpeed()));
-            setChanged();
-        }
+        if (!isMining()) return;
 
-        if (process.isDone()) {
-            var yield = process.collect();
-            for (var is : yield) {
-                if (inventory.insertItem(0, is, false) == ItemStack.EMPTY) {
-                    CreateRNS.LOGGER.info("Mined {} {}, at {},{}", is.getItem(), is.getCount(),
-                            getBlockPos().getX(), getBlockPos().getZ());
-                } else {
-                    CreateRNS.LOGGER.info("Could not fully mine {} at {},{} ({} remaining)", is.getItem(),
-                            getBlockPos().getX(), getBlockPos().getZ(), is.getCount());
-                }
+        process.advance((int) Math.abs(getSpeed()));
+        setChanged();
+
+        var yields = process.collect();
+        if (yields.isEmpty()) return;
+
+        for (var is : yields) {
+            var remainder = Utils.insertItemIntoContainer(inventory, is);
+            if (remainder.equals(ItemStack.EMPTY)) {
+                CreateRNS.LOGGER.info("Mined {} {}, at {},{}", is.getItem(), is.getCount(),
+                        getBlockPos().getX(), getBlockPos().getZ());
+            } else {
+                CreateRNS.LOGGER.info("Could not fully mine {} at {},{} ({} remaining)", remainder.getItem(),
+                        getBlockPos().getX(), getBlockPos().getZ(), remainder.getCount());
             }
         }
     }
@@ -195,7 +198,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
         super.write(tag, clientPacket);
         tag.put("Items", inventory.serializeNBT());
         if (process != null) {
-            tag.putInt("Progress", process.getProgress());
+            tag.put("MiningProcess", process.getProgressAsNBT());
         }
 
         var packed = reservedDepositBlocks.stream().mapToLong(BlockPos::asLong).toArray();
@@ -206,31 +209,29 @@ public class MinerBlockEntity extends KineticBlockEntity implements MenuProvider
     public void read(@NotNull CompoundTag tag, boolean clientPacket) {
         super.read(tag, clientPacket);
 
-        // Mining process is not yet created, so we save the progress value for later
-        setProgressWhenPossibleTo = tag.getInt("Progress");
-        inventory.deserializeNBT(tag.getCompound("Items"));
+        // Mining process may not be created yet, so we defer serialization (server side)
+        if (!clientPacket) {
+            serializedMiningProcess = tag.getCompound("MiningProcess");
+            inventory.deserializeNBT(tag.getCompound("Items"));
+        }
 
+        // Clear outline for the claimed mining area of this miner (client side)
         if (clientPacket) MiningAreaOutlineRenderer.removeMiner(this);
+
+        // Deserialize claimed mining area
         reservedDepositBlocks.clear();
         var packed = tag.getLongArray("ReservedDepositBlocks");
         for (var l : packed) reservedDepositBlocks.add(BlockPos.of(l));
-        particleOptions = null; // Mark for recalculation (lazy)
-        if (level != null && process != null) process.setYield(level, reservedDepositBlocks);
+
+        // Add outline for the freshly deserialized claimed mining area back in (client side)
         if (clientPacket) MiningAreaOutlineRenderer.addMiner(this);
-    }
 
-    @NotNull
-    @Override
-    public Component getDisplayName() {
-        return Component.translatable("container.%s.miner".formatted(CreateRNS.MOD_ID));
-    }
+        // Mark particle options for recalculation (lazy)
+        particleOptions = null;
 
-    @Nullable
-    @ParametersAreNonnullByDefault
-    @Override
-    public @org.jetbrains.annotations.Nullable AbstractContainerMenu
-    createMenu(int pContainerId, Inventory pPlayerInventory, Player pPlayer) {
-        return new MinerMenu(RNSContent.MINER_MENU.get(), pContainerId, pPlayerInventory, this);
+        // Recompute mining process yields based on claimed mining area (server side).
+        // This also happens on process initialization.
+        if (process != null && level instanceof ServerLevel sl) process.setYields(sl, reservedDepositBlocks);
     }
 
     @Override

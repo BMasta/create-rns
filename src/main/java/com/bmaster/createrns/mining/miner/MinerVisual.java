@@ -1,4 +1,4 @@
-package com.bmaster.createrns.block.miner;
+package com.bmaster.createrns.mining.miner;
 
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityVisual;
 import dev.engine_room.flywheel.api.instance.Instance;

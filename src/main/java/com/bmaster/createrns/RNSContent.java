@@ -1,7 +1,7 @@
 package com.bmaster.createrns;
 
-import com.bmaster.createrns.block.DepositBlock;
-import com.bmaster.createrns.block.miner.*;
+import com.bmaster.createrns.mining.DepositBlock;
+import com.bmaster.createrns.mining.miner.*;
 import com.bmaster.createrns.deposit.capability.IDepositIndex;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerItem;
 import com.simibubi.create.api.stress.BlockStressValues;
@@ -57,7 +57,7 @@ public class RNSContent {
             .transform(axeOrPickaxe())
             .blockstate((c, p) ->
                     p.simpleBlock(c.get(), AssetLookup.standardModel(c, p)))
-            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 4))
+            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
             .item()
             .model(AssetLookup.existingItemModel())
             .build()
@@ -103,13 +103,6 @@ public class RNSContent {
                             })
                             .build())
             .register();
-
-    // Menus
-    public static final MenuEntry<MinerMenu> MINER_MENU =
-            CreateRNS.REGISTRATE.menu("miner",
-                    MinerMenu::new,
-                    () -> MinerScreen::new
-            ).register();
 
     // Capabilities
     public static final Capability<IDepositIndex> DEPOSIT_INDEX =

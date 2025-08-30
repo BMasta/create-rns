@@ -1,31 +1,21 @@
 # TO DO
-- [x] Implement algorithms to fairly distribute ore chunks around the world.
-- [ ] Basic integration with create mod.
-  - [x] Dependency version management and gradle options.
-  - [x] Miner accepts create mod rotation and generates stress when working.
-  - [x] Miner shows goggle tooltip.
-  - [x] Miner has an animated model with spinning shaft when working.
-  - [x] Miner only works when supplied with sufficient stress and rotation speed.
-  - [x] Miner productivity scales with rotation speed.
-  - [x] Miner tooltip shows stress impact
-- [ ] Add deposit scanner item that can tune onto an ore type among available ores and scan for the nearest ore chunk of that type.
-- [ ] Miner makes sound when working
-- [ ] Miner emits particles when working
+- [ ] Use recipes to define yield for each deposit block.
+- [ ] Scale deposit progress with number of same deposit blocks instead of yield count.
+- [ ] Replace miner menu with enhanced create tooltip. Obtain mined items with right click.
 - [ ] Handle client/server config
-  - [ ] Add config variable for picking an ore distribution algorithm.
-  - [ ] Add config variable for allowed ores, how common their ore chunks should be, and how much ore is yielded on each mining operation.
-  - [ ] Add config variable for recomputing ore chunk data on existing chunks when they are loaded.
-  - [ ] Add config variable for chunk purities and their corresponding mining time.
+  - [ ] Add config variable for base mining speed of miners.
 - [ ] Add recipes for all items.
 - [ ] Integration with JEI.
-- [ ] Add sound to miner when it's running
-- [ ] Explore data generator usage for resource generation when possible.
-- [ ] Add in-game commands.
-  - [ ] Teleport to a desired ore chunk or show its coordinates (admin).
-  - [ ] Generate an ore chunk with specified properties.
 - [ ] Add multiple tiers of miners with improved mining speed.
 - [ ] Implement a create mod bearing for a multiblock contraption that acts as a drill.
-  - [ ] What does the "drill" drill? Air? Should there spawn a physical ore pile in ore chunks? (also applies to basic miner).
   - [ ] Where does the yield go? If it goes into the contraption inventory, the item extraction becomes awkward and unnatural.
 - [ ] Integration with map mods.
-  - [ ] Show scanned ore chunks as custom waypoints.
+  - [ ] Record visited deposits per-player into persistent storage.
+  - [ ] Show scanned deposits as icons on the map.
+- [ ] Add a deposit for zinc.
+- [ ] Add deposits for metals/gems from other mods.
+- [ ] Add ponders.
+- [ ] Figure out how to build and run the release version of the mod.
+- [ ] Figure out how to publish on curseforge/modrinth.
+- [ ] Figure out how to autoincrement semver and auto-publish to curseforge/modrinth.
+- [ ] Port to 1.21.x (Neoforge?).

@@ -1,4 +1,4 @@
-package com.bmaster.createrns.block.miner;
+package com.bmaster.createrns.mining.miner;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.AllPartialModels;
@@ -10,7 +10,6 @@ import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import net.createmod.catnip.render.SuperByteBuffer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 
 public class MinerRenderer extends KineticBlockEntityRenderer<MinerBlockEntity> {

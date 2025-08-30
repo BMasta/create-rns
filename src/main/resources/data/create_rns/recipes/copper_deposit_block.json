@@ -1,0 +1,5 @@
+{
+  "type": "create_rns:mining",
+  "deposit_block": "create_rns:copper_deposit_block",
+  "yield": "minecraft:copper_ingot"
+}

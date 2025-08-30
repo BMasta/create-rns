@@ -4,7 +4,6 @@
   "block.create_rns.gold_deposit_block": "Gold Deposit",
   "block.create_rns.redstone_deposit_block": "Redstone Deposit",
   "block.create_rns.miner": "Miner",
-  "container.create_rns.miner": "Miner",
   "item.create_rns.deposit_scanner": "Deposit Scanner",
   "creativetab.create_rns": "Create: Rock & Stone"
 }

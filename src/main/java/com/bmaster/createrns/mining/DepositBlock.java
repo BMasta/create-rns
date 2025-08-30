@@ -1,12 +1,9 @@
-package com.bmaster.createrns.block;
+package com.bmaster.createrns.mining;
 
-import com.bmaster.createrns.block.miner.MinerBlockEntityInstanceHolder;
-import com.bmaster.createrns.block.miner.MiningAreaOutlineRenderer;
+import com.bmaster.createrns.mining.miner.MinerBlockEntityInstanceHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.ParametersAreNonnullByDefault;

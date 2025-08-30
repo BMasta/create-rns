@@ -1,7 +1,5 @@
-package com.bmaster.createrns.block.miner;
+package com.bmaster.createrns.mining.miner;
 
-import com.bmaster.createrns.block.DepositBlock;
-import com.bmaster.createrns.util.Utils;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.BlockPos;
