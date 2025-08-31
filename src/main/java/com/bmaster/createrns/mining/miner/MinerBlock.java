@@ -50,7 +50,7 @@ public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity> {
                 !(level.getBlockEntity(pos) instanceof MinerBlockEntity be)) return;
 
         be.reserveDepositBlocks();
-        level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
+        be.notifyUpdate();
     }
 
     @ParametersAreNonnullByDefault
@@ -82,10 +82,7 @@ public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity> {
             // Now that our own BE is removed, let other miners re-reserve their deposit blocks
             for (var m : nearbyMiners) {
                 m.reserveDepositBlocks();
-                var mPos = m.getBlockPos();
-                var mState = level.getBlockState(mPos);
-                // onRemove is not called for client levels, so a sync is necessary
-                level.sendBlockUpdated(mPos, mState, mState, Block.UPDATE_CLIENTS);
+                m.notifyUpdate();
             }
         }
     }

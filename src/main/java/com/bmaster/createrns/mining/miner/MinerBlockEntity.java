@@ -228,12 +228,12 @@ public class MinerBlockEntity extends KineticBlockEntity {
                     .toList();
 
             for (var p : stpListSorted) {
-                var ipm = (SharedConstants.TICKS_PER_MINUTE * getCurrentProgressIncrement() * 10 / p.maxProgress) / 10;
+                var ipm = (float) ((long) SharedConstants.TICKS_PER_MINUTE * getCurrentProgressIncrement() * 10 / p.maxProgress) / 10;
                 new LangBuilder(CreateRNS.MOD_ID)
                         .add(p.yield.getDescription().copy()
                                 .append(": ")
                                 .withStyle(ChatFormatting.GRAY))
-                        .add(Component.literal(Integer.toString(ipm))
+                        .add(Component.literal(Float.toString(ipm))
                                 .append(Component.translatable("%s.miner.per_minute".formatted(CreateRNS.MOD_ID)))
                                 .withStyle(ChatFormatting.GREEN))
                         .forGoggles(tooltip, 1);
