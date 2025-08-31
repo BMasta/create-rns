@@ -2,6 +2,7 @@ package com.bmaster.createrns;
 
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerChannel;
+import com.bmaster.createrns.mining.miner.MinerInfoChannel;
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import net.minecraftforge.common.MinecraftForge;
@@ -42,6 +43,7 @@ public class CreateRNS {
 
     private void commonSetup(final FMLCommonSetupEvent event) {
         event.enqueueWork(DepositScannerChannel::init);
+        event.enqueueWork(MinerInfoChannel::init);
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent event) {

@@ -4,11 +4,16 @@ import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.mining.MiningAreaOutlineRenderer;
+import com.bmaster.createrns.mining.MiningEntityItemHandler;
 import com.bmaster.createrns.mining.MiningProcess;
-import com.bmaster.createrns.util.Utils;
+import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.sound.SoundScapes;
+import com.simibubi.create.foundation.utility.CreateLang;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import net.createmod.catnip.lang.LangBuilder;
+import net.minecraft.ChatFormatting;
+import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -16,7 +21,6 @@ import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -27,29 +31,27 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class MinerBlockEntity extends KineticBlockEntity {
-    public static final int INVENTORY_SIZE = 9;
     public static final int MINEABLE_DEPOSIT_RADIUS = 1; // 3x3
     public static final int MINEABLE_DEPOSIT_DEPTH = 5;
 
-    public MiningProcess process;
     public Set<BlockPos> reservedDepositBlocks = new HashSet<>();
-    public List<BlockState> particleOptions = null;
+    private MiningProcess process = null;
+    private List<BlockState> particleOptions = null;
 
-    private final ItemStackHandler inventory = new ItemStackHandler(INVENTORY_SIZE) {
-        @Override
-        protected void onContentsChanged(int slot) {
+    private final MiningEntityItemHandler inventory = new MiningEntityItemHandler(() -> {
+        if (level != null && !level.isClientSide) {
             setChanged();
+            notifyUpdate();
         }
-    };
+    });
     private LazyOptional<IItemHandler> inventoryCap = LazyOptional.empty();
-    private CompoundTag serializedMiningProcess = null;
+    private CompoundTag miningProgressTag = null;
 
     public MinerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -59,12 +61,12 @@ public class MinerBlockEntity extends KineticBlockEntity {
         super(RNSContent.MINER_BE.get(), pos, state);
     }
 
-    public ItemStackHandler getInventory() {
-        return inventory;
+    public int getCurrentProgressIncrement() {
+        return (int) Math.abs(getSpeed());
     }
 
     public boolean isMining() {
-        if (level == null) return false;
+        if (level == null || process == null) return false;
         return !reservedDepositBlocks.isEmpty() && isSpeedRequirementFulfilled();
     }
 
@@ -81,9 +83,8 @@ public class MinerBlockEntity extends KineticBlockEntity {
         // Mark particle options for recalculation (lazy)
         particleOptions = null;
 
-        // Recompute mining process yields based on claimed mining area (server side).
-        // This also happens on process initialization.
-        if (process != null && level instanceof ServerLevel sl) process.setYields(sl, reservedDepositBlocks);
+        // Recompute mining process yields based on claimed mining area. This also happens on process initialization.
+        if (process != null && level != null) process.setYields(level, reservedDepositBlocks);
 
         setChanged();
     }
@@ -91,57 +92,27 @@ public class MinerBlockEntity extends KineticBlockEntity {
     @Override
     public void tick() {
         super.tick();
-        clientTick();
-        serverTick();
-    }
+        if (level == null) return;
 
-    public void clientTick() {
-        if (level == null || !level.isClientSide) return;
-        if (isMining()) spawnParticles();
-    }
-
-    public void serverTick() {
-        if (!(level instanceof ServerLevel sl)) return;
-
-        // Initialize mining process if not already
         if (process == null) {
             // Create the mining process object
-            process = new MiningProcess(sl, reservedDepositBlocks);
+            process = new MiningProcess(level, reservedDepositBlocks);
 
             // If we got mining process data from NBT, now is the time to set it
-            if (serializedMiningProcess != null) {
-                process.setProgressFromNBT(serializedMiningProcess);
-                serializedMiningProcess = null;
+            if (miningProgressTag != null) {
+                process.setProgressFromNBT(miningProgressTag);
+                miningProgressTag = null;
             }
         }
 
-        if (!isMining()) return;
-
-        process.advance((int) Math.abs(getSpeed()));
-        setChanged();
-
-        var yields = process.collect();
-        if (yields.isEmpty()) return;
-
-        for (var is : yields) {
-            var remainder = Utils.insertItemIntoContainer(inventory, is);
-            if (remainder.equals(ItemStack.EMPTY)) {
-                CreateRNS.LOGGER.info("Mined {} {}, at {},{}", is.getItem(), is.getCount(),
-                        getBlockPos().getX(), getBlockPos().getZ());
+        if (isMining()) {
+            if (level.isClientSide) {
+                spawnParticles();
             } else {
-                CreateRNS.LOGGER.info("Could not fully mine {} at {},{} ({} remaining)", remainder.getItem(),
-                        getBlockPos().getX(), getBlockPos().getZ(), remainder.getCount());
+                process.advance(getCurrentProgressIncrement());
+                inventory.collectMinedItems(process);
             }
         }
-    }
-
-    @Override
-    public void tickAudio() {
-        if (!isMining()) return;
-        float speed = Math.abs(getSpeed());
-
-        float pitch = Mth.clamp((speed / 256f) + .45f, .85f, 1f);
-        SoundScapes.play(SoundScapes.AmbienceGroup.CRUSHING, worldPosition, pitch);
     }
 
     protected void spawnParticles() {
@@ -162,6 +133,15 @@ public class MinerBlockEntity extends KineticBlockEntity {
                     worldPosition.getY() - 0.5 + r.nextFloat(),
                     worldPosition.getZ() + r.nextFloat(),
                     0, 0, 0);
+    }
+
+    @Override
+    public void tickAudio() {
+        if (!isMining()) return;
+        float speed = Math.abs(getSpeed());
+
+        float pitch = Mth.clamp((speed / 256f) + .45f, .85f, 1f);
+        SoundScapes.play(SoundScapes.AmbienceGroup.CRUSHING, worldPosition, pitch);
     }
 
     @Override
@@ -194,13 +174,14 @@ public class MinerBlockEntity extends KineticBlockEntity {
     }
 
     @Override
+    public void notifyUpdate() {
+        super.notifyUpdate();
+    }
+
+    @Override
     public void write(@NotNull CompoundTag tag, boolean clientPacket) {
         super.write(tag, clientPacket);
-        tag.put("Items", inventory.serializeNBT());
-        if (process != null) {
-            tag.put("MiningProcess", process.getProgressAsNBT());
-        }
-
+        tag.put("Inventory", inventory.serializeNBT());
         var packed = reservedDepositBlocks.stream().mapToLong(BlockPos::asLong).toArray();
         tag.putLongArray("ReservedDepositBlocks", packed);
     }
@@ -208,12 +189,9 @@ public class MinerBlockEntity extends KineticBlockEntity {
     @Override
     public void read(@NotNull CompoundTag tag, boolean clientPacket) {
         super.read(tag, clientPacket);
-
-        // Mining process may not be created yet, so we defer serialization (server side)
-        if (!clientPacket) {
-            serializedMiningProcess = tag.getCompound("MiningProcess");
-            inventory.deserializeNBT(tag.getCompound("Items"));
-        }
+        if (clientPacket)
+            CreateRNS.LOGGER.info("Client miner synced at {}, {}", worldPosition.getX(), worldPosition.getZ());
+        inventory.deserializeNBT(tag.getCompound("Inventory"));
 
         // Clear outline for the claimed mining area of this miner (client side)
         if (clientPacket) MiningAreaOutlineRenderer.removeMiner(this);
@@ -229,14 +207,71 @@ public class MinerBlockEntity extends KineticBlockEntity {
         // Mark particle options for recalculation (lazy)
         particleOptions = null;
 
-        // Recompute mining process yields based on claimed mining area (server side).
-        // This also happens on process initialization.
-        if (process != null && level instanceof ServerLevel sl) process.setYields(sl, reservedDepositBlocks);
+        // Recompute mining process yields based on claimed mining area. This also happens on process initialization.
+        if (process != null && level != null) process.setYields(level, reservedDepositBlocks);
     }
 
     @Override
     protected void addStressImpactStats(List<Component> tooltip, float stressAtBase) {
         super.addStressImpactStats(tooltip, stressAtBase);
+    }
+
+    @Override
+    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        boolean isMainSectionAdded = false;
+
+        if (isPlayerSneaking && process != null && isMining()) {
+            new LangBuilder(CreateRNS.MOD_ID).translate("miner.production_rates").forGoggles(tooltip);
+
+            var stpListSorted = process.innerProcesses.stream()
+                    .sorted(Comparator.comparingInt(p -> p.maxProgress))
+                    .toList();
+
+            for (var p : stpListSorted) {
+                var ipm = (SharedConstants.TICKS_PER_MINUTE * getCurrentProgressIncrement() * 10 / p.maxProgress) / 10;
+                new LangBuilder(CreateRNS.MOD_ID)
+                        .add(p.yield.getDescription().copy()
+                                .append(": ")
+                                .withStyle(ChatFormatting.GRAY))
+                        .add(Component.literal(Integer.toString(ipm))
+                                .append(Component.translatable("%s.miner.per_minute".formatted(CreateRNS.MOD_ID)))
+                                .withStyle(ChatFormatting.GREEN))
+                        .forGoggles(tooltip, 1);
+            }
+
+            isMainSectionAdded = true;
+        }
+
+        if (!isMainSectionAdded) {
+            for (int slot = 0; slot < inventory.getSlots(); ++slot) {
+                var is = inventory.getStackInSlot(slot);
+                if (is.equals(ItemStack.EMPTY)) continue;
+                if (!isMainSectionAdded) {
+                    new LangBuilder(CreateRNS.MOD_ID).translate("miner.contents").forGoggles(tooltip);
+                    isMainSectionAdded = true;
+                }
+                new LangBuilder(CreateRNS.MOD_ID)
+                        .add(is.getHoverName().copy().withStyle(ChatFormatting.GRAY))
+                        .add(Component.literal(" x" + is.getCount()).withStyle(ChatFormatting.GREEN))
+                        .forGoggles(tooltip, 1);
+            }
+        }
+
+        float stressAtBase = 0f;
+        if (IRotate.StressImpact.isEnabled()) {
+            stressAtBase = calculateStressApplied();
+        }
+        if (!Mth.equal(stressAtBase, 0)) {
+            if (!isMainSectionAdded) {
+                CreateLang.translate("gui.goggles.kinetic_stats").forGoggles(tooltip);
+            } else {
+                // Newline between sections
+                new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
+            }
+            addStressImpactStats(tooltip, calculateStressApplied());
+        }
+
+        return true;
     }
 
     private BoundingBox getMiningArea(@NotNull Level l) {

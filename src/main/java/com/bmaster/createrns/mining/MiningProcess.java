@@ -2,16 +2,18 @@ package com.bmaster.createrns.mining;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags;
+import com.simibubi.create.infrastructure.config.AllConfigs;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,12 +23,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class MiningProcess {
-    private static final int BASE_MAX_PROGRESS = 20 * 256 * 30; // 30 seconds at 256 RPM without multipliers
+    private static final int BASE_MAX_PROGRESS = 30 * // Seconds at max speed
+            SharedConstants.TICKS_PER_SECOND * AllConfigs.server().kinetics.maxRotationSpeed.get();
 
-    private final Set<SingleTypeProcess> innerProcesses = new ObjectOpenHashSet<>();
+    public final Set<SingleTypeProcess> innerProcesses = new ObjectOpenHashSet<>();
 
-    public MiningProcess(ServerLevel sl, Set<BlockPos> depositBlocks) {
-        setYields(sl, depositBlocks);
+    public MiningProcess(Level l, Set<BlockPos> depositBlocks) {
+        setYields(l, depositBlocks);
     }
 
     public boolean isPossible() {
@@ -45,11 +48,11 @@ public class MiningProcess {
                 .collect(Collectors.toSet());
     }
 
-    public void setYields(ServerLevel sl, Set<BlockPos> depositBlocks) {
+    public void setYields(Level l, Set<BlockPos> depositBlocks) {
         var yieldCounts = depositBlocks.stream()
-                .map(bp -> sl.getBlockState(bp).getBlock())
+                .map(bp -> l.getBlockState(bp).getBlock())
                 .filter(db -> db.defaultBlockState().is(RNSTags.Block.DEPOSIT_BLOCKS))
-                .map(db -> MiningRecipeLookup.getYield(sl, db))
+                .map(db -> MiningRecipeLookup.getYield(l, db))
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
         innerProcesses.clear();
@@ -93,10 +96,10 @@ public class MiningProcess {
         }
     }
 
-    private static class SingleTypeProcess {
-        private final Item yield;
-        private int maxProgress;
-        private int progress;
+    public static class SingleTypeProcess {
+        public final Item yield;
+        public int maxProgress;
+        public int progress;
 
         public SingleTypeProcess(Item yield, int maxProgress) {
             this.yield = yield;

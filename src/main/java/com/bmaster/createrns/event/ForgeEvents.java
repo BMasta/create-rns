@@ -6,6 +6,10 @@ import com.bmaster.createrns.mining.MiningAreaOutlineRenderer;
 import com.bmaster.createrns.deposit.capability.*;
 import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler;
+import com.bmaster.createrns.mining.miner.MinerBlockEntity;
+import com.bmaster.createrns.mining.miner.MinerInfoC2SPacket;
+import com.bmaster.createrns.mining.miner.MinerTooltipHelper;
+import com.simibubi.create.content.equipment.goggles.GoggleOverlayRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -26,7 +30,7 @@ public class ForgeEvents {
     private static long scannerLastRightClickedAt = 0;
 
     @SubscribeEvent
-    public static void tick(TickEvent.ClientTickEvent event) {
+    public static void clientTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) {
             DepositScannerClientHandler.tick();
             MiningAreaOutlineRenderer.tick();
