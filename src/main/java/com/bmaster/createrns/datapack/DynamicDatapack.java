@@ -51,14 +51,13 @@ public class DynamicDatapack {
 
     public static void addVanillaDeposits() {
         var bulkNBTPool = Set.of(
-                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_small"), 5),
-                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium"), 5),
-                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_large"), 1)
+                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium"), 70),
+                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_large"), 30)
         );
         var preciousNBTPool = Set.of(
-                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_small"), 25),
-                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium"), 5),
-                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_large"), 1)
+                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_small"), 70),
+                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium"), 28),
+                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_large"), 2)
         );
 
         var mediumNBT = ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium");

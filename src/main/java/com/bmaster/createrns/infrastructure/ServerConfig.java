@@ -15,7 +15,7 @@ public class ServerConfig {
     private static final ForgeConfigSpec.ConfigValue<Float> MINER_SPEED_CV = BUILDER
             .comment(" How many mining operations a miner can complete in one hour\n" +
                     " at 256 RPM, with one deposit block claimed, and no deposit multipliers")
-            .define("minerSpeed", 1f);
+            .define("minerSpeed", 2f);
 
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
