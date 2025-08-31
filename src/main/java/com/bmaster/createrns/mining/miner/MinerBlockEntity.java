@@ -61,6 +61,10 @@ public class MinerBlockEntity extends KineticBlockEntity {
         super(RNSContent.MINER_BE.get(), pos, state);
     }
 
+    public MiningEntityItemHandler getInventory() {
+        return inventory;
+    }
+
     public int getCurrentProgressIncrement() {
         return (int) Math.abs(getSpeed());
     }
@@ -105,13 +109,10 @@ public class MinerBlockEntity extends KineticBlockEntity {
             }
         }
 
-        if (isMining()) {
-            if (level.isClientSide) {
-                spawnParticles();
-            } else {
-                process.advance(getCurrentProgressIncrement());
-                inventory.collectMinedItems(process);
-            }
+        if (!level.isClientSide && isMining()) {
+            spawnParticles();
+            process.advance(getCurrentProgressIncrement());
+            inventory.collectMinedItems(process);
         }
     }
 

@@ -119,6 +119,10 @@ public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<C
         return (extractedCount > 0) ? new ItemStack(existingStack.getItem(), extractedCount) : ItemStack.EMPTY;
     }
 
+    public @NotNull ItemStack extractItem(int slot, boolean simulate) {
+        return extractItem(slot, MAX_COUNT_PER_TYPE, simulate);
+    }
+
     @Override
     public int getSlotLimit(int slot) {
         return MAX_COUNT_PER_TYPE;
