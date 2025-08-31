@@ -4,7 +4,6 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -15,34 +14,16 @@ import java.util.stream.Collectors;
 
 public class DepositSpecLookup {
     private static Map<Item, DepositSpec> scannerIconToSpec;
-    private static Map<Block, DepositSpec> depoBlockToSpec;
     private static List<Item> allIcons;
     private static Set<ResourceKey<Structure>> allStructureKeys;
 
-    public static DepositSpec getSpec(RegistryAccess access, Item scannerIconItem) {
+    public static ResourceKey<Structure> getStructureKey(RegistryAccess access, Item scannerIconItem) {
         if (scannerIconToSpec == null) build(access);
-        return scannerIconToSpec.get(scannerIconItem);
-    }
-
-    public static DepositSpec getSpec(RegistryAccess access, Block depositBlock) {
-        if (depoBlockToSpec == null) build(access);
-        return depoBlockToSpec.get(depositBlock);
+        return ResourceKey.create(Registries.STRUCTURE, scannerIconToSpec.get(scannerIconItem).structure());
     }
 
     public static void build(RegistryAccess access) {
         var regEntries = access.registryOrThrow(DepositSpec.REGISTRY_KEY).entrySet();
-
-        depoBlockToSpec = new HashMap<>(regEntries.size());
-        regEntries.forEach(e -> {
-            var spec = e.getValue();
-            var depoBlock = spec.depositBlock();
-            if (ForgeRegistries.BLOCKS.getKey(depoBlock) != null) {
-                if (depoBlockToSpec.containsKey(depoBlock)) {
-                    throw new KeyAlreadyExistsException("Found multiple deposit specs with the same deposit block");
-                }
-                depoBlockToSpec.put(depoBlock, spec);
-            }
-        });
 
         scannerIconToSpec = new HashMap<>(regEntries.size());
         regEntries.forEach(e -> {
@@ -65,8 +46,7 @@ public class DepositSpecLookup {
                 })).toList();
 
         allStructureKeys = scannerIconToSpec.values().stream()
-                .map(hs -> hs.structure().unwrapKey().orElse(null))
-                .filter(Objects::nonNull)
+                .map(hs -> ResourceKey.create(Registries.STRUCTURE, hs.structure()))
                 .collect(Collectors.toUnmodifiableSet());
     }
 

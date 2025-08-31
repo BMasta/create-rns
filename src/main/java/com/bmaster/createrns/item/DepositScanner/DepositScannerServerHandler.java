@@ -31,8 +31,8 @@ public class DepositScannerServerHandler {
         }
         var depIdx = depIdxOpt.get();
 
-        var structure = DepositSpecLookup.getSpec(sl.registryAccess(), yield).structure();
-        var depPos = depIdx.getNearest(structure.unwrapKey().orElseThrow(), sp, SEARCH_RADIUS_CHUNKS, !recompute);
+        var structKey = DepositSpecLookup.getStructureKey(sl.registryAccess(), yield);
+        var depPos = depIdx.getNearest(structKey, sp, SEARCH_RADIUS_CHUNKS, !recompute);
         var state = getScannerState(sp, depPos);
 
         if (state.foundDepositCenter != null) depIdx.markAsFound(state.foundDepositCenter);

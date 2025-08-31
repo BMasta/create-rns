@@ -1,5 +1,4 @@
 {
   "scanner_icon_item": "minecraft:gold_ingot",
-  "depositBlock": "create_rns:gold_deposit_block",
   "structure": "create_rns:deposit_gold"
 }

@@ -109,7 +109,6 @@ public class MiningRecipe implements Recipe<Container> {
         @ParametersAreNonnullByDefault
         @Override
         public void toNetwork(FriendlyByteBuf buf, MiningRecipe r) {
-            Ingredient.of(r.depositBlock).toNetwork(buf);
             buf.writeResourceLocation(Objects.requireNonNull(ForgeRegistries.BLOCKS.getKey(r.depositBlock)));
             buf.writeItem(new ItemStack(r.yield));
         }
