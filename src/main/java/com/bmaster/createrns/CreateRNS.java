@@ -27,7 +27,7 @@ public class CreateRNS {
         RNSContent.register();
         RNSRecipes.register();
 
-        // Register the commonSetup method for modloading
+        // Register the commonSetup method for mod loading
         modEventBus.addListener(this::commonSetup);
 
         // Register ourselves for server and other game events we are interested in

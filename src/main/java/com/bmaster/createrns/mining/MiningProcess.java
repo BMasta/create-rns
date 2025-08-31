@@ -2,6 +2,7 @@ package com.bmaster.createrns.mining;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags;
+import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.simibubi.create.infrastructure.config.AllConfigs;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -11,6 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -23,9 +25,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class MiningProcess {
-    private static final int BASE_MAX_PROGRESS = 30 * // Seconds at max speed
-            SharedConstants.TICKS_PER_SECOND * AllConfigs.server().kinetics.maxRotationSpeed.get();
-
     public final Set<SingleTypeProcess> innerProcesses = new ObjectOpenHashSet<>();
 
     public MiningProcess(Level l, Set<BlockPos> depositBlocks) {
@@ -56,8 +55,10 @@ public class MiningProcess {
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
         innerProcesses.clear();
+        var baseProgress = ServerConfig.minerBaseProgress;
         for (var e : yieldCounts.entrySet()) {
-            innerProcesses.add(new SingleTypeProcess(e.getKey(), BASE_MAX_PROGRESS / e.getValue().intValue()));
+            var depBlockCount = e.getValue().intValue();
+            innerProcesses.add(new SingleTypeProcess(e.getKey(), baseProgress / depBlockCount));
         }
     }
 

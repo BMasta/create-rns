@@ -109,10 +109,13 @@ public class MinerBlockEntity extends KineticBlockEntity {
             }
         }
 
-        if (!level.isClientSide && isMining()) {
-            spawnParticles();
-            process.advance(getCurrentProgressIncrement());
-            inventory.collectMinedItems(process);
+        if (isMining()) {
+            if (!level.isClientSide) {
+                process.advance(getCurrentProgressIncrement());
+                inventory.collectMinedItems(process);
+            } else {
+                spawnParticles();
+            }
         }
     }
 
@@ -219,59 +222,91 @@ public class MinerBlockEntity extends KineticBlockEntity {
 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        boolean isMainSectionAdded = false;
+        boolean added = false;
 
-        if (isPlayerSneaking && process != null && isMining()) {
+        if (process != null && isMining()) {
+            // Try adding desired section
+            if (!isPlayerSneaking) added = addInventoryToGoggleTooltip(tooltip, true);
+            else added = addRatesToGoggleTooltip(tooltip, true);
+
+            // If unsuccessful, try adding the less desired
+            if (!added) {
+                if (!isPlayerSneaking) added = addRatesToGoggleTooltip(tooltip, true);
+                else added = addInventoryToGoggleTooltip(tooltip, true);
+            }
+        }
+
+        added = addKineticsToGoggleTooltip(tooltip, !added);
+
+        return added;
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private boolean addInventoryToGoggleTooltip(List<Component> tooltip, boolean isMainSection) {
+        if (inventory.isEmpty()) return false;
+
+        if (isMainSection) {
+            new LangBuilder(CreateRNS.MOD_ID).translate("miner.contents").forGoggles(tooltip);
+        } else {
+            // Newline between sections
+            new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
+        }
+
+        for (int slot = 0; slot < inventory.getSlots(); ++slot) {
+            var is = inventory.getStackInSlot(slot);
+            if (is.equals(ItemStack.EMPTY)) continue;
+            new LangBuilder(CreateRNS.MOD_ID)
+                    .add(is.getHoverName().copy().withStyle(ChatFormatting.GRAY))
+                    .add(Component.literal(" x" + is.getCount()).withStyle(ChatFormatting.GREEN))
+                    .forGoggles(tooltip, 1);
+        }
+
+        return true;
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private boolean addRatesToGoggleTooltip(List<Component> tooltip, boolean isMainSection) {
+        if (reservedDepositBlocks.isEmpty()) return false;
+
+        if (isMainSection) {
             new LangBuilder(CreateRNS.MOD_ID).translate("miner.production_rates").forGoggles(tooltip);
-
-            var stpListSorted = process.innerProcesses.stream()
-                    .sorted(Comparator.comparingInt(p -> p.maxProgress))
-                    .toList();
-
-            for (var p : stpListSorted) {
-                var ipm = (float) ((long) SharedConstants.TICKS_PER_MINUTE * getCurrentProgressIncrement() * 10 / p.maxProgress) / 10;
-                new LangBuilder(CreateRNS.MOD_ID)
-                        .add(p.yield.getDescription().copy()
-                                .append(": ")
-                                .withStyle(ChatFormatting.GRAY))
-                        .add(Component.literal(Float.toString(ipm))
-                                .append(Component.translatable("%s.miner.per_minute".formatted(CreateRNS.MOD_ID)))
-                                .withStyle(ChatFormatting.GREEN))
-                        .forGoggles(tooltip, 1);
-            }
-
-            isMainSectionAdded = true;
+        } else {
+            // Newline between sections
+            new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
         }
 
-        if (!isMainSectionAdded) {
-            for (int slot = 0; slot < inventory.getSlots(); ++slot) {
-                var is = inventory.getStackInSlot(slot);
-                if (is.equals(ItemStack.EMPTY)) continue;
-                if (!isMainSectionAdded) {
-                    new LangBuilder(CreateRNS.MOD_ID).translate("miner.contents").forGoggles(tooltip);
-                    isMainSectionAdded = true;
-                }
-                new LangBuilder(CreateRNS.MOD_ID)
-                        .add(is.getHoverName().copy().withStyle(ChatFormatting.GRAY))
-                        .add(Component.literal(" x" + is.getCount()).withStyle(ChatFormatting.GREEN))
-                        .forGoggles(tooltip, 1);
-            }
-        }
+        var stpListSorted = process.innerProcesses.stream()
+                .sorted(Comparator.comparingInt(p -> p.maxProgress))
+                .toList();
 
+        for (var p : stpListSorted) {
+            var progressPerHour = 60 * SharedConstants.TICKS_PER_MINUTE * getCurrentProgressIncrement();
+            var itemsPerHour = (float) ((long) progressPerHour * 10 / p.maxProgress) / 10;
+            new LangBuilder(CreateRNS.MOD_ID)
+                    .add(p.yield.getDescription().copy()
+                            .append(": ")
+                            .withStyle(ChatFormatting.GRAY))
+                    .add(Component.literal(Float.toString(itemsPerHour))
+                            .append(Component.translatable("%s.miner.per_hour".formatted(CreateRNS.MOD_ID)))
+                            .withStyle(ChatFormatting.GREEN))
+                    .forGoggles(tooltip, 1);
+        }
+        return true;
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    private boolean addKineticsToGoggleTooltip(List<Component> tooltip, boolean isMainSection) {
         float stressAtBase = 0f;
-        if (IRotate.StressImpact.isEnabled()) {
-            stressAtBase = calculateStressApplied();
-        }
-        if (!Mth.equal(stressAtBase, 0)) {
-            if (!isMainSectionAdded) {
-                CreateLang.translate("gui.goggles.kinetic_stats").forGoggles(tooltip);
-            } else {
-                // Newline between sections
-                new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
-            }
-            addStressImpactStats(tooltip, calculateStressApplied());
-        }
+        if (IRotate.StressImpact.isEnabled()) stressAtBase = calculateStressApplied();
+        if (Mth.equal(stressAtBase, 0)) return false;
 
+        if (isMainSection) {
+            CreateLang.translate("gui.goggles.kinetic_stats").forGoggles(tooltip);
+        } else {
+            // Newline between sections
+            new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
+        }
+        addStressImpactStats(tooltip, calculateStressApplied());
         return true;
     }
 
