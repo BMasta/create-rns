@@ -29,6 +29,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -71,6 +72,7 @@ public class RNSContent {
     public static final BlockEntry<MinerMk1Block> MINER_MK1_BLOCK = CreateRNS.REGISTRATE.block("miner_mk1",
                     MinerMk1Block::new)
             .transform(minerBlockCommon())
+            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
             .item()
             .model(AssetLookup.existingItemModel())
             .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
@@ -80,7 +82,7 @@ public class RNSContent {
                     .pattern(" C ")
                     .pattern("AEA")
                     .pattern(" A ")
-                    .unlockedBy("has_electron_tube", RegistrateRecipeProvider.has(AllItems.ELECTRON_TUBE))
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.ELECTRON_TUBE))
                     .save(p))
             .build()
             .register();
@@ -88,16 +90,17 @@ public class RNSContent {
     public static final BlockEntry<MinerMk2Block> MINER_MK2_BLOCK = CreateRNS.REGISTRATE.block("miner_mk2",
                     MinerMk2Block::new)
             .transform(minerBlockCommon())
+            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 4))
             .item()
             .model(AssetLookup.existingItemModel())
             .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
-                    .define('C', AllBlocks.ANDESITE_CASING.get())
-                    .define('A', AllItems.ANDESITE_ALLOY.get())
-                    .define('E', AllItems.ELECTRON_TUBE.get())
+                    .define('C', AllBlocks.BRASS_CASING.get())
+                    .define('M', MINER_MK1_BLOCK.get())
+                    .define('D', Items.DIAMOND)
                     .pattern(" C ")
-                    .pattern("AEA")
-                    .pattern(" C ")
-                    .unlockedBy("has_electron_tube", RegistrateRecipeProvider.has(AllItems.ELECTRON_TUBE))
+                    .pattern("DMD")
+                    .pattern(" D ")
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.BRASS_INGOT))
                     .save(p))
             .build()
             .register();
@@ -185,7 +188,6 @@ public class RNSContent {
                         .pushReaction(PushReaction.BLOCK))
                 .transform(axeOrPickaxe())
                 .blockstate((c, p) ->
-                        p.simpleBlock(c.get(), AssetLookup.standardModel(c, p)))
-                .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2));
+                        p.simpleBlock(c.get(), AssetLookup.standardModel(c, p)));
     }
 }
