@@ -4,6 +4,8 @@ import com.bmaster.createrns.mining.DepositBlock;
 import com.bmaster.createrns.mining.miner.*;
 import com.bmaster.createrns.deposit.capability.IDepositIndex;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerItem;
+import com.simibubi.create.AllBlocks;
+import com.simibubi.create.AllItems;
 import com.simibubi.create.api.stress.BlockStressValues;
 import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.SharedProperties;
@@ -11,14 +13,18 @@ import com.simibubi.create.foundation.item.ItemDescription;
 import com.simibubi.create.foundation.item.KineticStats;
 import com.simibubi.create.foundation.item.TooltipModifier;
 import com.tterrag.registrate.builders.BlockBuilder;
+import com.tterrag.registrate.providers.RegistrateRecipeProvider;
 import com.tterrag.registrate.util.entry.*;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
 import net.createmod.catnip.lang.FontHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -44,6 +50,16 @@ public class RNSContent {
                     "deposit_scanner", DepositScannerItem::new)
             .properties(p -> p.stacksTo(1))
             .model(AssetLookup.itemModelWithPartials())
+            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
+                    .define('E', AllItems.ELECTRON_TUBE)
+                    .define('W', AllBlocks.COGWHEEL)
+                    .define('C', AllBlocks.ANDESITE_CASING)
+                    .define('T', AllItems.TRANSMITTER)
+                    .pattern(" E ")
+                    .pattern("TWT")
+                    .pattern(" C ")
+                    .unlockedBy("has_electron_tube", RegistrateRecipeProvider.has(AllItems.ELECTRON_TUBE))
+                    .save(p))
             .register();
 
     // Blocks
@@ -60,6 +76,15 @@ public class RNSContent {
             .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
             .item()
             .model(AssetLookup.existingItemModel())
+            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
+                    .define('C', AllBlocks.ANDESITE_CASING.get())
+                    .define('A', AllItems.ANDESITE_ALLOY.get())
+                    .define('E', AllItems.ELECTRON_TUBE.get())
+                    .pattern(" C ")
+                    .pattern("AEA")
+                    .pattern(" A ")
+                    .unlockedBy("has_electron_tube", RegistrateRecipeProvider.has(AllItems.ELECTRON_TUBE))
+                    .save(p))
             .build()
             .register();
 
