@@ -13,14 +13,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<CompoundTag> {
     private static final int MAX_COUNT_PER_TYPE = 64;
     private List<Item> types;
-    private Object2ObjectOpenHashMap<Item, ItemStack> typeToStack;
+    private final Object2ObjectOpenHashMap<Item, ItemStack> typeToStack;
     private final Runnable onContentsChangedRunnable;
 
     public MiningEntityItemHandler(Runnable onContentsChanged) {
@@ -39,7 +38,7 @@ public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<C
     }
 
     public boolean isEmpty() {
-        return typeToStack.values().stream().allMatch(s -> s.getCount() < 1);
+        return typeToStack.values().stream().allMatch(ItemStack::isEmpty);
     }
 
     @Override
@@ -54,37 +53,51 @@ public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<C
     }
 
     /// Attempts to collect items mined by the given mining process.
-    ///
-    /// @return True if any items were added to the inventory. False otherwise.
-    public boolean collectMinedItems(MiningProcess process) {
-        if (process == null) return false;
+    public void collectMinedItems(MiningProcess process) {
+        if (process == null) return;
         boolean invUpdated = false;
         for (var minedStack : process.collect()) {
-            var type = minedStack.getItem();
+            var minedType = minedStack.getItem();
             var minedCount = minedStack.getCount();
 
-            // Add new type if not already present
-            if (!typeToStack.containsKey(type)) {
-                types.add(0, type);
-                typeToStack.put(type, new ItemStack(type, 0));
+            ItemStack existingStack;
+            if (typeToStack.containsKey(minedType)) {
+                // Existing type
+                existingStack = typeToStack.get(minedType);
+                int existingCount = existingStack.getCount();
+                int updatedCount = Math.min(MAX_COUNT_PER_TYPE, existingCount + minedCount);
+                existingStack.setCount(updatedCount);
+                invUpdated = updatedCount != existingCount;
+            } else {
+                // New type
+                existingStack = minedStack;
+                existingStack.setCount(Math.min(MAX_COUNT_PER_TYPE, minedCount));
+                types.add(0, minedType);
+                typeToStack.put(minedType, minedStack);
+                invUpdated = true;
             }
 
-            // Increase count for that type
-            var existingStack = typeToStack.get(type);
-            int existingCount = existingStack.getCount();
-            int updatedCount = Math.min(MAX_COUNT_PER_TYPE, existingCount + minedCount);
-
-            invUpdated = updatedCount != existingCount;
             if (invUpdated) {
-                existingStack.setCount(updatedCount);
                 CreateRNS.LOGGER.info("Mined {}", existingStack.getItem());
             } else {
                 CreateRNS.LOGGER.info("Could not mine {}", existingStack.getItem());
             }
         }
-
         if (invUpdated) onContentsChanged();
-        return invUpdated;
+    }
+
+    public @NotNull ItemStack extractFirstAvailableItem(boolean simulate) {
+        for (var e : typeToStack.entrySet()) {
+            var stack = e.getValue();
+            if (stack.isEmpty()) continue;
+            var newStack = stack.copyWithCount(1);
+            if (!simulate) {
+                stack.shrink(1);
+                onContentsChanged();
+            }
+            return newStack;
+        }
+        return ItemStack.EMPTY;
     }
 
     /// Always a no-op as mining entities only permit insertion from a mining process.
@@ -106,7 +119,9 @@ public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<C
         var extractedCount = Math.min(amount, existingStackCount);
         var updatedCount = existingStackCount - extractedCount;
 
+        ItemStack newStack;
         if (!simulate && updatedCount != existingStackCount) {
+            newStack = existingStack.copyWithCount(extractedCount);
             if (updatedCount > 0) {
                 existingStack.setCount(updatedCount);
             } else {
@@ -114,9 +129,11 @@ public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<C
                 typeToStack.remove(type);
             }
             onContentsChanged();
+        } else {
+            newStack = ItemStack.EMPTY;
         }
 
-        return (extractedCount > 0) ? new ItemStack(existingStack.getItem(), extractedCount) : ItemStack.EMPTY;
+        return newStack;
     }
 
     public @NotNull ItemStack extractItem(int slot, boolean simulate) {

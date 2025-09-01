@@ -1,8 +1,6 @@
 package com.bmaster.createrns.mining.miner;
 
-import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.mining.MiningBlock;
-import com.bmaster.createrns.mining.MiningBlockEntity;
 import com.simibubi.create.Create;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
