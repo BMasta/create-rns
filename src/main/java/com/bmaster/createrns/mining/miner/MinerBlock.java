@@ -1,7 +1,8 @@
 package com.bmaster.createrns.mining.miner;
 
-import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.mining.MiningBlockEntity;
+import com.bmaster.createrns.mining.MiningBlockEntityInstanceHolder;
 import com.simibubi.create.Create;
 import com.simibubi.create.content.kinetics.base.KineticBlock;
 import com.simibubi.create.foundation.block.IBE;
@@ -79,7 +80,7 @@ public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity> {
     @ParametersAreNonnullByDefault
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        Set<MinerBlockEntity> nearbyMiners = null;
+        Set<MiningBlockEntity> nearbyMiningBEs = null;
         if (!state.is(newState.getBlock())) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof MinerBlockEntity minerBE) {
@@ -95,15 +96,15 @@ public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity> {
 
                 // Collect all nearby miner BEs
                 if (!level.isClientSide) {
-                    nearbyMiners = MinerBlockEntityInstanceHolder.getInstancesWithIntersectingMiningArea(minerBE);
+                    nearbyMiningBEs = MiningBlockEntityInstanceHolder.getInstancesWithIntersectingMiningArea(minerBE);
                 }
             }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
 
-        if (nearbyMiners != null) {
+        if (nearbyMiningBEs != null) {
             // Now that our own BE is removed, let other miners re-reserve their deposit blocks
-            for (var m : nearbyMiners) {
+            for (var m : nearbyMiningBEs) {
                 m.reserveDepositBlocks();
                 m.notifyUpdate();
             }

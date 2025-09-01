@@ -2,8 +2,6 @@ package com.bmaster.createrns.mining;
 
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.mining.miner.MinerBlockEntity;
-import com.bmaster.createrns.mining.miner.MinerBlockEntityInstanceHolder;
 import com.simibubi.create.AllItems;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.createmod.catnip.outliner.Outliner;
@@ -13,7 +11,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
 public class MiningAreaOutlineRenderer {
-    private static final String OUTLINER_SLOT = "%s:minerOutline".formatted(CreateRNS.MOD_ID);
+    private static final String OUTLINER_SLOT = "%s:miningAreaOutline".formatted(CreateRNS.MOD_ID);
     private static final int MAX_TTL = 30;
     private static final int OUTLINE_MAX_DIST = 64;
 
@@ -22,7 +20,7 @@ public class MiningAreaOutlineRenderer {
     private static final ObjectOpenHashSet<BlockPos> selectedCluster = new ObjectOpenHashSet<>();
     private static int ttl = 0;
 
-    public static void clearAndAddNearbyMiners() {
+    public static void clearAndAddNearbyMiningBEs() {
         if (!outlineActive) return;
         Player p = Minecraft.getInstance().player;
         if (p == null) return;
@@ -30,11 +28,11 @@ public class MiningAreaOutlineRenderer {
 
         selectedCluster.clear();
         outlineChanged = true;
-        MinerBlockEntityInstanceHolder.getInstancesWithinManhattanDistance(l, p.blockPosition(), OUTLINE_MAX_DIST)
-                .forEach(MiningAreaOutlineRenderer::addMiner);
+        MiningBlockEntityInstanceHolder.getInstancesWithinManhattanDistance(l, p.blockPosition(), OUTLINE_MAX_DIST)
+                .forEach(MiningAreaOutlineRenderer::addMiningBE);
     }
 
-    public static void addMiner(MinerBlockEntity be) {
+    public static void addMiningBE(MiningBlockEntity be) {
         if (!outlineActive) return;
         Player p = Minecraft.getInstance().player;
         if (p == null) return;
@@ -43,7 +41,7 @@ public class MiningAreaOutlineRenderer {
         if (selectedCluster.addAll(be.reservedDepositBlocks)) outlineChanged = true;
     }
 
-    public static void removeMiner(MinerBlockEntity be) {
+    public static void removeMiningBE(MiningBlockEntity be) {
         if (!outlineActive) return;
         Player p = Minecraft.getInstance().player;
         if (p == null) return;
@@ -96,12 +94,12 @@ public class MiningAreaOutlineRenderer {
 
         var mainHandItem = p.getMainHandItem();
         boolean holdingCorrectItem = AllItems.WRENCH.isIn(mainHandItem) || RNSContent.MINER_BLOCK.isIn(mainHandItem);
-        boolean lookingAtMiner = mc.hitResult instanceof BlockHitResult ray && l.getBlockEntity(ray.getBlockPos()) instanceof MinerBlockEntity;
+        boolean lookingAtMiningBE = mc.hitResult instanceof BlockHitResult ray && l.getBlockEntity(ray.getBlockPos()) instanceof MiningBlockEntity;
 
-        if (holdingCorrectItem && lookingAtMiner) {
+        if (holdingCorrectItem && lookingAtMiningBE) {
             ttl = MAX_TTL;
             outlineActive = true;
-            clearAndAddNearbyMiners();
+            clearAndAddNearbyMiningBEs();
         }
     }
 }

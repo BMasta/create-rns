@@ -3,11 +3,8 @@ package com.bmaster.createrns.mining.miner;
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags;
-import com.bmaster.createrns.mining.MiningAreaOutlineRenderer;
-import com.bmaster.createrns.mining.MiningEntityItemHandler;
-import com.bmaster.createrns.mining.MiningProcess;
+import com.bmaster.createrns.mining.*;
 import com.simibubi.create.content.kinetics.base.IRotate;
-import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.sound.SoundScapes;
 import com.simibubi.create.foundation.utility.CreateLang;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -36,61 +33,30 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class MinerBlockEntity extends KineticBlockEntity {
-    public static final int MINEABLE_DEPOSIT_RADIUS = 1; // 3x3
-    public static final int MINEABLE_DEPOSIT_DEPTH = 5;
+public class MinerBlockEntity extends MiningBlockEntity {
+    // 3x3x5, starting one block below miner
+    public static final int MINING_AREA_RADIUS = 1;
+    public static final int MINING_AREA_DEPTH = 5;
+    public static final int MINING_AREA_Y_OFFSET = -1;
 
-    public Set<BlockPos> reservedDepositBlocks = new HashSet<>();
-    private MiningProcess process = null;
     private List<BlockState> particleOptions = null;
 
-    private final MiningEntityItemHandler inventory = new MiningEntityItemHandler(() -> {
-        if (level != null && !level.isClientSide) {
-            setChanged();
-            notifyUpdate();
-        }
-    });
-    private LazyOptional<IItemHandler> inventoryCap = LazyOptional.empty();
-    private CompoundTag miningProgressTag = null;
-
     public MinerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
-        super(type, pos, state);
+        super(type, pos, state, MINING_AREA_RADIUS, MINING_AREA_DEPTH, MINING_AREA_Y_OFFSET);
     }
 
     public MinerBlockEntity(BlockPos pos, BlockState state) {
-        super(RNSContent.MINER_BE.get(), pos, state);
-    }
-
-    public MiningEntityItemHandler getInventory() {
-        return inventory;
+        super(RNSContent.MINER_BE.get(), pos, state, MINING_AREA_RADIUS, MINING_AREA_DEPTH, MINING_AREA_Y_OFFSET);
     }
 
     public int getCurrentProgressIncrement() {
         return (int) Math.abs(getSpeed());
     }
 
+    @Override
     public boolean isMining() {
         if (level == null || process == null) return false;
         return !reservedDepositBlocks.isEmpty() && isSpeedRequirementFulfilled();
-    }
-
-    public void reserveDepositBlocks() {
-        if (level == null) return;
-
-        reservedDepositBlocks = getDepositVein();
-
-        // Exclude deposit blocks reserved by nearby miners
-        for (var m : MinerBlockEntityInstanceHolder.getInstancesWithIntersectingMiningArea(this)) {
-            reservedDepositBlocks.removeAll(m.reservedDepositBlocks);
-        }
-
-        // Mark particle options for recalculation (lazy)
-        particleOptions = null;
-
-        // Recompute mining process yields based on claimed mining area. This also happens on process initialization.
-        if (process != null && level != null) process.setYields(level, reservedDepositBlocks);
-
-        setChanged();
     }
 
     @Override
@@ -98,24 +64,8 @@ public class MinerBlockEntity extends KineticBlockEntity {
         super.tick();
         if (level == null) return;
 
-        if (process == null) {
-            // Create the mining process object
-            process = new MiningProcess(level, reservedDepositBlocks);
-
-            // If we got mining process data from NBT, now is the time to set it
-            if (miningProgressTag != null) {
-                process.setProgressFromNBT(miningProgressTag);
-                miningProgressTag = null;
-            }
-        }
-
-        if (isMining()) {
-            if (!level.isClientSide) {
-                process.advance(getCurrentProgressIncrement());
-                inventory.collectMinedItems(process);
-            } else {
+        if (isMining() && level.isClientSide) {
                 spawnParticles();
-            }
         }
     }
 
@@ -146,73 +96,6 @@ public class MinerBlockEntity extends KineticBlockEntity {
 
         float pitch = Mth.clamp((speed / 256f) + .45f, .85f, 1f);
         SoundScapes.play(SoundScapes.AmbienceGroup.CRUSHING, worldPosition, pitch);
-    }
-
-    @Override
-    public void onLoad() {
-        super.onLoad();
-
-        // Initialize the inventory capability when the BE is first loaded
-        inventoryCap = LazyOptional.of(() -> inventory);
-
-        MinerBlockEntityInstanceHolder.addInstance(this);
-    }
-
-    @Override
-    public void invalidate() {
-        super.invalidate();
-
-        inventoryCap.invalidate();
-
-        MinerBlockEntityInstanceHolder.removeInstance(this);
-        if (level != null && level.isClientSide()) MiningAreaOutlineRenderer.removeMiner(this);
-    }
-
-    @NotNull
-    @Override
-    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, Direction side) {
-        if (cap == ForgeCapabilities.ITEM_HANDLER) {
-            return inventoryCap.cast();
-        }
-        return super.getCapability(cap, side);
-    }
-
-    @Override
-    public void notifyUpdate() {
-        super.notifyUpdate();
-    }
-
-    @Override
-    public void write(@NotNull CompoundTag tag, boolean clientPacket) {
-        super.write(tag, clientPacket);
-        tag.put("Inventory", inventory.serializeNBT());
-        var packed = reservedDepositBlocks.stream().mapToLong(BlockPos::asLong).toArray();
-        tag.putLongArray("ReservedDepositBlocks", packed);
-    }
-
-    @Override
-    public void read(@NotNull CompoundTag tag, boolean clientPacket) {
-        super.read(tag, clientPacket);
-        if (clientPacket)
-            CreateRNS.LOGGER.info("Client miner synced at {}, {}", worldPosition.getX(), worldPosition.getZ());
-        inventory.deserializeNBT(tag.getCompound("Inventory"));
-
-        // Clear outline for the claimed mining area of this miner (client side)
-        if (clientPacket) MiningAreaOutlineRenderer.removeMiner(this);
-
-        // Deserialize claimed mining area
-        reservedDepositBlocks.clear();
-        var packed = tag.getLongArray("ReservedDepositBlocks");
-        for (var l : packed) reservedDepositBlocks.add(BlockPos.of(l));
-
-        // Add outline for the freshly deserialized claimed mining area back in (client side)
-        if (clientPacket) MiningAreaOutlineRenderer.addMiner(this);
-
-        // Mark particle options for recalculation (lazy)
-        particleOptions = null;
-
-        // Recompute mining process yields based on claimed mining area. This also happens on process initialization.
-        if (process != null && level != null) process.setYields(level, reservedDepositBlocks);
     }
 
     @Override
@@ -308,38 +191,5 @@ public class MinerBlockEntity extends KineticBlockEntity {
         }
         addStressImpactStats(tooltip, calculateStressApplied());
         return true;
-    }
-
-    private BoundingBox getMiningArea(@NotNull Level l) {
-        var pos = this.getBlockPos();
-        int px = pos.getX(), py = pos.getY(), pz = pos.getZ();
-        int minBuildHeight = l.getMinBuildHeight(), maxBuildHeight = l.getMaxBuildHeight();
-
-        int yMin = Mth.clamp(py - MINEABLE_DEPOSIT_DEPTH, minBuildHeight, maxBuildHeight);
-        int yMax = Mth.clamp(py - 1, minBuildHeight, maxBuildHeight);
-
-        return new BoundingBox(
-                px - MINEABLE_DEPOSIT_RADIUS, yMin, pz - MINEABLE_DEPOSIT_RADIUS,
-                px + MINEABLE_DEPOSIT_RADIUS, yMax, pz + MINEABLE_DEPOSIT_RADIUS);
-    }
-
-    private Set<BlockPos> getDepositVein() {
-        if (level == null) return Set.of();
-
-        var depTag = RNSTags.Block.DEPOSIT_BLOCKS;
-        var ma = getMiningArea(level);
-        Queue<BlockPos> q = new ArrayDeque<>();
-        LongOpenHashSet visited = new LongOpenHashSet(ma.getXSpan() * ma.getYSpan() * ma.getZSpan());
-
-        q.offer(worldPosition.below());
-        while (!q.isEmpty()) {
-            var bp = q.poll();
-
-            if (visited.contains(bp.asLong()) || !ma.isInside(bp) || !level.getBlockState(bp).is(depTag)) continue;
-            visited.add(bp.asLong());
-
-            Direction.stream().forEach(d -> q.add(bp.relative(d)));
-        }
-        return visited.longStream().mapToObj(BlockPos::of).collect(Collectors.toSet());
     }
 }

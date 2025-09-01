@@ -1,6 +1,5 @@
 package com.bmaster.createrns.mining;
 
-import com.bmaster.createrns.mining.miner.MinerBlockEntityInstanceHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -19,7 +18,7 @@ public class DepositBlock extends Block {
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
         if (level.isClientSide) return;
-        for (var m : MinerBlockEntityInstanceHolder.getInstancesThatMine(level, pos)) {
+        for (var m : MiningBlockEntityInstanceHolder.getInstancesThatCouldMine(level, pos)) {
             m.reserveDepositBlocks();
             var mPos = m.getBlockPos();
             var mState = level.getBlockState(mPos);
@@ -34,7 +33,7 @@ public class DepositBlock extends Block {
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         super.onRemove(state, level, pos, newState, movedByPiston);
         if (level.isClientSide) return;
-        for (var m : MinerBlockEntityInstanceHolder.getInstancesThatMine(level, pos)) {
+        for (var m : MiningBlockEntityInstanceHolder.getInstancesThatCouldMine(level, pos)) {
             m.reserveDepositBlocks();
             var mPos = m.getBlockPos();
             var mState = level.getBlockState(mPos);
