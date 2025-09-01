@@ -1,10 +1,8 @@
 package com.bmaster.createrns.mining.miner;
 
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.mining.MiningBlockEntity;
-import com.bmaster.createrns.mining.MiningBlockEntityInstanceHolder;
+import com.bmaster.createrns.mining.MiningBlock;
 import com.simibubi.create.Create;
-import com.simibubi.create.content.kinetics.base.KineticBlock;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -13,35 +11,24 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import java.util.Set;
-
-public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity> {
-    public MinerBlock(Properties props) {
-        super(props);
-    }
-
+public class MinerBlock extends MiningBlock implements IBE<MinerBlockEntity> {
     public static Direction.Axis getRotationAxis() {
         return Direction.Axis.Y;
     }
 
-    @ParametersAreNonnullByDefault
-    @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
-        return new MinerBlockEntity(pPos, pState);
+    public MinerBlock(Properties props) {
+        super(props);
     }
 
     @SuppressWarnings("deprecation")
@@ -67,48 +54,10 @@ public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity> {
         });
     }
 
-    @Override
-    public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
-        super.onPlace(state, level, pos, oldState, isMoving);
-        if (level.isClientSide || oldState.is(state.getBlock()) ||
-                !(level.getBlockEntity(pos) instanceof MinerBlockEntity be)) return;
-
-        be.reserveDepositBlocks();
-        be.notifyUpdate();
-    }
-
     @ParametersAreNonnullByDefault
     @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        Set<MiningBlockEntity> nearbyMiningBEs = null;
-        if (!state.is(newState.getBlock())) {
-            BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof MinerBlockEntity minerBE) {
-                // Pop inventory contents on the ground
-                be.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(iItemHandler -> {
-                    for (int i = 0; i < iItemHandler.getSlots(); ++i) {
-                        ItemStack stack = iItemHandler.getStackInSlot(i);
-                        if (!stack.isEmpty()) {
-                            Block.popResource(level, pos, stack);
-                        }
-                    }
-                });
-
-                // Collect all nearby miner BEs
-                if (!level.isClientSide) {
-                    nearbyMiningBEs = MiningBlockEntityInstanceHolder.getInstancesWithIntersectingMiningArea(minerBE);
-                }
-            }
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-
-        if (nearbyMiningBEs != null) {
-            // Now that our own BE is removed, let other miners re-reserve their deposit blocks
-            for (var m : nearbyMiningBEs) {
-                m.reserveDepositBlocks();
-                m.notifyUpdate();
-            }
-        }
+    public @Nullable BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
+        return new MinerBlockEntity(pPos, pState);
     }
 
     @Override
