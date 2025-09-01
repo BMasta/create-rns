@@ -2,7 +2,8 @@
   "block.create_rns.copper_deposit_block": "ʞɔoןᗺ ʇısodǝᗡ ɹǝddoƆ",
   "block.create_rns.gold_deposit_block": "ʞɔoןᗺ ʇısodǝᗡ pןo⅁",
   "block.create_rns.iron_deposit_block": "ʞɔoןᗺ ʇısodǝᗡ uoɹI",
-  "block.create_rns.miner": "ɹǝuıW",
+  "block.create_rns.miner_mk1": "ƖʞW ɹǝuıW",
+  "block.create_rns.miner_mk2": "ᄅʞW ɹǝuıW",
   "block.create_rns.redstone_deposit_block": "ʞɔoןᗺ ʇısodǝᗡ ǝuoʇspǝᴚ",
   "item.create_rns.deposit_scanner": "ɹǝuuɐɔS ʇısodǝᗡ",
   "itemGroup.create_rns.create_rns": "suᴚ ǝʇɐǝɹƆ"

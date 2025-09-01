@@ -11,11 +11,11 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "create_rns:miner"
+          "name": "create_rns:miner_mk1"
         }
       ],
       "rolls": 1.0
     }
   ],
-  "random_sequence": "create_rns:blocks/miner"
+  "random_sequence": "create_rns:blocks/miner_mk1"
 }

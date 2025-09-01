@@ -61,12 +61,8 @@ public class MiningAreaOutlineRenderer {
         var mc = Minecraft.getInstance();
         var p = mc.player;
         if (p == null) return;
-        var l = p.level();
 
-        var mainHandItem = p.getMainHandItem();
-        boolean holdingCorrectItem = AllItems.WRENCH.isIn(mainHandItem) || RNSContent.MINER_BLOCK.isIn(mainHandItem);
-
-        if (holdingCorrectItem) ttl = MAX_TTL;
+        if (holdingCorrectItem(p)) ttl = MAX_TTL;
         else ttl--;
 
         if (ttl <= 0) {
@@ -84,6 +80,13 @@ public class MiningAreaOutlineRenderer {
         }
     }
 
+    private static boolean holdingCorrectItem(Player p) {
+        var mainHandItem = p.getMainHandItem();
+        return AllItems.WRENCH.isIn(mainHandItem) ||
+                RNSContent.MINER_MK1_BLOCK.isIn(mainHandItem) ||
+                RNSContent.MINER_MK2_BLOCK.isIn(mainHandItem);
+    }
+
     private static void activateOutlineIfNeeded() {
         if (outlineActive) return;
 
@@ -92,11 +95,10 @@ public class MiningAreaOutlineRenderer {
         if (p == null) return;
         var l = p.level();
 
-        var mainHandItem = p.getMainHandItem();
-        boolean holdingCorrectItem = AllItems.WRENCH.isIn(mainHandItem) || RNSContent.MINER_BLOCK.isIn(mainHandItem);
-        boolean lookingAtMiningBE = mc.hitResult instanceof BlockHitResult ray && l.getBlockEntity(ray.getBlockPos()) instanceof MiningBlockEntity;
+        boolean lookingAtMiningBE = mc.hitResult instanceof BlockHitResult ray &&
+                l.getBlockEntity(ray.getBlockPos()) instanceof MiningBlockEntity;
 
-        if (holdingCorrectItem && lookingAtMiningBE) {
+        if (holdingCorrectItem(p) && lookingAtMiningBE) {
             ttl = MAX_TTL;
             outlineActive = true;
             clearAndAddNearbyMiningBEs();

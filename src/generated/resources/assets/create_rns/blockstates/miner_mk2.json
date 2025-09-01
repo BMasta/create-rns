@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "create_rns:block/miner_mk2"
+    }
+  }
+}

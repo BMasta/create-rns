@@ -2,53 +2,33 @@ package com.bmaster.createrns.mining.miner;
 
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.mining.*;
 import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.foundation.sound.SoundScapes;
 import com.simibubi.create.foundation.utility.CreateLang;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.createmod.catnip.lang.LangBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.structure.BoundingBox;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-public class MinerBlockEntity extends MiningBlockEntity {
-    // 3x3x5, starting one block below miner
-    public static final int MINING_AREA_RADIUS = 1;
-    public static final int MINING_AREA_DEPTH = 5;
-    public static final int MINING_AREA_Y_OFFSET = -1;
-
+public abstract class MinerBlockEntity extends MiningBlockEntity {
     private List<BlockState> particleOptions = null;
 
     public MinerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
-        super(type, pos, state, MINING_AREA_RADIUS, MINING_AREA_DEPTH, MINING_AREA_Y_OFFSET);
+        super(type, pos, state);
     }
 
-    public MinerBlockEntity(BlockPos pos, BlockState state) {
-        super(RNSContent.MINER_BE.get(), pos, state, MINING_AREA_RADIUS, MINING_AREA_DEPTH, MINING_AREA_Y_OFFSET);
-    }
-
+    @Override
     public int getCurrentProgressIncrement() {
         return (int) Math.abs(getSpeed());
     }
@@ -67,26 +47,6 @@ public class MinerBlockEntity extends MiningBlockEntity {
         if (isMining() && level.isClientSide) {
                 spawnParticles();
         }
-    }
-
-    protected void spawnParticles() {
-        if (level == null) return;
-        if (particleOptions == null) {
-            particleOptions = reservedDepositBlocks.stream()
-                    .map(bp -> level.getBlockState(bp))
-                    .toList();
-        }
-
-        var r = level.random;
-        BlockState selectedParticle = particleOptions.get(r.nextInt(0, particleOptions.size()));
-        ParticleOptions particleData = new BlockParticleOption(ParticleTypes.BLOCK, selectedParticle);
-
-        for (int i = 0; i < 2; i++)
-            level.addParticle(particleData,
-                    worldPosition.getX() + r.nextFloat(),
-                    worldPosition.getY() - 0.5 + r.nextFloat(),
-                    worldPosition.getZ() + r.nextFloat(),
-                    0, 0, 0);
     }
 
     @Override
@@ -122,6 +82,26 @@ public class MinerBlockEntity extends MiningBlockEntity {
         added = addKineticsToGoggleTooltip(tooltip, !added);
 
         return added;
+    }
+
+    protected void spawnParticles() {
+        if (level == null) return;
+        if (particleOptions == null) {
+            particleOptions = reservedDepositBlocks.stream()
+                    .map(bp -> level.getBlockState(bp))
+                    .toList();
+        }
+
+        var r = level.random;
+        BlockState selectedParticle = particleOptions.get(r.nextInt(0, particleOptions.size()));
+        ParticleOptions particleData = new BlockParticleOption(ParticleTypes.BLOCK, selectedParticle);
+
+        for (int i = 0; i < 2; i++)
+            level.addParticle(particleData,
+                    worldPosition.getX() + r.nextFloat(),
+                    worldPosition.getY() - 0.5 + r.nextFloat(),
+                    worldPosition.getZ() + r.nextFloat(),
+                    0, 0, 0);
     }
 
     @SuppressWarnings("SameParameterValue")

@@ -22,10 +22,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class MiningBlockEntity extends KineticBlockEntity {
-    public final int mineRadius;
-    public final int mineDepth;
-    public final int miningAreaYOffset;
-
     public Set<BlockPos> reservedDepositBlocks = new HashSet<>();
     protected MiningProcess process = null;
 
@@ -39,13 +35,15 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
     private LazyOptional<IItemHandler> inventoryCap = LazyOptional.empty();
     private CompoundTag miningProgressTag = null;
 
-    public MiningBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state,
-                             int mineRadius, int mineDepth, int miningAreaYOffset) {
+    public MiningBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
-        this.mineRadius = mineRadius;
-        this.mineDepth = mineDepth;
-        this.miningAreaYOffset = miningAreaYOffset;
     }
+
+    public abstract int getMiningAreaRadius();
+
+    public abstract int getMiningAreaDepth();
+
+    public abstract int getMiningAreaYOffset();
 
     public abstract int getCurrentProgressIncrement();
 
@@ -60,8 +58,9 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
         int px = pos.getX(), py = pos.getY(), pz = pos.getZ();
         int minBuildHeight = l.getMinBuildHeight(), maxBuildHeight = l.getMaxBuildHeight();
 
-        int yMin = Mth.clamp(py - mineDepth, minBuildHeight, maxBuildHeight);
-        int yMax = Mth.clamp(py + miningAreaYOffset, minBuildHeight, maxBuildHeight);
+        int mineRadius = getMiningAreaRadius();
+        int yMin = Mth.clamp(py + getMiningAreaYOffset() - getMiningAreaDepth() + 1, minBuildHeight, maxBuildHeight);
+        int yMax = Mth.clamp(py + getMiningAreaYOffset(), minBuildHeight, maxBuildHeight);
 
         return new BoundingBox(
                 px - mineRadius, yMin, pz - mineRadius,
@@ -175,7 +174,7 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
         Queue<BlockPos> q = new ArrayDeque<>();
         LongOpenHashSet visited = new LongOpenHashSet(ma.getXSpan() * ma.getYSpan() * ma.getZSpan());
 
-        q.offer(worldPosition.below());
+        q.offer(worldPosition.relative(Direction.Axis.Y, getMiningAreaYOffset()));
         while (!q.isEmpty()) {
             var bp = q.poll();
 

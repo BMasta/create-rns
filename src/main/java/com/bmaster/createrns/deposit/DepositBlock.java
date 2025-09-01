@@ -1,5 +1,6 @@
-package com.bmaster.createrns.mining;
+package com.bmaster.createrns.deposit;
 
+import com.bmaster.createrns.mining.MiningBlockEntityInstanceHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;

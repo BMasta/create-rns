@@ -2,6 +2,7 @@ package com.bmaster.createrns.mining.miner;
 
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.mining.MiningBlock;
+import com.bmaster.createrns.mining.MiningBlockEntity;
 import com.simibubi.create.Create;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
@@ -22,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-public class MinerBlock extends MiningBlock implements IBE<MinerBlockEntity> {
+public abstract class MinerBlock<BE extends MinerBlockEntity> extends MiningBlock implements IBE<BE> {
     public static Direction.Axis getRotationAxis() {
         return Direction.Axis.Y;
     }
@@ -30,6 +31,16 @@ public class MinerBlock extends MiningBlock implements IBE<MinerBlockEntity> {
     public MinerBlock(Properties props) {
         super(props);
     }
+
+    @ParametersAreNonnullByDefault
+    @Override
+    public abstract @Nullable BlockEntity newBlockEntity(BlockPos pPos, BlockState pState);
+
+    @Override
+    public abstract Class<BE> getBlockEntityClass();
+
+    @Override
+    public abstract BlockEntityType<? extends BE> getBlockEntityType();
 
     @SuppressWarnings("deprecation")
     @ParametersAreNonnullByDefault
@@ -52,22 +63,6 @@ public class MinerBlock extends MiningBlock implements IBE<MinerBlockEntity> {
             }
             return InteractionResult.SUCCESS;
         });
-    }
-
-    @ParametersAreNonnullByDefault
-    @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
-        return new MinerBlockEntity(pPos, pState);
-    }
-
-    @Override
-    public Class<MinerBlockEntity> getBlockEntityClass() {
-        return MinerBlockEntity.class;
-    }
-
-    @Override
-    public BlockEntityType<? extends MinerBlockEntity> getBlockEntityType() {
-        return RNSContent.MINER_BE.get();
     }
 
     @Override

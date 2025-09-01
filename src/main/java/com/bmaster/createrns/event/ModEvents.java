@@ -6,6 +6,7 @@ import com.bmaster.createrns.deposit.spec.DepositSpec;
 import com.bmaster.createrns.deposit.capability.IDepositIndex;
 import net.minecraft.server.packs.PackType;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
+import net.minecraftforge.event.AddPackFindersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.DataPackRegistryEvent;
@@ -24,7 +25,7 @@ public class ModEvents {
     }
 
     @SubscribeEvent
-    public static void onAddPackFinders(net.minecraftforge.event.AddPackFindersEvent e) {
+    public static void onAddPackFinders(AddPackFindersEvent e) {
         if (e.getPackType() != PackType.SERVER_DATA) return;
         DynamicDatapack.addVanillaDeposits();
         e.addRepositorySource(consumer -> consumer.accept(DynamicDatapack.finish()));

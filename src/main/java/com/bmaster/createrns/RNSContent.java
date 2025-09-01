@@ -1,9 +1,13 @@
 package com.bmaster.createrns;
 
-import com.bmaster.createrns.mining.DepositBlock;
+import com.bmaster.createrns.deposit.DepositBlock;
 import com.bmaster.createrns.mining.miner.*;
 import com.bmaster.createrns.deposit.capability.IDepositIndex;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerItem;
+import com.bmaster.createrns.mining.miner.impl.MinerMk1Block;
+import com.bmaster.createrns.mining.miner.impl.MinerMk1BlockEntity;
+import com.bmaster.createrns.mining.miner.impl.MinerMk2Block;
+import com.bmaster.createrns.mining.miner.impl.MinerMk2BlockEntity;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.api.stress.BlockStressValues;
@@ -13,6 +17,7 @@ import com.simibubi.create.foundation.item.ItemDescription;
 import com.simibubi.create.foundation.item.KineticStats;
 import com.simibubi.create.foundation.item.TooltipModifier;
 import com.tterrag.registrate.builders.BlockBuilder;
+import com.tterrag.registrate.builders.BlockEntityBuilder;
 import com.tterrag.registrate.providers.RegistrateRecipeProvider;
 import com.tterrag.registrate.util.entry.*;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
@@ -24,9 +29,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
@@ -63,17 +68,9 @@ public class RNSContent {
             .register();
 
     // Blocks
-    public static final BlockEntry<MinerBlock> MINER_BLOCK = CreateRNS.REGISTRATE.block("miner",
-                    MinerBlock::new)
-            .initialProperties(SharedProperties::stone)
-            .properties(p -> p
-                    .noOcclusion()
-                    .mapColor(MapColor.PODZOL)
-                    .pushReaction(PushReaction.BLOCK))
-            .transform(axeOrPickaxe())
-            .blockstate((c, p) ->
-                    p.simpleBlock(c.get(), AssetLookup.standardModel(c, p)))
-            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
+    public static final BlockEntry<MinerMk1Block> MINER_MK1_BLOCK = CreateRNS.REGISTRATE.block("miner_mk1",
+                    MinerMk1Block::new)
+            .transform(minerBlockCommon())
             .item()
             .model(AssetLookup.existingItemModel())
             .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
@@ -83,6 +80,23 @@ public class RNSContent {
                     .pattern(" C ")
                     .pattern("AEA")
                     .pattern(" A ")
+                    .unlockedBy("has_electron_tube", RegistrateRecipeProvider.has(AllItems.ELECTRON_TUBE))
+                    .save(p))
+            .build()
+            .register();
+
+    public static final BlockEntry<MinerMk2Block> MINER_MK2_BLOCK = CreateRNS.REGISTRATE.block("miner_mk2",
+                    MinerMk2Block::new)
+            .transform(minerBlockCommon())
+            .item()
+            .model(AssetLookup.existingItemModel())
+            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
+                    .define('C', AllBlocks.ANDESITE_CASING.get())
+                    .define('A', AllItems.ANDESITE_ALLOY.get())
+                    .define('E', AllItems.ELECTRON_TUBE.get())
+                    .pattern(" C ")
+                    .pattern("AEA")
+                    .pattern(" C ")
                     .unlockedBy("has_electron_tube", RegistrateRecipeProvider.has(AllItems.ELECTRON_TUBE))
                     .save(p))
             .build()
@@ -105,21 +119,30 @@ public class RNSContent {
             .transform(deposit(MapColor.FIRE)).item().build().register();
 
     // Block entities
-    public static final BlockEntityEntry<MinerBlockEntity> MINER_BE = CreateRNS.REGISTRATE.blockEntity("miner",
-                    (BlockEntityType<MinerBlockEntity> t, BlockPos p, BlockState s) ->
-                            new MinerBlockEntity(t, p, s))
+    public static final BlockEntityEntry<MinerMk1BlockEntity> MINER_MK1_BE = CreateRNS.REGISTRATE.blockEntity("miner_mk1",
+                    (BlockEntityType<MinerMk1BlockEntity> t, BlockPos p, BlockState s) ->
+                            new MinerMk1BlockEntity(t, p, s))
             .visual(() -> MinerVisual::new)
-            .validBlock(MINER_BLOCK)
+            .validBlock(MINER_MK1_BLOCK)
+            .renderer(() -> MinerRenderer::new)
+            .register();
+
+    public static final BlockEntityEntry<MinerMk2BlockEntity> MINER_MK2_BE = CreateRNS.REGISTRATE.blockEntity("miner_mk2",
+                    (BlockEntityType<MinerMk2BlockEntity> t, BlockPos p, BlockState s) ->
+                            new MinerMk2BlockEntity(t, p, s))
+            .visual(() -> MinerVisual::new)
+            .validBlock(MINER_MK2_BLOCK)
             .renderer(() -> MinerRenderer::new)
             .register();
 
     // Creative tabs
     public static final RegistryEntry<CreativeModeTab> MAIN_TAB = CreateRNS.REGISTRATE.defaultCreativeTab(
                     CreateRNS.MOD_ID, c -> c
-                            .icon(() -> new ItemStack(MINER_BLOCK.getDefaultState().getBlock()))
+                            .icon(() -> new ItemStack(MINER_MK1_BLOCK.getDefaultState().getBlock()))
                             .title(Component.translatable("creativetab.%s".formatted(CreateRNS.MOD_ID)))
                             .displayItems((pParameters, pOutput) -> {
-                                pOutput.accept(MINER_BLOCK.get().asItem());
+                                pOutput.accept(MINER_MK1_BLOCK.get().asItem());
+                                pOutput.accept(MINER_MK2_BLOCK.get().asItem());
                                 pOutput.accept(DEPOSIT_SCANNER_ITEM.get().asItem());
                                 pOutput.accept(IRON_DEPOSIT_BLOCK.get().asItem());
                                 pOutput.accept(COPPER_DEPOSIT_BLOCK.get().asItem());
@@ -136,9 +159,7 @@ public class RNSContent {
     public static void register() {
     }
 
-    public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> deposit(
-            MapColor mapColor
-    ) {
+    public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> deposit(MapColor mapColor) {
         return b -> b
                 .initialProperties(() -> Blocks.RAW_IRON_BLOCK)
                 .properties(p -> p
@@ -153,5 +174,18 @@ public class RNSContent {
                 .item()
                 .tag(RNSTags.Item.DEPOSIT_BLOCKS)
                 .getParent();
+    }
+
+    public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> minerBlockCommon() {
+        return builder -> builder
+                .initialProperties(SharedProperties::stone)
+                .properties(p -> p
+                        .noOcclusion()
+                        .mapColor(MapColor.PODZOL)
+                        .pushReaction(PushReaction.BLOCK))
+                .transform(axeOrPickaxe())
+                .blockstate((c, p) ->
+                        p.simpleBlock(c.get(), AssetLookup.standardModel(c, p)))
+                .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2));
     }
 }
