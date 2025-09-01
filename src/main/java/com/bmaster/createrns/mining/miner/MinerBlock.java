@@ -47,6 +47,7 @@ public abstract class MinerBlock<BE extends MinerBlockEntity> extends MiningBloc
                                           BlockHitResult hit) {
         return onBlockEntityUse(l, pos, be -> {
             var minerInv = be.getInventory();
+            if (minerInv.isEmpty()) return InteractionResult.PASS;
             var playerInv = p.getInventory();
             boolean pickedUp = false;
             for (int i = 0; i < minerInv.getSlots(); ++i) {
