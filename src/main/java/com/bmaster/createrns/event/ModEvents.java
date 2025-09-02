@@ -1,10 +1,12 @@
 package com.bmaster.createrns.event;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.datapack.DynamicDatapack;
 import com.bmaster.createrns.deposit.spec.DepositSpec;
 import com.bmaster.createrns.deposit.capability.IDepositIndex;
 import net.minecraft.server.packs.PackType;
+import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AddPackFindersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -29,5 +31,11 @@ public class ModEvents {
         if (e.getPackType() != PackType.SERVER_DATA) return;
         DynamicDatapack.addVanillaDeposits();
         e.addRepositorySource(consumer -> consumer.accept(DynamicDatapack.finish()));
+    }
+
+    @SubscribeEvent
+    public static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
+        event.register(RNSContent.MINER_MK1_DRILL.modelLocation());
+        event.register(RNSContent.MINER_MK2_DRILL.modelLocation());
     }
 }

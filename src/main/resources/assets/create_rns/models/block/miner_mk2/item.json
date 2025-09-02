@@ -1,0 +1,10 @@
+{
+  "parent": "create_rns:block/miner_mk1/item",
+  "textures": {
+    "11": "create:block/funnel/brass_funnel_push",
+    "12": "create_rns:block/miner_opening_brass",
+    "base": "create:block/funnel/brass_funnel",
+    "frame": "create:block/funnel/brass_funnel_frame",
+    "particle": "create:block/gearbox"
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "format_version": "1.21.6",
+  "credit": "Made with Blockbench",
+  "parent": "block/block",
+  "textures": {
+    "11": "create:block/funnel/andesite_funnel_push",
+    "12": "create_rns:block/miner_opening",
+    "base": "create:block/funnel/andesite_funnel",
+    "frame": "create:block/funnel/andesite_funnel_frame",
+    "particle": "create:block/gearbox"
+  },
+  "render_type": "minecraft:cutout_mipped",
+  "elements": [
+    {
+      "name": "Frame",
+      "from": [0, 10, 0],
+      "to": [16, 16, 16],
+      "rotation": {"angle": 0, "axis": "y", "origin": [0, 10, 0]},
+      "faces": {
+        "north": {"uv": [11, 8, 14, 16], "rotation": 90, "texture": "#11"},
+        "east": {"uv": [11, 8, 14, 16], "rotation": 90, "texture": "#11"},
+        "south": {"uv": [11, 8, 14, 16], "rotation": 90, "texture": "#11"},
+        "west": {"uv": [11, 8, 14, 16], "rotation": 90, "texture": "#11"},
+        "up": {"uv": [0, 0, 16, 16], "texture": "#frame"},
+        "down": {"uv": [0, 0, 16, 16], "texture": "#12"}
+      }
+    },
+    {
+      "name": "Opening",
+      "from": [3, 10, 3],
+      "to": [13, 12.3, 13],
+      "rotation": {"angle": 0, "axis": "y", "origin": [11, 19, 11]},
+      "faces": {
+        "up": {"uv": [2, 2, 14, 14], "texture": "#12"}
+      }
+    },
+    {
+      "name": "InnerFunnel1",
+      "from": [0.95, 11, 2],
+      "to": [1.95, 16, 14],
+      "rotation": {"angle": 22.5, "axis": "z", "origin": [1.95, 16, 8]},
+      "faces": {
+        "east": {"uv": [12, 0, 14.5, 6], "rotation": 90, "texture": "#base"}
+      }
+    },
+    {
+      "name": "InnerFunnel2",
+      "from": [14.05, 11, 2],
+      "to": [15.05, 16, 14],
+      "rotation": {"angle": -22.5, "axis": "z", "origin": [14.05, 16, 8]},
+      "faces": {
+        "west": {"uv": [12, 0, 14.5, 6], "rotation": 90, "texture": "#base"}
+      }
+    },
+    {
+      "name": "InnerFunnel3",
+      "from": [2, 11, 14.05],
+      "to": [14, 16, 15.05],
+      "rotation": {"angle": 22.5, "axis": "x", "origin": [8, 16, 14.05]},
+      "faces": {
+        "north": {"uv": [12, 0, 14.5, 6], "rotation": 90, "texture": "#base"}
+      }
+    },
+    {
+      "name": "InnerFunnel4",
+      "from": [2, 11, 0.95],
+      "to": [14, 16, 1.95],
+      "rotation": {"angle": -22.5, "axis": "x", "origin": [8, 16, 1.95]},
+      "faces": {
+        "south": {"uv": [12, 0, 14.5, 6], "rotation": 90, "texture": "#base"}
+      }
+    }
+  ],
+  "display": {},
+  "groups": [
+    {
+      "name": "Block",
+      "origin": [14, 16, 0],
+      "color": 0,
+      "children": [0, 1, 2, 3, 4, 5]
+    }
+  ]
+}

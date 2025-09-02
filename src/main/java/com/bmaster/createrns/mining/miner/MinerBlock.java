@@ -1,8 +1,11 @@
 package com.bmaster.createrns.mining.miner;
 
 import com.bmaster.createrns.mining.MiningBlock;
+import com.simibubi.create.AllShapes;
 import com.simibubi.create.Create;
+import com.simibubi.create.content.kinetics.simpleRelays.ICogWheel;
 import com.simibubi.create.foundation.block.IBE;
+import net.createmod.catnip.math.VoxelShaper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
@@ -10,18 +13,21 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-public abstract class MinerBlock<BE extends MinerBlockEntity> extends MiningBlock implements IBE<BE> {
+public abstract class MinerBlock<BE extends MinerBlockEntity> extends MiningBlock implements IBE<BE>, ICogWheel {
     public static Direction.Axis getRotationAxis() {
         return Direction.Axis.Y;
     }
@@ -64,14 +70,16 @@ public abstract class MinerBlock<BE extends MinerBlockEntity> extends MiningBloc
         });
     }
 
+    @SuppressWarnings("deprecation")
+    @ParametersAreNonnullByDefault
     @Override
-    public Direction.Axis getRotationAxis(BlockState state) {
-        return getRotationAxis();
+    public @NotNull VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        return AllShapes.CASING_12PX.get(Direction.DOWN);
     }
 
     @Override
-    public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
-        return face == Direction.UP;
+    public Direction.Axis getRotationAxis(BlockState state) {
+        return getRotationAxis();
     }
 
     @Override

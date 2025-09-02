@@ -4,12 +4,10 @@ import com.bmaster.createrns.deposit.DepositBlock;
 import com.bmaster.createrns.mining.miner.*;
 import com.bmaster.createrns.deposit.capability.IDepositIndex;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerItem;
-import com.bmaster.createrns.mining.miner.impl.MinerMk1Block;
-import com.bmaster.createrns.mining.miner.impl.MinerMk1BlockEntity;
-import com.bmaster.createrns.mining.miner.impl.MinerMk2Block;
-import com.bmaster.createrns.mining.miner.impl.MinerMk2BlockEntity;
+import com.bmaster.createrns.mining.miner.impl.*;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
+import com.simibubi.create.api.data.recipe.MechanicalCraftingRecipeBuilder;
 import com.simibubi.create.api.stress.BlockStressValues;
 import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.SharedProperties;
@@ -17,22 +15,22 @@ import com.simibubi.create.foundation.item.ItemDescription;
 import com.simibubi.create.foundation.item.KineticStats;
 import com.simibubi.create.foundation.item.TooltipModifier;
 import com.tterrag.registrate.builders.BlockBuilder;
-import com.tterrag.registrate.builders.BlockEntityBuilder;
 import com.tterrag.registrate.providers.RegistrateRecipeProvider;
 import com.tterrag.registrate.util.entry.*;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
+import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import net.createmod.catnip.lang.FontHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
@@ -44,6 +42,13 @@ import net.minecraftforge.common.capabilities.CapabilityToken;
 import static com.simibubi.create.foundation.data.TagGen.*;
 
 public class RNSContent {
+    // Partial models
+    public static final PartialModel MINER_MK1_DRILL = PartialModel.of(
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "block/miner_mk1/drill_head"));
+
+    public static final PartialModel MINER_MK2_DRILL = PartialModel.of(
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "block/miner_mk2/drill_head"));
+
     // Item tooltips
     static {
         CreateRNS.REGISTRATE.setTooltipModifierFactory(item ->
@@ -74,16 +79,19 @@ public class RNSContent {
             .transform(minerBlockCommon())
             .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
             .item()
-            .model(AssetLookup.existingItemModel())
-            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
-                    .define('C', AllBlocks.ANDESITE_CASING.get())
-                    .define('A', AllItems.ANDESITE_ALLOY.get())
-                    .define('E', AllItems.ELECTRON_TUBE.get())
-                    .pattern(" C ")
-                    .pattern("AEA")
-                    .pattern(" A ")
-                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.ELECTRON_TUBE))
-                    .save(p))
+            .model(AssetLookup::customItemModel)
+            .recipe((c, p) -> MechanicalCraftingRecipeBuilder.shapedRecipe(c.get())
+                    .key('F', AllBlocks.ANDESITE_FUNNEL)
+                    .key('E', AllItems.ELECTRON_TUBE)
+                    .key('C', AllBlocks.COGWHEEL)
+                    .key('I', Items.IRON_INGOT)
+                    .key('A', AllItems.ANDESITE_ALLOY)
+                    .patternLine(" F ")
+                    .patternLine(" E ")
+                    .patternLine("ACA")
+                    .patternLine("AIA")
+                    .patternLine(" A ")
+                    .build(p))
             .build()
             .register();
 
@@ -92,7 +100,7 @@ public class RNSContent {
             .transform(minerBlockCommon())
             .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 4))
             .item()
-            .model(AssetLookup.existingItemModel())
+            .model(AssetLookup::customItemModel)
             .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
                     .define('C', AllBlocks.BRASS_CASING.get())
                     .define('M', MINER_MK1_BLOCK.get())
@@ -125,17 +133,17 @@ public class RNSContent {
     public static final BlockEntityEntry<MinerMk1BlockEntity> MINER_MK1_BE = CreateRNS.REGISTRATE.blockEntity("miner_mk1",
                     (BlockEntityType<MinerMk1BlockEntity> t, BlockPos p, BlockState s) ->
                             new MinerMk1BlockEntity(t, p, s))
-            .visual(() -> MinerVisual::new)
+            .visual(() -> MinerMk1Visual::new)
             .validBlock(MINER_MK1_BLOCK)
-            .renderer(() -> MinerRenderer::new)
+            .renderer(() -> MinerMk1Renderer::new)
             .register();
 
     public static final BlockEntityEntry<MinerMk2BlockEntity> MINER_MK2_BE = CreateRNS.REGISTRATE.blockEntity("miner_mk2",
                     (BlockEntityType<MinerMk2BlockEntity> t, BlockPos p, BlockState s) ->
                             new MinerMk2BlockEntity(t, p, s))
-            .visual(() -> MinerVisual::new)
+            .visual(() -> MinerMk2Visual::new)
             .validBlock(MINER_MK2_BLOCK)
-            .renderer(() -> MinerRenderer::new)
+            .renderer(() -> MinerMk2Renderer::new)
             .register();
 
     // Creative tabs
@@ -188,6 +196,6 @@ public class RNSContent {
                         .pushReaction(PushReaction.BLOCK))
                 .transform(axeOrPickaxe())
                 .blockstate((c, p) ->
-                        p.simpleBlock(c.get(), AssetLookup.standardModel(c, p)));
+                        p.simpleBlock(c.get(), AssetLookup.partialBaseModel(c, p)));
     }
 }
