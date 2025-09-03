@@ -2,12 +2,17 @@ package com.bmaster.createrns.event;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.datapack.DynamicDatapack;
+import com.bmaster.createrns.datagen.RNSDatagen;
+import com.bmaster.createrns.datagen.pack.DynamicDatapack;
+import com.bmaster.createrns.datagen.recipe.RNSSequencedAssemblyRecipeGen;
 import com.bmaster.createrns.deposit.spec.DepositSpec;
 import com.bmaster.createrns.deposit.capability.IDepositIndex;
+import net.minecraft.data.DataGenerator;
+import net.minecraft.data.PackOutput;
 import net.minecraft.server.packs.PackType;
 import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
+import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.event.AddPackFindersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -38,4 +43,11 @@ public class ModEvents {
         event.register(RNSContent.MINER_MK1_DRILL.modelLocation());
         event.register(RNSContent.MINER_MK2_DRILL.modelLocation());
     }
+
+//    @SubscribeEvent
+//    public static void gatherData(GatherDataEvent event) {
+//        DataGenerator generator = event.getGenerator();
+//        PackOutput output = generator.getPackOutput();
+//        generator.addProvider(event.includeServer(), new RNSSequencedAssemblyRecipeGen(output));
+//    }
 }

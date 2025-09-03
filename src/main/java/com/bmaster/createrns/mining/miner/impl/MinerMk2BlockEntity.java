@@ -7,8 +7,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class MinerMk2BlockEntity extends MinerBlockEntity {
-    public static final int MINING_AREA_RADIUS = 2;
-    public static final int MINING_AREA_DEPTH = 7;
+    public static final int MINING_AREA_RADIUS = 1;
+    public static final int MINING_AREA_DEPTH = 5;
     public static final int MINING_AREA_Y_OFFSET = -1;
 
     public MinerMk2BlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {

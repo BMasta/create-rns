@@ -2,20 +2,20 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "C": {
-      "item": "create:brass_casing"
-    },
-    "D": {
-      "item": "minecraft:diamond"
+    "F": {
+      "item": "create:brass_funnel"
     },
     "M": {
       "item": "create_rns:miner_mk1"
+    },
+    "R": {
+      "item": "create_rns:resonant_mechanism"
     }
   },
   "pattern": [
-    " C ",
-    "DMD",
-    " D "
+    "F",
+    "R",
+    "M"
   ],
   "result": {
     "item": "create_rns:miner_mk2"

@@ -1,4 +1,4 @@
-package com.bmaster.createrns.datapack;
+package com.bmaster.createrns.datagen.pack;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

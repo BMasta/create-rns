@@ -7,8 +7,10 @@ import com.bmaster.createrns.item.DepositScanner.DepositScannerItem;
 import com.bmaster.createrns.mining.miner.impl.*;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
+import com.simibubi.create.Create;
 import com.simibubi.create.api.data.recipe.MechanicalCraftingRecipeBuilder;
 import com.simibubi.create.api.stress.BlockStressValues;
+import com.simibubi.create.content.processing.sequenced.SequencedAssemblyItem;
 import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.SharedProperties;
 import com.simibubi.create.foundation.item.ItemDescription;
@@ -27,6 +29,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
@@ -73,6 +76,18 @@ public class RNSContent {
                     .save(p))
             .register();
 
+    public static final ItemEntry<Item> RESONANT_MECHANISM = CreateRNS.REGISTRATE.item(
+            "resonant_mechanism", Item::new)
+            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
+                    .define('A', Items.AMETHYST_SHARD)
+                    .define('M', AllItems.PRECISION_MECHANISM)
+                    .pattern(" A ")
+                    .pattern("AMA")
+                    .pattern(" A ")
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.PRECISION_MECHANISM))
+                    .save(p))
+            .register();
+
     // Blocks
     public static final BlockEntry<MinerMk1Block> MINER_MK1_BLOCK = CreateRNS.REGISTRATE.block("miner_mk1",
                     MinerMk1Block::new)
@@ -80,18 +95,15 @@ public class RNSContent {
             .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
             .item()
             .model(AssetLookup::customItemModel)
-            .recipe((c, p) -> MechanicalCraftingRecipeBuilder.shapedRecipe(c.get())
-                    .key('F', AllBlocks.ANDESITE_FUNNEL)
-                    .key('E', AllItems.ELECTRON_TUBE)
-                    .key('C', AllBlocks.COGWHEEL)
-                    .key('I', Items.IRON_INGOT)
-                    .key('A', AllItems.ANDESITE_ALLOY)
-                    .patternLine(" F ")
-                    .patternLine(" E ")
-                    .patternLine("ACA")
-                    .patternLine("AIA")
-                    .patternLine(" A ")
-                    .build(p))
+            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
+                    .define('F', AllBlocks.ANDESITE_FUNNEL)
+                    .define('C', AllBlocks.COGWHEEL)
+                    .define('D', AllBlocks.MECHANICAL_DRILL)
+                    .pattern("F")
+                    .pattern("C")
+                    .pattern("D")
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllBlocks.MECHANICAL_DRILL))
+                    .save(p))
             .build()
             .register();
 
@@ -102,13 +114,13 @@ public class RNSContent {
             .item()
             .model(AssetLookup::customItemModel)
             .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
-                    .define('C', AllBlocks.BRASS_CASING.get())
-                    .define('M', MINER_MK1_BLOCK.get())
-                    .define('D', Items.DIAMOND)
-                    .pattern(" C ")
-                    .pattern("DMD")
-                    .pattern(" D ")
-                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.BRASS_INGOT))
+                    .define('F', AllBlocks.BRASS_FUNNEL)
+                    .define('R', RESONANT_MECHANISM)
+                    .define('M', MINER_MK1_BLOCK)
+                    .pattern("F")
+                    .pattern("R")
+                    .pattern("M")
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.PRECISION_MECHANISM))
                     .save(p))
             .build()
             .register();
@@ -155,6 +167,7 @@ public class RNSContent {
                                 pOutput.accept(MINER_MK1_BLOCK.get().asItem());
                                 pOutput.accept(MINER_MK2_BLOCK.get().asItem());
                                 pOutput.accept(DEPOSIT_SCANNER_ITEM.get().asItem());
+                                pOutput.accept(RESONANT_MECHANISM.get().asItem());
                                 pOutput.accept(IRON_DEPOSIT_BLOCK.get().asItem());
                                 pOutput.accept(COPPER_DEPOSIT_BLOCK.get().asItem());
                                 pOutput.accept(GOLD_DEPOSIT_BLOCK.get().asItem());

@@ -6,5 +6,6 @@
   "block.create_rns.miner_mk2": "Miner Mk2",
   "block.create_rns.redstone_deposit_block": "Redstone Deposit Block",
   "item.create_rns.deposit_scanner": "Deposit Scanner",
+  "item.create_rns.resonant_mechanism": "Resonant Mechanism",
   "itemGroup.create_rns.create_rns": "Create Rns"
 }

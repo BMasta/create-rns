@@ -1,11 +1,11 @@
-package com.bmaster.createrns.datapack;
+package com.bmaster.createrns.datagen.pack;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.datapack.json.DepositStructure;
-import com.bmaster.createrns.datapack.json.DepositStructureSet;
-import com.bmaster.createrns.datapack.json.DepositStructureStart;
-import com.bmaster.createrns.datapack.json.ReplaceWithProcessor;
+import com.bmaster.createrns.datagen.pack.json.DepositStructure;
+import com.bmaster.createrns.datagen.pack.json.DepositStructureSet;
+import com.bmaster.createrns.datagen.pack.json.DepositStructureStart;
+import com.bmaster.createrns.datagen.pack.json.ReplaceWithProcessor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.network.chat.Component;

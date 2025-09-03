@@ -6,7 +6,7 @@
         "items": [
           {
             "items": [
-              "create:precision_mechanism"
+              "create:mechanical_drill"
             ]
           }
         ]
@@ -15,7 +15,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "create_rns:miner_mk2"
+        "recipe": "create_rns:miner_mk1"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -28,7 +28,7 @@
   ],
   "rewards": {
     "recipes": [
-      "create_rns:miner_mk2"
+      "create_rns:miner_mk1"
     ]
   },
   "sends_telemetry_event": false

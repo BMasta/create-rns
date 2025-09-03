@@ -1,31 +1,24 @@
 {
-  "type": "create:mechanical_crafting",
-  "acceptMirrored": true,
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "key": {
-    "A": {
-      "item": "create:andesite_alloy"
-    },
     "C": {
       "item": "create:cogwheel"
     },
-    "E": {
-      "item": "create:electron_tube"
+    "D": {
+      "item": "create:mechanical_drill"
     },
     "F": {
       "item": "create:andesite_funnel"
-    },
-    "I": {
-      "item": "minecraft:iron_ingot"
     }
   },
   "pattern": [
-    " F ",
-    " E ",
-    "ACA",
-    "AIA",
-    " A "
+    "F",
+    "C",
+    "D"
   ],
   "result": {
     "item": "create_rns:miner_mk1"
-  }
+  },
+  "show_notification": true
 }
