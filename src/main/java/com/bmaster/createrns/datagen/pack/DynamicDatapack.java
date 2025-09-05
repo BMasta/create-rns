@@ -65,11 +65,13 @@ public class DynamicDatapack {
                 bulkNBTPool, 8, 10);
         var copperDeposit = new Deposit("copper", RNSContent.COPPER_DEPOSIT_BLOCK.get(),
                 bulkNBTPool, 8, 5);
-        var redstoneDeposit = new Deposit("redstone", RNSContent.REDSTONE_DEPOSIT_BLOCK.get(),
-                preciousNBTPool, 12, 2);
+        var zincDeposit = new Deposit("zinc", RNSContent.ZINC_DEPOSIT_BLOCK.get(),
+                preciousNBTPool, 8, 2);
         var goldDeposit = new Deposit("gold", RNSContent.GOLD_DEPOSIT_BLOCK.get(),
                 preciousNBTPool, 12, 2);
-        var dSet = new DepositSet(Set.of(ironDeposit, copperDeposit, goldDeposit, redstoneDeposit));
+        var redstoneDeposit = new Deposit("redstone", RNSContent.REDSTONE_DEPOSIT_BLOCK.get(),
+                preciousNBTPool, 12, 2);
+        var dSet = new DepositSet(Set.of(ironDeposit, copperDeposit, zincDeposit, goldDeposit, redstoneDeposit));
         add(dSet);
     }
 

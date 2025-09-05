@@ -33,10 +33,10 @@ public class DepositStructureSet {
         public String type = "minecraft:random_spread";
 
         @SerializedName("spacing")
-        public int spacing = 32;
+        public int spacing = 48;
 
         @SerializedName("separation")
-        public int separation = 6;
+        public int separation = 8;
 
         @SerializedName("salt")
         public int salt = 591646342;

@@ -4,6 +4,7 @@
     "create_rns:miner_mk2",
     "create_rns:iron_deposit_block",
     "create_rns:copper_deposit_block",
+    "create_rns:zinc_deposit_block",
     "create_rns:gold_deposit_block",
     "create_rns:redstone_deposit_block"
   ]

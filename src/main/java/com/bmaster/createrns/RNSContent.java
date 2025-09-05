@@ -110,7 +110,7 @@ public class RNSContent {
     public static final BlockEntry<MinerMk2Block> MINER_MK2_BLOCK = CreateRNS.REGISTRATE.block("miner_mk2",
                     MinerMk2Block::new)
             .transform(minerBlockCommon())
-            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 4))
+            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
             .item()
             .model(AssetLookup::customItemModel)
             .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
@@ -132,6 +132,10 @@ public class RNSContent {
     public static final BlockEntry<DepositBlock> COPPER_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "copper_deposit_block", DepositBlock::new)
             .transform(deposit(MapColor.COLOR_ORANGE)).item().build().register();
+
+    public static final BlockEntry<DepositBlock> ZINC_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
+                    "zinc_deposit_block", DepositBlock::new)
+            .transform(deposit(MapColor.GLOW_LICHEN)).item().build().register();
 
     public static final BlockEntry<DepositBlock> GOLD_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "gold_deposit_block", DepositBlock::new)
@@ -170,6 +174,7 @@ public class RNSContent {
                                 pOutput.accept(RESONANT_MECHANISM.get().asItem());
                                 pOutput.accept(IRON_DEPOSIT_BLOCK.get().asItem());
                                 pOutput.accept(COPPER_DEPOSIT_BLOCK.get().asItem());
+                                pOutput.accept(ZINC_DEPOSIT_BLOCK.get().asItem());
                                 pOutput.accept(GOLD_DEPOSIT_BLOCK.get().asItem());
                                 pOutput.accept(REDSTONE_DEPOSIT_BLOCK.get().asItem());
                             })

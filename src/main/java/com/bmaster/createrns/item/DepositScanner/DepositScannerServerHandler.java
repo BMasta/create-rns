@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 public class DepositScannerServerHandler {
     public static final int MIN_PING_INTERVAL = 3;
     public static final int MAX_PING_INTERVAL = 60;
-    public static final float FOUND_DISTANCE = 10f;
+    public static final float FOUND_DISTANCE = 5f;
 
     private static final int SEARCH_RADIUS_CHUNKS = 100;
     private static final int MAX_BLOCK_DISTANCE = SEARCH_RADIUS_CHUNKS * 16;

@@ -1,0 +1,5 @@
+{
+  "type": "create_rns:mining",
+  "deposit_block": "create_rns:zinc_deposit_block",
+  "yield": "create:zinc_ingot"
+}

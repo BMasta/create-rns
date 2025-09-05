@@ -1,6 +1,7 @@
 {
   "block.create_rns.iron_deposit_block": "Iron Deposit",
   "block.create_rns.copper_deposit_block": "Copper Deposit",
+  "block.create_rns.zinc_deposit_block": "Zinc Deposit",
   "block.create_rns.gold_deposit_block": "Gold Deposit",
   "block.create_rns.redstone_deposit_block": "Redstone Deposit",
   "block.create_rns.miner_mk1": "Miner Mk.1",
