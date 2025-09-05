@@ -49,6 +49,8 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
 
     public abstract boolean isMining();
 
+    public abstract MiningLevel getMiningLevel();
+
     public MiningEntityItemHandler getInventory() {
         return inventory;
     }
@@ -70,7 +72,10 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
     public void reserveDepositBlocks() {
         if (level == null) return;
 
-        reservedDepositBlocks = getDepositVein();
+        var ml = getMiningLevel();
+        reservedDepositBlocks = getDepositVein().stream()
+                .filter(pos -> MiningRecipeLookup.isDepositMineable(level, level.getBlockState(pos).getBlock(), ml))
+                .collect(Collectors.toSet());
 
         // Exclude deposit blocks reserved by nearby mining entities
         for (var m : MiningBlockEntityInstanceHolder.getInstancesWithIntersectingMiningArea(this)) {
@@ -90,7 +95,7 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
 
         if (process == null) {
             // Create the mining process object
-            process = new MiningProcess(level, reservedDepositBlocks);
+            process = new MiningProcess(level, getMiningLevel(), reservedDepositBlocks);
 
             // If we got mining process data from NBT, now is the time to set it
             if (miningProgressTag != null) {

@@ -1,6 +1,7 @@
 package com.bmaster.createrns.mining.miner.impl;
 
 import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.mining.MiningLevel;
 import com.bmaster.createrns.mining.miner.MinerBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -32,5 +33,10 @@ public class MinerMk1BlockEntity extends MinerBlockEntity {
     @Override
     public int getMiningAreaYOffset() {
         return MINING_AREA_Y_OFFSET;
+    }
+
+    @Override
+    public MiningLevel getMiningLevel() {
+        return MiningLevel.BASIC;
     }
 }

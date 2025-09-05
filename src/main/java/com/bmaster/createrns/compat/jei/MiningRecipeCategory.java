@@ -3,7 +3,7 @@ package com.bmaster.createrns.compat.jei;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.RNSRecipes;
-import com.bmaster.createrns.mining.MiningRecipe;
+import com.bmaster.createrns.mining.recipe.MiningRecipe;
 import com.simibubi.create.compat.jei.EmptyBackground;
 import com.simibubi.create.compat.jei.ItemIcon;
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
@@ -25,26 +25,11 @@ import java.util.List;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
-    public static final RecipeType<MiningRecipe> MINING_RECIPE_TYPE = RecipeType.create(CreateRNS.MOD_ID,
-            "mining", MiningRecipe.class);
-
+public class MiningRecipeCategory<R extends MiningRecipe> extends CreateRecipeCategory<R> {
     private static final IDrawable BASIC_SLOT = asDrawable(AllGuiTextures.JEI_SLOT);
-    private static final Info<MiningRecipe> info = new Info<>(
-            MINING_RECIPE_TYPE, Component.translatable("%s.recipe.mining.basic".formatted(CreateRNS.MOD_ID)),
-            new EmptyBackground(177, 90),
-            new ItemIcon(() -> new ItemStack(RNSContent.MINER_MK1_BLOCK)),
-            (() -> {
-                var level = Minecraft.getInstance().level;
-                if (level == null) return List.of();
-                return level.getRecipeManager().getAllRecipesFor(RNSRecipes.MINING_TYPE.get());
-            }),
-            List.of(() -> new ItemStack(RNSContent.MINER_MK1_BLOCK.get().asItem()),
-                    () -> new ItemStack(RNSContent.MINER_MK2_BLOCK.get().asItem()))
-    );
     private final AnimatedMiner miner = new AnimatedMiner(RNSContent.MINER_MK1_BLOCK.get(), RNSContent.MINER_MK1_DRILL);
 
-    public MiningRecipeCategory() {
+    public MiningRecipeCategory(Info<R> info) {
         super(info);
     }
 

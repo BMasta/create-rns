@@ -3,16 +3,13 @@ package com.bmaster.createrns.mining;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.infrastructure.ServerConfig;
-import com.simibubi.create.infrastructure.config.AllConfigs;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -25,9 +22,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class MiningProcess {
+    public final MiningLevel miningLevel;
     public final Set<SingleTypeProcess> innerProcesses = new ObjectOpenHashSet<>();
 
-    public MiningProcess(Level l, Set<BlockPos> depositBlocks) {
+    public MiningProcess(Level l, MiningLevel ml, Set<BlockPos> depositBlocks) {
+        miningLevel = ml;
         setYields(l, depositBlocks);
     }
 
@@ -51,7 +50,8 @@ public class MiningProcess {
         var yieldCounts = depositBlocks.stream()
                 .map(bp -> l.getBlockState(bp).getBlock())
                 .filter(db -> db.defaultBlockState().is(RNSTags.Block.DEPOSIT_BLOCKS))
-                .map(db -> MiningRecipeLookup.getYield(l, db))
+                .map(db -> MiningRecipeLookup.getYield(l, miningLevel, db))
+                .filter(Objects::nonNull)
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
         innerProcesses.clear();

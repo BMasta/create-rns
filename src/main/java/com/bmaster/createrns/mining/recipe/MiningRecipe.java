@@ -1,11 +1,9 @@
-package com.bmaster.createrns.mining;
+package com.bmaster.createrns.mining.recipe;
 
-import com.bmaster.createrns.RNSRecipes;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
@@ -20,9 +18,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Objects;
 
-public class MiningRecipe implements Recipe<Container> {
+public abstract class MiningRecipe implements Recipe<Container> {
     private final ResourceLocation id;
     private final Block depositBlock;
     private final Item yield;
@@ -32,6 +29,12 @@ public class MiningRecipe implements Recipe<Container> {
         this.depositBlock = depositBlock;
         this.yield = yield;
     }
+
+    @Override
+    public abstract @NotNull RecipeSerializer<?> getSerializer();
+
+    @Override
+    public abstract @NotNull RecipeType<?> getType();
 
     public Block getDepositBlock() {
         return depositBlock;
@@ -70,16 +73,6 @@ public class MiningRecipe implements Recipe<Container> {
     }
 
     @Override
-    public @NotNull RecipeSerializer<?> getSerializer() {
-        return RNSRecipes.MINING_SERIALIZER.get();
-    }
-
-    @Override
-    public @NotNull RecipeType<?> getType() {
-        return RNSRecipes.MINING_TYPE.get();
-    }
-
-    @Override
     public @NotNull NonNullList<Ingredient> getIngredients() {
         return NonNullList.of(Ingredient.EMPTY, Ingredient.of(depositBlock));
     }
@@ -89,31 +82,10 @@ public class MiningRecipe implements Recipe<Container> {
         return true;
     }
 
-    public static class Serializer implements RecipeSerializer<MiningRecipe> {
-        @ParametersAreNonnullByDefault
-        @Override
-        public @NotNull MiningRecipe fromJson(ResourceLocation id, JsonObject json) {
-            var depBlock = parseBlockId(json, "deposit_block");
-            var yield = parseItemId(json, "yield");
-            return new MiningRecipe(id, depBlock, yield);
-        }
-
-        @ParametersAreNonnullByDefault
-        @Override
-        public MiningRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
-            var depBlock = Objects.requireNonNull(ForgeRegistries.BLOCKS.getValue(buf.readResourceLocation()));
-            var yield = buf.readItem();
-            return new MiningRecipe(id, depBlock, yield.getItem());
-        }
-
-        @ParametersAreNonnullByDefault
-        @Override
-        public void toNetwork(FriendlyByteBuf buf, MiningRecipe r) {
-            buf.writeResourceLocation(Objects.requireNonNull(ForgeRegistries.BLOCKS.getKey(r.depositBlock)));
-            buf.writeItem(new ItemStack(r.yield));
-        }
-
-        private static Block parseBlockId(JsonObject json, String field) {
+    @SuppressWarnings("SameParameterValue")
+    @ParametersAreNonnullByDefault
+    public static abstract class Serializer<MR extends MiningRecipe> implements RecipeSerializer<MR> {
+        protected static Block parseBlockId(JsonObject json, String field) {
             String raw = GsonHelper.getAsString(json, field);
             ResourceLocation rl = ResourceLocation.tryParse(raw);
             if (rl == null) {
@@ -126,7 +98,7 @@ public class MiningRecipe implements Recipe<Container> {
             return block;
         }
 
-        private static Item parseItemId(JsonObject json, String field) {
+        protected static Item parseItemId(JsonObject json, String field) {
             String raw = GsonHelper.getAsString(json, field);
             ResourceLocation rl = ResourceLocation.tryParse(raw);
             if (rl == null) {

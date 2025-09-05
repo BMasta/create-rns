@@ -1,5 +1,5 @@
 {
-  "type": "create_rns:mining",
+  "type": "create_rns:basic_mining",
   "deposit_block": "create_rns:iron_deposit_block",
   "yield": "minecraft:iron_ingot"
 }
