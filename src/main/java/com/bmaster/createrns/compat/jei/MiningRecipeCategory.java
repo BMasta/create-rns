@@ -25,13 +25,14 @@ import java.util.List;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class MiningRecipeCategory<R extends MiningRecipe> extends CreateRecipeCategory<R> {
+public abstract class MiningRecipeCategory<R extends MiningRecipe> extends CreateRecipeCategory<R> {
     private static final IDrawable BASIC_SLOT = asDrawable(AllGuiTextures.JEI_SLOT);
-    private final AnimatedMiner miner = new AnimatedMiner(RNSContent.MINER_MK1_BLOCK.get(), RNSContent.MINER_MK1_DRILL);
 
     public MiningRecipeCategory(Info<R> info) {
         super(info);
     }
+
+    public abstract AnimatedMiner getAnimatedMiner();
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, MiningRecipe recipe, IFocusGroup focuses) {
@@ -46,7 +47,7 @@ public class MiningRecipeCategory<R extends MiningRecipe> extends CreateRecipeCa
 
     @Override
     public void draw(MiningRecipe r, IRecipeSlotsView rsv, GuiGraphics gui, double mX, double mY) {
-        miner.draw(gui, 25, 45);
+        getAnimatedMiner().draw(gui, 25, 45);
         AllGuiTextures.JEI_SHADOW.render(gui, 15, 67);
         AllGuiTextures.JEI_DOWN_ARROW.render(gui, 85, 23);
     }
