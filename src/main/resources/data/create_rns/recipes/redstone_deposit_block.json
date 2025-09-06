@@ -1,5 +1,5 @@
 {
   "type": "create_rns:advanced_mining",
   "deposit_block": "create_rns:redstone_deposit_block",
-  "yield": "minecraft:redstone"
+  "yield": "create_rns:impure_redstone_dust"
 }

@@ -1,4 +1,4 @@
 {
-  "scanner_icon_item": "create:zinc_ingot",
+  "scanner_icon_item": "create_rns:impure_zinc_ore",
   "structure": "create_rns:deposit_zinc"
 }

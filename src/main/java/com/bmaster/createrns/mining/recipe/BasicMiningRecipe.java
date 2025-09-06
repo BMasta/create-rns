@@ -1,6 +1,6 @@
 package com.bmaster.createrns.mining.recipe;
 
-import com.bmaster.createrns.RNSRecipes;
+import com.bmaster.createrns.RNSRecipeTypes;
 import com.google.gson.JsonObject;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -22,12 +22,12 @@ public class BasicMiningRecipe extends MiningRecipe {
 
     @Override
     public @NotNull RecipeSerializer<?> getSerializer() {
-        return RNSRecipes.BASIC_MINING_SERIALIZER.get();
+        return RNSRecipeTypes.BASIC_MINING_SERIALIZER.get();
     }
 
     @Override
     public @NotNull RecipeType<?> getType() {
-        return RNSRecipes.BASIC_MINING_TYPE.get();
+        return RNSRecipeTypes.BASIC_MINING_TYPE.get();
     }
 
     @SuppressWarnings("SameParameterValue")

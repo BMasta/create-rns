@@ -25,6 +25,7 @@ public class CreateRNS {
         REGISTRATE.registerEventListeners(modEventBus);
         RNSTags.register();
         RNSContent.register();
+        RNSRecipeTypes.register();
         RNSRecipes.register();
 
         // Register the commonSetup method for mod loading
@@ -39,8 +40,5 @@ public class CreateRNS {
 
     private void commonSetup(final FMLCommonSetupEvent event) {
         event.enqueueWork(DepositScannerChannel::init);
-    }
-
-    private void addCreative(BuildCreativeModeTabContentsEvent event) {
     }
 }

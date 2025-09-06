@@ -22,6 +22,7 @@ import net.createmod.catnip.lang.FontHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
@@ -74,7 +75,7 @@ public class RNSContent {
             .register();
 
     public static final ItemEntry<Item> RESONANT_MECHANISM = CreateRNS.REGISTRATE.item(
-            "resonant_mechanism", Item::new)
+                    "resonant_mechanism", Item::new)
             .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
                     .define('A', Items.AMETHYST_SHARD)
                     .define('M', AllItems.PRECISION_MECHANISM)
@@ -84,6 +85,21 @@ public class RNSContent {
                     .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.PRECISION_MECHANISM))
                     .save(p))
             .register();
+
+    public static final ItemEntry<Item> IMPURE_IRON_ORE = CreateRNS.REGISTRATE.item(
+            "impure_iron_ore", Item::new).tag(RNSTags.Item.IMPURE_ORES).register();
+    public static final ItemEntry<Item> IMPURE_COPPER_ORE = CreateRNS.REGISTRATE.item(
+            "impure_copper_ore", Item::new).tag(RNSTags.Item.IMPURE_ORES).register();
+    public static final ItemEntry<Item> IMPURE_ZINC_ORE = CreateRNS.REGISTRATE.item(
+            "impure_zinc_ore", Item::new).tag(RNSTags.Item.IMPURE_ORES).register();
+    public static final ItemEntry<Item> IMPURE_GOLD_ORE = CreateRNS.REGISTRATE.item(
+            "impure_gold_ore", Item::new).tag(RNSTags.Item.IMPURE_ORES).register();
+    public static final ItemEntry<Item> IMPURE_REDSTONE_DUST = CreateRNS.REGISTRATE.item(
+            "impure_redstone_dust", Item::new).tag(RNSTags.Item.IMPURE_ORES).register();
+
+    // Yoinked from tech reborn
+    public static final ItemEntry<Item> REDSTONE_SMALL_DUST = CreateRNS.REGISTRATE.item(
+                    "redstone_small_dust", Item::new).register();
 
     // Blocks
     public static final BlockEntry<MinerMk1Block> MINER_MK1_BLOCK = CreateRNS.REGISTRATE.block("miner_mk1",
@@ -125,19 +141,15 @@ public class RNSContent {
     public static final BlockEntry<DepositBlock> IRON_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "iron_deposit_block", DepositBlock::new)
             .transform(deposit(MapColor.RAW_IRON)).item().build().register();
-
     public static final BlockEntry<DepositBlock> COPPER_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "copper_deposit_block", DepositBlock::new)
             .transform(deposit(MapColor.COLOR_ORANGE)).item().build().register();
-
     public static final BlockEntry<DepositBlock> ZINC_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "zinc_deposit_block", DepositBlock::new)
             .transform(deposit(MapColor.GLOW_LICHEN)).item().build().register();
-
     public static final BlockEntry<DepositBlock> GOLD_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "gold_deposit_block", DepositBlock::new)
             .transform(deposit(MapColor.GOLD)).item().build().register();
-
     public static final BlockEntry<DepositBlock> REDSTONE_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "redstone_deposit_block", DepositBlock::new)
             .transform(deposit(MapColor.FIRE)).item().build().register();
@@ -167,13 +179,18 @@ public class RNSContent {
                             .displayItems((pParameters, pOutput) -> {
                                 pOutput.accept(MINER_MK1_BLOCK.get().asItem());
                                 pOutput.accept(MINER_MK2_BLOCK.get().asItem());
-                                pOutput.accept(DEPOSIT_SCANNER_ITEM.get().asItem());
-                                pOutput.accept(RESONANT_MECHANISM.get().asItem());
+                                pOutput.accept(DEPOSIT_SCANNER_ITEM.get());
+                                pOutput.accept(RESONANT_MECHANISM.get());
                                 pOutput.accept(IRON_DEPOSIT_BLOCK.get().asItem());
                                 pOutput.accept(COPPER_DEPOSIT_BLOCK.get().asItem());
                                 pOutput.accept(ZINC_DEPOSIT_BLOCK.get().asItem());
                                 pOutput.accept(GOLD_DEPOSIT_BLOCK.get().asItem());
                                 pOutput.accept(REDSTONE_DEPOSIT_BLOCK.get().asItem());
+                                pOutput.accept(IMPURE_IRON_ORE.get());
+                                pOutput.accept(IMPURE_COPPER_ORE.get());
+                                pOutput.accept(IMPURE_ZINC_ORE.get());
+                                pOutput.accept(IMPURE_GOLD_ORE.get());
+                                pOutput.accept(IMPURE_REDSTONE_DUST.get());
                             })
                             .build())
             .register();

@@ -7,6 +7,12 @@
   "block.create_rns.redstone_deposit_block": "ʞɔoןᗺ ʇısodǝᗡ ǝuoʇspǝᴚ",
   "block.create_rns.zinc_deposit_block": "ʞɔoןᗺ ʇısodǝᗡ ɔuıZ",
   "item.create_rns.deposit_scanner": "ɹǝuuɐɔS ʇısodǝᗡ",
+  "item.create_rns.impure_copper_ore": "ǝɹO ɹǝddoƆ ǝɹndɯI",
+  "item.create_rns.impure_gold_ore": "ǝɹO pןo⅁ ǝɹndɯI",
+  "item.create_rns.impure_iron_ore": "ǝɹO uoɹI ǝɹndɯI",
+  "item.create_rns.impure_redstone_dust": "ʇsnᗡ ǝuoʇspǝᴚ ǝɹndɯI",
+  "item.create_rns.impure_zinc_ore": "ǝɹO ɔuıZ ǝɹndɯI",
+  "item.create_rns.redstone_small_dust": "ʇsnᗡ ןןɐɯS ǝuoʇspǝᴚ",
   "item.create_rns.resonant_mechanism": "ɯsıuɐɥɔǝW ʇuɐuosǝᴚ",
   "itemGroup.create_rns.create_rns": "suᴚ ǝʇɐǝɹƆ"
 }

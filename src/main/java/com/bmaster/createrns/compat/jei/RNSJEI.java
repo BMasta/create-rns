@@ -2,9 +2,7 @@ package com.bmaster.createrns.compat.jei;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.RNSRecipes;
-import com.bmaster.createrns.mining.recipe.AdvancedMiningRecipe;
-import com.bmaster.createrns.mining.recipe.BasicMiningRecipe;
+import com.bmaster.createrns.RNSRecipeTypes;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
@@ -40,8 +38,8 @@ public class RNSJEI implements IModPlugin {
         var level = Minecraft.getInstance().level;
         if (level == null) return;
 
-        var basicRecipes = level.getRecipeManager().getAllRecipesFor(RNSRecipes.BASIC_MINING_TYPE.get());
-        var advancedRecipes = level.getRecipeManager().getAllRecipesFor(RNSRecipes.ADVANCED_MINING_TYPE.get());
+        var basicRecipes = level.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.BASIC_MINING_TYPE.get());
+        var advancedRecipes = level.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.ADVANCED_MINING_TYPE.get());
         reg.addRecipes(BasicMiningRecipeCategory.JEI_RECIPE_TYPE, basicRecipes);
         reg.addRecipes(AdvancedMiningRecipeCategory.JEI_RECIPE_TYPE, advancedRecipes);
     }

@@ -1,7 +1,6 @@
 package com.bmaster.createrns.mining;
 
-import com.bmaster.createrns.RNSRecipes;
-import com.bmaster.createrns.RNSTags;
+import com.bmaster.createrns.RNSRecipeTypes;
 import com.bmaster.createrns.mining.recipe.AdvancedMiningRecipe;
 import com.bmaster.createrns.mining.recipe.BasicMiningRecipe;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -35,8 +34,8 @@ public class MiningRecipeLookup {
     }
 
     public static void build(Level l) {
-        var basicRecipes = l.getRecipeManager().getAllRecipesFor(RNSRecipes.BASIC_MINING_TYPE.get());
-        var advancedRecipes = l.getRecipeManager().getAllRecipesFor(RNSRecipes.ADVANCED_MINING_TYPE.get());
+        var basicRecipes = l.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.BASIC_MINING_TYPE.get());
+        var advancedRecipes = l.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.ADVANCED_MINING_TYPE.get());
         depBlockToYieldBasic = basicRecipes.stream().collect(Collectors.toMap(
                 BasicMiningRecipe::getDepositBlock,
                 BasicMiningRecipe::getYield,

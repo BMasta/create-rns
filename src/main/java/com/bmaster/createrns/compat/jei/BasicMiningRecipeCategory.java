@@ -2,7 +2,7 @@ package com.bmaster.createrns.compat.jei;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.RNSRecipes;
+import com.bmaster.createrns.RNSRecipeTypes;
 import com.bmaster.createrns.mining.MiningLevel;
 import com.bmaster.createrns.mining.recipe.BasicMiningRecipe;
 import com.simibubi.create.compat.jei.EmptyBackground;
@@ -27,7 +27,7 @@ public class BasicMiningRecipeCategory extends MiningRecipeCategory<BasicMiningR
             (() -> {
                 var level = Minecraft.getInstance().level;
                 if (level == null) return List.of();
-                return level.getRecipeManager().getAllRecipesFor(RNSRecipes.BASIC_MINING_TYPE.get());
+                return level.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.BASIC_MINING_TYPE.get());
             }),
             List.of(() -> new ItemStack(RNSContent.MINER_MK1_BLOCK.get().asItem()))
     );

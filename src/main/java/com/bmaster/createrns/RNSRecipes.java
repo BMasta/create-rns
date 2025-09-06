@@ -1,41 +1,45 @@
 package com.bmaster.createrns;
 
-import com.bmaster.createrns.mining.MiningLevel;
-import com.bmaster.createrns.mining.recipe.AdvancedMiningRecipe;
-import com.bmaster.createrns.mining.recipe.BasicMiningRecipe;
-import com.bmaster.createrns.mining.recipe.MiningRecipe;
-import com.tterrag.registrate.util.entry.RegistryEntry;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.simibubi.create.AllBlocks;
+import com.simibubi.create.AllItems;
+import com.simibubi.create.Create;
+import com.simibubi.create.api.data.recipe.WashingRecipeGen;
+import com.tterrag.registrate.providers.ProviderType;
+import com.tterrag.registrate.providers.RegistrateRecipeProvider;
+import net.minecraft.data.PackOutput;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ItemLike;
 
 public class RNSRecipes {
-    // Basic mining recipe
-    public static final RegistryEntry<RecipeSerializer<BasicMiningRecipe>> BASIC_MINING_SERIALIZER =
-            CreateRNS.REGISTRATE.simple(MiningLevel.BASIC.getRecipeID(), ForgeRegistries.Keys.RECIPE_SERIALIZERS,
-                    BasicMiningRecipe.Serializer::new);
+    static {
+        CreateRNS.REGISTRATE.addDataGenerator(ProviderType.RECIPE, prov -> {
+            ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, Items.REDSTONE)
+                    .requires(RNSContent.REDSTONE_SMALL_DUST, 9)
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(RNSContent.REDSTONE_SMALL_DUST))
+                    .save(prov, ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "redstone_from_small_dust"));
+        });
+    }
 
-    public static final RegistryEntry<RecipeType<BasicMiningRecipe>> BASIC_MINING_TYPE = CreateRNS.REGISTRATE.simple(
-            MiningLevel.BASIC.getRecipeID(), ForgeRegistries.Keys.RECIPE_TYPES,
-            () -> new RecipeType<>() {
-                @Override
-                public String toString() {return CreateRNS.MOD_ID + ":" + MiningLevel.BASIC.getRecipeID();
-                }
-            });
+    public static class Washing extends WashingRecipeGen {
+        GeneratedRecipe IMPURE_IRON_ORE = fromImpure("impure_iron_ore", RNSContent.IMPURE_IRON_ORE, Items.IRON_NUGGET);
+        GeneratedRecipe IMPURE_COPPER_ORE = fromImpure("impure_copper_ore", RNSContent.IMPURE_COPPER_ORE, AllItems.COPPER_NUGGET);
+        GeneratedRecipe IMPURE_ZINC_ORE = fromImpure("impure_zinc_ore", RNSContent.IMPURE_ZINC_ORE, AllItems.ZINC_NUGGET);
+        GeneratedRecipe IMPURE_GOLD_ORE = fromImpure("impure_gold_ore", RNSContent.IMPURE_GOLD_ORE, Items.GOLD_NUGGET);
+        GeneratedRecipe IMPURE_REDSTONE_DUST = fromImpure("impure_redstone_dust", RNSContent.IMPURE_REDSTONE_DUST, RNSContent.REDSTONE_SMALL_DUST);
 
-    // Advanced mining recipe
-    public static final RegistryEntry<RecipeSerializer<AdvancedMiningRecipe>> ADVANCED_MINING_SERIALIZER =
-            CreateRNS.REGISTRATE.simple(MiningLevel.ADVANCED.getRecipeID(), ForgeRegistries.Keys.RECIPE_SERIALIZERS,
-                    AdvancedMiningRecipe.Serializer::new);
+        public Washing(PackOutput output) {
+            super(output, CreateRNS.MOD_ID);
+        }
 
-    public static final RegistryEntry<RecipeType<AdvancedMiningRecipe>> ADVANCED_MINING_TYPE = CreateRNS.REGISTRATE.simple(
-            MiningLevel.ADVANCED.getRecipeID(), ForgeRegistries.Keys.RECIPE_TYPES,
-            () -> new RecipeType<>() {
-                @Override
-                public String toString() {
-                    return CreateRNS.MOD_ID + ":" + MiningLevel.ADVANCED.getRecipeID();
-                }
-            });
+        private GeneratedRecipe fromImpure(String name, ItemLike in, ItemLike out) {
+            return create(name, b -> b.require(in)
+                    .output(Items.COBBLESTONE)
+                    .output(0.5f, out));
+        }
+    }
 
     public static void register() {
     }

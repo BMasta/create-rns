@@ -1,0 +1,9 @@
+{
+  "values": [
+    "create_rns:impure_iron_ore",
+    "create_rns:impure_copper_ore",
+    "create_rns:impure_zinc_ore",
+    "create_rns:impure_gold_ore",
+    "create_rns:impure_redstone_dust"
+  ]
+}

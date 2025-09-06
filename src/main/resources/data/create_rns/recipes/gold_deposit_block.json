@@ -1,5 +1,5 @@
 {
   "type": "create_rns:advanced_mining",
   "deposit_block": "create_rns:gold_deposit_block",
-  "yield": "minecraft:gold_ingot"
+  "yield": "create_rns:impure_gold_ore"
 }

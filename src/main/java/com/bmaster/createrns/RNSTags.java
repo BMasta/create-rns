@@ -10,6 +10,8 @@ public class RNSTags {
     public static class Item {
         public static final TagKey<net.minecraft.world.item.Item> DEPOSIT_BLOCKS = TagKey.create(Registries.ITEM,
                 ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "deposit_blocks"));
+        public static final TagKey<net.minecraft.world.item.Item> IMPURE_ORES = TagKey.create(Registries.ITEM,
+                ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "impure_ores"));
     }
 
     public static class Block {

@@ -1,4 +1,4 @@
 {
-  "scanner_icon_item": "minecraft:redstone",
+  "scanner_icon_item": "create_rns:impure_redstone_dust",
   "structure": "create_rns:deposit_redstone"
 }
