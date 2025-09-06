@@ -1,21 +1,25 @@
 # TO DO
-- [ ] Use recipes to define yield for each deposit block.
-- [ ] Scale deposit progress with number of same deposit blocks instead of yield count.
-- [ ] Replace miner menu with enhanced create tooltip. Obtain mined items with right click.
-- [ ] Handle client/server config
-  - [ ] Add config variable for base mining speed of miners.
-- [ ] Add recipes for all items.
-- [ ] Integration with JEI.
-- [ ] Add multiple tiers of miners with improved mining speed.
+- [ ] Polish
+  - [ ] Add structure tag for all deposit structures.
+  - [ ] Make deposit scanner wheel horizontal and centered.
+  - [ ] Do not scan for ungenerated deposits further than closest generated deposit.
+  - [ ] Display client helper message with name of selected deposit when scrolling deposit scanner options.
+    - [ ] Add lang entries for deposit structure names, add logic to translate structure id to structure name id.
+  - [ ] Scale down deposit scanner item a bit, make it float around (possibly visually respond to walking speed?).
+  - [ ] Prohibit deposit spawn in oceans.
+  - [ ] Build lookups on initialization. Investigate other reasons for a small hitch when opening inventory for the first time.
+  - [ ] Add separate config variables to control individual miner speed.
+- [ ] Write datagen for deposit structures instead of using a dynamic pack.
 - [ ] Implement a create mod bearing for a multiblock contraption that acts as a drill.
   - [ ] Where does the yield go? If it goes into the contraption inventory, the item extraction becomes awkward and unnatural.
+  - [ ] How would the drill look? What shape? Which blocks would it be built from?
 - [ ] Integration with map mods.
   - [ ] Record visited deposits per-player into persistent storage.
   - [ ] Show scanned deposits as icons on the map.
-- [ ] Add a deposit for zinc.
 - [ ] Add deposits for metals/gems from other mods.
 - [ ] Add ponders.
-- [ ] Figure out how to build and run the release version of the mod.
+- [ ] Store deposits known to player on client side. Sync with server for accurate scanning.
 - [ ] Figure out how to publish on curseforge/modrinth.
 - [ ] Figure out how to autoincrement semver and auto-publish to curseforge/modrinth.
 - [ ] Port to 1.21.x (Neoforge?).
+- [ ] Port to Fabric.
