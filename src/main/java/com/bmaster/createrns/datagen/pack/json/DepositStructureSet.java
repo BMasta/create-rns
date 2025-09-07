@@ -15,7 +15,7 @@ public class DepositStructureSet {
         this.structures = structures;
     }
 
-    public static final class WeightedStructure {
+    public static class WeightedStructure {
         @SerializedName("structure")
         public String structure;
 
@@ -28,7 +28,7 @@ public class DepositStructureSet {
         }
     }
 
-    public static final class Placement {
+    public static class Placement {
         @SerializedName("type")
         public String type = "minecraft:random_spread";
 

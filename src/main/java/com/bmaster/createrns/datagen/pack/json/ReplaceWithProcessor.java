@@ -13,7 +13,7 @@ public class ReplaceWithProcessor {
         this.processors = List.of(processor);
     }
 
-    public static final class Processor {
+    public static class Processor {
         @SerializedName("processor_type")
         public String processorType = "minecraft:rule";
 
@@ -30,7 +30,7 @@ public class ReplaceWithProcessor {
         }
     }
 
-    public static final class Rule {
+    public static class Rule {
         @SerializedName("input_predicate")
         public BlockMatchPredicate inputPredicate;
 
@@ -47,7 +47,7 @@ public class ReplaceWithProcessor {
         }
     }
 
-    public static final class BlockMatchPredicate {
+    public static class BlockMatchPredicate {
         @SerializedName("predicate_type")
         public String predicateType = "minecraft:block_match";
 
@@ -58,12 +58,12 @@ public class ReplaceWithProcessor {
         }
     }
 
-    public static final class AlwaysTruePredicate {
+    public static class AlwaysTruePredicate {
         @SerializedName("predicate_type")
         public String predicateType = "minecraft:always_true";
     }
 
-    public static final class OutputState {
+    public static class OutputState {
         @SerializedName("Name")
         public String name;
 

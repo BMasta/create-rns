@@ -16,7 +16,7 @@ public class DepositStructureStart {
         this.elements = elements;
     }
 
-    public static final class WeightedElement {
+    public static class WeightedElement {
         @SerializedName("element")
         public Element element;
 
@@ -31,7 +31,7 @@ public class DepositStructureStart {
         }
     }
 
-    public static final class Element {
+    public static class Element {
         @SerializedName("element_type")
         public String elementType = "minecraft:single_pool_element";
 

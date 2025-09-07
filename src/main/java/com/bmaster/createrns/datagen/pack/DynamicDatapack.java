@@ -2,17 +2,18 @@ package com.bmaster.createrns.datagen.pack;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.datagen.pack.json.DepositStructure;
-import com.bmaster.createrns.datagen.pack.json.DepositStructureSet;
-import com.bmaster.createrns.datagen.pack.json.DepositStructureStart;
-import com.bmaster.createrns.datagen.pack.json.ReplaceWithProcessor;
+import com.bmaster.createrns.datagen.pack.json.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.simibubi.create.Create;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -23,6 +24,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class DynamicDatapack {
@@ -37,7 +39,9 @@ public class DynamicDatapack {
     private static final String STRUCT_START_PATH = "%s/worldgen/template_pool/deposit_%s/start.json";
     private static final String STRUCT_PATH = "%s/worldgen/structure/deposit_%s.json";
     private static final String STRUCT_SET_PATH = "%s/worldgen/structure_set/deposits.json";
+    private static final String HAS_DEPOSIT_TAG_PATH = "%s/tags/worldgen/biome/has_deposit.json";
 
+    private static final String HAS_DEPOSIT_TAG = "#%s:has_deposit";
     private static final String NOOP_PROCESSOR = "minecraft:empty";
     private static final String PLACEHOLDER_BLOCK = "minecraft:end_stone";
 
@@ -47,6 +51,11 @@ public class DynamicDatapack {
 
     public static void add(DepositSet dSet) {
         dSet.addToResources();
+    }
+
+    public static void addDepositBiomeTag() {
+        var path = HAS_DEPOSIT_TAG_PATH.formatted(CreateRNS.MOD_ID);
+        depositsResources.putJson(path, gson.toJsonTree(new HasDepositBiomeTag()));
     }
 
     public static void addVanillaDeposits() {
@@ -168,7 +177,10 @@ public class DynamicDatapack {
             // Create structure
             var sPath = STRUCT_PATH.formatted(CreateRNS.MOD_ID, name);
             var sStartRl = STRUCT_START_RL.apply(name);
-            depositsResources.putJson(sPath, gson.toJsonTree(new DepositStructure(sStartRl.toString(), -depth)));
+
+            String tag = HAS_DEPOSIT_TAG.formatted(CreateRNS.MOD_ID);
+            depositsResources.putJson(sPath, gson.toJsonTree(
+                    new DepositStructure(sStartRl.toString(), -depth, tag)));
 
             added = true;
         }

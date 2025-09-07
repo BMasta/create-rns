@@ -38,12 +38,13 @@ public class DepositStructure {
     @SerializedName("spawn_overrides")
     public Map<String, Object> spawnOverrides = Collections.emptyMap();
 
-    public DepositStructure(String structureStart, int absoluteStartHeight) {
+    public DepositStructure(String structureStart, int absoluteStartHeight, String biomeTag) {
         startPool = structureStart;
         startHeight = new StartHeight(absoluteStartHeight);
+        biomes = biomeTag;
     }
 
-    public static final class StartHeight {
+    public static class StartHeight {
         @SerializedName("absolute")
         public int absolute;
 

@@ -33,6 +33,7 @@ public class ModEvents {
     @SubscribeEvent
     public static void onAddPackFinders(AddPackFindersEvent e) {
         if (e.getPackType() != PackType.SERVER_DATA) return;
+        DynamicDatapack.addDepositBiomeTag();
         DynamicDatapack.addVanillaDeposits();
         e.addRepositorySource(consumer -> consumer.accept(DynamicDatapack.finish()));
     }
