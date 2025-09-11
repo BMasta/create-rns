@@ -38,15 +38,16 @@
     },
     {
       "name": "Connector",
-      "from": [6.5, 2, 6.5],
+      "from": [6.5, 2.95, 6.5],
       "to": [9.5, 3, 9.5],
       "rotation": {"angle": 0, "axis": "y", "origin": [7, 2, 8]},
       "faces": {
-        "north": {"uv": [9, 14, 12, 15], "texture": "#4"},
-        "east": {"uv": [9, 14, 12, 15], "texture": "#4"},
-        "south": {"uv": [9, 14, 12, 15], "texture": "#4"},
-        "west": {"uv": [9, 14, 12, 15], "texture": "#4"},
-        "up": {"uv": [3, 10, 6, 13], "texture": "#4"}
+        "north": {"uv": [3, 12, 6, 13], "texture": "#4"},
+        "east": {"uv": [3, 12, 6, 13], "texture": "#4"},
+        "south": {"uv": [3, 12, 6, 13], "texture": "#4"},
+        "west": {"uv": [3, 12, 6, 13], "texture": "#4"},
+        "up": {"uv": [3, 10, 6, 13], "texture": "#4"},
+        "down": {"uv": [3, 10, 6, 13], "texture": "#4"}
       }
     }
   ],

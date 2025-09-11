@@ -35,8 +35,8 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
             CreateRNS.MOD_ID, "item/deposit_scanner/antenna_unpowered"));
     private static final PartialModel ANTENNA_POWERED = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
             CreateRNS.MOD_ID, "item/deposit_scanner/antenna_powered"));
-    private static final PartialModel WHEEL = PartialModel.of(Create.asResource(
-            "block/cogwheel_shaftless"));
+    public static final PartialModel WHEEL = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
+            CreateRNS.MOD_ID, "item/deposit_scanner/wheel"));
 
     private static final LerpedFloat equipProgress;
     private static final LerpedFloat scrollProgress;
@@ -212,16 +212,9 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
                                     int light, float partialTicks) {
         BakedModel wheel = WHEEL.get();
 
-        float x = 0;
-        float y = -6f / 16f;
-        float z = -3.5f / 16f;
-
         ms.pushPose();
-        msr.translate(x, y, z);
-        msr.rotateZDegrees(scrollProgress.getValue(partialTicks) % 360);
-        msr.rotateXDegrees(90);
-        ms.scale(0.2f, 0.2f, 0.2f);
-        renderer.render(wheel, RenderType.solid(), light);
+        msr.rotateYDegrees(scrollProgress.getValue(partialTicks) % 360);
+        renderer.renderSolid(wheel, light);
         ms.popPose();
     }
 
