@@ -1,6 +1,7 @@
 package com.bmaster.createrns.item.DepositScanner;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.datagen.pack.json.DepositStructureSet;
 import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
 import com.bmaster.createrns.deposit.capability.IDepositIndex;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler.AntennaStatus;
@@ -22,7 +23,7 @@ public class DepositScannerServerHandler {
     public static final int MAX_PING_INTERVAL = 60;
     public static final float FOUND_DISTANCE = 5f;
 
-    private static final int SEARCH_RADIUS_CHUNKS = 100;
+    private static final int SEARCH_RADIUS_CHUNKS = DepositStructureSet.SPACING * 4;
     private static final int MAX_BLOCK_DISTANCE = SEARCH_RADIUS_CHUNKS * 16;
 
     public static void processScanRequest(ServerPlayer sp, Item icon, RequestType rt) {

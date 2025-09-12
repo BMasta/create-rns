@@ -1,6 +1,7 @@
 package com.bmaster.createrns.deposit.capability;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.datagen.pack.json.DepositStructureSet;
 import com.bmaster.createrns.util.Utils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -77,23 +78,13 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
             }
         }
 
-        // If any deposits within scanner distance are known, restrict search radius for unknown to that distance
-        var searchRadiusUnknown = searchRadiusChunks;
-        if (closestBP != null) {
-            var distX = Math.abs(playerPos.getX() - closestBP.getX());
-            var distZ = Math.abs(playerPos.getZ() - closestBP.getZ());
-            searchRadiusUnknown = Math.max(distX, distZ) >> 4;
-        }
-        // If closest unknown deposit is closer than any known deposits, use that instead
-        var closestUnknownBP = discoverNearest(depositKey, sp, searchRadiusUnknown);
-        if (closestUnknownBP != null) {
-            dist = playerPos.distSqr(closestUnknownBP);
-            if (dist < closestDist) {
-                closestDist = dist;
-                closestBP = closestUnknownBP;
-            }
+        // Discover the closest unknown deposit and use it if it's closer than any known deposit (square distance)
+        var closestUnknownBP = discoverNearest(depositKey, sp, searchRadiusChunks);
+        if (closestUnknownBP != null && playerPos.distSqr(closestUnknownBP) < closestDist) {
+            closestBP = closestUnknownBP;
         }
 
+        // Cache and return result
         if (closestBP == null) {
             perPlayerCache.put(sp.getUUID(), new CachedData(null, depositKey, sl.getGameTime()));
             CreateRNS.LOGGER.info("No deposits of target type are recorded");
@@ -105,7 +96,6 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
                     closestBP.getX(), closestBP.getZ(), (int) Math.sqrt(closestDist));
             return null;
         }
-
         perPlayerCache.put(sp.getUUID(), new CachedData(closestBP.asLong(), depositKey, sl.getGameTime()));
         CreateRNS.LOGGER.info("Found deposit at {},{}", closestBP.getX(), closestBP.getZ());
         return closestBP;
@@ -271,9 +261,10 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
         var sl = (ServerLevel) sp.level();
         var gen = sl.getChunkSource().getGenerator();
         var target = sl.registryAccess().registryOrThrow(Registries.STRUCTURE).getHolderOrThrow(depositKey);
+        var searchRadiusRegions = searchRadiusChunks / DepositStructureSet.SPACING;
 
         var newDeposit = gen.findNearestMapStructure(sl, HolderSet.direct(target), sp.blockPosition(),
-                searchRadiusChunks, true);
+                searchRadiusRegions, true);
 
         // If found invalid (not yet generated) deposit, save it to the ungenerated list
         var ss = (newDeposit == null) ? null : sl.structureManager().getStructureWithPieceAt(newDeposit.getFirst(),

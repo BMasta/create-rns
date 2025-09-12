@@ -5,6 +5,8 @@ import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
 public class DepositStructureSet {
+    public static final int SPACING = 48;
+
     @SerializedName("structures")
     public List<WeightedStructure> structures;
 
@@ -33,7 +35,7 @@ public class DepositStructureSet {
         public String type = "minecraft:random_spread";
 
         @SerializedName("spacing")
-        public int spacing = 48;
+        public int spacing = SPACING;
 
         @SerializedName("separation")
         public int separation = 8;

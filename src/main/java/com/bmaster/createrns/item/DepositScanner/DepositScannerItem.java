@@ -21,8 +21,7 @@ import java.util.function.Consumer;
 @MethodsReturnNonnullByDefault
 public class DepositScannerItem extends Item {
     // This is also enforced on the server side
-    private static final int SCANNER_DISCOVER_COOLDOWN = DepositIndex.MIN_COMPUTE_INTERVAL + 10;
-    private long scannerLastDiscovered = 0;
+    private static final int SCANNER_USE_COOLDOWN = DepositIndex.MIN_COMPUTE_INTERVAL + 10;
 
     public DepositScannerItem(Properties pProperties) {
         super(pProperties);
@@ -36,16 +35,15 @@ public class DepositScannerItem extends Item {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
-        var time = level.getGameTime();
-        var cooldowns = player.getCooldowns();
+        if (!level.isClientSide) return InteractionResultHolder.pass(player.getItemInHand(usedHand));
 
         if (DepositScannerClientHandler.isTracking()) {
             DepositScannerClientHandler.cancelTracking();
-        } else if (scannerLastDiscovered + SCANNER_DISCOVER_COOLDOWN < time) {
+        } else {
             DepositScannerClientHandler.discoverDeposit();
-            scannerLastDiscovered = time;
-            cooldowns.addCooldown(RNSContent.DEPOSIT_SCANNER_ITEM.get(), SCANNER_DISCOVER_COOLDOWN);
+            player.getCooldowns().addCooldown(RNSContent.DEPOSIT_SCANNER_ITEM.get(), SCANNER_USE_COOLDOWN);
         }
+
         return InteractionResultHolder.pass(player.getItemInHand(usedHand));
     }
 }
