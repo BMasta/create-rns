@@ -1,9 +1,7 @@
 package com.bmaster.createrns.item.DepositScanner;
 
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler.DepositProximity;
-import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler.Mode;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.simibubi.create.Create;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer;
 import dev.engine_room.flywheel.lib.transform.PoseTransformStack;
@@ -17,7 +15,6 @@ import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import net.createmod.catnip.animation.LerpedFloat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.ItemTransform;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.resources.ResourceLocation;
@@ -38,24 +35,15 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
     public static final PartialModel WHEEL = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
             CreateRNS.MOD_ID, "item/deposit_scanner/wheel"));
 
-    private static final LerpedFloat equipProgress;
     private static final LerpedFloat scrollProgress;
     private static int poweredTicks = 0;
 
     static {
-        equipProgress = LerpedFloat.linear().startWithValue(0).chase(0, 0.3f, Chaser.EXP);
         scrollProgress = LerpedFloat.linear().startWithValue(0).chase(0, 0.5f, Chaser.EXP);
     }
 
     protected static void tick() {
         if (Minecraft.getInstance().isPaused()) return;
-
-        boolean active = DepositScannerClientHandler.getMode() != Mode.IDLE;
-
-        equipProgress.updateChaseTarget(active ? 1 : 0);
-        equipProgress.tickChaser();
-
-        if (!active) return;
         if (poweredTicks > 0) poweredTicks--;
 
         if (scrollProgress.settled()) {
@@ -66,8 +54,8 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
         scrollProgress.tickChaser();
     }
 
-    protected static void powerFor(int ticks) {
-        poweredTicks = ticks;
+    protected static void powerBriefly() {
+        poweredTicks = 2;
     }
 
     protected static void scrollUp() {
@@ -102,24 +90,22 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
         int handModifier = transformType == ItemDisplayContext.FIRST_PERSON_LEFT_HAND ? -1 : 1;
         float pt = AnimationTickHolder.getPartialTicks();
         var msr = TransformStack.of(ms);
-        float equip = equipProgress.getValue(pt);
-        boolean equipInProgress = !Mth.equal(equip, 0);
         boolean active = false;
 
         ms.pushPose();
 
-        // Two-arm equip
-        if (equipInProgress && transformType == mainDisplay && p.getOffhandItem().isEmpty()) {
+        // Two-hand
+        if (transformType == mainDisplay && p.getOffhandItem().isEmpty()) {
             var transform = model.getTransforms().getTransform(transformType);
             float viewAngleMultiplier = AnimationFunctions.easeIn(
                     Mth.clamp(p.getViewXRot(pt), 0, 45) / 45);
 
-            undoModelTransform(transform, ms, msr, pt, handModifier);
+            undoModelTransform(transform, ms, msr, handModifier);
 
-            ms.translate(-0.69f * equip * handModifier, 0.1 * equip, 0f * equip);
+            ms.translate(-0.69f * handModifier, 0.1, 0f);
 
             // Base model is already rotated 90 deg
-            msr.rotateYDegrees(-90 * equip);
+            msr.rotateYDegrees(-90);
 
             // Behaves like vanilla map
             float moveOutWhenLookingDown = -0.2f * viewAngleMultiplier;
@@ -127,26 +113,24 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
             float rotateInWhenLookingDown = 60 * viewAngleMultiplier;
 
             // Set pivot to the bottom of scanner's base
-            ms.translate((0.4f) * equip, -7f / 16f * equip, 0);
-            msr.rotateZDegrees((-10 - rotateInWhenLookingDown) * equip);
-            ms.translate((-0.4f + moveOutWhenLookingDown) * equip, (7f / 16f + moveDownWhenLookingDown) * equip, 0);
+            ms.translate((0.4f), -7f / 16f, 0);
+            msr.rotateZDegrees((-10 - rotateInWhenLookingDown));
+            ms.translate((-0.4f + moveOutWhenLookingDown), (7f / 16f + moveDownWhenLookingDown), 0);
 
             active = true;
         }
-        // Left hand equip
-        else if (equipInProgress && transformType == ItemDisplayContext.FIRST_PERSON_LEFT_HAND) {
-            msr.translate(equip * -1.5 / 16, equip * 2.5 / 16, equip * (1.25 / 16) * handModifier);
-            msr.rotateYDegrees(equip * 12 * handModifier);
+        // Left hand
+        else if (transformType == ItemDisplayContext.FIRST_PERSON_LEFT_HAND) {
+            msr.translate(-1.5 / 16, 2.5 / 16, (1.25 / 16) * handModifier);
+            msr.rotateYDegrees(12 * handModifier);
             active = true;
         }
-        // Right hand equip
-        else if (equipInProgress && transformType == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND) {
-            msr.translate(equip * -1.5 / 16, equip * 3 / 16, equip * 2 / 16 * handModifier);
-            msr.rotateYDegrees(equip * 12 * handModifier);
+        // Right hand
+        else if (transformType == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND) {
+            msr.translate(-1.5f / 16, 3f / 16, 2f / 16 * handModifier);
+            msr.rotateYDegrees(12 * handModifier);
             active = true;
         }
-
-        active &= DepositScannerClientHandler.getMode() != Mode.IDLE;
 
         renderer.render(active ? POWERED.get() : model.getOriginalModel(), light);
         renderSelectedItem(ms, msr, buf, light, overlay);
@@ -163,23 +147,22 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
     }
 
     private static void undoModelTransform(ItemTransform transform, PoseStack ms, PoseTransformStack msr,
-                                           float partialTicks, int handModifier) {
-        float equip = equipProgress.getValue(partialTicks);
+                                           int handModifier) {
         Vector3f trn = transform.translation;
         Vector3f rot = transform.rotation;
         Vector3f scl = transform.scale;
 
-        float sx_equip = ((scl.x() == 0f) ? 1f : 1f / scl.x()) * equip + 1 - equip;
-        float sy_equip = ((scl.y() == 0f) ? 1f : 1f / scl.y()) * equip + 1 - equip;
-        float sz_equip = ((scl.z() == 0f) ? 1f : 1f / scl.z()) * equip + 1 - equip;
+        float sx = (scl.x() == 0f) ? 1f : 1f / scl.x();
+        float sy = (scl.y() == 0f) ? 1f : 1f / scl.y();
+        float sz = (scl.z() == 0f) ? 1f : 1f / scl.z();
 
-        ms.scale(sx_equip, sy_equip, sz_equip);
+        ms.scale(sx, sy, sz);
 
-        msr.rotateZDegrees(-rot.z() * equip * handModifier);
-        msr.rotateYDegrees(-rot.y() * equip * handModifier);
-        msr.rotateXDegrees(-rot.x() * equip * handModifier);
+        msr.rotateZDegrees(-rot.z() * handModifier);
+        msr.rotateYDegrees(-rot.y() * handModifier);
+        msr.rotateXDegrees(-rot.x() * handModifier);
 
-        ms.translate(-trn.x() / 16f * equip, -trn.y() / 16f * equip, -trn.z() / 16f * equip);
+        ms.translate(-trn.x() / 16f, -trn.y() / 16f, -trn.z() / 16f);
     }
 
     private static void renderAntennas(PoseStack ms, PartialItemModelRenderer renderer, int light) {

@@ -2,22 +2,16 @@ package com.bmaster.createrns.item.DepositScanner;
 
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
-import com.mojang.blaze3d.platform.InputConstants;
 import com.simibubi.create.AllSoundEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.glfw.GLFW;
 
 import static com.bmaster.createrns.item.DepositScanner.DepositScannerServerHandler.*;
 
 public class DepositScannerClientHandler {
-    public enum Mode {
-        IDLE, ACTIVE
-    }
-
     public enum AntennaStatus {
         INACTIVE, LEFT_ACTIVE, RIGHT_ACTIVE, BOTH_ACTIVE
     }
@@ -28,10 +22,6 @@ public class DepositScannerClientHandler {
 
     private static State state = new State();
 
-    public static Mode getMode() {
-        return state.mode;
-    }
-
     public static AntennaStatus getAntennaStatus() {
         return state.antennaStatus;
     }
@@ -40,35 +30,33 @@ public class DepositScannerClientHandler {
         return state.depProximity;
     }
 
-    public static void toggle() {
-        if (state.mode == Mode.IDLE) {
-            state.mode = Mode.ACTIVE;
-        } else {
-            state.mode = Mode.IDLE;
-            onIdle();
-        }
+    public static boolean isTracking() {
+        return state.isTracking;
+    }
+
+    public static void cancelTracking() {
+        var p = Minecraft.getInstance().player;
+        if (p == null) return;
+        if (!state.isTracking) return;
+        AllSoundEvents.CONTROLLER_CLICK.playAt(p.level(), p.blockPosition(), 1f, .5f, true);
+        state.isTracking = false;
     }
 
     public static void discoverDeposit() {
-        if (state.mode == Mode.IDLE) return;
-        state.isTracking = false; // Will be set to true once the server responds
         var p = Minecraft.getInstance().player;
-        if (p != null)
-            AllSoundEvents.FWOOMP.playAt(p.level(), p.blockPosition(), 1f, 2f, true);
-
+        if (p == null) return;
+        AllSoundEvents.CONTROLLER_CLICK.playAt(p.level(), p.blockPosition(), 1f, .75f, true);
         // Server limits how often it processes discover requests. It will be a no-op if called too soon.
         DepositScannerC2SPacket.send(getSelectedItem().getItem(), RequestType.DISCOVER);
     }
 
     public static void scrollDown() {
-        if (state.mode == Mode.IDLE) return;
         state.selectedIndex++;
         DepositScannerItemRenderer.scrollDown();
         afterScroll();
     }
 
     public static void scrollUp() {
-        if (state.mode == Mode.IDLE) return;
         state.selectedIndex--;
         DepositScannerItemRenderer.scrollUp();
         afterScroll();
@@ -81,10 +69,22 @@ public class DepositScannerClientHandler {
     public static void tick() {
         if (state.trackingStateUpdatePending) processTrackingStateUpdate();
         DepositScannerItemRenderer.tick();
-        refreshMode();
 
-        var p = Minecraft.getInstance().player;
-        if (state.mode != Mode.ACTIVE || p == null) return;
+        var mc = Minecraft.getInstance();
+        if (mc.isPaused()) return;
+
+        var p = mc.player;
+        if (p == null || p.isSpectator()) return;
+
+        // Make sure we are holding the scanner
+        ItemStack heldItem = p.getMainHandItem();
+        if (!RNSContent.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
+            heldItem = p.getOffhandItem();
+            if (!RNSContent.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
+                DepositScannerItemRenderer.resetWheel();
+                return;
+            }
+        }
 
         // Deposit found
         if (state.cachedDepositPos != null) {
@@ -148,7 +148,6 @@ public class DepositScannerClientHandler {
     }
 
     private static void processTrackingStateUpdate() {
-        if (!state.trackingStateUpdatePending || state.mode != Mode.ACTIVE) return;
         var p = Minecraft.getInstance().player;
         if (p == null || !p.level().isClientSide()) return;
 
@@ -166,7 +165,7 @@ public class DepositScannerClientHandler {
             }
             case AWAY -> {
                 // Render as powered for a brief moment
-                DepositScannerItemRenderer.powerFor(2);
+                DepositScannerItemRenderer.powerBriefly();
                 // Play ding
                 int max = MAX_PING_INTERVAL - MIN_PING_INTERVAL;
                 float pitchMultiplier = 1 - ((float) (state.pingInterval - MIN_PING_INTERVAL) / max);
@@ -178,7 +177,6 @@ public class DepositScannerClientHandler {
 
     private static void afterScroll() {
         state.isTracking = false;
-        if (state.mode != Mode.ACTIVE) return;
 
         if (state.cachedDepositPos != null) {
             state.cachedDepositPos = null;
@@ -191,50 +189,7 @@ public class DepositScannerClientHandler {
         }
     }
 
-    private static void refreshMode() {
-        if (state.mode == Mode.IDLE) return;
-
-        Minecraft mc = Minecraft.getInstance();
-        LocalPlayer p = mc.player;
-        if (p == null) return;
-        ItemStack heldItem = p.getMainHandItem();
-
-        if (p.isSpectator()) {
-            state.mode = Mode.IDLE;
-            onIdle();
-            return;
-        }
-
-        if (!RNSContent.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
-            heldItem = p.getOffhandItem();
-            if (!RNSContent.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
-                state.mode = Mode.IDLE;
-                onIdle();
-                return;
-            }
-        }
-
-        if (mc.screen != null) {
-            state.mode = Mode.IDLE;
-            onIdle();
-            return;
-        }
-
-        if (InputConstants.isKeyDown(mc.getWindow()
-                .getWindow(), GLFW.GLFW_KEY_ESCAPE)) {
-            state.mode = Mode.IDLE;
-            onIdle();
-            return;
-        }
-    }
-
-    private static void onIdle() {
-        DepositScannerItemRenderer.resetWheel();
-    }
-
     private static class State {
-        private Mode mode = Mode.IDLE;
-
         private AntennaStatus antennaStatus = AntennaStatus.INACTIVE;
         private int pingInterval = MAX_PING_INTERVAL;
         private DepositProximity depProximity = DepositProximity.AWAY;
