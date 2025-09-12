@@ -42,8 +42,6 @@ public class DepositScannerClientHandler {
 
     public static void toggle() {
         if (state.mode == Mode.IDLE) {
-            state.ticksSinceLastPing = state.pingInterval; // Ping as soon as possible
-            state.needScanRecompute = true;
             state.mode = Mode.ACTIVE;
         } else {
             state.mode = Mode.IDLE;
@@ -51,15 +49,26 @@ public class DepositScannerClientHandler {
         }
     }
 
+    public static void discoverDeposit() {
+        if (state.mode == Mode.IDLE) return;
+        state.isTracking = false; // Will be set to true once the server responds
+        var p = Minecraft.getInstance().player;
+        if (p != null)
+            AllSoundEvents.FWOOMP.playAt(p.level(), p.blockPosition(), 1f, 2f, true);
+
+        // Server limits how often it processes discover requests. It will be a no-op if called too soon.
+        DepositScannerC2SPacket.send(getSelectedItem().getItem(), RequestType.DISCOVER);
+    }
+
     public static void scrollDown() {
-        if (state.mode != Mode.ACTIVE) return;
+        if (state.mode == Mode.IDLE) return;
         state.selectedIndex++;
         DepositScannerItemRenderer.scrollDown();
         afterScroll();
     }
 
     public static void scrollUp() {
-        if (state.mode != Mode.ACTIVE) return;
+        if (state.mode == Mode.IDLE) return;
         state.selectedIndex--;
         DepositScannerItemRenderer.scrollUp();
         afterScroll();
@@ -70,29 +79,33 @@ public class DepositScannerClientHandler {
     }
 
     public static void tick() {
-        if (state.pingResultPending) processPing();
+        if (state.trackingStateUpdatePending) processTrackingStateUpdate();
         DepositScannerItemRenderer.tick();
         refreshMode();
 
         var p = Minecraft.getInstance().player;
         if (state.mode != Mode.ACTIVE || p == null) return;
 
-
+        // Deposit found
         if (state.cachedDepositPos != null) {
             if (Math.sqrt(p.blockPosition().distSqr(state.cachedDepositPos)) <= FOUND_DISTANCE) {
                 // Still within close proximity of the deposit
                 return;
             } else {
-                // Far enough away to start pinging again
+                // Far enough away to reset
                 state.depProximity = DepositProximity.LEFT;
                 state.cachedDepositPos = null;
+                state.isTracking = false;
             }
         }
 
+        if (!state.isTracking) return;
+
+        // Send tracking request to server
         state.ticksSinceLastPing++;
         if (state.ticksSinceLastPing >= state.pingInterval) {
             state.ticksSinceLastPing = 0;
-            pingForItem();
+            DepositScannerC2SPacket.send(getSelectedItem().getItem(), RequestType.TRACK);
         }
     }
 
@@ -105,22 +118,27 @@ public class DepositScannerClientHandler {
         return new ItemStack(allItems.get(normalizedIndex));
     }
 
-    private static void pingForItem() {
-        DepositScannerC2SPacket.send(getSelectedItem().getItem(), state.needScanRecompute);
+    protected static void processDiscoverReply(AntennaStatus status, int interval, @Nullable BlockPos foundDepositCenter) {
+        var p = Minecraft.getInstance().player;
+        if (p == null || !p.level().isClientSide()) return;
+        if (status == AntennaStatus.INACTIVE) return;
+        state.isTracking = true;
+        state.pingInterval = MAX_PING_INTERVAL;
     }
 
-    protected static void processScanReply(AntennaStatus status, int interval, @Nullable BlockPos foundDepositCenter) {
+    protected static void processTrackingReply(AntennaStatus status, int interval, @Nullable BlockPos foundDepositCenter) {
         var p = Minecraft.getInstance().player;
         if (p == null || !p.level().isClientSide()) return;
 
-        // Delay ping processing so it can be synchronized with the renderer
-        state.pingResultPending = true;
         state.antennaStatus = status;
         state.pingInterval = (state.antennaStatus == AntennaStatus.INACTIVE) ? MAX_PING_INTERVAL : interval;
-        state.needScanRecompute = (state.antennaStatus == AntennaStatus.INACTIVE);
         state.cachedDepositPos = foundDepositCenter;
 
+        // Delay ping result processing so it can be synchronized with the renderer
+        state.trackingStateUpdatePending = true;
+
         if (foundDepositCenter != null) {
+            // We close enough to the deposit to consider it found
             state.pingInterval = MIN_PING_INTERVAL;
             state.antennaStatus = AntennaStatus.BOTH_ACTIVE;
             if (state.depProximity == DepositProximity.AWAY) state.depProximity = DepositProximity.FOUND;
@@ -129,14 +147,14 @@ public class DepositScannerClientHandler {
         }
     }
 
-    private static void processPing() {
-        if (!state.pingResultPending) return;
+    private static void processTrackingStateUpdate() {
+        if (!state.trackingStateUpdatePending || state.mode != Mode.ACTIVE) return;
         var p = Minecraft.getInstance().player;
         if (p == null || !p.level().isClientSide()) return;
 
-        state.pingResultPending = false;
+        state.trackingStateUpdatePending = false;
 
-        switch(state.depProximity) {
+        switch (state.depProximity) {
             case FOUND -> {
                 // FWOOMP!
                 AllSoundEvents.FWOOMP.playAt(p.level(), p.blockPosition(), 1f, 2f, true);
@@ -159,9 +177,8 @@ public class DepositScannerClientHandler {
     }
 
     private static void afterScroll() {
+        state.isTracking = false;
         if (state.mode != Mode.ACTIVE) return;
-
-        state.needScanRecompute = true;
 
         if (state.cachedDepositPos != null) {
             state.cachedDepositPos = null;
@@ -212,7 +229,6 @@ public class DepositScannerClientHandler {
     }
 
     private static void onIdle() {
-        state.ticksSinceLastPing = state.pingInterval; // Ping as soon as scanner becomes active
         DepositScannerItemRenderer.resetWheel();
     }
 
@@ -225,7 +241,7 @@ public class DepositScannerClientHandler {
         private int selectedIndex = 0;
         private int ticksSinceLastPing = pingInterval;
         private BlockPos cachedDepositPos = null;
-        private boolean pingResultPending = false;
-        private boolean needScanRecompute = true;
+        private boolean trackingStateUpdatePending = false;
+        private boolean isTracking = false;
     }
 }

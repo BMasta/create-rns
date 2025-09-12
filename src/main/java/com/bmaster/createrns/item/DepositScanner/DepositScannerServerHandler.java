@@ -14,6 +14,10 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 public class DepositScannerServerHandler {
+    public enum RequestType {
+        DISCOVER, TRACK
+    }
+
     public static final int MIN_PING_INTERVAL = 3;
     public static final int MAX_PING_INTERVAL = 60;
     public static final float FOUND_DISTANCE = 5f;
@@ -21,23 +25,26 @@ public class DepositScannerServerHandler {
     private static final int SEARCH_RADIUS_CHUNKS = 100;
     private static final int MAX_BLOCK_DISTANCE = SEARCH_RADIUS_CHUNKS * 16;
 
-    public static void processScanRequest(ServerPlayer sp, Item yield, boolean recompute) {
+    public static void processScanRequest(ServerPlayer sp, Item icon, RequestType rt) {
         if (!(sp.level() instanceof ServerLevel sl)) return;
         var depIdxOpt = IDepositIndex.fromLevel(sl).resolve();
         if (depIdxOpt.isEmpty()) {
             CreateRNS.LOGGER.error("Deposit index is not present on level {}", sl.dimension());
-            DepositScannerS2CPacket.send(sp, AntennaStatus.INACTIVE, 0, null);
+            DepositScannerS2CPacket.send(sp, AntennaStatus.INACTIVE, 0, null, rt);
             return;
         }
         var depIdx = depIdxOpt.get();
 
-        var structKey = DepositSpecLookup.getStructureKey(sl.registryAccess(), yield);
-        var depPos = depIdx.getNearest(structKey, sp, SEARCH_RADIUS_CHUNKS, !recompute);
-        var state = getScannerState(sp, depPos);
+        var structKey = DepositSpecLookup.getStructureKey(sl.registryAccess(), icon);
+        var nearest = switch (rt) {
+            case DISCOVER -> depIdx.getNearest(structKey, sp, SEARCH_RADIUS_CHUNKS);
+            case TRACK -> depIdx.getNearestCached(structKey, sp, SEARCH_RADIUS_CHUNKS);
+        };
 
+        var state = getScannerState(sp, nearest);
         if (state.foundDepositCenter != null) depIdx.markAsFound(state.foundDepositCenter);
 
-        DepositScannerS2CPacket.send(sp, state.antennaStatus, state.interval, state.foundDepositCenter);
+        DepositScannerS2CPacket.send(sp, state.antennaStatus, state.interval, state.foundDepositCenter, rt);
     }
 
     private static ScannerState getScannerState(ServerPlayer sp, BlockPos targetPos) {

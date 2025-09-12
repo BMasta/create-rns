@@ -11,8 +11,9 @@ import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.Nullable;
 
 public interface IDepositIndex {
-    @Nullable BlockPos getNearest(ResourceKey<Structure> depositKey, ServerPlayer sp, int searchRadiusChunks,
-                                  boolean knownOnly);
+    @Nullable BlockPos getNearest(ResourceKey<Structure> depositKey, ServerPlayer sp, int searchRadiusChunks);
+
+    @Nullable BlockPos getNearestCached(ResourceKey<Structure> depositKey, ServerPlayer sp, int searchRadiusChunks);
 
     void add(ResourceKey<Structure> depositKey, StructureStart ss, ServerLevel sl);
 
