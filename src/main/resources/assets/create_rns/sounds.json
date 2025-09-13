@@ -1,0 +1,95 @@
+{
+  "deposit_found": {
+    "subtitle": "subtitle.create_rns.deposit_found",
+    "sounds": [
+      {
+        "name": "create:fwoomp",
+        "type": "event",
+        "volume": 1.0,
+        "pitch": 2.0
+      }
+    ]
+  },
+  "scanner_scroll": {
+    "replace": false,
+    "subtitle": "subtitle.create_rns.scanner_scroll",
+    "sounds": [
+      {
+        "name": "create:scroll_value",
+        "type": "event",
+        "volume": 0.3,
+        "pitch": 2.0
+      }
+    ]
+  },
+  "scanner_discovery_ping": {
+    "replace": false,
+    "subtitle": "subtitle.create_rns.scanner_discovery_ping",
+    "sounds": [
+      {
+        "name": "create:desk_bell",
+        "type": "event",
+        "volume": 0.3,
+        "pitch": 1.0
+      }
+    ]
+  },
+  "scanner_discovery_ping_compounded_1": {
+    "replace": false,
+    "sounds": [
+      {
+        "name": "create:desk_bell",
+        "type": "event",
+        "volume": 0.3,
+        "pitch": 1.5
+      }
+    ]
+  },
+  "scanner_discovery_success": {
+    "replace": false,
+    "subtitle": "subtitle.create_rns.scanner_discovery_success",
+    "sounds": [
+      {
+        "name": "minecraft:block.amethyst_block.chime",
+        "type": "event",
+        "volume": 1.0,
+        "pitch": 1.1
+      }
+    ]
+  },
+  "scanner_tracking_ping": {
+    "replace": false,
+    "subtitle": "subtitle.create_rns.scanner_tracking_ping",
+    "sounds": [
+      {
+        "name": "create:confirm_2",
+        "type": "event",
+        "volume": 0.8,
+        "pitch": 1.0
+      }
+    ]
+  },
+  "scanner_tracking_cancel": {
+    "replace": false,
+    "subtitle": "subtitle.create_rns.scanner_tracking_cancel",
+    "sounds": [
+      {
+        "name": "create:scroll_value",
+        "type": "event",
+        "volume": 1.25,
+        "pitch": 1.5
+      }
+    ]
+  },
+  "scanner_tracking_cancel_compounded_1": {
+    "replace": false,
+    "sounds": [
+      {
+        "name": "minecraft:entity.item_frame.rotate_item",
+        "type": "event",
+        "volume": 0.4,
+        "pitch": 2.0
+      }
+    ]
+  }
+}

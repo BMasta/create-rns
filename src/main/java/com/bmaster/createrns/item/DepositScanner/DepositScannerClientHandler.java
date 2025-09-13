@@ -2,7 +2,7 @@ package com.bmaster.createrns.item.DepositScanner;
 
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
-import com.simibubi.create.AllSoundEvents;
+import com.bmaster.createrns.RNSSoundEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -38,16 +38,16 @@ public class DepositScannerClientHandler {
         var p = Minecraft.getInstance().player;
         if (p == null) return;
         if (!state.isTracking) return;
-        AllSoundEvents.CONTROLLER_CLICK.playAt(p.level(), p.blockPosition(), 1f, .5f, true);
+        RNSSoundEvents.SCANNER_TRACKING_CANCEL.playInHand(p.level(), p.blockPosition());
         state.isTracking = false;
     }
 
     public static void discoverDeposit() {
         var p = Minecraft.getInstance().player;
         if (p == null) return;
-        AllSoundEvents.CONTROLLER_CLICK.playAt(p.level(), p.blockPosition(), 1f, .75f, true);
         // Server limits how often it processes discover requests. It will be a no-op if called too soon.
         DepositScannerC2SPacket.send(getSelectedItem().getItem(), RequestType.DISCOVER);
+        RNSSoundEvents.SCANNER_DISCOVERY_PING.playInHand(p.level(), p.blockPosition());
     }
 
     public static void scrollDown() {
@@ -118,20 +118,28 @@ public class DepositScannerClientHandler {
         return new ItemStack(allItems.get(normalizedIndex));
     }
 
-    protected static void processDiscoverReply(AntennaStatus status, int interval, @Nullable BlockPos foundDepositCenter) {
+    protected static void processDiscoverReply(AntennaStatus status) {
         var p = Minecraft.getInstance().player;
-        if (p == null || !p.level().isClientSide()) return;
-        if (status == AntennaStatus.INACTIVE) return;
-        state.isTracking = true;
+        if (p == null) return;
+        state.isTracking = status != AntennaStatus.INACTIVE;
         state.pingInterval = MAX_PING_INTERVAL;
+        state.trackingStateUpdatePending = false;
+
+        if (state.isTracking) {
+            RNSSoundEvents.SCANNER_DISCOVERY_SUCCESS.playInHand(p.level(), p.blockPosition());
+        }
     }
 
     protected static void processTrackingReply(AntennaStatus status, int interval, @Nullable BlockPos foundDepositCenter) {
         var p = Minecraft.getInstance().player;
         if (p == null || !p.level().isClientSide()) return;
+        if (status == AntennaStatus.INACTIVE) {
+            state.isTracking = false;
+            return;
+        }
 
         state.antennaStatus = status;
-        state.pingInterval = (state.antennaStatus == AntennaStatus.INACTIVE) ? MAX_PING_INTERVAL : interval;
+        state.pingInterval = interval;
         state.cachedDepositPos = foundDepositCenter;
 
         // Delay ping result processing so it can be synchronized with the renderer
@@ -156,7 +164,7 @@ public class DepositScannerClientHandler {
         switch (state.depProximity) {
             case FOUND -> {
                 // FWOOMP!
-                AllSoundEvents.FWOOMP.playAt(p.level(), p.blockPosition(), 1f, 2f, true);
+                RNSSoundEvents.DEPOSIT_FOUND.playInHand(p.level(), p.blockPosition());
                 state.depProximity = DepositProximity.NEAR;
             }
             case LEFT -> {
@@ -169,7 +177,7 @@ public class DepositScannerClientHandler {
                 // Play ding
                 int max = MAX_PING_INTERVAL - MIN_PING_INTERVAL;
                 float pitchMultiplier = 1 - ((float) (state.pingInterval - MIN_PING_INTERVAL) / max);
-                AllSoundEvents.CONFIRM_2.playAt(p.level(), p.blockPosition(), 1f,
+                RNSSoundEvents.SCANNER_TRACKING_PING.playInHand(p.level(), p.blockPosition(), 1f,
                         0.8f + 0.4f * pitchMultiplier, true);
             }
         }
@@ -185,7 +193,7 @@ public class DepositScannerClientHandler {
 
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null) {
-            AllSoundEvents.SCROLL_VALUE.playAt(player.level(), player.blockPosition(), 1f, 1f, true);
+            RNSSoundEvents.SCANNER_SCROLL.playInHand(player.level(), player.blockPosition());
         }
     }
 

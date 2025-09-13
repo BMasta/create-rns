@@ -1,11 +1,11 @@
 package com.bmaster.createrns;
 
+import com.bmaster.createrns.event.ModEvents;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerChannel;
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -28,8 +28,8 @@ public class CreateRNS {
         RNSRecipeTypes.register();
         RNSRecipes.register();
 
-        // Register the commonSetup method for mod loading
         modEventBus.addListener(this::commonSetup);
+        modEventBus.addListener(RNSSoundEvents::register);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);

@@ -42,7 +42,12 @@ public class DepositScannerServerHandler {
             case TRACK -> depIdx.getNearestCached(structKey, sp, SEARCH_RADIUS_CHUNKS);
         };
 
-        var state = getScannerState(sp, nearest);
+        ScannerState state;
+        if (nearest == null) {
+            state = new ScannerState(AntennaStatus.INACTIVE, MAX_PING_INTERVAL, null);
+        } else {
+            state = getScannerState(sp, nearest);
+        }
         if (state.foundDepositCenter != null) depIdx.markAsFound(state.foundDepositCenter);
 
         DepositScannerS2CPacket.send(sp, state.antennaStatus, state.interval, state.foundDepositCenter, rt);
@@ -50,10 +55,7 @@ public class DepositScannerServerHandler {
 
     private static ScannerState getScannerState(ServerPlayer sp, BlockPos targetPos) {
         var playerPos = sp.blockPosition();
-        var distance = Math.sqrt(playerPos.distSqr(targetPos));
-        if (distance > MAX_BLOCK_DISTANCE) {
-            return new ScannerState(AntennaStatus.INACTIVE, 0, null);
-        }
+        var distance = Math.min(MAX_BLOCK_DISTANCE, Math.sqrt(playerPos.distSqr(targetPos)));
 
         AntennaStatus status;
         int interval;

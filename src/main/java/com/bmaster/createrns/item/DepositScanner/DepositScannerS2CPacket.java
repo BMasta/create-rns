@@ -39,10 +39,8 @@ public record DepositScannerS2CPacket(AntennaStatus antennaStatus, int interval,
             var mc = Minecraft.getInstance();
             if (mc.player == null || !mc.player.level().isClientSide()) return;
             switch (p.rt) {
-                case DISCOVER -> DepositScannerClientHandler.processDiscoverReply(
-                        p.antennaStatus, p.interval, p.foundDepositCenter);
-                case TRACK -> DepositScannerClientHandler.processTrackingReply(
-                        p.antennaStatus, p.interval, p.foundDepositCenter);
+                case DISCOVER -> DepositScannerClientHandler.processDiscoverReply(p.antennaStatus);
+                case TRACK -> DepositScannerClientHandler.processTrackingReply(p.antennaStatus, p.interval, p.foundDepositCenter);
             }
         });
         ctx.setPacketHandled(true);
