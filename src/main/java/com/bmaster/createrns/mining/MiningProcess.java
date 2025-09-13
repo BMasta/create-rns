@@ -50,7 +50,7 @@ public class MiningProcess {
         var yieldCounts = depositBlocks.stream()
                 .map(bp -> l.getBlockState(bp).getBlock())
                 .filter(db -> db.defaultBlockState().is(RNSTags.Block.DEPOSIT_BLOCKS))
-                .map(MiningRecipeLookup::getYield)
+                .map(db -> MiningRecipeLookup.getYield(l, miningLevel, db))
                 .filter(Objects::nonNull)
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 

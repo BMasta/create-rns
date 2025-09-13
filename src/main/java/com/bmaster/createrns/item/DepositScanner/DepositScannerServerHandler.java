@@ -36,7 +36,7 @@ public class DepositScannerServerHandler {
         }
         var depIdx = depIdxOpt.get();
 
-        var structKey = DepositSpecLookup.getStructureKey(icon);
+        var structKey = DepositSpecLookup.getStructureKey(sl.registryAccess(), icon);
         var nearest = switch (rt) {
             case DISCOVER -> depIdx.getNearest(structKey, sp, SEARCH_RADIUS_CHUNKS);
             case TRACK -> depIdx.getNearestCached(structKey, sp, SEARCH_RADIUS_CHUNKS);

@@ -76,7 +76,7 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
 
         var ml = getMiningLevel();
         reservedDepositBlocks = getDepositVein().stream()
-                .filter(pos -> MiningRecipeLookup.isDepositMineable(level.getBlockState(pos).getBlock(), ml))
+                .filter(pos -> MiningRecipeLookup.isDepositMineable(level, level.getBlockState(pos).getBlock(), ml))
                 .collect(Collectors.toSet());
 
         // Exclude deposit blocks reserved by nearby mining entities

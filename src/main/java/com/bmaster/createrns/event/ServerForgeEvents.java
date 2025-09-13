@@ -7,7 +7,6 @@ import com.bmaster.createrns.deposit.capability.IDepositIndex;
 import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler;
 import com.bmaster.createrns.mining.MiningAreaOutlineRenderer;
-import com.bmaster.createrns.mining.MiningRecipeLookup;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -20,7 +19,6 @@ import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.level.ChunkEvent;
-import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -53,12 +51,5 @@ public class ServerForgeEvents {
                     .getResourceKey(start.getStructure())
                     .ifPresent(structKey -> depIdx.add(structKey, start, sl));
         }
-    }
-
-    @SubscribeEvent
-    public static void onServerAboutToStart(ServerAboutToStartEvent e) {
-        var server = e.getServer();
-        MiningRecipeLookup.build(server.getRecipeManager());
-        DepositSpecLookup.build(server.registryAccess());
     }
 }

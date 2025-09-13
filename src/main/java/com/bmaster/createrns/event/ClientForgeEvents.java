@@ -2,12 +2,9 @@ package com.bmaster.createrns.event;
 
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.deposit.spec.DepositSpec;
-import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
 import com.bmaster.createrns.mining.MiningAreaOutlineRenderer;
 import com.bmaster.createrns.deposit.capability.*;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler;
-import com.bmaster.createrns.mining.MiningRecipeLookup;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
@@ -46,14 +43,6 @@ public class ClientForgeEvents {
                 e.setCanceled(true);
             }
         }
-    }
-
-    @SubscribeEvent
-    public static void onClientLogin(ClientPlayerNetworkEvent.LoggingIn e) {
-        var conn = net.minecraft.client.Minecraft.getInstance().getConnection();
-        if (conn == null) return;
-        MiningRecipeLookup.build(conn.getRecipeManager());
-        DepositSpecLookup.build(conn.registryAccess());
     }
 
     @SubscribeEvent
