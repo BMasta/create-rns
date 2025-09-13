@@ -1,11 +1,14 @@
 package com.bmaster.createrns.item.DepositScanner;
 
 import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.deposit.capability.DepositIndex;
+import com.bmaster.createrns.deposit.spec.DepositSpec;
 import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
 import com.bmaster.createrns.RNSSoundEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
@@ -185,6 +188,9 @@ public class DepositScannerClientHandler {
     }
 
     private static void afterScroll() {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) return;
+
         state.isTracking = false;
 
         if (state.cachedDepositPos != null) {
@@ -192,10 +198,11 @@ public class DepositScannerClientHandler {
             state.depProximity = DepositProximity.LEFT;
         }
 
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null) {
-            RNSSoundEvents.SCANNER_SCROLL.playInHand(player.level(), player.blockPosition());
-        }
+        RNSSoundEvents.SCANNER_SCROLL.playInHand(player.level(), player.blockPosition());
+
+        var dRL = DepositSpecLookup.getStructureKey(player.level().registryAccess(), getSelectedItem().getItem()).location();
+        var dName = Component.translatable(dRL.getNamespace() + ".structure." + dRL.getPath());
+        player.displayClientMessage(dName, true);
     }
 
     private static class State {

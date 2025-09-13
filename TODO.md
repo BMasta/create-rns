@@ -1,8 +1,5 @@
 # TO DO
 - [ ] Polish
-  - [ ] Add structure tag for all deposit structures.
-  - [ ] Display client helper message with name of selected deposit when scrolling deposit scanner options.
-    - [ ] Add lang entries for deposit structure names, add logic to translate structure id to structure name id.
   - [ ] Scale down deposit scanner item a bit, make it float around (possibly visually respond to walking speed?).
   - [ ] Build lookups on initialization. Investigate other reasons for a small hitch when opening inventory for the first time.
   - [ ] Add separate config variables to control individual miner speed.
