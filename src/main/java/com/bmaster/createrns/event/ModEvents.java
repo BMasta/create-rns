@@ -6,6 +6,7 @@ import com.bmaster.createrns.RNSRecipes;
 import com.bmaster.createrns.data.pack.DynamicDatapack;
 import com.bmaster.createrns.deposit.spec.DepositSpec;
 import com.bmaster.createrns.deposit.capability.IDepositIndex;
+import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraft.server.packs.PackType;

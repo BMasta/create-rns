@@ -114,9 +114,7 @@ public class DepositScannerClientHandler {
     }
 
     public static ItemStack getSelectedItem() {
-        var l = Minecraft.getInstance().level;
-        if (l == null) return ItemStack.EMPTY;
-        var allItems = DepositSpecLookup.getAllScannerIcons(l.registryAccess());
+        var allItems = DepositSpecLookup.getAllScannerIcons();
         int size = allItems.size();
         int normalizedIndex = (state.selectedIndex % size + size) % size;
         return new ItemStack(allItems.get(normalizedIndex));
@@ -200,7 +198,7 @@ public class DepositScannerClientHandler {
 
         RNSSoundEvents.SCANNER_SCROLL.playInHand(player.level(), player.blockPosition());
 
-        var dRL = DepositSpecLookup.getStructureKey(player.level().registryAccess(), getSelectedItem().getItem()).location();
+        var dRL = DepositSpecLookup.getStructureKey(getSelectedItem().getItem()).location();
         var dName = Component.translatable(dRL.getNamespace() + ".structure." + dRL.getPath());
         player.displayClientMessage(dName, true);
     }

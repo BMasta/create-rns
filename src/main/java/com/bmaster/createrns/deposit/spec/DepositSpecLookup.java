@@ -17,11 +17,6 @@ public class DepositSpecLookup {
     private static List<Item> allIcons;
     private static Set<ResourceKey<Structure>> allStructureKeys;
 
-    public static ResourceKey<Structure> getStructureKey(RegistryAccess access, Item scannerIconItem) {
-        if (scannerIconToSpec == null) build(access);
-        return ResourceKey.create(Registries.STRUCTURE, scannerIconToSpec.get(scannerIconItem).structure());
-    }
-
     public static void build(RegistryAccess access) {
         var regEntries = access.registryOrThrow(DepositSpec.REGISTRY_KEY).entrySet();
 
@@ -50,13 +45,18 @@ public class DepositSpecLookup {
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-    public static List<Item> getAllScannerIcons(RegistryAccess access) {
-        if (allIcons == null) build(access);
+    public static List<Item> getAllScannerIcons() {
+        if (allIcons == null) throw new IllegalStateException("Deposit spec lookup is not built");
         return allIcons;
     }
 
+    public static ResourceKey<Structure> getStructureKey(Item scannerIconItem) {
+        if (scannerIconToSpec == null) throw new IllegalStateException("Deposit spec lookup is not built");
+        return ResourceKey.create(Registries.STRUCTURE, scannerIconToSpec.get(scannerIconItem).structure());
+    }
+
     public static Predicate<Structure> isDeposit(RegistryAccess access) {
-        if (allStructureKeys == null) build(access);
+        if (allStructureKeys == null) throw new IllegalStateException("Deposit spec lookup is not built");
         var reg = access.registryOrThrow(Registries.STRUCTURE);
 
         return (Structure checkedStructure) ->

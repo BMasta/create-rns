@@ -1,7 +1,6 @@
 # TO DO
 - [ ] Polish
   - [ ] Scale down deposit scanner item a bit, make it float around (possibly visually respond to walking speed?).
-  - [ ] Build lookups on initialization. Investigate other reasons for a small hitch when opening inventory for the first time.
   - [ ] Add separate config variables to control individual miner speed.
 - [ ] Write datagen for deposit structures instead of using a dynamic pack.
 - [ ] Implement a create mod bearing for a multiblock contraption that acts as a drill.
