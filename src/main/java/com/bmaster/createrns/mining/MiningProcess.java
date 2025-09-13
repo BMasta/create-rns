@@ -25,9 +25,9 @@ public class MiningProcess {
     public final MiningLevel miningLevel;
     public final Set<SingleTypeProcess> innerProcesses = new ObjectOpenHashSet<>();
 
-    public MiningProcess(Level l, MiningLevel ml, Set<BlockPos> depositBlocks) {
+    public MiningProcess(Level l, MiningLevel ml, Set<BlockPos> depositBlocks, int baseProgress) {
         miningLevel = ml;
-        setYields(l, depositBlocks);
+        setYields(l, depositBlocks, baseProgress);
     }
 
     public boolean isPossible() {
@@ -46,7 +46,7 @@ public class MiningProcess {
                 .collect(Collectors.toSet());
     }
 
-    public void setYields(Level l, Set<BlockPos> depositBlocks) {
+    public void setYields(Level l, Set<BlockPos> depositBlocks, int baseProgress) {
         var yieldCounts = depositBlocks.stream()
                 .map(bp -> l.getBlockState(bp).getBlock())
                 .filter(db -> db.defaultBlockState().is(RNSTags.Block.DEPOSIT_BLOCKS))
@@ -55,7 +55,6 @@ public class MiningProcess {
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
         innerProcesses.clear();
-        var baseProgress = ServerConfig.minerBaseProgress;
         for (var e : yieldCounts.entrySet()) {
             var depBlockCount = e.getValue().intValue();
             innerProcesses.add(new SingleTypeProcess(e.getKey(), baseProgress / depBlockCount));

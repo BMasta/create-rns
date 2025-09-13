@@ -12,15 +12,21 @@ public class ServerConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
     // ------------------------------------------------ Config values ----------------------------------------------- //
-    private static final ForgeConfigSpec.ConfigValue<Float> MINER_SPEED_CV = BUILDER
-            .comment(" How many mining operations a miner can complete in one hour\n" +
+    private static final ForgeConfigSpec.ConfigValue<Float> MINER_MK1_SPEED_CV = BUILDER
+            .comment(" How many mining operations a miner mk1 can complete in one hour\n" +
+                    " at 256 RPM, with one deposit block claimed, and no deposit multipliers")
+            .define("minerSpeed", 36f);
+
+    private static final ForgeConfigSpec.ConfigValue<Float> MINER_MK2_SPEED_CV = BUILDER
+            .comment(" How many mining operations a miner mk2 can complete in one hour\n" +
                     " at 256 RPM, with one deposit block claimed, and no deposit multipliers")
             .define("minerSpeed", 36f);
 
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
     // ------------------------------------------------ Baked values ------------------------------------------------ //
-    public static int minerBaseProgress;
+    public static int minerMk1BaseProgress;
+    public static int minerMk2BaseProgress;
 
     // -------------------------------------------------------------------------------------------------------------- //
     @SubscribeEvent
@@ -29,6 +35,7 @@ public class ServerConfig {
         if (event.getConfig().getSpec() != ServerConfig.SPEC) return;
 
         var ticksPerHour = 60 * SharedConstants.TICKS_PER_MINUTE;
-        minerBaseProgress = 256 * ticksPerHour / (int) MINER_SPEED_CV.get().floatValue();
+        minerMk1BaseProgress = 256 * ticksPerHour / (int) MINER_MK1_SPEED_CV.get().floatValue();
+        minerMk2BaseProgress = 256 * ticksPerHour / (int) MINER_MK2_SPEED_CV.get().floatValue();
     }
 }

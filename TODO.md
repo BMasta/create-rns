@@ -5,7 +5,7 @@
 - [ ] Write datagen for deposit structures instead of using a dynamic pack.
 - [ ] Implement a create mod bearing for a multiblock contraption that acts as a drill.
   - [ ] Where does the yield go? If it goes into the contraption inventory, the item extraction becomes awkward and unnatural.
-  - [ ] How would the drill look? What shape? Which blocks would it be built from?
+  - [ ] How would the drill look? W****hat shape? Which blocks would it be built from?
 - [ ] Integration with map mods.
   - [ ] Record visited deposits per-player into persistent storage.
   - [ ] Show scanned deposits as icons on the map.

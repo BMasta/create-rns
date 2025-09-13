@@ -1,6 +1,7 @@
 package com.bmaster.createrns.mining.miner.impl;
 
 import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.bmaster.createrns.mining.MiningLevel;
 import com.bmaster.createrns.mining.miner.MinerBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -38,5 +39,10 @@ public class MinerMk1BlockEntity extends MinerBlockEntity {
     @Override
     public MiningLevel getMiningLevel() {
         return MiningLevel.BASIC;
+    }
+
+    @Override
+    public int getBaseProgress() {
+        return ServerConfig.minerMk1BaseProgress;
     }
 }
