@@ -1,7 +1,7 @@
 package com.bmaster.createrns.item.DepositScanner;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.datagen.pack.json.DepositStructureSet;
+import com.bmaster.createrns.data.pack.json.DepositStructureSet;
 import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
 import com.bmaster.createrns.deposit.capability.IDepositIndex;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler.AntennaStatus;

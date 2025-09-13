@@ -17,6 +17,10 @@ public class RNSSoundEvents {
             .category(SoundSource.PLAYERS)
             .build();
 
+    public static RNSSoundEntry SCANNER_CLICK = create("scanner_click", 2)
+            .category(SoundSource.PLAYERS)
+            .build();
+
     public static RNSSoundEntry SCANNER_DISCOVERY_PING = create("scanner_discovery_ping", 2)
             .category(SoundSource.PLAYERS)
             .build();
@@ -26,10 +30,6 @@ public class RNSSoundEvents {
             .build();
 
     public static RNSSoundEntry SCANNER_TRACKING_PING = create("scanner_tracking_ping")
-            .category(SoundSource.PLAYERS)
-            .build();
-
-    public static RNSSoundEntry SCANNER_TRACKING_CANCEL = create("scanner_tracking_cancel", 2)
             .category(SoundSource.PLAYERS)
             .build();
 

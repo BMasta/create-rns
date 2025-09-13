@@ -3,7 +3,7 @@ package com.bmaster.createrns.event;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.RNSRecipes;
-import com.bmaster.createrns.datagen.pack.DynamicDatapack;
+import com.bmaster.createrns.data.pack.DynamicDatapack;
 import com.bmaster.createrns.deposit.spec.DepositSpec;
 import com.bmaster.createrns.deposit.capability.IDepositIndex;
 import net.minecraft.data.DataGenerator;
@@ -35,6 +35,7 @@ public class ModEvents {
         if (e.getPackType() != PackType.SERVER_DATA) return;
         DynamicDatapack.addDepositBiomeTag();
         DynamicDatapack.addVanillaDeposits();
+        DynamicDatapack.addDepositSetAndTag();
         e.addRepositorySource(consumer -> consumer.accept(DynamicDatapack.finish()));
     }
 

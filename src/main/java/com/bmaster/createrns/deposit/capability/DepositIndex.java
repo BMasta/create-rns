@@ -1,7 +1,7 @@
 package com.bmaster.createrns.deposit.capability;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.datagen.pack.json.DepositStructureSet;
+import com.bmaster.createrns.data.pack.json.DepositStructureSet;
 import com.bmaster.createrns.util.Utils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;

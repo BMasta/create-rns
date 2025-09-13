@@ -1,4 +1,4 @@
-package com.bmaster.createrns.datagen.pack.json;
+package com.bmaster.createrns.data.pack.json;
 
 import com.google.gson.annotations.SerializedName;
 

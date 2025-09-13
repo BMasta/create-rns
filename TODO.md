@@ -1,8 +1,6 @@
 # TO DO
 - [ ] Polish
   - [ ] Add structure tag for all deposit structures.
-  - [ ] Make deposit scanner wheel horizontal and centered.
-  - [ ] Do not scan for ungenerated deposits further than closest generated deposit.
   - [ ] Display client helper message with name of selected deposit when scrolling deposit scanner options.
     - [ ] Add lang entries for deposit structure names, add logic to translate structure id to structure name id.
   - [ ] Scale down deposit scanner item a bit, make it float around (possibly visually respond to walking speed?).

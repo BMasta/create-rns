@@ -22,6 +22,29 @@
       }
     ]
   },
+  "scanner_click": {
+    "replace": false,
+    "subtitle": "subtitle.create_rns.scanner_click",
+    "sounds": [
+      {
+        "name": "create:scroll_value",
+        "type": "event",
+        "volume": 1.25,
+        "pitch": 1.5
+      }
+    ]
+  },
+  "scanner_click_compounded_1": {
+    "replace": false,
+    "sounds": [
+      {
+        "name": "minecraft:entity.item_frame.rotate_item",
+        "type": "event",
+        "volume": 0.4,
+        "pitch": 2.0
+      }
+    ]
+  },
   "scanner_discovery_ping": {
     "replace": false,
     "subtitle": "subtitle.create_rns.scanner_discovery_ping",
@@ -66,29 +89,6 @@
         "type": "event",
         "volume": 0.8,
         "pitch": 1.0
-      }
-    ]
-  },
-  "scanner_tracking_cancel": {
-    "replace": false,
-    "subtitle": "subtitle.create_rns.scanner_tracking_cancel",
-    "sounds": [
-      {
-        "name": "create:scroll_value",
-        "type": "event",
-        "volume": 1.25,
-        "pitch": 1.5
-      }
-    ]
-  },
-  "scanner_tracking_cancel_compounded_1": {
-    "replace": false,
-    "sounds": [
-      {
-        "name": "minecraft:entity.item_frame.rotate_item",
-        "type": "event",
-        "volume": 0.4,
-        "pitch": 2.0
       }
     ]
   }

@@ -1,19 +1,16 @@
-package com.bmaster.createrns.datagen.pack;
+package com.bmaster.createrns.data.pack;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.datagen.pack.json.*;
+import com.bmaster.createrns.data.pack.json.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.simibubi.create.Create;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.Registries;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
-import net.minecraft.tags.TagKey;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -24,7 +21,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class DynamicDatapack {
@@ -40,6 +36,7 @@ public class DynamicDatapack {
     private static final String STRUCT_PATH = "%s/worldgen/structure/deposit_%s.json";
     private static final String STRUCT_SET_PATH = "%s/worldgen/structure_set/deposits.json";
     private static final String HAS_DEPOSIT_TAG_PATH = "%s/tags/worldgen/biome/has_deposit.json";
+    private static final String DEPOSIT_STRUCTURE_TAG_PATH = "%s/tags/worldgen/structure/deposits.json";
 
     private static final String HAS_DEPOSIT_TAG = "#%s:has_deposit";
     private static final String NOOP_PROCESSOR = "minecraft:empty";
@@ -49,9 +46,17 @@ public class DynamicDatapack {
     private static final DynamicDatapackResources depositsResources = new DynamicDatapackResources(
             "%s:dynamic_data".formatted(CreateRNS.MOD_ID));
 
-    public static void add(DepositSet dSet) {
-        dSet.addToResources();
-    }
+    private static final Set<Tuple<ResourceLocation, Integer>> bulkNBTPool = Set.of(
+            new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium"), 70),
+            new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_large"), 30)
+    );
+    private static final Set<Tuple<ResourceLocation, Integer>> preciousNBTPool = Set.of(
+            new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_small"), 70),
+            new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium"), 28),
+            new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_large"), 2)
+    );
+
+    private static final ObjectOpenHashSet<Deposit> deposits = new ObjectOpenHashSet<>();
 
     public static void addDepositBiomeTag() {
         var path = HAS_DEPOSIT_TAG_PATH.formatted(CreateRNS.MOD_ID);
@@ -59,29 +64,23 @@ public class DynamicDatapack {
     }
 
     public static void addVanillaDeposits() {
-        var bulkNBTPool = Set.of(
-                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium"), 70),
-                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_large"), 30)
-        );
-        var preciousNBTPool = Set.of(
-                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_small"), 70),
-                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium"), 28),
-                new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_large"), 2)
-        );
+        deposits.add(new Deposit("iron", RNSContent.IRON_DEPOSIT_BLOCK.get(), bulkNBTPool, 8, 10));
+        deposits.add(new Deposit("copper", RNSContent.COPPER_DEPOSIT_BLOCK.get(), bulkNBTPool, 8, 5));
+        deposits.add(new Deposit("zinc", RNSContent.ZINC_DEPOSIT_BLOCK.get(), preciousNBTPool, 8, 2));
+        deposits.add(new Deposit("gold", RNSContent.GOLD_DEPOSIT_BLOCK.get(), preciousNBTPool, 12, 2));
+        deposits.add(new Deposit("redstone", RNSContent.REDSTONE_DEPOSIT_BLOCK.get(), preciousNBTPool, 12, 2));
+    }
 
-        var mediumNBT = ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium");
-        var ironDeposit = new Deposit("iron", RNSContent.IRON_DEPOSIT_BLOCK.get(),
-                bulkNBTPool, 8, 10);
-        var copperDeposit = new Deposit("copper", RNSContent.COPPER_DEPOSIT_BLOCK.get(),
-                bulkNBTPool, 8, 5);
-        var zincDeposit = new Deposit("zinc", RNSContent.ZINC_DEPOSIT_BLOCK.get(),
-                preciousNBTPool, 8, 2);
-        var goldDeposit = new Deposit("gold", RNSContent.GOLD_DEPOSIT_BLOCK.get(),
-                preciousNBTPool, 12, 2);
-        var redstoneDeposit = new Deposit("redstone", RNSContent.REDSTONE_DEPOSIT_BLOCK.get(),
-                preciousNBTPool, 12, 2);
-        var dSet = new DepositSet(Set.of(ironDeposit, copperDeposit, zincDeposit, goldDeposit, redstoneDeposit));
-        add(dSet);
+    public static void addDepositSetAndTag() {
+        // Tag all added deposits and add tag to datapack
+        var path = DEPOSIT_STRUCTURE_TAG_PATH.formatted(CreateRNS.MOD_ID);
+        var tag = new DepositStructureTag(deposits.stream()
+                .map(d -> STRUCT_RL.apply(d.name).toString())
+                .toList());
+        depositsResources.putJson(path, gson.toJsonTree(tag));
+
+        // Add all deposits to a structure set and the structure set to datapack
+        new DepositSet(deposits).addToResources();
     }
 
     public static Pack finish() {
