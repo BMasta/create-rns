@@ -1,8 +1,6 @@
 package com.bmaster.createrns.item.DepositScanner;
 
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.deposit.capability.DepositIndex;
-import com.bmaster.createrns.deposit.spec.DepositSpec;
 import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
 import com.bmaster.createrns.RNSSoundEvents;
 import net.minecraft.client.Minecraft;
@@ -52,6 +50,7 @@ public class DepositScannerClientHandler {
         DepositScannerC2SPacket.send(getSelectedItem().getItem(), RequestType.DISCOVER);
         RNSSoundEvents.SCANNER_CLICK.playInHand(p.level(), p.blockPosition());
         RNSSoundEvents.SCANNER_DISCOVERY_PING.playInHand(p.level(), p.blockPosition());
+        DepositScannerItemRenderer.shakeItem();
     }
 
     public static void scrollDown() {
@@ -126,6 +125,7 @@ public class DepositScannerClientHandler {
         var p = Minecraft.getInstance().player;
         if (p == null) return;
         state.isTracking = status != AntennaStatus.INACTIVE;
+        state.ticksSinceLastPing = 0;
         state.pingInterval = MAX_PING_INTERVAL;
         state.trackingStateUpdatePending = false;
 

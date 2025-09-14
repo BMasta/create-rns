@@ -1,6 +1,7 @@
 package com.bmaster.createrns.item.DepositScanner;
 
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler.DepositProximity;
+import com.bmaster.createrns.util.Utils;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer;
@@ -24,8 +25,12 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
 
+import java.util.Random;
+
 /// A humble rip-off of Create's linked controller
 public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer {
+    private static final PartialModel UNPOWERED = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
+            CreateRNS.MOD_ID, "item/deposit_scanner/unpowered"));
     private static final PartialModel POWERED = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
             CreateRNS.MOD_ID, "item/deposit_scanner/powered"));
     private static final PartialModel ANTENNA_UNPOWERED = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
@@ -35,11 +40,23 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
     public static final PartialModel WHEEL = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
             CreateRNS.MOD_ID, "item/deposit_scanner/wheel"));
 
+    private static final int JITTER_TICKS_PER_SHAKE = 20;
+    private static final float JITTER_SCALE = 0.002f;
+
+    private static final Random rng = new Random();
     private static final LerpedFloat scrollProgress;
+    private static final LerpedFloat ambientItemMovement;
     private static int poweredTicks = 0;
+
+    private static final LerpedFloat itemJitterX;
+    private static final LerpedFloat itemJitterZ;
+    private static int remainingJitterTicks = 0;
 
     static {
         scrollProgress = LerpedFloat.linear().startWithValue(0).chase(0, 0.5f, Chaser.EXP);
+        ambientItemMovement = LerpedFloat.linear().startWithValue(2).chase(4, 0.04f, Chaser.LINEAR);
+        itemJitterX = LerpedFloat.linear().startWithValue(0).chase(0, 2f, Chaser.EXP);
+        itemJitterZ = LerpedFloat.linear().startWithValue(0).chase(0, 2f, Chaser.EXP);
     }
 
     protected static void tick() {
@@ -51,7 +68,22 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
             scrollProgress.updateChaseTarget(scrollProgress.getValue());
         }
 
+        var am = ambientItemMovement.getValue();
+        if (Mth.equal(am,4)) ambientItemMovement.setValue(0);
+
+        if (remainingJitterTicks > 0) {
+            itemJitterX.updateChaseTarget(rng.nextFloat() - 0.5f);
+            itemJitterZ.updateChaseTarget(rng.nextFloat() - 0.5f);
+            remainingJitterTicks--;
+        } else {
+            itemJitterX.updateChaseTarget(0);
+            itemJitterZ.updateChaseTarget(0);
+        }
+
         scrollProgress.tickChaser();
+        ambientItemMovement.tickChaser();
+        itemJitterX.tickChaser();
+        itemJitterZ.tickChaser();
     }
 
     protected static void powerBriefly() {
@@ -64,6 +96,10 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
 
     protected static void scrollDown() {
         scrollProgress.updateChaseTarget(scrollProgress.getChaseTarget() - 90);
+    }
+
+    protected static void shakeItem() {
+        remainingJitterTicks = JITTER_TICKS_PER_SHAKE;
     }
 
     protected static void resetWheel() {
@@ -90,7 +126,7 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
         int handModifier = transformType == ItemDisplayContext.FIRST_PERSON_LEFT_HAND ? -1 : 1;
         float pt = AnimationTickHolder.getPartialTicks();
         var msr = TransformStack.of(ms);
-        boolean active = false;
+        boolean dynamic = false;
 
         ms.pushPose();
 
@@ -117,25 +153,26 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
             msr.rotateZDegrees((-10 - rotateInWhenLookingDown));
             ms.translate((-0.4f + moveOutWhenLookingDown), (7f / 16f + moveDownWhenLookingDown), 0);
 
-            active = true;
+            dynamic = true;
         }
         // Left hand
         else if (transformType == ItemDisplayContext.FIRST_PERSON_LEFT_HAND) {
             msr.translate(-1.5 / 16, 2.5 / 16, (1.25 / 16) * handModifier);
             msr.rotateYDegrees(12 * handModifier);
-            active = true;
+            dynamic = true;
         }
         // Right hand
         else if (transformType == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND) {
             msr.translate(-1.5f / 16, 3f / 16, 2f / 16 * handModifier);
             msr.rotateYDegrees(12 * handModifier);
-            active = true;
+            dynamic = true;
         }
 
-        renderer.render(active ? POWERED.get() : model.getOriginalModel(), light);
-        renderSelectedItem(ms, msr, buf, light, overlay);
+        var dynamic_scanner_base = DepositScannerClientHandler.isTracking() ? POWERED.get() : UNPOWERED.get();
+        renderer.render(dynamic ? dynamic_scanner_base : model.getOriginalModel(), light);
+        renderSelectedItem(ms, msr, buf, light, overlay, pt);
 
-        if (!active) {
+        if (!dynamic) {
             ms.popPose();
             return;
         }
@@ -202,16 +239,24 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
     }
 
     private static void renderSelectedItem(PoseStack ms, PoseTransformStack msr, MultiBufferSource buf,
-                                           int light, int overlay) {
+                                           int light, int overlay, float partialTicks) {
+        float am = ambientItemMovement.getValue(partialTicks);
+        int phase = (am < 2) ? 1 : -1;
+        float amLiftEased = (Utils.easeInOut(am % 2 / 2, 2f) - 0.5f) * 2 * phase;
+        float amRotEased = Utils.easeInOut(1f - Math.abs(am % 2 / 2 - 0.5f) * 2, 1.2f) * phase;
+        float jitterX = itemJitterX.getValue(partialTicks) * JITTER_SCALE * remainingJitterTicks / JITTER_TICKS_PER_SHAKE;
+        float jitterZ = itemJitterZ.getValue(partialTicks) * JITTER_SCALE * remainingJitterTicks / JITTER_TICKS_PER_SHAKE;
+
         float cx = 0;
         float cy = 4f / 16f - 0.5f;
         float cz = 0;
 
         ms.pushPose();
-        ms.translate(cx, cy, cz);
-        ms.scale(0.2f, 0.2f, 0.2f);
+        ms.translate(cx + jitterX, cy + amLiftEased / 96, cz + jitterZ);
+        ms.scale(0.15f, 0.15f, 0.15f);
         msr.rotateXDegrees(-90);
         msr.rotateZDegrees(90);
+        msr.rotateXDegrees(10 * amRotEased);
         Minecraft.getInstance().getItemRenderer().renderStatic(DepositScannerClientHandler.getSelectedItem(),
                 ItemDisplayContext.GUI, light, overlay, ms, buf, null, 0);
         ms.popPose();
