@@ -26,7 +26,6 @@ public class ModEvents {
 
     @SubscribeEvent
     public static void onNewRegistry(DataPackRegistryEvent.NewRegistry e) {
-        CreateRNS.LOGGER.info("Adding DepositSpec registry");
         e.dataPackRegistry(DepositSpec.REGISTRY_KEY, DepositSpec.CODEC, DepositSpec.CODEC);
     }
 

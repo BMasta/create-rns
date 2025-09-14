@@ -169,6 +169,7 @@ public class DepositScannerClientHandler {
             case FOUND -> {
                 // FWOOMP!
                 RNSSoundEvents.DEPOSIT_FOUND.playInHand(p.level(), p.blockPosition());
+                DepositScannerItemRenderer.shakeItem();
                 state.depProximity = DepositProximity.NEAR;
             }
             case LEFT -> {

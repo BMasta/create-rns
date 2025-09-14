@@ -87,17 +87,17 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
         // Cache and return result
         if (closestBP == null) {
             perPlayerCache.put(sp.getUUID(), new CachedData(null, depositKey, sl.getGameTime()));
-            CreateRNS.LOGGER.info("No deposits of target type are recorded");
+            CreateRNS.LOGGER.debug("No deposits of target type are recorded");
             return null;
         }
         if (isOutsideSearchRadius(playerPos, closestBP, searchRadiusChunks)) {
             perPlayerCache.put(sp.getUUID(), new CachedData(closestBP.asLong(), depositKey, sl.getGameTime()));
-            CreateRNS.LOGGER.info("No deposits in scanned area. Closest is at {},{} ({} blocks away)",
+            CreateRNS.LOGGER.debug("No deposits in scanned area. Closest is at {},{} ({} blocks away)",
                     closestBP.getX(), closestBP.getZ(), (int) Math.sqrt(closestDist));
             return null;
         }
         perPlayerCache.put(sp.getUUID(), new CachedData(closestBP.asLong(), depositKey, sl.getGameTime()));
-        CreateRNS.LOGGER.info("Found deposit at {},{}", closestBP.getX(), closestBP.getZ());
+        CreateRNS.LOGGER.debug("Found deposit at {},{}", closestBP.getX(), closestBP.getZ());
         return closestBP;
     }
 
@@ -106,24 +106,24 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
                                                int searchRadiusChunks) {
         var hit = perPlayerCache.getIfPresent(sp.getUUID());
         if (hit == null) {
-            CreateRNS.LOGGER.info("[Cache miss] Deposit position is not cached for player");
+            CreateRNS.LOGGER.trace("[Cache miss] Deposit position is not cached for player");
             return null;
         } else {
             if (hit.dPosPacked == null) {
-                CreateRNS.LOGGER.info("[Cache hit] Deposit position in cache is null");
+                CreateRNS.LOGGER.trace("[Cache hit] Deposit position in cache is null");
                 return null;
             }
             var cachedBP = BlockPos.of(hit.dPosPacked);
             if (!hit.depositKey.equals(depositKey)) {
-                CreateRNS.LOGGER.info("[Cache hit] Found deposit at {},{}, but its type does not match the " +
+                CreateRNS.LOGGER.trace("[Cache hit] Found deposit at {},{}, but its type does not match the " +
                         "requested type", cachedBP.getX(), cachedBP.getZ());
             }
             if (isOutsideSearchRadius(sp.blockPosition(), cachedBP, searchRadiusChunks)) {
-                CreateRNS.LOGGER.info("[Cache hit] Found deposit at {},{}, but it's too far away",
+                CreateRNS.LOGGER.trace("[Cache hit] Found deposit at {},{}, but it's too far away",
                         cachedBP.getX(), cachedBP.getZ());
                 return null;
             }
-            CreateRNS.LOGGER.info("[Cache hit] Found deposit at {},{}", cachedBP.getX(), cachedBP.getZ());
+            CreateRNS.LOGGER.trace("[Cache hit] Found deposit at {},{}", cachedBP.getX(), cachedBP.getZ());
             return cachedBP;
         }
     }
@@ -148,7 +148,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
                     if (d.dPosPacked == null || !Utils.isPosInChunk(BlockPos.of(d.dPosPacked), startChunk)) return d;
                     return new CachedData(center.asLong(), d.depositKey, d.creationTimestamp);
                 });
-                CreateRNS.LOGGER.info("Generated deposit start at {},{} removed from ungenerated",
+                CreateRNS.LOGGER.debug("Generated deposit start at {},{} removed from ungenerated",
                         startChunk.getBlockX(8), startChunk.getBlockZ(8));
             }
         }
@@ -186,7 +186,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
         // Remove it from generated, add to generated+found
         foundGenSet.remove(centerPos);
         generatedFoundDeposits.add(centerPos);
-        CreateRNS.LOGGER.info("Marking {},{},{} as found", centerPos.getX(), centerPos.getY(), centerPos.getZ());
+        CreateRNS.LOGGER.debug("Marking {},{},{} as found", centerPos.getX(), centerPos.getY(), centerPos.getZ());
     }
 
     @Override
@@ -196,9 +196,9 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
         var generated = new CompoundTag();
         var ungenerated = new CompoundTag();
 
-        CreateRNS.LOGGER.info("Serializing GeneratedFound {}", generatedFoundDeposits);
-        CreateRNS.LOGGER.info("Serializing Generated {}", generatedDeposits);
-        CreateRNS.LOGGER.info("Serializing Ungenerated {}", ungeneratedDeposits);
+        CreateRNS.LOGGER.trace("Serializing GeneratedFound {}", generatedFoundDeposits);
+        CreateRNS.LOGGER.trace("Serializing Generated {}", generatedDeposits);
+        CreateRNS.LOGGER.trace("Serializing Ungenerated {}", ungeneratedDeposits);
 
         generatedFound = generatedFoundDeposits.stream().mapToLong(BlockPos::asLong).toArray();
 
@@ -218,7 +218,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
         root.put("Generated", generated);
         root.put("Ungenerated", ungenerated);
 
-        CreateRNS.LOGGER.info("Serialized deposit index with {}", root);
+        CreateRNS.LOGGER.trace("Serialized deposit index with {}", root);
         return root;
     }
 
@@ -230,7 +230,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
             CreateRNS.LOGGER.error("Failed to deserialize deposit index from nbt");
             return;
         }
-        CreateRNS.LOGGER.info("Deserializing deposit index with tag {}", nbt);
+        CreateRNS.LOGGER.trace("Deserializing deposit index with tag {}", nbt);
         generatedFoundDeposits.clear();
         generatedDeposits.clear();
         ungeneratedDeposits.clear();
@@ -252,9 +252,9 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
             for (long l : packed) set.add(BlockPos.of(l));
             ungeneratedDeposits.put(rl, set);
         }
-        CreateRNS.LOGGER.info("Deserialized GeneratedFound to {}", generatedFoundDeposits);
-        CreateRNS.LOGGER.info("Deserialized Generated to {}", generatedDeposits);
-        CreateRNS.LOGGER.info("Deserialized Ungenerated to {}", ungeneratedDeposits);
+        CreateRNS.LOGGER.trace("Deserialized GeneratedFound to {}", generatedFoundDeposits);
+        CreateRNS.LOGGER.trace("Deserialized Generated to {}", generatedDeposits);
+        CreateRNS.LOGGER.trace("Deserialized Ungenerated to {}", ungeneratedDeposits);
     }
 
     private @Nullable BlockPos discoverNearest(ResourceKey<Structure> depositKey, ServerPlayer sp, int searchRadiusChunks) {
@@ -271,7 +271,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
                 newDeposit.getSecond().get());
         if (newDeposit != null && !ss.isValid()) {
             var pos = newDeposit.getFirst();
-            CreateRNS.LOGGER.info("Found undiscovered deposit at {}, {}, {}", pos.getX(), pos.getY(),
+            CreateRNS.LOGGER.trace("Found undiscovered deposit at {}, {}, {}", pos.getX(), pos.getY(),
                     pos.getZ());
             ungeneratedDeposits.computeIfAbsent(depositKey.location(), k -> new ObjectOpenHashSet<>()).add(pos);
             return pos;
@@ -279,7 +279,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
         // If found valid (generated) deposit, save it to the generated list
         else if (newDeposit != null) {
             var pos = ss.getBoundingBox().getCenter();
-            CreateRNS.LOGGER.info("Found undiscovered generated deposit at {}, {}, {}", pos.getX(), pos.getY(),
+            CreateRNS.LOGGER.trace("Found undiscovered generated deposit at {}, {}, {}", pos.getX(), pos.getY(),
                     pos.getZ());
             generatedDeposits.computeIfAbsent(depositKey.location(), k -> new ObjectOpenHashSet<>()).add(pos);
             return pos;

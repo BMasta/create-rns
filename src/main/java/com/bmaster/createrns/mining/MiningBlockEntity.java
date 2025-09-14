@@ -155,7 +155,7 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
     public void read(@NotNull CompoundTag tag, boolean clientPacket) {
         super.read(tag, clientPacket);
         if (clientPacket)
-            CreateRNS.LOGGER.info("Client mining BE synced at {}, {}", worldPosition.getX(), worldPosition.getZ());
+            CreateRNS.LOGGER.trace("Client mining BE synced at {}, {}", worldPosition.getX(), worldPosition.getZ());
         inventory.deserializeNBT(tag.getCompound("Inventory"));
 
         // Clear outline for the claimed mining area of this BE (client side)

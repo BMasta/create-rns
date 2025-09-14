@@ -1,6 +1,4 @@
 # TO DO
-- [ ] Polish
-  - [ ] Scale down deposit scanner item a bit, make it float around (possibly visually respond to walking speed?).
 - [ ] Write datagen for deposit structures instead of using a dynamic pack.
 - [ ] Implement a create mod bearing for a multiblock contraption that acts as a drill.
   - [ ] Where does the yield go? If it goes into the contraption inventory, the item extraction becomes awkward and unnatural.

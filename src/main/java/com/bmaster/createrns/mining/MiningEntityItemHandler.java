@@ -78,9 +78,9 @@ public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<C
             }
 
             if (invUpdated) {
-                CreateRNS.LOGGER.info("Mined {}", existingStack.getItem());
+                CreateRNS.LOGGER.trace("Mined {}", existingStack.getItem());
             } else {
-                CreateRNS.LOGGER.info("Could not mine {}", existingStack.getItem());
+                CreateRNS.LOGGER.trace("Could not mine {}", existingStack.getItem());
             }
         }
         if (invUpdated) onContentsChanged();

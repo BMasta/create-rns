@@ -1,6 +1,5 @@
 package com.bmaster.createrns;
 
-import com.bmaster.createrns.event.ModEvents;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerChannel;
 import com.mojang.logging.LogUtils;
