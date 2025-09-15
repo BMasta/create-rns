@@ -17,30 +17,26 @@ public class DepositScannerClientHandler {
         INACTIVE, LEFT_ACTIVE, RIGHT_ACTIVE, BOTH_ACTIVE
     }
 
-    public enum DepositProximity {
-        AWAY, FOUND, NEAR, LEFT
-    }
-
     private static State state = new State();
 
     public static AntennaStatus getAntennaStatus() {
         return state.antennaStatus;
     }
 
-    public static DepositProximity getDepositProximity() {
-        return state.depProximity;
-    }
-
     public static boolean isTracking() {
         return state.isTracking;
     }
 
-    public static void cancelTracking() {
+    public static boolean isDepositFound() {
+        return state.depositFound;
+    }
+
+    public static void cancelTracking(boolean playSound) {
         var p = Minecraft.getInstance().player;
         if (p == null) return;
-        if (!state.isTracking) return;
-        RNSSoundEvents.SCANNER_CLICK.playInHand(p.level(), p.blockPosition());
+        state.depositFound = false;
         state.isTracking = false;
+        if (playSound) RNSSoundEvents.SCANNER_CLICK.playInHand(p.level(), p.blockPosition());
     }
 
     public static void discoverDeposit() {
@@ -89,20 +85,7 @@ public class DepositScannerClientHandler {
             }
         }
 
-        // Deposit found
-        if (state.cachedDepositPos != null) {
-            if (Math.sqrt(p.blockPosition().distSqr(state.cachedDepositPos)) <= FOUND_DISTANCE) {
-                // Still within close proximity of the deposit
-                return;
-            } else {
-                // Far enough away to reset
-                state.depProximity = DepositProximity.LEFT;
-                state.cachedDepositPos = null;
-                state.isTracking = false;
-            }
-        }
-
-        if (!state.isTracking) return;
+        if (state.depositFound || !state.isTracking) return;
 
         // Send tracking request to server
         state.ticksSinceLastPing++;
@@ -136,26 +119,22 @@ public class DepositScannerClientHandler {
 
     protected static void processTrackingReply(AntennaStatus status, int interval, @Nullable BlockPos foundDepositCenter) {
         var p = Minecraft.getInstance().player;
-        if (p == null || !p.level().isClientSide()) return;
+        if (p == null || !p.level().isClientSide() || !state.isTracking) return;
         if (status == AntennaStatus.INACTIVE) {
-            state.isTracking = false;
+            cancelTracking(false);
             return;
         }
 
         state.antennaStatus = status;
         state.pingInterval = interval;
-        state.cachedDepositPos = foundDepositCenter;
 
         // Delay ping result processing so it can be synchronized with the renderer
         state.trackingStateUpdatePending = true;
 
         if (foundDepositCenter != null) {
-            // We close enough to the deposit to consider it found
-            state.pingInterval = MIN_PING_INTERVAL;
+            // We are close enough to the deposit to consider it found
             state.antennaStatus = AntennaStatus.BOTH_ACTIVE;
-            if (state.depProximity == DepositProximity.AWAY) state.depProximity = DepositProximity.FOUND;
-        } else {
-            if (state.depProximity == DepositProximity.NEAR) state.depProximity = DepositProximity.LEFT;
+            state.depositFound = true;
         }
     }
 
@@ -165,39 +144,27 @@ public class DepositScannerClientHandler {
 
         state.trackingStateUpdatePending = false;
 
-        switch (state.depProximity) {
-            case FOUND -> {
-                // FWOOMP!
-                RNSSoundEvents.DEPOSIT_FOUND.playInHand(p.level(), p.blockPosition());
-                DepositScannerItemRenderer.shakeItem();
-                state.depProximity = DepositProximity.NEAR;
-            }
-            case LEFT -> {
-                state.ticksSinceLastPing = state.pingInterval; // Ping as soon as possible
-                state.depProximity = DepositProximity.AWAY;
-            }
-            case AWAY -> {
-                // Render as powered for a brief moment
-                DepositScannerItemRenderer.powerBriefly();
-                // Play ding
-                int max = MAX_PING_INTERVAL - MIN_PING_INTERVAL;
-                float pitchMultiplier = 1 - ((float) (state.pingInterval - MIN_PING_INTERVAL) / max);
-                RNSSoundEvents.SCANNER_TRACKING_PING.playInHand(p.level(), p.blockPosition(), 1f,
-                        0.8f + 0.4f * pitchMultiplier, true);
-            }
+        if (state.depositFound) {
+            // FWOOMP!
+            RNSSoundEvents.DEPOSIT_FOUND.playInHand(p.level(), p.blockPosition());
+            DepositScannerItemRenderer.shakeItem();
+            return;
         }
+
+        // Render as powered for a brief moment
+        DepositScannerItemRenderer.powerBriefly();
+        // Play ding
+        int max = MAX_PING_INTERVAL - MIN_PING_INTERVAL;
+        float pitchMultiplier = 1 - ((float) (state.pingInterval - MIN_PING_INTERVAL) / max);
+        RNSSoundEvents.SCANNER_TRACKING_PING.playInHand(p.level(), p.blockPosition(), 1f,
+                0.8f + 0.4f * pitchMultiplier, true);
     }
 
     private static void afterScroll() {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
 
-        state.isTracking = false;
-
-        if (state.cachedDepositPos != null) {
-            state.cachedDepositPos = null;
-            state.depProximity = DepositProximity.LEFT;
-        }
+        cancelTracking(false);
 
         RNSSoundEvents.SCANNER_SCROLL.playInHand(player.level(), player.blockPosition());
 
@@ -209,11 +176,10 @@ public class DepositScannerClientHandler {
     private static class State {
         private AntennaStatus antennaStatus = AntennaStatus.INACTIVE;
         private int pingInterval = MAX_PING_INTERVAL;
-        private DepositProximity depProximity = DepositProximity.AWAY;
         private int selectedIndex = 0;
         private int ticksSinceLastPing = pingInterval;
-        private BlockPos cachedDepositPos = null;
         private boolean trackingStateUpdatePending = false;
         private boolean isTracking = false;
+        private boolean depositFound = false;
     }
 }

@@ -1,6 +1,5 @@
 package com.bmaster.createrns.item.DepositScanner;
 
-import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler.DepositProximity;
 import com.bmaster.createrns.util.Utils;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
@@ -206,10 +205,8 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
         ms.pushPose();
         PartialModel partialAntenna1;
         PartialModel partialAntenna2;
-        boolean nearDeposit = DepositScannerClientHandler.getDepositProximity() == DepositProximity.FOUND ||
-                DepositScannerClientHandler.getDepositProximity() == DepositProximity.NEAR;
 
-        if (nearDeposit || poweredTicks > 0) {
+        if (DepositScannerClientHandler.isDepositFound() || poweredTicks > 0) {
             partialAntenna1 = switch (DepositScannerClientHandler.getAntennaStatus()) {
                 case INACTIVE, RIGHT_ACTIVE -> ANTENNA_UNPOWERED;
                 case LEFT_ACTIVE, BOTH_ACTIVE -> ANTENNA_POWERED;
