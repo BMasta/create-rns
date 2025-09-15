@@ -30,5 +30,12 @@
   "create_rns.structure.deposit_copper": "Copper Deposit",
   "create_rns.structure.deposit_zinc": "Zinc Deposit",
   "create_rns.structure.deposit_gold": "Gold Deposit",
-  "create_rns.structure.deposit_redstone": "Redstone Deposit"
+  "create_rns.structure.deposit_redstone": "Redstone Deposit",
+  "create_rns.ponder.mining.header": "Mining Deposits",
+  "create_rns.ponder.mining.text_1": "Miners can extract materials from deposits scattered around the world",
+  "create_rns.ponder.mining.text_2": "Miner Mk.1 can claim deposit blocks in a 3x3x1 area below it",
+  "create_rns.ponder.mining.text_3": "Its throughput and yield types depend on which deposit blocks it claimed",
+  "create_rns.ponder.mining.text_4": "A deposit block cannot be claimed by more than one miner at a time",
+  "create_rns.ponder.mining.text_5": "Miner Mk.1 can only mine basic deposits",
+  "create_rns.ponder.mining.text_6": "Miner Mk.2 can mine all types of deposits in a 3x3x5 area"
 }
