@@ -31,7 +31,7 @@ public class DepositScannerServerHandler {
         var depIdxOpt = IDepositIndex.fromLevel(sl).resolve();
         if (depIdxOpt.isEmpty()) {
             CreateRNS.LOGGER.error("Deposit index is not present on level {}", sl.dimension());
-            DepositScannerS2CPacket.send(sp, AntennaStatus.INACTIVE, 0, null, rt);
+            DepositScannerS2CPacket.send(sp, AntennaStatus.INACTIVE, 0, false, rt);
             return;
         }
         var depIdx = depIdxOpt.get();
@@ -44,13 +44,13 @@ public class DepositScannerServerHandler {
 
         ScannerState state;
         if (nearest == null) {
-            state = new ScannerState(AntennaStatus.INACTIVE, MAX_PING_INTERVAL, null);
+            state = new ScannerState(AntennaStatus.INACTIVE, MAX_PING_INTERVAL, false);
         } else {
             state = getScannerState(sp, nearest);
         }
-        if (state.foundDepositCenter != null) depIdx.markAsFound(state.foundDepositCenter);
+        if (state.found) depIdx.markAsFound(nearest);
 
-        DepositScannerS2CPacket.send(sp, state.antennaStatus, state.interval, state.foundDepositCenter, rt);
+        DepositScannerS2CPacket.send(sp, state.antennaStatus, state.interval, state.found, rt);
     }
 
     private static ScannerState getScannerState(ServerPlayer sp, BlockPos targetPos) {
@@ -78,7 +78,7 @@ public class DepositScannerServerHandler {
                 Utils.easeOut((float) distance / MAX_BLOCK_DISTANCE, 2));
         found = (distance <= FOUND_DISTANCE);
 
-        return new ScannerState(status, interval, found ? targetPos : null);
+        return new ScannerState(status, interval, found);
     }
 
     private static float getYaw(BlockPos from, BlockPos to) {
@@ -91,5 +91,5 @@ public class DepositScannerServerHandler {
         );
     }
 
-    private record ScannerState(AntennaStatus antennaStatus, int interval, @Nullable BlockPos foundDepositCenter) {}
+    private record ScannerState(AntennaStatus antennaStatus, int interval, boolean found) {}
 }

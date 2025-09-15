@@ -117,7 +117,7 @@ public class DepositScannerClientHandler {
         }
     }
 
-    protected static void processTrackingReply(AntennaStatus status, int interval, @Nullable BlockPos foundDepositCenter) {
+    protected static void processTrackingReply(AntennaStatus status, int interval, boolean found) {
         var p = Minecraft.getInstance().player;
         if (p == null || !p.level().isClientSide() || !state.isTracking) return;
         if (status == AntennaStatus.INACTIVE) {
@@ -131,8 +131,7 @@ public class DepositScannerClientHandler {
         // Delay ping result processing so it can be synchronized with the renderer
         state.trackingStateUpdatePending = true;
 
-        if (foundDepositCenter != null) {
-            // We are close enough to the deposit to consider it found
+        if (found) {
             state.antennaStatus = AntennaStatus.BOTH_ACTIVE;
             state.depositFound = true;
         }

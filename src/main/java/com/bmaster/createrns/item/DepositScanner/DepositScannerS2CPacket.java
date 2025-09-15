@@ -12,24 +12,23 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
-public record DepositScannerS2CPacket(AntennaStatus antennaStatus, int interval, @Nullable BlockPos foundDepositCenter,
+public record DepositScannerS2CPacket(AntennaStatus antennaStatus, int interval, boolean found,
                                       RequestType rt) {
-    public static void send(ServerPlayer receiver, AntennaStatus status, int interval, BlockPos foundDepositCenter,
+    public static void send(ServerPlayer receiver, AntennaStatus status, int interval, boolean found,
                             RequestType rt) {
         DepositScannerChannel.CHANNEL.send(PacketDistributor.PLAYER.with(() -> receiver),
-                new DepositScannerS2CPacket(status, interval, foundDepositCenter, rt));
+                new DepositScannerS2CPacket(status, interval, found, rt));
     }
 
     public static void encode(DepositScannerS2CPacket p, FriendlyByteBuf buf) {
-        buf.writeNullable(p.foundDepositCenter, FriendlyByteBuf::writeBlockPos);
         buf.writeEnum(p.antennaStatus);
         buf.writeInt(p.interval);
+        buf.writeBoolean(p.found);
         buf.writeEnum(p.rt);
     }
 
     public static DepositScannerS2CPacket decode(FriendlyByteBuf buf) {
-        BlockPos foundDepositCenter = buf.readNullable(FriendlyByteBuf::readBlockPos);
-        return new DepositScannerS2CPacket(buf.readEnum(AntennaStatus.class), buf.readInt(), foundDepositCenter,
+        return new DepositScannerS2CPacket(buf.readEnum(AntennaStatus.class), buf.readInt(), buf.readBoolean(),
                 buf.readEnum(RequestType.class));
     }
 
@@ -40,7 +39,7 @@ public record DepositScannerS2CPacket(AntennaStatus antennaStatus, int interval,
             if (mc.player == null || !mc.player.level().isClientSide()) return;
             switch (p.rt) {
                 case DISCOVER -> DepositScannerClientHandler.processDiscoverReply(p.antennaStatus);
-                case TRACK -> DepositScannerClientHandler.processTrackingReply(p.antennaStatus, p.interval, p.foundDepositCenter);
+                case TRACK -> DepositScannerClientHandler.processTrackingReply(p.antennaStatus, p.interval, p.found);
             }
         });
         ctx.setPacketHandled(true);
