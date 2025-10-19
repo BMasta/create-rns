@@ -1,28 +1,34 @@
 package com.bmaster.createrns.mining.recipe;
 
 import com.bmaster.createrns.RNSRecipeTypes;
-import com.google.gson.JsonObject;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Objects;
 
 public class AdvancedMiningRecipe extends MiningRecipe {
-    public AdvancedMiningRecipe(ResourceLocation id, Block depositBlock, Item yield) {
-        super(id, depositBlock, yield);
+    public static final MapCodec<AdvancedMiningRecipe> CODEC = MiningRecipe.newCodec(AdvancedMiningRecipe.class);
+    public static final StreamCodec<RegistryFriendlyByteBuf, AdvancedMiningRecipe> STREAM_CODEC =
+            MiningRecipe.newStreamCodec(AdvancedMiningRecipe.class);
+
+    public AdvancedMiningRecipe(Block depositBlock, Item yield) {
+        super(depositBlock, yield);
     }
 
     @Override
     public @NotNull RecipeSerializer<?> getSerializer() {
-        return RNSRecipeTypes.ADVANCED_MINING_SERIALIZER.get();
+        return Serializer.INSTANCE;
     }
 
     @Override
@@ -31,26 +37,19 @@ public class AdvancedMiningRecipe extends MiningRecipe {
     }
 
     @SuppressWarnings("SameParameterValue")
+    @MethodsReturnNonnullByDefault
     @ParametersAreNonnullByDefault
-    public static class Serializer extends MiningRecipe.Serializer<AdvancedMiningRecipe> {
+    public enum Serializer implements RecipeSerializer<AdvancedMiningRecipe> {
+        INSTANCE;
+
         @Override
-        public @NotNull AdvancedMiningRecipe fromJson(ResourceLocation id, JsonObject json) {
-            var depBlock = parseBlockId(json, "deposit_block");
-            var yield = parseItemId(json, "yield");
-            return new AdvancedMiningRecipe(id, depBlock, yield);
+        public MapCodec<AdvancedMiningRecipe> codec() {
+            return CODEC;
         }
 
         @Override
-        public AdvancedMiningRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
-            var depBlock = Objects.requireNonNull(ForgeRegistries.BLOCKS.getValue(buf.readResourceLocation()));
-            var yield = buf.readItem();
-            return new AdvancedMiningRecipe(id, depBlock, yield.getItem());
-        }
-
-        @Override
-        public void toNetwork(FriendlyByteBuf buf, AdvancedMiningRecipe r) {
-            buf.writeResourceLocation(Objects.requireNonNull(ForgeRegistries.BLOCKS.getKey(r.getDepositBlock())));
-            buf.writeItem(new ItemStack(r.getYield()));
+        public StreamCodec<RegistryFriendlyByteBuf, AdvancedMiningRecipe> streamCodec() {
+            return STREAM_CODEC;
         }
     }
 }

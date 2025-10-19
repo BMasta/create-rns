@@ -43,7 +43,8 @@ public class DepositScannerClientHandler {
         var p = Minecraft.getInstance().player;
         if (p == null) return;
         // Server limits how often it processes discover requests. It will be a no-op if called too soon.
-        DepositScannerC2SPacket.send(getSelectedItem().getItem(), RequestType.DISCOVER);
+        // TODO: Send payload to server with new method
+//        DepositScannerC2SPacket.send(getSelectedItem().getItem(), RequestType.DISCOVER);
         RNSSoundEvents.SCANNER_CLICK.playInHand(p.level(), p.blockPosition());
         RNSSoundEvents.SCANNER_DISCOVERY_PING.playInHand(p.level(), p.blockPosition());
         DepositScannerItemRenderer.shakeItem();
@@ -91,7 +92,8 @@ public class DepositScannerClientHandler {
         state.ticksSinceLastPing++;
         if (state.ticksSinceLastPing >= state.pingInterval) {
             state.ticksSinceLastPing = 0;
-            DepositScannerC2SPacket.send(getSelectedItem().getItem(), RequestType.TRACK);
+            // TODO: Send payload to server with new method
+//            DepositScannerC2SPacket.send(getSelectedItem().getItem(), RequestType.TRACK);
         }
     }
 

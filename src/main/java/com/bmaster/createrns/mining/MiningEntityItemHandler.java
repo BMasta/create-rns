@@ -2,13 +2,15 @@ package com.bmaster.createrns.mining;
 
 import com.bmaster.createrns.CreateRNS;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.items.IItemHandler;
+
+import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -72,7 +74,7 @@ public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<C
                 // New type
                 existingStack = minedStack;
                 existingStack.setCount(Math.min(MAX_COUNT_PER_TYPE, minedCount));
-                types.add(0, minedType);
+                types.addFirst(minedType);
                 typeToStack.put(minedType, minedStack);
                 invUpdated = true;
             }
@@ -155,8 +157,7 @@ public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<C
     }
 
     @Override
-    public CompoundTag serializeNBT()
-    {
+    public CompoundTag serializeNBT(@NotNull HolderLookup.Provider p) {
         ListTag nbtTagList = new ListTag();
         for (int i = 0; i < types.size(); ++i) {
             var type = types.get(i);
@@ -165,7 +166,7 @@ public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<C
 
             CompoundTag itemTag = new CompoundTag();
             itemTag.putInt("Slot", i);
-            stack.save(itemTag);
+            stack.save(p, itemTag);
             nbtTagList.add(itemTag);
         }
         CompoundTag nbt = new CompoundTag();
@@ -174,7 +175,7 @@ public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<C
     }
 
     @Override
-    public void deserializeNBT(CompoundTag nbt) {
+    public void deserializeNBT(@NotNull HolderLookup.Provider p, CompoundTag nbt) {
         typeToStack.clear();
 
         ListTag tagList = nbt.getList("Items", Tag.TAG_COMPOUND);
@@ -185,7 +186,7 @@ public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<C
         for (var t : tags) {
             int slot = t.getInt("Slot");
             if (0 <= slot && slot < tags.size()) {
-                var newStack = ItemStack.of(t);
+                var newStack = ItemStack.parseOptional(p, t);
                 var newType = newStack.getItem();
                 types.add(slot, newType);
                 typeToStack.put(newType, newStack);

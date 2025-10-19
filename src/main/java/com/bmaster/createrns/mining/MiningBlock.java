@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -37,19 +37,20 @@ public abstract class MiningBlock extends KineticBlock {
     @ParametersAreNonnullByDefault
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        Set<com.bmaster.createrns.mining.MiningBlockEntity> nearbyMiningBEs = null;
+        Set<MiningBlockEntity> nearbyMiningBEs = null;
         if (!state.is(newState.getBlock())) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof MiningBlockEntity minerBE) {
                 // Pop inventory contents on the ground
-                be.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(iItemHandler -> {
-                    for (int i = 0; i < iItemHandler.getSlots(); ++i) {
-                        ItemStack stack = iItemHandler.getStackInSlot(i);
+                var minerInvCap = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, null);
+                if (minerInvCap != null) {
+                    for (int i = 0; i < minerInvCap.getSlots(); ++i) {
+                        ItemStack stack = minerInvCap.getStackInSlot(i);
                         if (!stack.isEmpty()) {
                             Block.popResource(level, pos, stack);
                         }
                     }
-                });
+                }
 
                 // Collect all nearby miner BEs
                 if (!level.isClientSide) {

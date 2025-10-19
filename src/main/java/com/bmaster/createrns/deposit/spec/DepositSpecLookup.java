@@ -1,11 +1,11 @@
 package com.bmaster.createrns.deposit.spec;
 
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.levelgen.structure.Structure;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.*;
@@ -29,7 +29,7 @@ public class DepositSpecLookup {
         regEntries.forEach(e -> {
             var spec = e.getValue();
             var scannerIcon = spec.scannerIconItem();
-            if (ForgeRegistries.ITEMS.getKey(scannerIcon) != null) {
+            if (BuiltInRegistries.ITEM.getKeyOrNull(scannerIcon) != null) {
                 if (scannerIconToSpec.containsKey(scannerIcon)) {
                     throw new KeyAlreadyExistsException("Found multiple deposit specs with the same scanner icon");
                 }
@@ -39,7 +39,7 @@ public class DepositSpecLookup {
 
         allIcons = scannerIconToSpec.keySet().stream()
                 .sorted(Comparator.comparing(i -> {
-                    var rl = ForgeRegistries.ITEMS.getKey(i);
+                    var rl = BuiltInRegistries.ITEM.getKeyOrNull(i);
                     if (rl == null)
                         throw new IllegalStateException("This never happens, but my IDE won't shut up about it");
                     return rl;

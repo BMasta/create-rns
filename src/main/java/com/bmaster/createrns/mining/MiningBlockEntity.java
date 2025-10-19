@@ -6,17 +6,16 @@ import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,12 +26,12 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
 
     protected final MiningEntityItemHandler inventory = new MiningEntityItemHandler(() -> {
         if (level != null && !level.isClientSide) {
+            level.invalidateCapabilities(worldPosition);
             setChanged();
             notifyUpdate();
         }
     });
 
-    private LazyOptional<IItemHandler> inventoryCap = LazyOptional.empty();
     private CompoundTag miningProgressTag = null;
 
     public MiningBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -117,46 +116,39 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
     @Override
     public void onLoad() {
         super.onLoad();
-
-        // Initialize the inventory capability when the BE is first loaded
-        inventoryCap = LazyOptional.of(() -> inventory);
-
         MiningBlockEntityInstanceHolder.addInstance(this);
     }
 
     @Override
     public void invalidate() {
         super.invalidate();
-
-        inventoryCap.invalidate();
-
         MiningBlockEntityInstanceHolder.removeInstance(this);
-        if (level != null && level.isClientSide()) MiningAreaOutlineRenderer.removeMiningBE(this);
+
+        if (level == null) return;
+
+        level.invalidateCapabilities(worldPosition);
+        if (level.isClientSide()) MiningAreaOutlineRenderer.removeMiningBE(this);
     }
 
-    @NotNull
-    @Override
-    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, Direction side) {
-        if (cap == ForgeCapabilities.ITEM_HANDLER) {
-            return inventoryCap.cast();
-        }
-        return super.getCapability(cap, side);
+    public @Nullable IItemHandler getItemHandler(Direction side) {
+        if (side == Direction.UP) return inventory;
+        return null;
     }
 
     @Override
-    public void write(@NotNull CompoundTag tag, boolean clientPacket) {
-        super.write(tag, clientPacket);
-        tag.put("Inventory", inventory.serializeNBT());
+    protected void write(CompoundTag tag, HolderLookup.Provider p, boolean clientPacket) {
+        super.write(tag, p, clientPacket);
+        tag.put("Inventory", inventory.serializeNBT(p));
         var packed = reservedDepositBlocks.stream().mapToLong(BlockPos::asLong).toArray();
         tag.putLongArray("ReservedDepositBlocks", packed);
     }
 
     @Override
-    public void read(@NotNull CompoundTag tag, boolean clientPacket) {
-        super.read(tag, clientPacket);
+    protected void read(CompoundTag tag, HolderLookup.Provider p, boolean clientPacket) {
+        super.read(tag, p, clientPacket);
         if (clientPacket)
             CreateRNS.LOGGER.trace("Client mining BE synced at {}, {}", worldPosition.getX(), worldPosition.getZ());
-        inventory.deserializeNBT(tag.getCompound("Inventory"));
+        inventory.deserializeNBT(p, tag.getCompound("Inventory"));
 
         // Clear outline for the claimed mining area of this BE (client side)
         if (clientPacket) MiningAreaOutlineRenderer.removeMiningBE(this);

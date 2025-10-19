@@ -6,20 +6,20 @@ import com.bmaster.createrns.data.pack.json.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackLocationInfo;
+import net.minecraft.server.packs.PackSelectionConfig;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.repository.BuiltInPackSource;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -43,8 +43,15 @@ public class DynamicDatapack {
     private static final String PLACEHOLDER_BLOCK = "minecraft:end_stone";
 
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-    private static final DynamicDatapackResources depositsResources = new DynamicDatapackResources(
-            "%s:dynamic_data".formatted(CreateRNS.MOD_ID));
+
+    private static final DynamicDatapackResources depositsResources = new DynamicDatapackResources(new PackLocationInfo(
+            "%s:dynamic_data".formatted(CreateRNS.MOD_ID),
+            Component.literal("Dynamic pack"),
+            PackSource.BUILT_IN,
+            Optional.empty()
+    ));
+    private static final PackSelectionConfig selectionConf = new PackSelectionConfig(
+            true, Pack.Position.BOTTOM, false);
 
     private static final Set<Tuple<ResourceLocation, Integer>> bulkNBTPool = Set.of(
             new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium"), 70),
@@ -85,13 +92,11 @@ public class DynamicDatapack {
 
     public static Pack finish() {
         return Pack.readMetaAndCreate(
-                depositsResources.packId(),
-                Component.empty(),
-                true,
-                name -> depositsResources,
+                depositsResources.location(),
+                BuiltInPackSource.fixedResources(depositsResources),
                 PackType.SERVER_DATA,
-                Pack.Position.BOTTOM,
-                PackSource.BUILT_IN);
+                selectionConf
+        );
     }
 
     public static class DepositSet {
@@ -152,7 +157,7 @@ public class DynamicDatapack {
 
             // Create processor that replaces placeholder blocks with the specified block
             if (replacePlaceholderWith != null) {
-                ResourceLocation depBlockRL = ForgeRegistries.BLOCKS.getKey(replacePlaceholderWith);
+                ResourceLocation depBlockRL = BuiltInRegistries.BLOCK.getKeyOrNull(replacePlaceholderWith);
                 if (depBlockRL == null) {
                     throw new IllegalArgumentException("Could not create a processor for deposit '%s': ".formatted(name) +
                             "provided deposit block does not exist");

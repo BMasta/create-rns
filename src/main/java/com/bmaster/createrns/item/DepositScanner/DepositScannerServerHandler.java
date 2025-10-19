@@ -27,30 +27,30 @@ public class DepositScannerServerHandler {
     private static final int MAX_BLOCK_DISTANCE = SEARCH_RADIUS_CHUNKS * 16;
 
     public static void processScanRequest(ServerPlayer sp, Item icon, RequestType rt) {
-        if (!(sp.level() instanceof ServerLevel sl)) return;
-        var depIdxOpt = IDepositIndex.fromLevel(sl).resolve();
-        if (depIdxOpt.isEmpty()) {
-            CreateRNS.LOGGER.error("Deposit index is not present on level {}", sl.dimension());
-            DepositScannerS2CPacket.send(sp, AntennaStatus.INACTIVE, 0, false, rt);
-            return;
-        }
-        var depIdx = depIdxOpt.get();
-
-        var structKey = DepositSpecLookup.getStructureKey(sl.registryAccess(), icon);
-        var nearest = switch (rt) {
-            case DISCOVER -> depIdx.getNearest(structKey, sp, SEARCH_RADIUS_CHUNKS);
-            case TRACK -> depIdx.getNearestCached(structKey, sp, SEARCH_RADIUS_CHUNKS);
-        };
-
-        ScannerState state;
-        if (nearest == null) {
-            state = new ScannerState(AntennaStatus.INACTIVE, MAX_PING_INTERVAL, false);
-        } else {
-            state = getScannerState(sp, nearest);
-        }
-        if (state.found) depIdx.markAsFound(nearest);
-
-        DepositScannerS2CPacket.send(sp, state.antennaStatus, state.interval, state.found, rt);
+//        if (!(sp.level() instanceof ServerLevel sl)) return;
+//        var depIdxOpt = IDepositIndex.fromLevel(sl).resolve();
+//        if (depIdxOpt.isEmpty()) {
+//            CreateRNS.LOGGER.error("Deposit index is not present on level {}", sl.dimension());
+//            DepositScannerS2CPacket.send(sp, AntennaStatus.INACTIVE, 0, false, rt);
+//            return;
+//        }
+//        var depIdx = depIdxOpt.get();
+//
+//        var structKey = DepositSpecLookup.getStructureKey(sl.registryAccess(), icon);
+//        var nearest = switch (rt) {
+//            case DISCOVER -> depIdx.getNearest(structKey, sp, SEARCH_RADIUS_CHUNKS);
+//            case TRACK -> depIdx.getNearestCached(structKey, sp, SEARCH_RADIUS_CHUNKS);
+//        };
+//
+//        ScannerState state;
+//        if (nearest == null) {
+//            state = new ScannerState(AntennaStatus.INACTIVE, MAX_PING_INTERVAL, false);
+//        } else {
+//            state = getScannerState(sp, nearest);
+//        }
+//        if (state.found) depIdx.markAsFound(nearest);
+//
+//        DepositScannerS2CPacket.send(sp, state.antennaStatus, state.interval, state.found, rt);
     }
 
     private static ScannerState getScannerState(ServerPlayer sp, BlockPos targetPos) {

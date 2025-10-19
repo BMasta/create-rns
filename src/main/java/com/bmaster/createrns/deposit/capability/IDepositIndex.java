@@ -7,7 +7,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
-import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.Nullable;
 
 public interface IDepositIndex {
@@ -19,7 +18,8 @@ public interface IDepositIndex {
 
     void markAsFound(BlockPos centerPos);
 
-    static LazyOptional<IDepositIndex> fromLevel(ServerLevel level) {
-        return level.getCapability(RNSContent.DEPOSIT_INDEX);
-    }
+    // TODO: Level caps are gone. Migrate to level data attachments
+//    static LazyOptional<IDepositIndex> fromLevel(ServerLevel level) {
+//        return level.getCapability(RNSContent.DEPOSIT_INDEX);
+//    }
 }

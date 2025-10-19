@@ -2,10 +2,10 @@ package com.bmaster.createrns.mining;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags;
-import com.bmaster.createrns.infrastructure.ServerConfig;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -13,7 +13,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -87,7 +86,7 @@ public class MiningProcess {
                 CreateRNS.LOGGER.error("Could not parse resource location '{}' when deserializing mining process", yieldStr);
                 continue;
             }
-            var yield = ForgeRegistries.ITEMS.getValue(yieldRL);
+            var yield = BuiltInRegistries.ITEM.getOptional(yieldRL).orElse(null);
             if (yield == null) {
                 CreateRNS.LOGGER.error("Unknown item '{}' encountered when deserializing mining process", yieldStr);
                 continue;
@@ -119,7 +118,7 @@ public class MiningProcess {
         }
 
         public @Nullable CompoundTag getProgressAsNBT() {
-            var yieldRL = ForgeRegistries.ITEMS.getKey(yield);
+            var yieldRL = BuiltInRegistries.ITEM.getKeyOrNull(yield);
             if (yieldRL == null) return null;
 
             CompoundTag stpTag = new CompoundTag();

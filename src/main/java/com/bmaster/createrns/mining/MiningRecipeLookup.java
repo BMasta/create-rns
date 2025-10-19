@@ -34,17 +34,21 @@ public class MiningRecipeLookup {
     }
 
     public static void build(Level l) {
-        var basicRecipes = l.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.BASIC_MINING_TYPE.get());
-        var advancedRecipes = l.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.ADVANCED_MINING_TYPE.get());
-        depBlockToYieldBasic = basicRecipes.stream().collect(Collectors.toMap(
-                BasicMiningRecipe::getDepositBlock,
-                BasicMiningRecipe::getYield,
-                (o, n) -> n,
-                Object2ObjectOpenHashMap::new));
-        depBlockToYieldAdvanced = advancedRecipes.stream().collect(Collectors.toMap(
-                AdvancedMiningRecipe::getDepositBlock,
-                AdvancedMiningRecipe::getYield,
-                (o, n) -> n,
-                Object2ObjectOpenHashMap::new));
+//        var basicRecipes = l.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.BASIC_MINING_TYPE.get());
+//        var advancedRecipes = l.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.ADVANCED_MINING_TYPE.get());
+//        depBlockToYieldBasic = basicRecipes.stream()
+//                .map(a -> (BasicMiningRecipe) a.value())
+//                .collect(Collectors.toMap(
+//                        BasicMiningRecipe::getDepositBlock,
+//                        BasicMiningRecipe::getYield,
+//                        (o, n) -> n,
+//                        Object2ObjectOpenHashMap::new));
+//        depBlockToYieldAdvanced = advancedRecipes.stream()
+//                .map(a -> (AdvancedMiningRecipe) a.value())
+//                .collect(Collectors.toMap(
+//                        AdvancedMiningRecipe::getDepositBlock,
+//                        AdvancedMiningRecipe::getYield,
+//                        (o, n) -> n,
+//                        Object2ObjectOpenHashMap::new));
     }
 }

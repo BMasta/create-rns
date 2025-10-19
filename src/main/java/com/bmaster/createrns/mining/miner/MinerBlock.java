@@ -2,20 +2,16 @@ package com.bmaster.createrns.mining.miner;
 
 import com.bmaster.createrns.mining.MiningBlock;
 import com.simibubi.create.AllShapes;
-import com.simibubi.create.Create;
 import com.simibubi.create.content.kinetics.simpleRelays.ICogWheel;
 import com.simibubi.create.foundation.block.IBE;
-import net.createmod.catnip.math.VoxelShaper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -46,11 +42,9 @@ public abstract class MinerBlock<BE extends MinerBlockEntity> extends MiningBloc
     @Override
     public abstract BlockEntityType<? extends BE> getBlockEntityType();
 
-    @SuppressWarnings("deprecation")
     @ParametersAreNonnullByDefault
     @Override
-    public @NotNull InteractionResult use(BlockState state, Level l, BlockPos pos, Player p, InteractionHand hand,
-                                          BlockHitResult hit) {
+    protected @NotNull InteractionResult useWithoutItem(BlockState state, Level l, BlockPos pos, Player p, BlockHitResult hitResult) {
         return onBlockEntityUse(l, pos, be -> {
             var minerInv = be.getInventory();
             if (minerInv.isEmpty()) return InteractionResult.PASS;
@@ -64,13 +58,12 @@ public abstract class MinerBlock<BE extends MinerBlockEntity> extends MiningBloc
             }
             if (pickedUp) {
                 l.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, .2f,
-                        1f + Create.RANDOM.nextFloat());
+                        1f + l.random.nextFloat());
             }
             return InteractionResult.SUCCESS;
         });
     }
 
-    @SuppressWarnings("deprecation")
     @ParametersAreNonnullByDefault
     @Override
     public @NotNull VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {

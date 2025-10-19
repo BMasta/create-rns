@@ -3,9 +3,11 @@ package com.bmaster.createrns.data.pack;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackLocationInfo;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
@@ -23,21 +25,22 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static net.minecraft.util.datafix.fixes.BlockEntitySignTextStrictJsonFix.GSON;
+import static com.simibubi.create.Create.GSON;
 
 public final class DynamicDatapackResources implements PackResources {
-    private final String packId;
+    private final PackLocationInfo info;
 
     private final Map<ResourceLocation, byte[]> serverData = new Object2ObjectOpenHashMap<>();
     private final PackMetadataSection metadata;
 
-    public DynamicDatapackResources(String packId) {
-        this.packId = packId;
+    public DynamicDatapackResources(PackLocationInfo info) {
+        this.info = info;
         int packFormat = SharedConstants.getCurrentVersion().getPackVersion(PackType.SERVER_DATA);
-        this.metadata = new PackMetadataSection(Component.literal(packId), packFormat);
+        this.metadata = new PackMetadataSection(Component.literal(info.id()), packFormat);
     }
 
     public void putJson(String path, JsonElement json) {
+        // TODO: this does not have to depend on create
         serverData.put(loc(path), GSON.toJson(json).getBytes(StandardCharsets.UTF_8));
     }
 
@@ -49,16 +52,16 @@ public final class DynamicDatapackResources implements PackResources {
         return ResourceLocation.fromNamespaceAndPath(ns, p);
     }
 
-    @Override
-    public @NotNull String packId() {
-        return packId;
-    }
-
     @ParametersAreNonnullByDefault
     @Override
     public @NotNull Set<String> getNamespaces(PackType type) {
         if (type != PackType.SERVER_DATA) return Set.of();
         return serverData.keySet().stream().map(ResourceLocation::getNamespace).collect(Collectors.toSet());
+    }
+
+    @Override
+    public @NotNull PackLocationInfo location() {
+        return info;
     }
 
     @ParametersAreNonnullByDefault
@@ -111,15 +114,10 @@ public final class DynamicDatapackResources implements PackResources {
         JsonObject root = new JsonObject();
         JsonObject pack = new JsonObject();
         // Description can be a plain string or a text component; dump as a component JSON for safety.
-        pack.add("description", net.minecraft.network.chat.Component.Serializer.toJsonTree(metadata.getDescription()));
-        pack.addProperty("pack_format", metadata.getPackFormat(PackType.SERVER_DATA));
+        pack.addProperty("description", metadata.description().toString());
+        pack.addProperty("pack_format", metadata.packFormat());
         root.add("pack", pack);
         return GSON.toJson(root).getBytes(StandardCharsets.UTF_8);
-    }
-
-    @Override
-    public boolean isBuiltin() {
-        return true;
     }
 
     @Override

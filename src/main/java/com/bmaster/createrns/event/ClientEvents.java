@@ -3,24 +3,21 @@ package com.bmaster.createrns.event;
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.mining.MiningAreaOutlineRenderer;
-import com.bmaster.createrns.deposit.capability.*;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
 
-@Mod.EventBusSubscriber(modid = CreateRNS.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
-public class ClientForgeEvents {
+@EventBusSubscriber(modid = CreateRNS.MOD_ID, value = Dist.CLIENT)
+public class ClientEvents {
     @SubscribeEvent
-    public static void clientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.START) {
+    public static void clientTick(ClientTickEvent.Pre event) {
             DepositScannerClientHandler.tick();
             MiningAreaOutlineRenderer.tick();
-        }
     }
 
     @SubscribeEvent
@@ -30,7 +27,7 @@ public class ClientForgeEvents {
         if (mc.player != null && mc.screen == null) {
             var mainItem = p.getMainHandItem();
             var offItem = p.getOffhandItem();
-            var scrollDelta = e.getScrollDelta();
+            var scrollDelta = e.getScrollDeltaY();
 
             // Scanner - sneaking
             if (p.level().isClientSide() && p.isShiftKeyDown() && (mainItem.is(RNSContent.DEPOSIT_SCANNER_ITEM.get()) ||

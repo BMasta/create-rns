@@ -14,6 +14,7 @@ import com.simibubi.create.foundation.data.SharedProperties;
 import com.simibubi.create.foundation.item.ItemDescription;
 import com.simibubi.create.foundation.item.KineticStats;
 import com.simibubi.create.foundation.item.TooltipModifier;
+import com.simibubi.create.foundation.utility.DistExecutor;
 import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.providers.RegistrateRecipeProvider;
 import com.tterrag.registrate.util.entry.*;
@@ -36,11 +37,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.CapabilityToken;
-import net.minecraftforge.fml.DistExecutor;
+import net.neoforged.api.distmarker.Dist;
 
 import static com.simibubi.create.foundation.data.TagGen.*;
 
@@ -174,7 +171,7 @@ public class RNSContent {
             .register();
 
     // Creative tabs
-    public static final RegistryEntry<CreativeModeTab> MAIN_TAB = CreateRNS.REGISTRATE.defaultCreativeTab(
+    public static final RegistryEntry<CreativeModeTab, CreativeModeTab> MAIN_TAB = CreateRNS.REGISTRATE.defaultCreativeTab(
                     CreateRNS.MOD_ID, c -> c
                             .icon(() -> new ItemStack(MINER_MK1_BLOCK.getDefaultState().getBlock()))
                             .title(Component.translatable("creativetab.%s".formatted(CreateRNS.MOD_ID)))
@@ -198,11 +195,13 @@ public class RNSContent {
             .register();
 
     // Capabilities
-    public static final Capability<IDepositIndex> DEPOSIT_INDEX =
-            CapabilityManager.get(new CapabilityToken<>() {});
+    // TODO: Deposit index cannot be a level capability anymore. Migrate to level data attachment
+//    public static final Capability<IDepositIndex> DEPOSIT_INDEX =
+//            CapabilityManager.get(new CapabilityToken<>() {});
 
     public static void register() {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> RNSPonderPlugin::register);
+        // TODO: register ponder plugin
+//        DistExecutor.unsafeCallWhenOn(Dist.CLIENT, () -> RNSPonderPlugin::register);
     }
 
     public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> deposit(MapColor mapColor) {

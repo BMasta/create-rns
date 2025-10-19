@@ -27,7 +27,7 @@ public class RNSPonderPlugin implements PonderPlugin {
 
     @Override
     public void registerScenes(PonderSceneRegistrationHelper<ResourceLocation> helper) {
-        PonderSceneRegistrationHelper<ItemProviderEntry<?>> HELPER = helper.withKeyFunction(RegistryEntry::getId);
+        PonderSceneRegistrationHelper<ItemProviderEntry<?, ?>> HELPER = helper.withKeyFunction(RegistryEntry::getId);
         HELPER.forComponents(RNSContent.MINER_MK1_BLOCK, RNSContent.MINER_MK2_BLOCK)
                 .addStoryBoard("mining", RNSPonderScenes::mining);
     }

@@ -7,6 +7,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -17,14 +18,17 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
-import net.minecraftforge.common.util.INBTSerializable;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.neoforged.neoforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnknownNullability;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+@ParametersAreNonnullByDefault
 public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag> {
     public static final int MIN_COMPUTE_INTERVAL = 90;
 
@@ -190,7 +194,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
     }
 
     @Override
-    public CompoundTag serializeNBT() {
+    public @UnknownNullability CompoundTag serializeNBT(HolderLookup.Provider provider) {
         var root = new CompoundTag();
         long[] generatedFound;
         var generated = new CompoundTag();
@@ -223,7 +227,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
     }
 
     @Override
-    public void deserializeNBT(CompoundTag nbt) {
+    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
         if (!(nbt.get("GeneratedFound") instanceof LongArrayTag generatedFound) ||
                 !(nbt.get("Generated") instanceof CompoundTag generated) ||
                 !(nbt.get("Ungenerated") instanceof CompoundTag ungenerated)) {
@@ -268,7 +272,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
 
         // If found invalid (not yet generated) deposit, save it to the ungenerated list
         var ss = (newDeposit == null) ? null : sl.structureManager().getStructureWithPieceAt(newDeposit.getFirst(),
-                newDeposit.getSecond().get());
+                newDeposit.getSecond().value());
         if (newDeposit != null && !ss.isValid()) {
             var pos = newDeposit.getFirst();
             CreateRNS.LOGGER.trace("Found undiscovered deposit at {}, {}, {}", pos.getX(), pos.getY(),
