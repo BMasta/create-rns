@@ -1,114 +1,97 @@
-//package com.bmaster.createrns.mining.recipe;
-//
-//import com.google.gson.JsonObject;
-//import com.google.gson.JsonSyntaxException;
-//import net.minecraft.core.NonNullList;
-//import net.minecraft.core.RegistryAccess;
-//import net.minecraft.resources.ResourceLocation;
-//import net.minecraft.util.GsonHelper;
-//import net.minecraft.world.Container;
-//import net.minecraft.world.item.Item;
-//import net.minecraft.world.item.ItemStack;
-//import net.minecraft.world.item.Items;
-//import net.minecraft.world.item.crafting.*;
-//import net.minecraft.world.level.Level;
-//import net.minecraft.world.level.block.Block;
-//import net.minecraft.world.level.block.Blocks;
-//import net.minecraftforge.registries.ForgeRegistries;
-//import org.jetbrains.annotations.NotNull;
-//
-//import javax.annotation.ParametersAreNonnullByDefault;
-//
-//public abstract class MiningRecipe implements Recipe<Container> {
-//    private final ResourceLocation id;
-//    private final Block depositBlock;
-//    private final Item yield;
-//
-//    public MiningRecipe(ResourceLocation id, Block depositBlock, Item yield) {
-//        this.id = id;
-//        this.depositBlock = depositBlock;
-//        this.yield = yield;
-//    }
-//
-//    @Override
-//    public abstract @NotNull RecipeSerializer<?> getSerializer();
-//
-//    @Override
-//    public abstract @NotNull RecipeType<?> getType();
-//
-//    public Block getDepositBlock() {
-//        return depositBlock;
-//    }
-//
-//    public Item getYield() {
-//        return yield;
-//    }
-//
-//    @ParametersAreNonnullByDefault
-//    @Override
-//    public boolean matches(Container c, Level l) {
-//        return false;
-//    }
-//
-//    @ParametersAreNonnullByDefault
-//    @Override
-//    public @NotNull ItemStack assemble(Container c, RegistryAccess ra) {
-//        return new ItemStack(yield);
-//    }
-//
-//    @Override
-//    public boolean canCraftInDimensions(int w, int h) {
-//        return false;
-//    }
-//
-//    @ParametersAreNonnullByDefault
-//    @Override
-//    public @NotNull ItemStack getResultItem(RegistryAccess ra) {
-//        return new ItemStack(yield);
-//    }
-//
-//    @Override
-//    public @NotNull ResourceLocation getId() {
-//        return id;
-//    }
-//
-//    @Override
-//    public @NotNull NonNullList<Ingredient> getIngredients() {
-//        return NonNullList.of(Ingredient.EMPTY, Ingredient.of(depositBlock));
-//    }
-//
-//    @Override
-//    public boolean isSpecial() {
-//        return true;
-//    }
-//
-//    @SuppressWarnings("SameParameterValue")
-//    @ParametersAreNonnullByDefault
-//    public static abstract class Serializer<MR extends MiningRecipe> implements RecipeSerializer<MR> {
-//        protected static Block parseBlockId(JsonObject json, String field) {
-//            String raw = GsonHelper.getAsString(json, field);
-//            ResourceLocation rl = ResourceLocation.tryParse(raw);
-//            if (rl == null) {
-//                throw new JsonSyntaxException("Invalid resource location for '%s': %s".formatted(field, raw));
-//            }
-//            Block block = ForgeRegistries.BLOCKS.getValue(rl);
-//            if (block == null || block == Blocks.AIR) {
-//                throw new JsonSyntaxException("Unknown block for '%s': %s".formatted(field, raw));
-//            }
-//            return block;
-//        }
-//
-//        protected static Item parseItemId(JsonObject json, String field) {
-//            String raw = GsonHelper.getAsString(json, field);
-//            ResourceLocation rl = ResourceLocation.tryParse(raw);
-//            if (rl == null) {
-//                throw new JsonSyntaxException("Invalid resource location for '%s': %s".formatted(field, raw));
-//            }
-//            Item item = ForgeRegistries.ITEMS.getValue(rl);
-//            if (item == null || item == Items.AIR) {
-//                throw new JsonSyntaxException("Unknown item for '%s': %s".formatted(field, raw));
-//            }
-//            return item;
-//        }
-//    }
-//}
+package com.bmaster.createrns.mining.recipe;
+
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.lang.reflect.InvocationTargetException;
+
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
+public abstract class MiningRecipe implements Recipe<SingleRecipeInput> {
+    public static <T extends MiningRecipe> MapCodec<T> newCodec(Class<T> recipeClass) {
+        return RecordCodecBuilder.mapCodec(instance -> instance.group(
+                BuiltInRegistries.BLOCK.byNameCodec().fieldOf("depositBlock").forGetter(MiningRecipe::getDepositBlock),
+                BuiltInRegistries.ITEM.byNameCodec().fieldOf("yield").forGetter(MiningRecipe::getYield)
+        ).apply(instance, (Block d, Item y) -> {
+            try {
+                return recipeClass.getDeclaredConstructor(Block.class, Item.class).newInstance(d, y);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }));
+    }
+
+    public static <T extends MiningRecipe> StreamCodec<RegistryFriendlyByteBuf, T> newStreamCodec(Class<T> recipeClass) {
+        return StreamCodec.composite(
+                ByteBufCodecs.registry(Registries.BLOCK), MiningRecipe::getDepositBlock,
+                ByteBufCodecs.registry(Registries.ITEM), MiningRecipe::getYield,
+                (d, y) -> {
+                    try {
+                        return recipeClass.getDeclaredConstructor(Block.class, Item.class).newInstance(d, y);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+        );
+    }
+
+    private final Block depositBlock;
+    private final Item yield;
+
+    public MiningRecipe(Block depositBlock, Item yield) {
+        this.depositBlock = depositBlock;
+        this.yield = yield;
+    }
+
+    public Block getDepositBlock() {
+        return depositBlock;
+    }
+
+    public Item getYield() {
+        return yield;
+    }
+
+    @Override
+    public boolean canCraftInDimensions(int w, int h) {
+        return false;
+    }
+
+    @Override
+    public ItemStack getResultItem(HolderLookup.Provider provider) {
+        return new ItemStack(yield);
+    }
+
+    @Override
+    public NonNullList<Ingredient> getIngredients() {
+        return NonNullList.of(Ingredient.EMPTY, Ingredient.of(depositBlock));
+    }
+
+    @Override
+    public boolean isSpecial() {
+        return true;
+    }
+
+    @Override
+    public boolean matches(SingleRecipeInput singleRecipeInput, Level level) {
+        return singleRecipeInput.item().is(getDepositBlock().asItem());
+    }
+
+    @Override
+    public ItemStack assemble(SingleRecipeInput singleRecipeInput, HolderLookup.Provider provider) {
+        return new ItemStack(getYield());
+    }
+}

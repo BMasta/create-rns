@@ -18,5 +18,6 @@ public class CreateRNS {
         REGISTRATE.registerEventListeners(modBus);
 
         RNSContent.register();
+        RNSRecipeTypes.register();
     }
 }

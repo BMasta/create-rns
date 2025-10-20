@@ -15,7 +15,7 @@
     " A "
   ],
   "result": {
-    "item": "create_rns:resonant_mechanism"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "create_rns:resonant_mechanism"
+  }
 }

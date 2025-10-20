@@ -1,6 +1,7 @@
 package com.bmaster.createrns;
 
 import com.bmaster.createrns.deposit.DepositBlock;
+import com.bmaster.createrns.mining.miner.impl.*;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.api.stress.BlockStressValues;
@@ -23,7 +24,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -101,42 +101,42 @@ public class RNSContent {
     public static final ItemEntry<Item> REDSTONE_SMALL_DUST = CreateRNS.REGISTRATE.item(
                     "redstone_small_dust", Item::new).register();
 
-//    // Blocks
-//    public static final BlockEntry<MinerMk1Block> MINER_MK1_BLOCK = CreateRNS.REGISTRATE.block("miner_mk1",
-//                    MinerMk1Block::new)
-//            .transform(minerBlockCommon())
-//            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
-//            .item()
-//            .model(AssetLookup::customItemModel)
-//            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
-//                    .define('F', AllBlocks.ANDESITE_FUNNEL)
-//                    .define('C', AllBlocks.COGWHEEL)
-//                    .define('D', AllBlocks.MECHANICAL_DRILL)
-//                    .pattern("F")
-//                    .pattern("C")
-//                    .pattern("D")
-//                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllBlocks.MECHANICAL_DRILL))
-//                    .save(p))
-//            .build()
-//            .register();
-//
-//    public static final BlockEntry<MinerMk2Block> MINER_MK2_BLOCK = CreateRNS.REGISTRATE.block("miner_mk2",
-//                    MinerMk2Block::new)
-//            .transform(minerBlockCommon())
-//            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
-//            .item()
-//            .model(AssetLookup::customItemModel)
-//            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
-//                    .define('F', AllBlocks.BRASS_FUNNEL)
-//                    .define('R', RESONANT_MECHANISM)
-//                    .define('M', MINER_MK1_BLOCK)
-//                    .pattern("F")
-//                    .pattern("R")
-//                    .pattern("M")
-//                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.PRECISION_MECHANISM))
-//                    .save(p))
-//            .build()
-//            .register();
+    // Blocks
+    public static final BlockEntry<MinerMk1Block> MINER_MK1_BLOCK = CreateRNS.REGISTRATE.block("miner_mk1",
+                    MinerMk1Block::new)
+            .transform(minerBlockCommon())
+            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
+            .item()
+            .model(AssetLookup::customItemModel)
+            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
+                    .define('F', AllBlocks.ANDESITE_FUNNEL)
+                    .define('C', AllBlocks.COGWHEEL)
+                    .define('D', AllBlocks.MECHANICAL_DRILL)
+                    .pattern("F")
+                    .pattern("C")
+                    .pattern("D")
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllBlocks.MECHANICAL_DRILL))
+                    .save(p))
+            .build()
+            .register();
+
+    public static final BlockEntry<MinerMk2Block> MINER_MK2_BLOCK = CreateRNS.REGISTRATE.block("miner_mk2",
+                    MinerMk2Block::new)
+            .transform(minerBlockCommon())
+            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
+            .item()
+            .model(AssetLookup::customItemModel)
+            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
+                    .define('F', AllBlocks.BRASS_FUNNEL)
+                    .define('R', RESONANT_MECHANISM)
+                    .define('M', MINER_MK1_BLOCK)
+                    .pattern("F")
+                    .pattern("R")
+                    .pattern("M")
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.PRECISION_MECHANISM))
+                    .save(p))
+            .build()
+            .register();
 
     public static final BlockEntry<DepositBlock> IRON_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "iron_deposit_block", DepositBlock::new)
@@ -155,21 +155,21 @@ public class RNSContent {
             .transform(deposit(MapColor.FIRE)).register();
 
     // Block entities
-//    public static final BlockEntityEntry<MinerMk1BlockEntity> MINER_MK1_BE = CreateRNS.REGISTRATE.blockEntity("miner_mk1",
-//                    (BlockEntityType<MinerMk1BlockEntity> t, BlockPos p, BlockState s) ->
-//                            new MinerMk1BlockEntity(t, p, s))
-//            .visual(() -> MinerMk1Visual::new)
-//            .validBlock(MINER_MK1_BLOCK)
-//            .renderer(() -> MinerMk1Renderer::new)
-//            .register();
-//
-//    public static final BlockEntityEntry<MinerMk2BlockEntity> MINER_MK2_BE = CreateRNS.REGISTRATE.blockEntity("miner_mk2",
-//                    (BlockEntityType<MinerMk2BlockEntity> t, BlockPos p, BlockState s) ->
-//                            new MinerMk2BlockEntity(t, p, s))
-//            .visual(() -> MinerMk2Visual::new)
-//            .validBlock(MINER_MK2_BLOCK)
-//            .renderer(() -> MinerMk2Renderer::new)
-//            .register();
+    public static final BlockEntityEntry<MinerMk1BlockEntity> MINER_MK1_BE = CreateRNS.REGISTRATE.blockEntity("miner_mk1",
+                    (BlockEntityType<MinerMk1BlockEntity> t, BlockPos p, BlockState s) ->
+                            new MinerMk1BlockEntity(t, p, s))
+            .visual(() -> MinerMk1Visual::new)
+            .validBlock(MINER_MK1_BLOCK)
+            .renderer(() -> MinerMk1Renderer::new)
+            .register();
+
+    public static final BlockEntityEntry<MinerMk2BlockEntity> MINER_MK2_BE = CreateRNS.REGISTRATE.blockEntity("miner_mk2",
+                    (BlockEntityType<MinerMk2BlockEntity> t, BlockPos p, BlockState s) ->
+                            new MinerMk2BlockEntity(t, p, s))
+            .visual(() -> MinerMk2Visual::new)
+            .validBlock(MINER_MK2_BLOCK)
+            .renderer(() -> MinerMk2Renderer::new)
+            .register();
 
     public static void register() {
     }

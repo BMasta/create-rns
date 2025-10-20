@@ -18,7 +18,7 @@
     "M"
   ],
   "result": {
-    "item": "create_rns:miner_mk2"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "create_rns:miner_mk2"
+  }
 }
