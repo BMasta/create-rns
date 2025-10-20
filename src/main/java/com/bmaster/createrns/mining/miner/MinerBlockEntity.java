@@ -51,8 +51,7 @@ public abstract class MinerBlockEntity extends MiningBlockEntity {
         if (level.isClientSide) {
             if (isMining()) spawnParticles();
         } else {
-            // TODO: Item Ejection logic
-//            tryEjectUp();
+            tryEjectUp();
         }
     }
 
@@ -83,6 +82,33 @@ public abstract class MinerBlockEntity extends MiningBlockEntity {
         added = addKineticsToGoggleTooltip(tooltip, !added);
 
         return added;
+    }
+
+    protected void tryEjectUp() {
+        if (level == null) return;
+
+        var above = worldPosition.above();
+        var targetInv = level.getCapability(Capabilities.ItemHandler.BLOCK, above, Direction.DOWN);
+        if (targetInv == null) {
+            InvManipulationBehaviour inserter = level.getBlockEntity(above) == null ? null
+                    : BlockEntityBehaviour.get(level, above, InvManipulationBehaviour.TYPE);
+            targetInv = (inserter == null) ? null : inserter.getInventory();
+        }
+        if (targetInv == null) return;
+
+        var extracted = inventory.extractFirstAvailableItem(true);
+        if (extracted.isEmpty()) return;
+        for (int i = 0; i < targetInv.getSlots(); ++i) {
+            var remaining = targetInv.insertItem(i, extracted, true);
+            // We extract a single item, so insertion is always atomic
+            if (remaining.isEmpty()) {
+                extracted = inventory.extractFirstAvailableItem(false);
+                assert !extracted.isEmpty();
+                remaining = targetInv.insertItem(i, extracted, false);
+                assert remaining.isEmpty();
+                return;
+            }
+        }
     }
 
     @Override
