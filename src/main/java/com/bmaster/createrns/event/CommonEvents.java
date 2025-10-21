@@ -3,6 +3,8 @@ package com.bmaster.createrns.event;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.RNSRecipes;
+import com.bmaster.createrns.data.pack.DynamicDatapack;
+import com.bmaster.createrns.deposit.spec.DepositSpec;
 import com.bmaster.createrns.mining.miner.impl.MinerMk1BlockEntity;
 import com.bmaster.createrns.mining.miner.impl.MinerMk2BlockEntity;
 import com.simibubi.create.Create;
@@ -41,19 +43,19 @@ public class CommonEvents {
         );
     }
 
-//    @SubscribeEvent
-//    public static void onNewRegistry(DataPackRegistryEvent.NewRegistry e) {
-//        e.dataPackRegistry(DepositSpec.REGISTRY_KEY, DepositSpec.CODEC, DepositSpec.CODEC);
-//    }
+    @SubscribeEvent
+    public static void onNewRegistry(DataPackRegistryEvent.NewRegistry e) {
+        e.dataPackRegistry(DepositSpec.REGISTRY_KEY, DepositSpec.CODEC, DepositSpec.CODEC);
+    }
 
-//    @SubscribeEvent
-//    public static void onAddPackFinders(AddPackFindersEvent e) {
-//        if (e.getPackType() != PackType.SERVER_DATA) return;
-//        DynamicDatapack.addDepositBiomeTag();
-//        DynamicDatapack.addVanillaDeposits();
-//        DynamicDatapack.addDepositSetAndTag();
-//        e.addRepositorySource(consumer -> consumer.accept(DynamicDatapack.finish()));
-//    }
+    @SubscribeEvent
+    public static void onAddPackFinders(AddPackFindersEvent e) {
+        if (e.getPackType() != PackType.SERVER_DATA) return;
+        DynamicDatapack.addDepositBiomeTag();
+        DynamicDatapack.addVanillaDeposits();
+        DynamicDatapack.addDepositSetAndTag();
+        e.addRepositorySource(consumer -> consumer.accept(DynamicDatapack.finish()));
+    }
 
     @SubscribeEvent
     public static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {

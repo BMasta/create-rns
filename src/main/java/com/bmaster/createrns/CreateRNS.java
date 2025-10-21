@@ -1,5 +1,7 @@
 package com.bmaster.createrns;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import net.neoforged.bus.api.IEventBus;
@@ -13,6 +15,7 @@ public class CreateRNS {
     public static final String MOD_ID = "create_rns";
     public static final Logger LOGGER = LogUtils.getLogger();
     public static final CreateRegistrate REGISTRATE = CreateRegistrate.create(CreateRNS.MOD_ID);
+    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     public CreateRNS(ModContainer container, IEventBus modBus)  {
         REGISTRATE.registerEventListeners(modBus);
