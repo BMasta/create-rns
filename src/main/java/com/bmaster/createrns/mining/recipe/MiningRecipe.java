@@ -17,38 +17,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.lang.reflect.InvocationTargetException;
+import java.util.function.BiFunction;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public abstract class MiningRecipe implements Recipe<SingleRecipeInput> {
-    public static <T extends MiningRecipe> MapCodec<T> newCodec(Class<T> recipeClass) {
-        return RecordCodecBuilder.mapCodec(instance -> instance.group(
-                BuiltInRegistries.BLOCK.byNameCodec().fieldOf("depositBlock").forGetter(MiningRecipe::getDepositBlock),
-                BuiltInRegistries.ITEM.byNameCodec().fieldOf("yield").forGetter(MiningRecipe::getYield)
-        ).apply(instance, (Block d, Item y) -> {
-            try {
-                return recipeClass.getDeclaredConstructor(Block.class, Item.class).newInstance(d, y);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }));
-    }
-
-    public static <T extends MiningRecipe> StreamCodec<RegistryFriendlyByteBuf, T> newStreamCodec(Class<T> recipeClass) {
-        return StreamCodec.composite(
-                ByteBufCodecs.registry(Registries.BLOCK), MiningRecipe::getDepositBlock,
-                ByteBufCodecs.registry(Registries.ITEM), MiningRecipe::getYield,
-                (d, y) -> {
-                    try {
-                        return recipeClass.getDeclaredConstructor(Block.class, Item.class).newInstance(d, y);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-        );
-    }
-
     private final Block depositBlock;
     private final Item yield;
 
@@ -93,5 +66,42 @@ public abstract class MiningRecipe implements Recipe<SingleRecipeInput> {
     @Override
     public ItemStack assemble(SingleRecipeInput singleRecipeInput, HolderLookup.Provider provider) {
         return new ItemStack(getYield());
+    }
+
+    public static abstract class Serializer<R extends MiningRecipe> implements RecipeSerializer<R> {
+        public final MapCodec<R> CODEC;
+        public final StreamCodec<RegistryFriendlyByteBuf, R> STREAM_CODEC;
+        private final BiFunction<Block,Item,R> recipeFactory;
+
+        public Serializer(BiFunction<Block,Item,R> recipeFactory) {
+            this.recipeFactory = recipeFactory;
+            CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
+                            BuiltInRegistries.BLOCK.byNameCodec().fieldOf("deposit_block").forGetter(MiningRecipe::getDepositBlock),
+                            BuiltInRegistries.ITEM.byNameCodec().fieldOf("yield").forGetter(MiningRecipe::getYield))
+                    .apply(i, recipeFactory));
+            STREAM_CODEC = StreamCodec.of(this::toNetwork, this::fromNetwork);
+        }
+
+        public void toNetwork(RegistryFriendlyByteBuf buffer, R recipe) {
+            ByteBufCodecs.registry(Registries.BLOCK).encode(buffer, recipe.getDepositBlock());
+            ByteBufCodecs.registry(Registries.ITEM).encode(buffer, recipe.getYield());
+        }
+
+        public R fromNetwork(RegistryFriendlyByteBuf buffer) {
+            return recipeFactory.apply(
+                    ByteBufCodecs.registry(Registries.BLOCK).decode(buffer),
+                    ByteBufCodecs.registry(Registries.ITEM).decode(buffer)
+            );
+        }
+
+        @Override
+        public MapCodec<R> codec() {
+            return CODEC;
+        }
+
+        @Override
+        public StreamCodec<RegistryFriendlyByteBuf, R> streamCodec() {
+            return STREAM_CODEC;
+        }
     }
 }

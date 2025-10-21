@@ -52,8 +52,9 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
 
     public abstract MiningLevel getMiningLevel();
 
-    public MiningEntityItemHandler getInventory() {
-        return inventory;
+    public @Nullable MiningEntityItemHandler getItemHandler(Direction side) {
+        if (side == null || side == Direction.UP) return inventory;
+        return null;
     }
 
     public BoundingBox getMiningArea(@NotNull Level l) {
@@ -128,11 +129,6 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
 
         level.invalidateCapabilities(worldPosition);
         if (level.isClientSide()) MiningAreaOutlineRenderer.removeMiningBE(this);
-    }
-
-    public @Nullable IItemHandler getItemHandler(Direction side) {
-        if (side == Direction.UP) return inventory;
-        return null;
     }
 
     @Override

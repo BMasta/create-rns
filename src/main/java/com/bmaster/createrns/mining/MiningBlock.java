@@ -1,20 +1,12 @@
 package com.bmaster.createrns.mining;
 
-import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.mining.MiningBlockEntity;
 import com.simibubi.create.content.kinetics.base.KineticBlock;
-import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Set;
@@ -42,7 +34,7 @@ public abstract class MiningBlock extends KineticBlock {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof MiningBlockEntity minerBE) {
                 // Pop inventory contents on the ground
-                var minerInvCap = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, null);
+                var minerInvCap = minerBE.getItemHandler(null);
                 if (minerInvCap != null) {
                     for (int i = 0; i < minerInvCap.getSlots(); ++i) {
                         ItemStack stack = minerInvCap.getStackInSlot(i);

@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Objects;
 
 public abstract class MinerBlock<BE extends MinerBlockEntity> extends MiningBlock implements IBE<BE>, ICogWheel {
     public static Direction.Axis getRotationAxis() {
@@ -46,7 +47,7 @@ public abstract class MinerBlock<BE extends MinerBlockEntity> extends MiningBloc
     @Override
     protected @NotNull InteractionResult useWithoutItem(BlockState state, Level l, BlockPos pos, Player p, BlockHitResult hitResult) {
         return onBlockEntityUse(l, pos, be -> {
-            var minerInv = be.getInventory();
+            var minerInv = Objects.requireNonNull(be.getItemHandler(null));
             if (minerInv.isEmpty()) return InteractionResult.PASS;
             var playerInv = p.getInventory();
             boolean pickedUp = false;

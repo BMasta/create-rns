@@ -18,7 +18,6 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -184,34 +183,6 @@ public abstract class MinerBlockEntity extends MiningBlockEntity {
         addStressImpactStats(tooltip, calculateStressApplied());
         return true;
     }
-
-    // TODO: Item ejection logic
-//    protected void tryEjectUp() {
-//        if (level == null) return;
-//
-//        BlockEntity be = level.getBlockEntity(worldPosition.above());
-//        InvManipulationBehaviour inserter =
-//                be == null ? null : BlockEntityBehaviour.get(level, be.getBlockPos(), InvManipulationBehaviour.TYPE);
-//        @SuppressWarnings("DataFlowIssue")
-//        var targetInv = be == null ? null
-//                : be.getCapability(Capabilities.ItemHandler.ITEM, Direction.DOWN)
-//                .orElse(inserter == null ? null : inserter.getInventory());
-//        if (targetInv == null) return;
-//
-//        var extracted = inventory.extractFirstAvailableItem(true);
-//        if (extracted.isEmpty()) return;
-//        for (int i = 0; i < targetInv.getSlots(); ++i) {
-//            var remaining = targetInv.insertItem(i, extracted, true);
-//            // We extract a single item, so insertion is always atomic
-//            if (remaining.isEmpty()) {
-//                extracted = inventory.extractFirstAvailableItem(false);
-//                assert !extracted.isEmpty();
-//                remaining = targetInv.insertItem(i, extracted, false);
-//                assert remaining.isEmpty();
-//                return;
-//            }
-//        }
-//    }
 
     protected void spawnParticles() {
         if (level == null) return;
