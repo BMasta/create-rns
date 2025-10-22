@@ -2,12 +2,14 @@ package com.bmaster.createrns.event;
 
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.compat.ponder.RNSPonderPlugin;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler;
 import com.bmaster.createrns.mining.MiningAreaOutlineRenderer;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
@@ -18,6 +20,11 @@ public class ClientEvents {
     public static void clientTick(ClientTickEvent.Pre event) {
         DepositScannerClientHandler.tick();
         MiningAreaOutlineRenderer.tick();
+    }
+
+    @SubscribeEvent
+    public static void clientInit(final FMLClientSetupEvent event) {
+        RNSPonderPlugin.register();
     }
 
     @SubscribeEvent
