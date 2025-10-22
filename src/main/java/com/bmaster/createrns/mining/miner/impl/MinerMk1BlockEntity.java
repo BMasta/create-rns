@@ -1,9 +1,9 @@
 package com.bmaster.createrns.mining.miner.impl;
 
 import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.bmaster.createrns.mining.MiningLevel;
 import com.bmaster.createrns.mining.miner.MinerBlockEntity;
-import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -43,9 +43,6 @@ public class MinerMk1BlockEntity extends MinerBlockEntity {
 
     @Override
     public int getBaseProgress() {
-        var ticksPerHour = 60 * SharedConstants.TICKS_PER_MINUTE;
-        return (int) (256 * ticksPerHour / 45f);
-        // TODO
-//        return ServerConfig.minerMk1BaseProgress;
+        return ServerConfig.minerMk1BaseProgress;
     }
 }

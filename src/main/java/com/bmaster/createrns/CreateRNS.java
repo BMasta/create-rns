@@ -1,5 +1,6 @@
 package com.bmaster.createrns;
 
+import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mojang.logging.LogUtils;
@@ -7,6 +8,7 @@ import com.simibubi.create.foundation.data.CreateRegistrate;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
 import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -23,5 +25,6 @@ public class CreateRNS {
         RNSContent.register(modBus);
         RNSRecipeTypes.register();
         modBus.addListener(RNSSoundEvents::register);
+        container.registerConfig(ModConfig.Type.SERVER, ServerConfig.SPEC);
     }
 }

@@ -31,7 +31,7 @@ public class DepositScannerItem extends Item {
     @Override
     @OnlyIn(Dist.CLIENT)
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(SimpleCustomRenderer.create(this, new LinkedControllerItemRenderer()));
+        consumer.accept(SimpleCustomRenderer.create(this, new DepositScannerItemRenderer()));
     }
 
     @Override
