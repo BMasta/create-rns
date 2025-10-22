@@ -10,5 +10,4 @@
 - [ ] Store deposits known to player on client side. Sync with server for accurate scanning.
 - [ ] Figure out how to publish on curseforge/modrinth.
 - [ ] Figure out how to autoincrement semver and auto-publish to curseforge/modrinth.
-- [ ] Port to 1.21.x (Neoforge?).
 - [ ] Port to Fabric.
