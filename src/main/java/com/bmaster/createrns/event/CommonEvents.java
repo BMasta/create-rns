@@ -5,21 +5,26 @@ import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.RNSRecipes;
 import com.bmaster.createrns.data.pack.DynamicDatapack;
 import com.bmaster.createrns.deposit.spec.DepositSpec;
+import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
+import com.bmaster.createrns.item.DepositScanner.DepositScannerC2SPayload;
+import com.bmaster.createrns.item.DepositScanner.DepositScannerS2CPayload;
 import com.bmaster.createrns.mining.miner.impl.MinerMk1BlockEntity;
 import com.bmaster.createrns.mining.miner.impl.MinerMk2BlockEntity;
-import com.simibubi.create.Create;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
-import net.minecraft.data.DataGenerator;
-import net.minecraft.data.PackOutput;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.world.level.ChunkPos;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
-import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
+import net.neoforged.neoforge.event.level.ChunkEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
 import javax.annotation.Nullable;
@@ -27,7 +32,6 @@ import javax.annotation.Nullable;
 @EventBusSubscriber(modid = CreateRNS.MOD_ID)
 public class CommonEvents {
     // MOD BUS
-    // TODO: Deposit index level capability needs to be migrated to a level data attachment
     @SubscribeEvent
     public static void registerCapabilities(RegisterCapabilitiesEvent e) {
         // Miners
@@ -63,6 +67,25 @@ public class CommonEvents {
         event.register(ModelResourceLocation.standalone(RNSContent.MINER_MK2_DRILL.modelLocation()));
     }
 
+    @SubscribeEvent
+    public static void registerPayloadHandlers(final RegisterPayloadHandlersEvent event) {
+        // set a network version string (optional but recommended)
+        PayloadRegistrar registrar = event.registrar("1");
+
+        // Client->Server
+        registrar.playToServer(
+                DepositScannerC2SPayload.TYPE,
+                DepositScannerC2SPayload.STREAM_CODEC,
+                DepositScannerC2SPayload::handle
+        );
+
+        registrar.playToClient(
+                DepositScannerS2CPayload.TYPE,
+                DepositScannerS2CPayload.STREAM_CODEC,
+                DepositScannerS2CPayload::handle
+        );
+    }
+
 //    @SubscribeEvent
 //    public static void gatherData(GatherDataEvent event) {
 //        DataGenerator generator = event.getGenerator();
@@ -72,33 +95,20 @@ public class CommonEvents {
 
     // GAME BUS
 
-    // TODO: Deposit index level capability needs to be migrated to a level data attachment
-//    @SubscribeEvent
-//    public static void onAttachCaps(AttachCapabilitiesEvent<Level> event) {
-//        if (!(event.getObject() instanceof ServerLevel sl)) return;
-//
-//        event.addCapability(
-//                ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "deposit_index"),
-//                new DepositIndexProvider()
-//        );
-//    }
+    @SubscribeEvent
+    public static void onChunkLoad(ChunkEvent.Load e) {
+        if (!(e.getLevel() instanceof ServerLevel sl)) return;
 
-//    @SubscribeEvent
-//    public static void onChunkLoad(ChunkEvent.Load e) {
-//        if (!(e.getLevel() instanceof ServerLevel sl)) return;
-//
-//        var depIdxOpt = IDepositIndex.fromLevel(sl);
-//        if (depIdxOpt.isEmpty()) return;
-//        var depIdx = depIdxOpt.get();
-//
-//        ChunkPos pos = e.getChunk().getPos();
-//        var sm = sl.structureManager();
-//
-//        for (var start : sm.startsForStructure(pos, DepositSpecLookup.isDeposit(sl.registryAccess()))) {
-//            sl.registryAccess()
-//                    .registryOrThrow(Registries.STRUCTURE)
-//                    .getResourceKey(start.getStructure())
-//                    .ifPresent(structKey -> depIdx.add(structKey, start, sl));
-//        }
-//    }
+        var depData = sl.getData(RNSContent.LEVEL_DEPOSIT_DATA.get());
+
+        ChunkPos pos = e.getChunk().getPos();
+        var sm = sl.structureManager();
+
+        for (var start : sm.startsForStructure(pos, DepositSpecLookup.isDeposit(sl.registryAccess()))) {
+            sl.registryAccess()
+                    .registryOrThrow(Registries.STRUCTURE)
+                    .getResourceKey(start.getStructure())
+                    .ifPresent(structKey -> depData.add(structKey, start, sl));
+        }
+    }
 }

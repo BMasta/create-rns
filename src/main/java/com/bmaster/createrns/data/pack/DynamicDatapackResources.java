@@ -3,7 +3,6 @@ package com.bmaster.createrns.data.pack;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -18,7 +17,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -40,7 +38,6 @@ public final class DynamicDatapackResources implements PackResources {
     }
 
     public void putJson(String path, JsonElement json) {
-        // TODO: this does not have to depend on create
         serverData.put(loc(path), GSON.toJson(json).getBytes(StandardCharsets.UTF_8));
     }
 

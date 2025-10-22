@@ -6,6 +6,7 @@
   "block.create_rns.miner_mk2": "Miner Mk2",
   "block.create_rns.redstone_deposit_block": "Redstone Deposit Block",
   "block.create_rns.zinc_deposit_block": "Zinc Deposit Block",
+  "item.create_rns.deposit_scanner": "Deposit Scanner",
   "item.create_rns.impure_copper_ore": "Impure Copper Ore",
   "item.create_rns.impure_gold_ore": "Impure Gold Ore",
   "item.create_rns.impure_iron_ore": "Impure Iron Ore",

@@ -1,6 +1,8 @@
 package com.bmaster.createrns;
 
 import com.bmaster.createrns.deposit.DepositBlock;
+import com.bmaster.createrns.deposit.LevelDepositData;
+import com.bmaster.createrns.item.DepositScanner.DepositScannerItem;
 import com.bmaster.createrns.mining.miner.impl.*;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
@@ -31,6 +33,12 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
+
+import java.util.function.Supplier;
 
 import static com.simibubi.create.foundation.data.TagGen.*;
 
@@ -49,6 +57,13 @@ public class RNSContent {
                         .andThen(TooltipModifier.mapNull(KineticStats.create(item))));
     }
 
+    // Level attachments
+    private static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES =
+            DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, CreateRNS.MOD_ID);
+
+    public static final Supplier<AttachmentType<LevelDepositData>> LEVEL_DEPOSIT_DATA = ATTACHMENT_TYPES.register(
+            "level_deposit_data", () -> AttachmentType.serializable(LevelDepositData::new).build());
+
     // Creative tabs
     public static final RegistryEntry<CreativeModeTab, CreativeModeTab> MAIN_TAB = CreateRNS.REGISTRATE.defaultCreativeTab(
                     CreateRNS.MOD_ID, c -> c
@@ -58,21 +73,21 @@ public class RNSContent {
             .register();
 
     // Items
-//    public static final ItemEntry<DepositScannerItem> DEPOSIT_SCANNER_ITEM = CreateRNS.REGISTRATE.item(
-//                    "deposit_scanner", DepositScannerItem::new)
-//            .properties(p -> p.stacksTo(1))
-//            .model(AssetLookup.itemModelWithPartials())
-//            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
-//                    .define('E', AllItems.ELECTRON_TUBE)
-//                    .define('W', AllBlocks.COGWHEEL)
-//                    .define('C', AllBlocks.ANDESITE_CASING)
-//                    .define('T', AllItems.TRANSMITTER)
-//                    .pattern(" E ")
-//                    .pattern("TWT")
-//                    .pattern(" C ")
-//                    .unlockedBy("has_electron_tube", RegistrateRecipeProvider.has(AllItems.ELECTRON_TUBE))
-//                    .save(p))
-//            .register();
+    public static final ItemEntry<DepositScannerItem> DEPOSIT_SCANNER_ITEM = CreateRNS.REGISTRATE.item(
+                    "deposit_scanner", DepositScannerItem::new)
+            .properties(p -> p.stacksTo(1))
+            .model(AssetLookup.itemModelWithPartials())
+            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
+                    .define('E', AllItems.ELECTRON_TUBE)
+                    .define('W', AllBlocks.COGWHEEL)
+                    .define('C', AllBlocks.ANDESITE_CASING)
+                    .define('T', AllItems.TRANSMITTER)
+                    .pattern(" E ")
+                    .pattern("TWT")
+                    .pattern(" C ")
+                    .unlockedBy("has_electron_tube", RegistrateRecipeProvider.has(AllItems.ELECTRON_TUBE))
+                    .save(p))
+            .register();
 
     public static final ItemEntry<Item> RESONANT_MECHANISM = CreateRNS.REGISTRATE.item(
                     "resonant_mechanism", Item::new)
@@ -171,7 +186,8 @@ public class RNSContent {
             .renderer(() -> MinerMk2Renderer::new)
             .register();
 
-    public static void register() {
+    public static void register(IEventBus modBus) {
+        ATTACHMENT_TYPES.register(modBus);
     }
 
     public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> deposit(MapColor mapColor) {

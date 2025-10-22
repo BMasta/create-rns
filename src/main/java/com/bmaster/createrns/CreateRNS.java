@@ -19,8 +19,9 @@ public class CreateRNS {
 
     public CreateRNS(ModContainer container, IEventBus modBus)  {
         REGISTRATE.registerEventListeners(modBus);
-
-        RNSContent.register();
+        RNSTags.register();
+        RNSContent.register(modBus);
         RNSRecipeTypes.register();
+        modBus.addListener(RNSSoundEvents::register);
     }
 }
