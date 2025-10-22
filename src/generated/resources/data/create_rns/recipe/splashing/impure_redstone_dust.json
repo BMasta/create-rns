@@ -1,0 +1,17 @@
+{
+  "type": "create:splashing",
+  "ingredients": [
+    {
+      "item": "create_rns:impure_redstone_dust"
+    }
+  ],
+  "results": [
+    {
+      "id": "minecraft:cobblestone"
+    },
+    {
+      "chance": 0.5,
+      "id": "create_rns:redstone_small_dust"
+    }
+  ]
+}

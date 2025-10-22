@@ -13,6 +13,8 @@ import com.bmaster.createrns.mining.miner.impl.MinerMk2BlockEntity;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.data.DataGenerator;
+import net.minecraft.data.PackOutput;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.level.ChunkPos;
@@ -21,6 +23,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -86,12 +89,13 @@ public class CommonEvents {
         );
     }
 
-//    @SubscribeEvent
-//    public static void gatherData(GatherDataEvent event) {
-//        DataGenerator generator = event.getGenerator();
-//        PackOutput output = generator.getPackOutput();
-//        generator.addProvider(event.includeServer(), new RNSRecipes.Washing(output));
-//    }
+    @SubscribeEvent
+    public static void gatherData(GatherDataEvent event) {
+        var generator = event.getGenerator();
+        var output = generator.getPackOutput();
+        var provider = event.getLookupProvider();
+        generator.addProvider(event.includeServer(), new RNSRecipes.Washing(output, provider));
+    }
 
     // GAME BUS
 
