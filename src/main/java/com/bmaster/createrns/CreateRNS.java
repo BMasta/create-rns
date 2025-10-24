@@ -24,6 +24,7 @@ public class CreateRNS {
         RNSTags.register();
         RNSContent.register(modBus);
         RNSRecipeTypes.register();
+        RNSRecipes.register();
         modBus.addListener(RNSSoundEvents::register);
         container.registerConfig(ModConfig.Type.SERVER, ServerConfig.SPEC);
     }

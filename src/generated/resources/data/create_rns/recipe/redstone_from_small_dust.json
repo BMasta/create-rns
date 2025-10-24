@@ -1,0 +1,37 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "create_rns:redstone_small_dust"
+    },
+    {
+      "item": "create_rns:redstone_small_dust"
+    },
+    {
+      "item": "create_rns:redstone_small_dust"
+    },
+    {
+      "item": "create_rns:redstone_small_dust"
+    },
+    {
+      "item": "create_rns:redstone_small_dust"
+    },
+    {
+      "item": "create_rns:redstone_small_dust"
+    },
+    {
+      "item": "create_rns:redstone_small_dust"
+    },
+    {
+      "item": "create_rns:redstone_small_dust"
+    },
+    {
+      "item": "create_rns:redstone_small_dust"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "minecraft:redstone"
+  }
+}

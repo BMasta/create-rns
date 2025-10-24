@@ -12,6 +12,7 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 
 import java.util.concurrent.CompletableFuture;
@@ -20,7 +21,7 @@ public class RNSRecipes {
     static {
         CreateRNS.REGISTRATE.addDataGenerator(ProviderType.RECIPE, prov -> {
             ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, Items.REDSTONE)
-                    .requires(RNSContent.REDSTONE_SMALL_DUST, 9)
+                    .requires(RNSContent.REDSTONE_SMALL_DUST.get(), 9)
                     .unlockedBy("has_item", RegistrateRecipeProvider.has(RNSContent.REDSTONE_SMALL_DUST))
                     .save(prov, ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "redstone_from_small_dust"));
         });
