@@ -1,6 +1,8 @@
 package com.bmaster.createrns;
 
 import com.bmaster.createrns.compat.ponder.RNSPonderPlugin;
+import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
+import com.bmaster.createrns.data.gen.depositworldgen.DepositStructureConfigBuilder;
 import com.bmaster.createrns.deposit.DepositBlock;
 import com.bmaster.createrns.mining.miner.*;
 import com.bmaster.createrns.deposit.capability.IDepositIndex;
@@ -41,6 +43,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import static com.simibubi.create.foundation.data.TagGen.*;
 
@@ -101,7 +104,7 @@ public class RNSContent {
 
     // Yoinked from tech reborn
     public static final ItemEntry<Item> REDSTONE_SMALL_DUST = CreateRNS.REGISTRATE.item(
-                    "redstone_small_dust", Item::new).register();
+            "redstone_small_dust", Item::new).register();
 
     // Blocks
     public static final BlockEntry<MinerMk1Block> MINER_MK1_BLOCK = CreateRNS.REGISTRATE.block("miner_mk1",
@@ -142,19 +145,84 @@ public class RNSContent {
 
     public static final BlockEntry<DepositBlock> IRON_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "iron_deposit_block", DepositBlock::new)
-            .transform(deposit(MapColor.RAW_IRON)).item().build().register();
+            .transform(deposit(MapColor.RAW_IRON))
+            .onRegister(d -> DepositStructureConfigBuilder
+                    .create("iron")
+                    .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
+                    .depth(8)
+                    .weight(10)
+                    .nbt(RNSContent.DEP_MEDIUM, 70)
+                    .nbt(RNSContent.DEP_LARGE, 30)
+                    .save())
+            .register();
+
     public static final BlockEntry<DepositBlock> COPPER_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "copper_deposit_block", DepositBlock::new)
-            .transform(deposit(MapColor.COLOR_ORANGE)).item().build().register();
+            .transform(deposit(MapColor.COLOR_ORANGE))
+            .onRegister(d -> DepositStructureConfigBuilder
+                    .create("copper")
+                    .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
+                    .depth(8)
+                    .weight(5)
+                    .nbt(RNSContent.DEP_MEDIUM, 70)
+                    .nbt(RNSContent.DEP_LARGE, 30)
+                    .save())
+            .register();
+
     public static final BlockEntry<DepositBlock> ZINC_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "zinc_deposit_block", DepositBlock::new)
-            .transform(deposit(MapColor.GLOW_LICHEN)).item().build().register();
+            .transform(deposit(MapColor.GLOW_LICHEN))
+            .onRegister(d -> DepositStructureConfigBuilder
+                    .create("zinc")
+                    .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
+                    .depth(8)
+                    .weight(2)
+                    .nbt(RNSContent.DEP_SMALL, 70)
+                    .nbt(RNSContent.DEP_MEDIUM, 28)
+                    .nbt(RNSContent.DEP_LARGE, 2)
+                    .save())
+            .register();
+
     public static final BlockEntry<DepositBlock> GOLD_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "gold_deposit_block", DepositBlock::new)
-            .transform(deposit(MapColor.GOLD)).item().build().register();
+            .transform(deposit(MapColor.GOLD))
+            .onRegister(d -> DepositStructureConfigBuilder
+                    .create("gold")
+                    .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
+                    .depth(12)
+                    .weight(2)
+                    .nbt(RNSContent.DEP_SMALL, 70)
+                    .nbt(RNSContent.DEP_MEDIUM, 28)
+                    .nbt(RNSContent.DEP_LARGE, 2)
+                    .save())
+            .register();
+
     public static final BlockEntry<DepositBlock> REDSTONE_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "redstone_deposit_block", DepositBlock::new)
-            .transform(deposit(MapColor.FIRE)).item().build().register();
+            .transform(deposit(MapColor.FIRE))
+            .onRegister(d -> DepositStructureConfigBuilder
+                    .create("redstone")
+                    .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
+                    .depth(12)
+                    .weight(2)
+                    .nbt(RNSContent.DEP_SMALL, 70)
+                    .nbt(RNSContent.DEP_MEDIUM, 28)
+                    .nbt(RNSContent.DEP_LARGE, 2)
+                    .save())
+            .register();
+
+    static {
+        // Must run after all deposit configs are saved
+        DepositSetConfigBuilder
+                .create()
+                .biome("#minecraft:is_forest")
+                .biome("#minecraft:is_jungle")
+                .biome("#minecraft:is_taiga")
+                .biome("#minecraft:is_badlands")
+                .biome("#minecraft:is_hill")
+                .biome("#minecraft:is_savanna")
+                .save();
+    }
 
     // Block entities
     public static final BlockEntityEntry<MinerMk1BlockEntity> MINER_MK1_BE = CreateRNS.REGISTRATE.blockEntity("miner_mk1",
@@ -201,6 +269,13 @@ public class RNSContent {
     public static final Capability<IDepositIndex> DEPOSIT_INDEX =
             CapabilityManager.get(new CapabilityToken<>() {});
 
+    private static final ResourceLocation DEP_SMALL =
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_small");
+    private static final ResourceLocation DEP_MEDIUM =
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium");
+    private static final ResourceLocation DEP_LARGE =
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_large");
+
     public static void register() {
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> RNSPonderPlugin::register);
     }
@@ -219,7 +294,7 @@ public class RNSContent {
                 .tag(RNSTags.Block.DEPOSIT_BLOCKS)
                 .item()
                 .tag(RNSTags.Item.DEPOSIT_BLOCKS)
-                .getParent();
+                .build();
     }
 
     public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> minerBlockCommon() {

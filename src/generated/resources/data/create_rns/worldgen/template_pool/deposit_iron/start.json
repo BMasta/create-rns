@@ -1,0 +1,23 @@
+{
+  "elements": [
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "create_rns:ore_deposit_medium",
+        "processors": "create_rns:replace_with_create_rns_iron_deposit_block",
+        "projection": "rigid"
+      },
+      "weight": 70
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "create_rns:ore_deposit_large",
+        "processors": "create_rns:replace_with_create_rns_iron_deposit_block",
+        "projection": "rigid"
+      },
+      "weight": 30
+    }
+  ],
+  "fallback": "minecraft:empty"
+}
