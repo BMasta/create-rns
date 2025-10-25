@@ -1,0 +1,32 @@
+{
+  "elements": [
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "create_rns:ore_deposit_small",
+        "processors": "create_rns:replace_with_create_rns_gold_deposit_block",
+        "projection": "rigid"
+      },
+      "weight": 70
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "create_rns:ore_deposit_medium",
+        "processors": "create_rns:replace_with_create_rns_gold_deposit_block",
+        "projection": "rigid"
+      },
+      "weight": 28
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "create_rns:ore_deposit_large",
+        "processors": "create_rns:replace_with_create_rns_gold_deposit_block",
+        "projection": "rigid"
+      },
+      "weight": 2
+    }
+  ],
+  "fallback": "minecraft:empty"
+}

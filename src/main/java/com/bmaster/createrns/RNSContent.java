@@ -1,6 +1,8 @@
 package com.bmaster.createrns;
 
-import com.bmaster.createrns.compat.ponder.RNSPonderPlugin;
+import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
+import com.bmaster.createrns.data.gen.depositworldgen.DepositStructureConfigBuilder;
+import com.bmaster.createrns.data.gen.depositworldgen.DepositWorldgenProvider;
 import com.bmaster.createrns.deposit.DepositBlock;
 import com.bmaster.createrns.deposit.LevelDepositData;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerItem;
@@ -13,7 +15,6 @@ import com.simibubi.create.foundation.data.SharedProperties;
 import com.simibubi.create.foundation.item.ItemDescription;
 import com.simibubi.create.foundation.item.KineticStats;
 import com.simibubi.create.foundation.item.TooltipModifier;
-import com.simibubi.create.foundation.utility.DistExecutor;
 import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.providers.RegistrateRecipeProvider;
 import com.tterrag.registrate.util.entry.*;
@@ -21,6 +22,7 @@ import com.tterrag.registrate.util.nullness.NonNullFunction;
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import net.createmod.catnip.lang.FontHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.network.chat.Component;
@@ -117,7 +119,7 @@ public class RNSContent {
 
     // Yoinked from tech reborn
     public static final ItemEntry<Item> REDSTONE_SMALL_DUST = CreateRNS.REGISTRATE.item(
-                    "redstone_small_dust", Item::new).register();
+            "redstone_small_dust", Item::new).register();
 
     // Blocks
     public static final BlockEntry<MinerMk1Block> MINER_MK1_BLOCK = CreateRNS.REGISTRATE.block("miner_mk1",
@@ -158,19 +160,84 @@ public class RNSContent {
 
     public static final BlockEntry<DepositBlock> IRON_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "iron_deposit_block", DepositBlock::new)
-            .transform(deposit(MapColor.RAW_IRON)).register();
+            .transform(deposit(MapColor.RAW_IRON))
+            .onRegister(d -> DepositStructureConfigBuilder
+                    .create("iron")
+                    .depositBlock(BuiltInRegistries.BLOCK.getKey(d))
+                    .depth(8)
+                    .weight(10)
+                    .nbt(RNSContent.DEP_MEDIUM, 70)
+                    .nbt(RNSContent.DEP_LARGE, 30)
+                    .save())
+            .register();
+
     public static final BlockEntry<DepositBlock> COPPER_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "copper_deposit_block", DepositBlock::new)
-            .transform(deposit(MapColor.COLOR_ORANGE)).register();
+            .transform(deposit(MapColor.COLOR_ORANGE))
+            .onRegister(d -> DepositStructureConfigBuilder
+                    .create("copper")
+                    .depositBlock(BuiltInRegistries.BLOCK.getKey(d))
+                    .depth(8)
+                    .weight(5)
+                    .nbt(RNSContent.DEP_MEDIUM, 70)
+                    .nbt(RNSContent.DEP_LARGE, 30)
+                    .save())
+            .register();
+
     public static final BlockEntry<DepositBlock> ZINC_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "zinc_deposit_block", DepositBlock::new)
-            .transform(deposit(MapColor.GLOW_LICHEN)).register();
+            .transform(deposit(MapColor.GLOW_LICHEN))
+            .onRegister(d -> DepositStructureConfigBuilder
+                    .create("zinc")
+                    .depositBlock(BuiltInRegistries.BLOCK.getKey(d))
+                    .depth(8)
+                    .weight(2)
+                    .nbt(RNSContent.DEP_SMALL, 70)
+                    .nbt(RNSContent.DEP_MEDIUM, 28)
+                    .nbt(RNSContent.DEP_LARGE, 2)
+                    .save())
+            .register();
+
     public static final BlockEntry<DepositBlock> GOLD_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "gold_deposit_block", DepositBlock::new)
-            .transform(deposit(MapColor.GOLD)).register();
+            .transform(deposit(MapColor.GOLD))
+            .onRegister(d -> DepositStructureConfigBuilder
+                    .create("gold")
+                    .depositBlock(BuiltInRegistries.BLOCK.getKey(d))
+                    .depth(12)
+                    .weight(2)
+                    .nbt(RNSContent.DEP_SMALL, 70)
+                    .nbt(RNSContent.DEP_MEDIUM, 28)
+                    .nbt(RNSContent.DEP_LARGE, 2)
+                    .save())
+            .register();
+
     public static final BlockEntry<DepositBlock> REDSTONE_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "redstone_deposit_block", DepositBlock::new)
-            .transform(deposit(MapColor.FIRE)).register();
+            .transform(deposit(MapColor.FIRE))
+            .onRegister(d -> DepositStructureConfigBuilder
+                    .create("redstone")
+                    .depositBlock(BuiltInRegistries.BLOCK.getKey(d))
+                    .depth(12)
+                    .weight(2)
+                    .nbt(RNSContent.DEP_SMALL, 70)
+                    .nbt(RNSContent.DEP_MEDIUM, 28)
+                    .nbt(RNSContent.DEP_LARGE, 2)
+                    .save())
+            .register();
+
+    static {
+        // Must run after all deposit configs are saved
+        DepositSetConfigBuilder
+                .create()
+                .biome("#minecraft:is_forest")
+                .biome("#minecraft:is_jungle")
+                .biome("#minecraft:is_taiga")
+                .biome("#minecraft:is_badlands")
+                .biome("#minecraft:is_hill")
+                .biome("#minecraft:is_savanna")
+                .save();
+    }
 
     // Block entities
     public static final BlockEntityEntry<MinerMk1BlockEntity> MINER_MK1_BE = CreateRNS.REGISTRATE.blockEntity("miner_mk1",
@@ -188,6 +255,13 @@ public class RNSContent {
             .validBlock(MINER_MK2_BLOCK)
             .renderer(() -> MinerMk2Renderer::new)
             .register();
+
+    private static final ResourceLocation DEP_SMALL =
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_small");
+    private static final ResourceLocation DEP_MEDIUM =
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium");
+    private static final ResourceLocation DEP_LARGE =
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_large");
 
     public static void register(IEventBus modBus) {
         ATTACHMENT_TYPES.register(modBus);
