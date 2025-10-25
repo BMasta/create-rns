@@ -70,7 +70,7 @@ public class RNSContent {
     // Creative tabs
     public static final RegistryEntry<CreativeModeTab, CreativeModeTab> MAIN_TAB = CreateRNS.REGISTRATE.defaultCreativeTab(
                     CreateRNS.MOD_ID, c -> c
-                            .icon(RNSContent.RESONANT_MECHANISM::asStack)
+                            .icon(RNSContent.MINER_MK2_BLOCK::asStack)
                             .title(Component.translatable("creativetab.%s".formatted(CreateRNS.MOD_ID)))
                             .build())
             .register();
