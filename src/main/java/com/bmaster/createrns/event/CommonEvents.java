@@ -3,6 +3,7 @@ package com.bmaster.createrns.event;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.RNSRecipes;
+import com.bmaster.createrns.data.gen.depositworldgen.DepositWorldgenProvider;
 import com.bmaster.createrns.data.pack.DynamicDatapack;
 import com.bmaster.createrns.deposit.spec.DepositSpec;
 import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
@@ -57,11 +58,11 @@ public class CommonEvents {
 
     @SubscribeEvent
     public static void onAddPackFinders(AddPackFindersEvent e) {
-        if (e.getPackType() != PackType.SERVER_DATA) return;
-        DynamicDatapack.addDepositBiomeTag();
-        DynamicDatapack.addVanillaDeposits();
-        DynamicDatapack.addDepositSetAndTag();
-        e.addRepositorySource(consumer -> consumer.accept(DynamicDatapack.finish()));
+        // TODO: Could be useful in the future for compat with other mods
+//        if (e.getPackType() != PackType.SERVER_DATA) return;
+//        DynamicDatapack.addDepositBiomeTag();
+//        DynamicDatapack.addDepositSetAndTag();
+//        e.addRepositorySource(consumer -> consumer.accept(DynamicDatapack.finish()));
     }
 
     @SubscribeEvent
@@ -95,6 +96,7 @@ public class CommonEvents {
         var output = generator.getPackOutput();
         var provider = event.getLookupProvider();
         generator.addProvider(event.includeServer(), new RNSRecipes.Washing(output, provider));
+        generator.addProvider(event.includeServer(), new DepositWorldgenProvider(output));
     }
 
     // GAME BUS

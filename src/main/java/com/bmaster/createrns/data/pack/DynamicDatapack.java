@@ -65,19 +65,13 @@ public class DynamicDatapack {
 
     private static final ObjectOpenHashSet<Deposit> deposits = new ObjectOpenHashSet<>();
 
+    // TODO: Merge with existing tag if used for compat
     public static void addDepositBiomeTag() {
         var path = HAS_DEPOSIT_TAG_PATH.formatted(CreateRNS.MOD_ID);
         depositsResources.putJson(path, gson.toJsonTree(new HasDepositBiomeTag()));
     }
 
-    public static void addVanillaDeposits() {
-        deposits.add(new Deposit("iron", RNSContent.IRON_DEPOSIT_BLOCK.get(), bulkNBTPool, 8, 10));
-        deposits.add(new Deposit("copper", RNSContent.COPPER_DEPOSIT_BLOCK.get(), bulkNBTPool, 8, 5));
-        deposits.add(new Deposit("zinc", RNSContent.ZINC_DEPOSIT_BLOCK.get(), preciousNBTPool, 8, 2));
-        deposits.add(new Deposit("gold", RNSContent.GOLD_DEPOSIT_BLOCK.get(), preciousNBTPool, 12, 2));
-        deposits.add(new Deposit("redstone", RNSContent.REDSTONE_DEPOSIT_BLOCK.get(), preciousNBTPool, 12, 2));
-    }
-
+    // TODO: Merge with existing set and tag if used for compat
     public static void addDepositSetAndTag() {
         // Tag all added deposits and add tag to datapack
         var path = DEPOSIT_STRUCTURE_TAG_PATH.formatted(CreateRNS.MOD_ID);
