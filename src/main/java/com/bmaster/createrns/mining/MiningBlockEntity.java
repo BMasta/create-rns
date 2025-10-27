@@ -54,8 +54,7 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
     public abstract MiningLevel getMiningLevel();
 
     public @Nullable MiningEntityItemHandler getItemHandler(Direction side) {
-        if (side == null || side == Direction.UP) return inventory;
-        return null;
+        return inventory;
     }
 
     public BoundingBox getMiningArea(@NotNull Level l) {

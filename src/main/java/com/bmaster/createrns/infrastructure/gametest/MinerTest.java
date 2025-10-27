@@ -69,10 +69,7 @@ public final class MinerTest {
                     "Serialize->deserialize->serialize of mining BE changed the nbt after 36 ticks");
 
             for (var d : Direction.values()) {
-                if (d == Direction.UP) helper.assertTrue(miner1.getItemHandler(d) != null,
-                        "Could not get mining BE inventory");
-                else helper.assertTrue(miner1.getItemHandler(d) == null,
-                        "Unexpectedly got mining BE inventory from invalid side");
+                helper.assertTrue(miner1.getItemHandler(d) != null, "Could not get mining BE inventory");
             }
 
             var inv = miner1.getItemHandler(null);
