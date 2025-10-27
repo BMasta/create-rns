@@ -2,19 +2,16 @@ package com.bmaster.createrns.infrastructure.gametest;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.mining.miner.impl.MinerMk2BlockEntity;
+import com.bmaster.createrns.mining.miner.MinerBlockEntity;
 import com.simibubi.create.content.kinetics.motor.CreativeMotorBlockEntity;
-import com.simibubi.create.content.kinetics.simpleRelays.BracketedKineticBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.nbt.TagTypes;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -35,7 +32,7 @@ public final class MinerTest {
 
         // Validate nbt
         helper.runAtTickTime(1, () -> {
-            MinerMk2BlockEntity miner1 = helper.getBlockEntity(miner1Pos);
+            MinerBlockEntity miner1 = helper.getBlockEntity(miner1Pos);
             var tagBefore = miner1.saveWithFullMetadata(access);
             miner1.writeSafe(tagBefore, access);
             var tagAfter = miner1.saveWithFullMetadata(access);
@@ -61,7 +58,7 @@ public final class MinerTest {
 
         // Validate nbt and game state after item is mined
         helper.runAtTickTime(36, () -> {
-            MinerMk2BlockEntity miner1 = helper.getBlockEntity(miner1Pos);
+            MinerBlockEntity miner1 = helper.getBlockEntity(miner1Pos);
             var tagBefore = miner1.saveWithFullMetadata(access);
             miner1.writeSafe(tagBefore, access);
             var tagAfter = miner1.saveWithFullMetadata(access);
@@ -88,7 +85,7 @@ public final class MinerTest {
 
         // Validate mined item is inserted into a container above
         helper.runAtTickTime(38, () -> {
-            MinerMk2BlockEntity miner1 = helper.getBlockEntity(miner1Pos);
+            MinerBlockEntity miner1 = helper.getBlockEntity(miner1Pos);
             IItemHandler barrelInv = l.getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(miner1AbovePos), Direction.DOWN);
             var inv = miner1.getItemHandler(null);
             helper.assertTrue(inv != null, "Could not get mining BE inventory without direction");

@@ -1,7 +1,6 @@
-package com.bmaster.createrns.mining.miner.impl;
+package com.bmaster.createrns.mining.miner;
 
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.mining.miner.MinerBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
@@ -12,8 +11,8 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 
-public class MinerMk1Renderer extends KineticBlockEntityRenderer<MinerBlockEntity> {
-    public MinerMk1Renderer(BlockEntityRendererProvider.Context context) {
+public class MinerRenderer extends KineticBlockEntityRenderer<MinerBlockEntity> {
+    public MinerRenderer(BlockEntityRendererProvider.Context context) {
         super(context);
     }
 
@@ -23,7 +22,8 @@ public class MinerMk1Renderer extends KineticBlockEntityRenderer<MinerBlockEntit
         if (VisualizationManager.supportsVisualization(be.getLevel())) return;
 
         VertexConsumer vb = buffer.getBuffer(RenderType.cutoutMipped());
-        SuperByteBuffer head = CachedBuffers.partial(RNSContent.MINER_MK1_DRILL, be.getBlockState());
+        SuperByteBuffer head = CachedBuffers.partial(
+                (be.getTier() <= 1) ? RNSContent.MINER_MK1_DRILL : RNSContent.MINER_MK2_DRILL, be.getBlockState());
 
         renderRotatingBuffer(be, head, ms, vb, light);
     }

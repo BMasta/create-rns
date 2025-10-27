@@ -13,11 +13,6 @@
   - [ ] Figure out a way to store the amount of remaining resources (preferably without adding a BE for deposit blocks).
   - [ ] How is it configured? Via server config? Via deposit spec for granularity?
 - [ ] Add server config option to disable deposit worldgen.
-- [ ] Make miner flavors data-driven.
-  - [ ] Remove mk miner variants and make MinerBlockEntity and MinerBlock non-abstract.
-  - [ ] MinerBlockEntity should consume its specs via a custom codec associated with its block id.
-  - [ ] Specs include mining tier, mining area size (displacement?), base efficiency 
-        (how many items per hour per deposit, can be overridden from config for native miners).
 - [ ] Add config option to disable miners' ability to eject items. If miners are made data-driven,
       add this knob to the spec (with config option being a blanket override to disable ejecting for all miners).
       

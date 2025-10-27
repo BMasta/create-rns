@@ -1,4 +1,4 @@
-package com.bmaster.createrns.deposit.spec;
+package com.bmaster.createrns.deposit;
 
 import com.bmaster.createrns.CreateRNS;
 import com.mojang.serialization.Codec;
