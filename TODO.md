@@ -1,5 +1,4 @@
 # TO DO
-- [ ] Write datagen for deposit structures instead of using a dynamic pack.
 - [ ] Implement a create mod bearing for a multiblock contraption that acts as a drill.
   - [ ] Where does the yield go? If it goes into the contraption inventory, the item extraction becomes awkward and unnatural.
   - [ ] How would the drill look? What shape? Which blocks would it be built from?
@@ -8,6 +7,22 @@
   - [ ] Show scanned deposits as icons on the map.
 - [ ] Add deposits for metals/gems from other mods.
 - [ ] Store deposits known to player on client side. Sync with server for accurate scanning.
-- [ ] Figure out how to publish on curseforge/modrinth.
-- [ ] Figure out how to autoincrement semver and auto-publish to curseforge/modrinth.
 - [ ] Port to Fabric.
+- [ ] Add the ability to specify multiple yields for a deposit block with individual weights.
+- [ ] Consolidate to a single mining recipe type.
+  - [ ] Remove specialized recipe types and add "mining" recipe type. 
+  - [ ] Add a "tier" property field. Assign tiers to existing miners.
+  - [ ] Update miner descriptions to state what tier they are able to mine.
+  - [ ] In JEI, list all miners as catalysts for "mining" and show mining tier on every recipe.
+- [ ] Allow veins to be finite.
+  - [ ] Figure out a way to store the amount of remaining resources (preferably without adding a BE for deposit blocks).
+  - [ ] How is it configured? Via server config? Via deposit spec for granularity?
+- [ ] Add server config option to disable deposit worldgen.
+- [ ] Make miner flavors data-driven.
+  - [ ] Remove mk miner variants and make MinerBlockEntity and MinerBlock non-abstract.
+  - [ ] MinerBlockEntity should consume its specs via a custom codec associated with its block id.
+  - [ ] Specs include mining tier, mining area size (displacement?), base efficiency 
+        (how many items per hour per deposit, can be overridden from config for native miners).
+- [ ] Add config option to disable miners' ability to eject items. If miners are made data-driven,
+      add this knob to the spec (with config option being a blanket override to disable ejecting for all miners).
+      
