@@ -2,22 +2,20 @@ package com.bmaster.createrns.infrastructure.gametest;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.mining.MiningEntityItemHandler;
 import com.bmaster.createrns.mining.miner.impl.MinerMk2BlockEntity;
 import com.simibubi.create.content.kinetics.motor.CreativeMotorBlockEntity;
-import com.simibubi.create.content.kinetics.simpleRelays.BracketedKineticBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.nbt.TagTypes;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.items.IItemHandler;
 
 @GameTestHolder(CreateRNS.MOD_ID)
 public final class MinerTest {
@@ -30,15 +28,16 @@ public final class MinerTest {
         var miner1Pos = new BlockPos(1, 6, 1);
         var miner1AbovePos = new BlockPos(1, 7, 1);
 
-        CreativeMotorBlockEntity motor = helper.getBlockEntity(motorPos);
+        CreativeMotorBlockEntity motor = (CreativeMotorBlockEntity) helper.getBlockEntity(motorPos);
         helper.setBlock(miner1Pos, RNSContent.MINER_MK2_BLOCK.get());
 
         // Validate nbt
         helper.runAtTickTime(1, () -> {
-            MinerMk2BlockEntity miner1 = helper.getBlockEntity(miner1Pos);
-            var tagBefore = miner1.saveWithFullMetadata(access);
-            miner1.writeSafe(tagBefore, access);
-            var tagAfter = miner1.saveWithFullMetadata(access);
+            MinerMk2BlockEntity miner1 = (MinerMk2BlockEntity) helper.getBlockEntity(miner1Pos);
+            assert miner1 != null;
+            var tagBefore = miner1.saveWithFullMetadata();
+            miner1.writeSafe(tagBefore);
+            var tagAfter = miner1.saveWithFullMetadata();
             helper.assertTrue(tagBefore.equals(tagAfter),
                     "Serialize->deserialize->serialize of mining BE changed the nbt after 1 tick");
             helper.assertTrue(tagAfter.contains("Inventory"), "Inventory assert failed");
@@ -61,21 +60,20 @@ public final class MinerTest {
 
         // Validate nbt and game state after item is mined
         helper.runAtTickTime(36, () -> {
-            MinerMk2BlockEntity miner1 = helper.getBlockEntity(miner1Pos);
-            var tagBefore = miner1.saveWithFullMetadata(access);
-            miner1.writeSafe(tagBefore, access);
-            var tagAfter = miner1.saveWithFullMetadata(access);
+            MinerMk2BlockEntity miner1 = (MinerMk2BlockEntity) helper.getBlockEntity(miner1Pos);
+            assert miner1 != null;
+            var tagBefore = miner1.saveWithFullMetadata();
+            miner1.writeSafe(tagBefore);
+            var tagAfter = miner1.saveWithFullMetadata();
             helper.assertTrue(tagBefore.equals(tagAfter),
                     "Serialize->deserialize->serialize of mining BE changed the nbt after 36 ticks");
 
             for (var d : Direction.values()) {
-                if (d == Direction.UP) helper.assertTrue(miner1.getItemHandler(d) != null,
-                        "Could not get mining BE inventory");
-                else helper.assertTrue(miner1.getItemHandler(d) == null,
-                        "Unexpectedly got mining BE inventory from invalid side");
+                helper.assertTrue(miner1.getCapability(ForgeCapabilities.ITEM_HANDLER, d).resolve().isPresent(),
+                    "Could not get mining BE inventory");
             }
 
-            var inv = miner1.getItemHandler(null);
+            var inv = (MiningEntityItemHandler) miner1.getCapability(ForgeCapabilities.ITEM_HANDLER).resolve().orElse(null);
             helper.assertTrue(inv != null, "Could not get mining BE inventory without direction");
             assert inv != null; // IDE complains otherwise
 
@@ -91,9 +89,11 @@ public final class MinerTest {
 
         // Validate mined item is inserted into a container above
         helper.runAtTickTime(38, () -> {
-            MinerMk2BlockEntity miner1 = helper.getBlockEntity(miner1Pos);
-            IItemHandler barrelInv = l.getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(miner1AbovePos), Direction.DOWN);
-            var inv = miner1.getItemHandler(null);
+            MinerMk2BlockEntity miner1 = (MinerMk2BlockEntity) helper.getBlockEntity(miner1Pos);
+            var barrel = helper.getBlockEntity(miner1AbovePos);
+            assert miner1 != null && barrel != null;
+            IItemHandler barrelInv = barrel.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.DOWN).resolve().orElse(null);
+            var inv = (MiningEntityItemHandler) miner1.getCapability(ForgeCapabilities.ITEM_HANDLER).resolve().orElse(null);
             helper.assertTrue(inv != null, "Could not get mining BE inventory without direction");
             assert ((inv != null) && (barrelInv != null));
             var extractedItem = inv.extractFirstAvailableItem(true);
