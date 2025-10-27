@@ -29,8 +29,7 @@ public class RNSJEI implements IModPlugin {
 
     @Override
     public void registerCategories(IRecipeCategoryRegistration reg) {
-        reg.addRecipeCategories(new BasicMiningRecipeCategory());
-        reg.addRecipeCategories(new AdvancedMiningRecipeCategory());
+        reg.addRecipeCategories(new MiningRecipeCategory(reg.getJeiHelpers().getGuiHelper()));
     }
 
     @Override
@@ -38,15 +37,13 @@ public class RNSJEI implements IModPlugin {
         var level = Minecraft.getInstance().level;
         if (level == null) return;
 
-        var basicRecipes = level.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.BASIC_MINING_TYPE.get());
-        var advancedRecipes = level.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.ADVANCED_MINING_TYPE.get());
-        reg.addRecipes(BasicMiningRecipeCategory.JEI_RECIPE_TYPE, basicRecipes);
-        reg.addRecipes(AdvancedMiningRecipeCategory.JEI_RECIPE_TYPE, advancedRecipes);
+        var recipes = level.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.MINING_RECIPE_TYPE.get());
+        reg.addRecipes(MiningRecipeCategory.JEI_RECIPE_TYPE, recipes);
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration reg) {
-        reg.addRecipeCatalyst(new ItemStack(RNSContent.MINER_MK1_BLOCK.get().asItem()), BasicMiningRecipeCategory.JEI_RECIPE_TYPE);
-        reg.addRecipeCatalyst(new ItemStack(RNSContent.MINER_MK2_BLOCK.get().asItem()), AdvancedMiningRecipeCategory.JEI_RECIPE_TYPE);
+        reg.addRecipeCatalyst(new ItemStack(RNSContent.MINER_MK1_BLOCK.get().asItem()), MiningRecipeCategory.JEI_RECIPE_TYPE);
+        reg.addRecipeCatalyst(new ItemStack(RNSContent.MINER_MK2_BLOCK.get().asItem()), MiningRecipeCategory.JEI_RECIPE_TYPE);
     }
 }
