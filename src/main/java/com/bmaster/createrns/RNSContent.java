@@ -244,7 +244,7 @@ public class RNSContent {
     // Creative tabs
     public static final RegistryEntry<CreativeModeTab> MAIN_TAB = CreateRNS.REGISTRATE.defaultCreativeTab(
                     CreateRNS.MOD_ID, c -> c
-                            .icon(() -> new ItemStack(MINER_MK1_BLOCK.getDefaultState().getBlock()))
+                            .icon(() -> new ItemStack(MINER_MK2_BLOCK.getDefaultState().getBlock()))
                             .title(Component.translatable("creativetab.%s".formatted(CreateRNS.MOD_ID)))
                             .displayItems((pParameters, pOutput) -> {
                                 pOutput.accept(MINER_MK1_BLOCK.get().asItem());
@@ -261,6 +261,7 @@ public class RNSContent {
                                 pOutput.accept(IMPURE_ZINC_ORE.get());
                                 pOutput.accept(IMPURE_GOLD_ORE.get());
                                 pOutput.accept(IMPURE_REDSTONE_DUST.get());
+                                pOutput.accept(REDSTONE_SMALL_DUST.get());
                             })
                             .build())
             .register();
