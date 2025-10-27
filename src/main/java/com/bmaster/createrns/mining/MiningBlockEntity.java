@@ -149,6 +149,9 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
         tag.put("Inventory", inventory.serializeNBT());
         var packed = reservedDepositBlocks.stream().mapToLong(BlockPos::asLong).toArray();
         tag.putLongArray("ReservedDepositBlocks", packed);
+        if (process != null) {
+            tag.put("MiningProgress", process.getProgressAsNBT());
+        }
     }
 
     @Override
@@ -169,8 +172,16 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
         // Add outline for the freshly deserialized claimed mining area back in (client side)
         if (clientPacket) MiningAreaOutlineRenderer.addMiningBE(this);
 
+        // Deserialize mining progress
+        if (tag.contains("MiningProgress")) {
+            miningProgressTag = tag.getCompound("MiningProgress");
+        }
+
         // Recompute mining process yields based on claimed mining area. This also happens on process initialization.
-        if (process != null && level != null) process.setYields(level, reservedDepositBlocks, getBaseProgress());
+        if (process != null && level != null) {
+            process.setYields(level, reservedDepositBlocks, getBaseProgress());
+            if (miningProgressTag != null) process.setProgressFromNBT(miningProgressTag);
+        }
     }
 
     private Set<BlockPos> getDepositVein() {
