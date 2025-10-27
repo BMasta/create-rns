@@ -1,5 +1,6 @@
 package com.bmaster.createrns.mining;
 
+import com.bmaster.createrns.CreateRNS;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.BlockPos;
@@ -58,6 +59,10 @@ public class MiningBlockEntityInstanceHolder {
         var l = be.getLevel();
         if (l == null) return;
         var levelSet = MiningBlockEntityInstanceHolder.INSTANCES.get(l);
+        if (levelSet == null) {
+            CreateRNS.LOGGER.error("Could not get a set of miner instances at level {}", l);
+            return;
+        }
         levelSet.remove(be);
         if (levelSet.isEmpty()) MiningBlockEntityInstanceHolder.INSTANCES.remove(l);
     }

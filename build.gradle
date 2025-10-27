@@ -65,6 +65,9 @@ neoForge {
             type = "gameTestServer"
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
+        tasks.named("runGameTestServer", JavaExec) {
+            jvmArgs "-ea"
+        }
 
         data {
             data()
