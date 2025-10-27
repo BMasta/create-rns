@@ -1,5 +1,6 @@
 {
-  "type": "create_rns:advanced_mining",
+  "type": "create_rns:mining",
   "deposit_block": "create_rns:zinc_deposit_block",
+  "tier": 2,
   "yield": "create_rns:impure_zinc_ore"
 }

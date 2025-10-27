@@ -1,8 +1,7 @@
 package com.bmaster.createrns.mining;
 
 import com.bmaster.createrns.RNSRecipeTypes;
-import com.bmaster.createrns.mining.recipe.AdvancedMiningRecipe;
-import com.bmaster.createrns.mining.recipe.BasicMiningRecipe;
+import com.bmaster.createrns.mining.recipe.MiningRecipe;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -13,42 +12,29 @@ import org.jetbrains.annotations.Nullable;
 import java.util.stream.Collectors;
 
 public class MiningRecipeLookup {
-    private static Object2ObjectOpenHashMap<Block, Item> depBlockToYieldBasic;
-    private static Object2ObjectOpenHashMap<Block, Item> depBlockToYieldAdvanced;
+    private static Object2ObjectOpenHashMap<Block, MiningRecipe> depBlockToRecipe;
 
-    public static @Nullable Item getYield(Level l, MiningLevel ml, Block depositBlock) {
-        if (depBlockToYieldBasic == null) build(l);
-        var res = depBlockToYieldBasic.get(depositBlock);
-        return (res != null) ? res : depBlockToYieldAdvanced.get(depositBlock);
+    public static @Nullable Item getYield(Level l, int tier, Block depositBlock) {
+        if (depBlockToRecipe == null) build(l);
+        var recipe = depBlockToRecipe.get(depositBlock);
+        if (recipe == null || tier < recipe.getTier()) return null;
+        return recipe.getYield();
     }
 
-    @SuppressWarnings("RedundantIfStatement")
-    public static boolean isDepositMineable(Level l, Block depositBlock, MiningLevel ml) {
-        if (depBlockToYieldBasic == null) build(l);
-        if (ml.getLevel() >= MiningLevel.BASIC.getLevel() && depBlockToYieldBasic.containsKey(depositBlock)) {
-            return true;
-        }
-        if (ml.getLevel() >= MiningLevel.ADVANCED.getLevel() && depBlockToYieldAdvanced.containsKey(depositBlock)) {
-            return true;
-        }
-        return false;
+    public static boolean isDepositMineable(Level l, Block depositBlock, int tier) {
+        if (depBlockToRecipe == null) build(l);
+        var recipe = depBlockToRecipe.get(depositBlock);
+        if (recipe == null) return false;
+        return tier >= recipe.getTier();
     }
 
     public static void build(Level l) {
-        var basicRecipes = l.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.BASIC_MINING_TYPE.get());
-        var advancedRecipes = l.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.ADVANCED_MINING_TYPE.get());
-        depBlockToYieldBasic = basicRecipes.stream()
-                .map(a -> (BasicMiningRecipe) a.value())
+        var recipes = l.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.MINING_RECIPE_TYPE.get());
+        depBlockToRecipe = recipes.stream()
+                .map(RecipeHolder::value)
                 .collect(Collectors.toMap(
-                        BasicMiningRecipe::getDepositBlock,
-                        BasicMiningRecipe::getYield,
-                        (o, n) -> n,
-                        Object2ObjectOpenHashMap::new));
-        depBlockToYieldAdvanced = advancedRecipes.stream()
-                .map(a -> (AdvancedMiningRecipe) a.value())
-                .collect(Collectors.toMap(
-                        AdvancedMiningRecipe::getDepositBlock,
-                        AdvancedMiningRecipe::getYield,
+                        MiningRecipe::getDepositBlock,
+                        r -> r,
                         (o, n) -> n,
                         Object2ObjectOpenHashMap::new));
     }
