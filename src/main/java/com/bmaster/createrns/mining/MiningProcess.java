@@ -22,11 +22,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class MiningProcess {
-    public final MiningLevel miningLevel;
+    public final int tier;
     public final Set<SingleTypeProcess> innerProcesses = new ObjectOpenHashSet<>();
 
-    public MiningProcess(Level l, MiningLevel ml, Set<BlockPos> depositBlocks, int baseProgress) {
-        miningLevel = ml;
+    public MiningProcess(Level l, int tier, Set<BlockPos> depositBlocks, int baseProgress) {
+        this.tier = tier;
         setYields(l, depositBlocks, baseProgress);
     }
 
@@ -50,7 +50,7 @@ public class MiningProcess {
         var yieldCounts = depositBlocks.stream()
                 .map(bp -> l.getBlockState(bp).getBlock())
                 .filter(db -> db.defaultBlockState().is(RNSTags.Block.DEPOSIT_BLOCKS))
-                .map(db -> MiningRecipeLookup.getYield(l, miningLevel, db))
+                .map(db -> MiningRecipeLookup.getYield(l, tier, db))
                 .filter(Objects::nonNull)
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
