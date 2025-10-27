@@ -4,20 +4,16 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.RNSRecipes;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositWorldgenProvider;
-import com.bmaster.createrns.data.pack.DynamicDatapack;
-import com.bmaster.createrns.deposit.spec.DepositSpec;
-import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
+import com.bmaster.createrns.deposit.DepositSpec;
+import com.bmaster.createrns.deposit.DepositSpecLookup;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerC2SPayload;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerS2CPayload;
-import com.bmaster.createrns.mining.miner.impl.MinerMk1BlockEntity;
-import com.bmaster.createrns.mining.miner.impl.MinerMk2BlockEntity;
+import com.bmaster.createrns.mining.miner.MinerBlockEntity;
+import com.bmaster.createrns.mining.miner.MinerSpec;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.DataGenerator;
-import net.minecraft.data.PackOutput;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.packs.PackType;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -41,19 +37,15 @@ public class CommonEvents {
         // Miners
         e.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
-                RNSContent.MINER_MK1_BE.get(),
-                (MinerMk1BlockEntity be, @Nullable Direction side) -> be.getItemHandler(side)
-        );
-        e.registerBlockEntity(
-                Capabilities.ItemHandler.BLOCK,
-                RNSContent.MINER_MK2_BE.get(),
-                (MinerMk2BlockEntity be, @Nullable Direction side) -> be.getItemHandler(side)
+                RNSContent.MINER_BE.get(),
+                (MinerBlockEntity be, @Nullable Direction side) -> be.getItemHandler(side)
         );
     }
 
     @SubscribeEvent
     public static void onNewRegistry(DataPackRegistryEvent.NewRegistry e) {
         e.dataPackRegistry(DepositSpec.REGISTRY_KEY, DepositSpec.CODEC, DepositSpec.CODEC);
+        e.dataPackRegistry(MinerSpec.REGISTRY_KEY, MinerSpec.CODEC, MinerSpec.CODEC);
     }
 
     @SubscribeEvent

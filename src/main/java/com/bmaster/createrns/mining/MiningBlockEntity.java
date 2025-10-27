@@ -13,10 +13,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
-import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.VisibleForTesting;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,7 +39,7 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
 
     public abstract int getMiningAreaRadius();
 
-    public abstract int getMiningAreaDepth();
+    public abstract int getMiningAreaHeight();
 
     public abstract int getMiningAreaYOffset();
 
@@ -51,7 +49,7 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
 
     public abstract boolean isMining();
 
-    public abstract MiningLevel getMiningLevel();
+    public abstract int getTier();
 
     public @Nullable MiningEntityItemHandler getItemHandler(Direction side) {
         return inventory;
@@ -63,7 +61,7 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
         int minBuildHeight = l.getMinBuildHeight(), maxBuildHeight = l.getMaxBuildHeight();
 
         int mineRadius = getMiningAreaRadius();
-        int yMin = Mth.clamp(py + getMiningAreaYOffset() - getMiningAreaDepth() + 1, minBuildHeight, maxBuildHeight);
+        int yMin = Mth.clamp(py + getMiningAreaYOffset() - getMiningAreaHeight() + 1, minBuildHeight, maxBuildHeight);
         int yMax = Mth.clamp(py + getMiningAreaYOffset(), minBuildHeight, maxBuildHeight);
 
         return new BoundingBox(
@@ -74,10 +72,9 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
     public void reserveDepositBlocks() {
         if (level == null) return;
 
-        var ml = getMiningLevel();
         reservedDepositBlocks = getDepositVein().stream()
-                .filter(pos -> MiningRecipeLookup.isDepositMineable(level, level.getBlockState(pos).getBlock(),
-                        ml.getLevel()))
+                .filter(pos -> MiningRecipeLookup
+                        .isDepositMineable(level, level.getBlockState(pos).getBlock(), getTier()))
                 .collect(Collectors.toSet());
 
         // Exclude deposit blocks reserved by nearby mining entities
@@ -98,7 +95,7 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
 
         if (process == null) {
             // Create the mining process object
-            process = new MiningProcess(level, getMiningLevel().getLevel(), reservedDepositBlocks, getBaseProgress());
+            process = new MiningProcess(level, getTier(), reservedDepositBlocks, getBaseProgress());
 
             // If we got mining process data from NBT, now is the time to set it
             if (miningProgressTag != null) {

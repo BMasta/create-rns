@@ -1,15 +1,13 @@
 package com.bmaster.createrns.item.DepositScanner;
 
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
+import com.bmaster.createrns.deposit.DepositSpecLookup;
 import com.bmaster.createrns.RNSSoundEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.jetbrains.annotations.Nullable;
 
 import static com.bmaster.createrns.item.DepositScanner.DepositScannerServerHandler.*;
 

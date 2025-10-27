@@ -1,7 +1,6 @@
 package com.bmaster.createrns.compat.jei;
 
 import com.bmaster.createrns.mining.miner.MinerBlock;
-import com.bmaster.createrns.mining.miner.MinerBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.simibubi.create.compat.jei.category.animations.AnimatedKinetics;
@@ -9,10 +8,10 @@ import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import net.minecraft.client.gui.GuiGraphics;
 
 public class AnimatedMiner extends AnimatedKinetics {
-    private final MinerBlock<? extends MinerBlockEntity> miner;
+    private final MinerBlock miner;
     private final PartialModel drill;
 
-    public AnimatedMiner(MinerBlock<? extends MinerBlockEntity> minerBlock, PartialModel drill) {
+    public AnimatedMiner(MinerBlock minerBlock, PartialModel drill) {
         this.miner = minerBlock;
         this.drill = drill;
     }

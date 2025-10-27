@@ -1,5 +1,6 @@
 package com.bmaster.createrns.mining.miner;
 
+import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.mining.MiningBlock;
 import com.simibubi.create.AllShapes;
 import com.simibubi.create.content.kinetics.simpleRelays.ICogWheel;
@@ -24,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Objects;
 
-public abstract class MinerBlock<BE extends MinerBlockEntity> extends MiningBlock implements IBE<BE>, ICogWheel {
+public class MinerBlock extends MiningBlock implements IBE<MinerBlockEntity>, ICogWheel {
     public static Direction.Axis getRotationAxis() {
         return Direction.Axis.Y;
     }
@@ -35,13 +36,19 @@ public abstract class MinerBlock<BE extends MinerBlockEntity> extends MiningBloc
 
     @ParametersAreNonnullByDefault
     @Override
-    public abstract @Nullable BlockEntity newBlockEntity(BlockPos pPos, BlockState pState);
+    public @Nullable BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
+        return new MinerBlockEntity(pPos, pState);
+    }
 
     @Override
-    public abstract Class<BE> getBlockEntityClass();
+    public Class<MinerBlockEntity> getBlockEntityClass() {
+        return MinerBlockEntity.class;
+    }
 
     @Override
-    public abstract BlockEntityType<? extends BE> getBlockEntityType();
+    public BlockEntityType<MinerBlockEntity> getBlockEntityType() {
+        return RNSContent.MINER_BE.get();
+    }
 
     @ParametersAreNonnullByDefault
     @Override

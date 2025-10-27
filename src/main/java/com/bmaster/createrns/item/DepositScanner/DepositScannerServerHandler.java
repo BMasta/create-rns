@@ -1,9 +1,8 @@
 package com.bmaster.createrns.item.DepositScanner;
 
-import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.data.pack.json.DepositStructureSet;
-import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
+import com.bmaster.createrns.deposit.DepositSpecLookup;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler.AntennaStatus;
 import com.bmaster.createrns.util.Utils;
 import net.minecraft.core.BlockPos;
@@ -13,7 +12,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.jetbrains.annotations.Nullable;
 
 public class DepositScannerServerHandler {
     public enum RequestType {
