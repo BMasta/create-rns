@@ -76,7 +76,8 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
 
         var ml = getMiningLevel();
         reservedDepositBlocks = getDepositVein().stream()
-                .filter(pos -> MiningRecipeLookup.isDepositMineable(level, level.getBlockState(pos).getBlock(), ml))
+                .filter(pos -> MiningRecipeLookup.isDepositMineable(level, level.getBlockState(pos).getBlock(),
+                        ml.getLevel()))
                 .collect(Collectors.toSet());
 
         // Exclude deposit blocks reserved by nearby mining entities
@@ -97,7 +98,7 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
 
         if (process == null) {
             // Create the mining process object
-            process = new MiningProcess(level, getMiningLevel(), reservedDepositBlocks, getBaseProgress());
+            process = new MiningProcess(level, getMiningLevel().getLevel(), reservedDepositBlocks, getBaseProgress());
 
             // If we got mining process data from NBT, now is the time to set it
             if (miningProgressTag != null) {
@@ -184,6 +185,10 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
         while (!q.isEmpty()) {
             var bp = q.poll();
 
+            if (visited.contains(bp.asLong())) continue;
+            if (!ma.isInside(bp)) continue;
+            var b = level.getBlockState(bp);
+            if (!b.is(depTag)) continue;
             if (visited.contains(bp.asLong()) || !ma.isInside(bp) || !level.getBlockState(bp).is(depTag)) continue;
             visited.add(bp.asLong());
 

@@ -1,5 +1,7 @@
 package com.bmaster.createrns.mining.recipe;
 
+import com.bmaster.createrns.RNSRecipeTypes;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -17,21 +19,26 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.function.BiFunction;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public abstract class MiningRecipe implements Recipe<SingleRecipeInput> {
+public class MiningRecipe implements Recipe<SingleRecipeInput> {
     private final Block depositBlock;
+    private final int tier;
     private final Item yield;
 
-    public MiningRecipe(Block depositBlock, Item yield) {
+    public MiningRecipe(Block depositBlock, int tier, Item yield) {
         this.depositBlock = depositBlock;
+        this.tier = tier;
         this.yield = yield;
     }
 
     public Block getDepositBlock() {
         return depositBlock;
+    }
+
+    public int getTier() {
+        return tier;
     }
 
     public Item getYield() {
@@ -68,39 +75,52 @@ public abstract class MiningRecipe implements Recipe<SingleRecipeInput> {
         return new ItemStack(getYield());
     }
 
-    public static abstract class Serializer<R extends MiningRecipe> implements RecipeSerializer<R> {
-        public final MapCodec<R> CODEC;
-        public final StreamCodec<RegistryFriendlyByteBuf, R> STREAM_CODEC;
-        private final BiFunction<Block,Item,R> recipeFactory;
+    @Override
+    public RecipeSerializer<?> getSerializer() {
+        return MiningRecipe.Serializer.INSTANCE;
+    }
 
-        public Serializer(BiFunction<Block,Item,R> recipeFactory) {
-            this.recipeFactory = recipeFactory;
+    @Override
+    public RecipeType<?> getType() {
+        return RNSRecipeTypes.MINING_RECIPE_TYPE.get();
+    }
+
+    public static class Serializer implements RecipeSerializer<MiningRecipe> {
+        public static MiningRecipe.Serializer INSTANCE = new MiningRecipe.Serializer();
+
+        public final MapCodec<MiningRecipe> CODEC;
+        public final StreamCodec<RegistryFriendlyByteBuf, MiningRecipe> STREAM_CODEC;
+
+        public Serializer() {
             CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
                             BuiltInRegistries.BLOCK.byNameCodec().fieldOf("deposit_block").forGetter(MiningRecipe::getDepositBlock),
+                            Codec.INT.fieldOf("tier").forGetter(MiningRecipe::getTier),
                             BuiltInRegistries.ITEM.byNameCodec().fieldOf("yield").forGetter(MiningRecipe::getYield))
-                    .apply(i, recipeFactory));
+                    .apply(i, MiningRecipe::new));
             STREAM_CODEC = StreamCodec.of(this::toNetwork, this::fromNetwork);
         }
 
-        public void toNetwork(RegistryFriendlyByteBuf buffer, R recipe) {
+        public void toNetwork(RegistryFriendlyByteBuf buffer, MiningRecipe recipe) {
             ByteBufCodecs.registry(Registries.BLOCK).encode(buffer, recipe.getDepositBlock());
+            ByteBufCodecs.INT.encode(buffer, recipe.tier);
             ByteBufCodecs.registry(Registries.ITEM).encode(buffer, recipe.getYield());
         }
 
-        public R fromNetwork(RegistryFriendlyByteBuf buffer) {
-            return recipeFactory.apply(
+        public MiningRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
+            return new MiningRecipe(
                     ByteBufCodecs.registry(Registries.BLOCK).decode(buffer),
+                    ByteBufCodecs.INT.decode(buffer),
                     ByteBufCodecs.registry(Registries.ITEM).decode(buffer)
             );
         }
 
         @Override
-        public MapCodec<R> codec() {
+        public MapCodec<MiningRecipe> codec() {
             return CODEC;
         }
 
         @Override
-        public StreamCodec<RegistryFriendlyByteBuf, R> streamCodec() {
+        public StreamCodec<RegistryFriendlyByteBuf, MiningRecipe> streamCodec() {
             return STREAM_CODEC;
         }
     }
