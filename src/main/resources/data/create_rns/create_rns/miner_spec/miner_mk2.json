@@ -1,0 +1,7 @@
+{
+  "miner_block": "create_rns:miner_mk2",
+  "tier": 2,
+  "mining_area_radius": 1,
+  "mining_area_height": 5,
+  "mining_area_vertical_displacement": -1
+}
