@@ -1,5 +1,6 @@
 package com.bmaster.createrns.mining.miner;
 
+import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.mining.MiningBlock;
 import com.simibubi.create.AllShapes;
 import com.simibubi.create.Create;
@@ -15,7 +16,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-public abstract class MinerBlock<BE extends MinerBlockEntity> extends MiningBlock implements IBE<BE>, ICogWheel {
+public class MinerBlock extends MiningBlock implements IBE<MinerBlockEntity>, ICogWheel {
     public static Direction.Axis getRotationAxis() {
         return Direction.Axis.Y;
     }
@@ -36,15 +36,22 @@ public abstract class MinerBlock<BE extends MinerBlockEntity> extends MiningBloc
         super(props);
     }
 
+
     @ParametersAreNonnullByDefault
     @Override
-    public abstract @Nullable BlockEntity newBlockEntity(BlockPos pPos, BlockState pState);
+    public @Nullable BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
+        return new MinerBlockEntity(pPos, pState);
+    }
 
     @Override
-    public abstract Class<BE> getBlockEntityClass();
+    public Class<MinerBlockEntity> getBlockEntityClass() {
+        return MinerBlockEntity.class;
+    }
 
     @Override
-    public abstract BlockEntityType<? extends BE> getBlockEntityType();
+    public BlockEntityType<MinerBlockEntity> getBlockEntityType() {
+        return RNSContent.MINER_BE.get();
+    }
 
     @SuppressWarnings("deprecation")
     @ParametersAreNonnullByDefault

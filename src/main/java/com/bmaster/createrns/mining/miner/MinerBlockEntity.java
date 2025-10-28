@@ -1,6 +1,8 @@
 package com.bmaster.createrns.mining.miner;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.bmaster.createrns.mining.*;
 import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
@@ -25,11 +27,47 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 
 import java.util.*;
 
-public abstract class MinerBlockEntity extends MiningBlockEntity {
+public class MinerBlockEntity extends MiningBlockEntity {
+    private MinerSpec spec = null;
     private List<BlockState> particleOptions = null;
 
-    public MinerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
-        super(type, pos, state);
+    public MinerBlockEntity(BlockPos pos, BlockState state) {
+        super(RNSContent.MINER_BE.get(), pos, state);
+    }
+
+    @Override
+    public int getMiningAreaRadius() {
+        if (spec == null) tryInitSpec();
+        return Objects.requireNonNull(spec).miningAreaRadius();
+    }
+
+    @Override
+    public int getMiningAreaHeight() {
+        if (spec == null) tryInitSpec();
+        return Objects.requireNonNull(spec).miningAreaHeight();
+    }
+
+    @Override
+    public int getMiningAreaYOffset() {
+        if (spec == null) tryInitSpec();
+        return Objects.requireNonNull(spec).miningAreaVerticalDisplacement();
+    }
+
+    @Override
+    public int getTier() {
+        if (spec == null) tryInitSpec();
+        return Objects.requireNonNull(spec).tier();
+    }
+
+    /// Required for visual and renderer who may try to get the tier before the block entity is loaded
+    public int getTierSafe() {
+        if (spec == null) tryInitSpec();
+        return (spec != null) ? spec.tier() : 0;
+    }
+
+    @Override
+    public int getBaseProgress() {
+        return ServerConfig.minerMk1BaseProgress;
     }
 
     @Override
@@ -203,5 +241,11 @@ public abstract class MinerBlockEntity extends MiningBlockEntity {
                     worldPosition.getY() - 0.5 + r.nextFloat(),
                     worldPosition.getZ() + r.nextFloat(),
                     0, 0, 0);
+    }
+
+
+    protected void tryInitSpec() {
+        if (level == null) return;
+        spec = MinerSpecLookup.get(level.registryAccess(), (MinerBlock) getBlockState().getBlock());
     }
 }

@@ -7,7 +7,6 @@ import com.bmaster.createrns.deposit.DepositBlock;
 import com.bmaster.createrns.mining.miner.*;
 import com.bmaster.createrns.deposit.capability.IDepositIndex;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerItem;
-import com.bmaster.createrns.mining.miner.impl.*;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.api.stress.BlockStressValues;
@@ -107,8 +106,8 @@ public class RNSContent {
             "redstone_small_dust", Item::new).register();
 
     // Blocks
-    public static final BlockEntry<MinerMk1Block> MINER_MK1_BLOCK = CreateRNS.REGISTRATE.block("miner_mk1",
-                    MinerMk1Block::new)
+    public static final BlockEntry<MinerBlock> MINER_MK1_BLOCK = CreateRNS.REGISTRATE.block("miner_mk1",
+                    MinerBlock::new)
             .transform(minerBlockCommon())
             .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
             .item()
@@ -125,8 +124,8 @@ public class RNSContent {
             .build()
             .register();
 
-    public static final BlockEntry<MinerMk2Block> MINER_MK2_BLOCK = CreateRNS.REGISTRATE.block("miner_mk2",
-                    MinerMk2Block::new)
+    public static final BlockEntry<MinerBlock> MINER_MK2_BLOCK = CreateRNS.REGISTRATE.block("miner_mk2",
+                    MinerBlock::new)
             .transform(minerBlockCommon())
             .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
             .item()
@@ -225,20 +224,13 @@ public class RNSContent {
     }
 
     // Block entities
-    public static final BlockEntityEntry<MinerMk1BlockEntity> MINER_MK1_BE = CreateRNS.REGISTRATE.blockEntity("miner_mk1",
-                    (BlockEntityType<MinerMk1BlockEntity> t, BlockPos p, BlockState s) ->
-                            new MinerMk1BlockEntity(t, p, s))
-            .visual(() -> MinerMk1Visual::new)
+    public static final BlockEntityEntry<MinerBlockEntity> MINER_BE = CreateRNS.REGISTRATE.blockEntity("miner",
+                    (BlockEntityType<MinerBlockEntity> t, BlockPos p, BlockState s) ->
+                            new MinerBlockEntity(p, s))
+            .visual(() -> MinerVisual::new)
             .validBlock(MINER_MK1_BLOCK)
-            .renderer(() -> MinerMk1Renderer::new)
-            .register();
-
-    public static final BlockEntityEntry<MinerMk2BlockEntity> MINER_MK2_BE = CreateRNS.REGISTRATE.blockEntity("miner_mk2",
-                    (BlockEntityType<MinerMk2BlockEntity> t, BlockPos p, BlockState s) ->
-                            new MinerMk2BlockEntity(t, p, s))
-            .visual(() -> MinerMk2Visual::new)
             .validBlock(MINER_MK2_BLOCK)
-            .renderer(() -> MinerMk2Renderer::new)
+            .renderer(() -> MinerRenderer::new)
             .register();
 
     // Creative tabs

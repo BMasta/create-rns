@@ -17,11 +17,6 @@ public class DepositSpecLookup {
     private static List<Item> allIcons;
     private static Set<ResourceKey<Structure>> allStructureKeys;
 
-    public static ResourceKey<Structure> getStructureKey(RegistryAccess access, Item scannerIconItem) {
-        if (scannerIconToSpec == null) build(access);
-        return ResourceKey.create(Registries.STRUCTURE, scannerIconToSpec.get(scannerIconItem).structure());
-    }
-
     public static void build(RegistryAccess access) {
         var regEntries = access.registryOrThrow(DepositSpec.REGISTRY_KEY).entrySet();
 
@@ -48,6 +43,11 @@ public class DepositSpecLookup {
         allStructureKeys = scannerIconToSpec.values().stream()
                 .map(hs -> ResourceKey.create(Registries.STRUCTURE, hs.structure()))
                 .collect(Collectors.toUnmodifiableSet());
+    }
+
+    public static ResourceKey<Structure> getStructureKey(RegistryAccess access, Item scannerIconItem) {
+        if (scannerIconToSpec == null) build(access);
+        return ResourceKey.create(Registries.STRUCTURE, scannerIconToSpec.get(scannerIconItem).structure());
     }
 
     public static List<Item> getAllScannerIcons(RegistryAccess access) {

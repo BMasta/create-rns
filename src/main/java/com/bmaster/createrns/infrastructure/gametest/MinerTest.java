@@ -3,7 +3,7 @@ package com.bmaster.createrns.infrastructure.gametest;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.mining.MiningEntityItemHandler;
-import com.bmaster.createrns.mining.miner.impl.MinerMk2BlockEntity;
+import com.bmaster.createrns.mining.miner.MinerBlockEntity;
 import com.simibubi.create.content.kinetics.motor.CreativeMotorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,7 +33,7 @@ public final class MinerTest {
 
         // Validate nbt
         helper.runAtTickTime(1, () -> {
-            MinerMk2BlockEntity miner1 = (MinerMk2BlockEntity) helper.getBlockEntity(miner1Pos);
+            MinerBlockEntity miner1 = (MinerBlockEntity) helper.getBlockEntity(miner1Pos);
             assert miner1 != null;
             var tagBefore = miner1.saveWithFullMetadata();
             miner1.writeSafe(tagBefore);
@@ -60,7 +60,7 @@ public final class MinerTest {
 
         // Validate nbt and game state after item is mined
         helper.runAtTickTime(36, () -> {
-            MinerMk2BlockEntity miner1 = (MinerMk2BlockEntity) helper.getBlockEntity(miner1Pos);
+            MinerBlockEntity miner1 = (MinerBlockEntity) helper.getBlockEntity(miner1Pos);
             assert miner1 != null;
             var tagBefore = miner1.saveWithFullMetadata();
             miner1.writeSafe(tagBefore);
@@ -89,7 +89,7 @@ public final class MinerTest {
 
         // Validate mined item is inserted into a container above
         helper.runAtTickTime(38, () -> {
-            MinerMk2BlockEntity miner1 = (MinerMk2BlockEntity) helper.getBlockEntity(miner1Pos);
+            MinerBlockEntity miner1 = (MinerBlockEntity) helper.getBlockEntity(miner1Pos);
             var barrel = helper.getBlockEntity(miner1AbovePos);
             assert miner1 != null && barrel != null;
             IItemHandler barrelInv = barrel.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.DOWN).resolve().orElse(null);

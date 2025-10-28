@@ -6,6 +6,7 @@ import com.bmaster.createrns.RNSRecipes;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositWorldgenProvider;
 import com.bmaster.createrns.deposit.spec.DepositSpec;
 import com.bmaster.createrns.deposit.capability.IDepositIndex;
+import com.bmaster.createrns.mining.miner.MinerSpec;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraftforge.client.event.ModelEvent;
@@ -26,6 +27,7 @@ public class ModEvents {
     @SubscribeEvent
     public static void onNewRegistry(DataPackRegistryEvent.NewRegistry e) {
         e.dataPackRegistry(DepositSpec.REGISTRY_KEY, DepositSpec.CODEC, DepositSpec.CODEC);
+        e.dataPackRegistry(MinerSpec.REGISTRY_KEY, MinerSpec.CODEC, MinerSpec.CODEC);
     }
 
     @SubscribeEvent

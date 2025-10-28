@@ -13,18 +13,18 @@ import java.util.stream.Collectors;
 public class MiningRecipeLookup {
     private static Object2ObjectOpenHashMap<Block, MiningRecipe> depBlockToRecipe;
 
-    public static @Nullable Item getYield(Level l, int tier, Block depositBlock) {
+    public static @Nullable Item getYield(Level l, int minerTier, Block depositBlock) {
         if (depBlockToRecipe == null) build(l);
         var recipe = depBlockToRecipe.get(depositBlock);
-        if (recipe == null || tier < recipe.getTier()) return null;
+        if (recipe == null || minerTier < recipe.getTier()) return null;
         return recipe.getYield();
     }
 
-    public static boolean isDepositMineable(Level l, Block depositBlock, int tier) {
+    public static boolean isDepositMineable(Level l, Block depositBlock, int minerTier) {
         if (depBlockToRecipe == null) build(l);
         var recipe = depBlockToRecipe.get(depositBlock);
         if (recipe == null) return false;
-        return tier >= recipe.getTier();
+        return minerTier >= recipe.getTier();
     }
 
     public static void build(Level l) {
