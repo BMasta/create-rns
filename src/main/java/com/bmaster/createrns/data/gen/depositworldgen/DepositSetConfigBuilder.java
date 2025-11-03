@@ -16,7 +16,6 @@ public class DepositSetConfigBuilder {
     private int separation = 8;
     private int spacing = DEFAULT_SPACING;
     private int salt = DEFAULT_SALT;
-    private final List<Either<TagKey<Biome>,ResourceLocation>> allowedBiomes = new ArrayList<>();
 
     public static DepositSetConfigBuilder create() {
         return new DepositSetConfigBuilder();
@@ -37,26 +36,7 @@ public class DepositSetConfigBuilder {
         return this;
     }
 
-    public DepositSetConfigBuilder biome(TagKey<Biome> biomeTK) {
-        this.allowedBiomes.add(Either.left(biomeTK));
-        return this;
-    }
-
-    public DepositSetConfigBuilder biome(ResourceLocation biomeRL) {
-        this.allowedBiomes.add(Either.right(biomeRL));
-        return this;
-    }
-
-    public DepositSetConfigBuilder biome(String biomeStr) {
-        if (biomeStr.startsWith("#")) {
-            return biome(TagKey.create(Registries.BIOME, ResourceLocation.parse(biomeStr.substring(1))));
-        } else {
-            return biome(ResourceLocation.parse(biomeStr));
-        }
-    }
-
     public void save() {
-        assert !allowedBiomes.isEmpty();
-        DepositWorldgenProvider.setConf = new DepositWorldgenProvider.DepositSet(separation, spacing, salt, allowedBiomes);
+        DepositWorldgenProvider.setConf = new DepositWorldgenProvider.DepositSet(separation, spacing, salt);
     }
 }
