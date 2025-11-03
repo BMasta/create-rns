@@ -3,15 +3,11 @@ package com.bmaster.createrns.data.gen.depositworldgen;
 import com.bmaster.createrns.CreateRNS;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.mojang.datafixers.util.Either;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.HolderSet;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.level.biome.Biome;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.nio.file.Path;
@@ -25,7 +21,7 @@ import java.util.function.Function;
 public class DepositWorldgenProvider implements DataProvider {
     public record NBT(ResourceLocation loc, int weight) {}
     public record Deposit(String name, ResourceLocation depositBlock, List<NBT> nbts, int depth, int weight) {}
-    public record DepositSet(int separation, int spacing, int salt, List<Either<TagKey<Biome>,ResourceLocation>> allowedBiomes) {}
+    public record DepositSet(int separation, int spacing, int salt) {}
 
     protected static DepositSet setConf;
     protected static List<Deposit> depConf = new ArrayList<>();
@@ -59,9 +55,6 @@ public class DepositWorldgenProvider implements DataProvider {
             Path structurePath = dataRoot.resolve("worldgen/structure/" + structName.apply(dc.name) + ".json");
             futures.add(DataProvider.saveStable(cache, generateStructure(dc), structurePath));
         }
-
-        Path biomeTagPath = dataRoot.resolve("tags/worldgen/biome/" + ALLOWED_BIOMES_TAG_PATH + ".json");
-        futures.add(DataProvider.saveStable(cache, generateAllowedBiomeTag(), biomeTagPath));
 
         Path depTagPath = dataRoot.resolve("tags/worldgen/structure/deposits.json");
         futures.add(DataProvider.saveStable(cache, generateStructureTag(), depTagPath));
@@ -104,17 +97,6 @@ public class DepositWorldgenProvider implements DataProvider {
         procType.add("rules", rules);
         procs.add(procType);
         root.add("processors", procs);
-        return root;
-    }
-
-    private JsonObject generateAllowedBiomeTag() {
-        JsonArray values = new JsonArray();
-        for (var tagOrRL : setConf.allowedBiomes) {
-            tagOrRL.ifLeft(tk -> values.add("#" + tk.location().toString()));
-            tagOrRL.ifRight(rl -> values.add(rl.toString()));
-        }
-        JsonObject root = new JsonObject();
-        root.add("values", values);
         return root;
     }
 

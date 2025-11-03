@@ -4,8 +4,11 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.RNSRecipes;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositWorldgenProvider;
+import com.bmaster.createrns.data.pack.DynamicDatapack;
+import com.bmaster.createrns.data.pack.DynamicDatapackContent;
 import com.bmaster.createrns.deposit.DepositSpec;
 import com.bmaster.createrns.deposit.DepositSpecLookup;
+import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerC2SPayload;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerS2CPayload;
 import com.bmaster.createrns.mining.miner.MinerBlockEntity;
@@ -13,9 +16,18 @@ import com.bmaster.createrns.mining.miner.MinerSpec;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.packs.PackLocationInfo;
+import net.minecraft.server.packs.PackSelectionConfig;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.PathPackResources;
+import net.minecraft.server.packs.repository.Pack;
+import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
@@ -28,6 +40,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 @EventBusSubscriber(modid = CreateRNS.MOD_ID)
 public class CommonEvents {
@@ -50,11 +63,22 @@ public class CommonEvents {
 
     @SubscribeEvent
     public static void onAddPackFinders(AddPackFindersEvent e) {
-        // TODO: Could be useful in the future for compat with other mods
-//        if (e.getPackType() != PackType.SERVER_DATA) return;
-//        DynamicDatapack.addDepositBiomeTag();
-//        DynamicDatapack.addDepositSetAndTag();
-//        e.addRepositorySource(consumer -> consumer.accept(DynamicDatapack.finish()));
+        if (e.getPackType() != PackType.SERVER_DATA) return;
+
+        e.addRepositorySource(consumer -> consumer.accept(
+                DynamicDatapack.createDatapack("dynamic_data")
+                        .title(Component.literal("Dynamic mod data for Create: Rock & Stone"))
+                        .addContent(DynamicDatapackContent.standardDepositBiomeTag())
+                        .build()));
+
+        e.addRepositorySource(consumer -> consumer.accept(
+                DynamicDatapack.createDatapack("no_deposit_worldgen")
+                        .title(Component.literal("Disable deposit generation"))
+                        .source(PackSource.FEATURE)
+                        .optional()
+                        .overwritesLoadedPacks()
+                        .addContent(DynamicDatapackContent.emptyDepositBiomeTag())
+                        .build()));
     }
 
     @SubscribeEvent
