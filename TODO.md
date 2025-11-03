@@ -12,7 +12,6 @@
 - [ ] Allow veins to be finite.
   - [ ] Figure out a way to store the amount of remaining resources (preferably without adding a BE for deposit blocks).
   - [ ] How is it configured? Via server config? Via deposit spec for granularity?
-- [ ] Add server config option to disable deposit worldgen.
 - [ ] Add config option to disable miners' ability to eject items. If miners are made data-driven,
       add this knob to the spec (with config option being a blanket override to disable ejecting for all miners).
       

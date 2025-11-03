@@ -231,12 +231,6 @@ public class RNSContent {
         // Must run after all deposit configs are saved
         DepositSetConfigBuilder
                 .create()
-                .biome("#minecraft:is_forest")
-                .biome("#minecraft:is_jungle")
-                .biome("#minecraft:is_taiga")
-                .biome("#minecraft:is_badlands")
-                .biome("#minecraft:is_hill")
-                .biome("#minecraft:is_savanna")
                 .save();
     }
 
