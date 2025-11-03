@@ -30,6 +30,7 @@ import java.util.*;
 public class MinerBlockEntity extends MiningBlockEntity {
     private MinerSpec spec = null;
     private List<BlockState> particleOptions = null;
+    private int cachedProgress = 0;
 
     public MinerBlockEntity(BlockPos pos, BlockState state) {
         super(RNSContent.MINER_BE.get(), pos, state);
@@ -38,19 +39,19 @@ public class MinerBlockEntity extends MiningBlockEntity {
     @Override
     public int getMiningAreaRadius() {
         if (spec == null) tryInitSpec();
-        return Objects.requireNonNull(spec).miningAreaRadius();
+        return Objects.requireNonNull(spec).miningArea().radius();
     }
 
     @Override
     public int getMiningAreaHeight() {
         if (spec == null) tryInitSpec();
-        return Objects.requireNonNull(spec).miningAreaHeight();
+        return Objects.requireNonNull(spec).miningArea().height();
     }
 
     @Override
     public int getMiningAreaYOffset() {
         if (spec == null) tryInitSpec();
-        return Objects.requireNonNull(spec).miningAreaVerticalDisplacement();
+        return Objects.requireNonNull(spec).miningArea().verticalOffset();
     }
 
     @Override
@@ -67,7 +68,16 @@ public class MinerBlockEntity extends MiningBlockEntity {
 
     @Override
     public int getBaseProgress() {
-        return ServerConfig.minerMk1BaseProgress;
+        // From server config
+        if ((getTier() == 1) && (ServerConfig.minerMk1BaseProgress != 0)) return ServerConfig.minerMk1BaseProgress;
+        if ((getTier() == 2) && (ServerConfig.minerMk2BaseProgress != 0)) return ServerConfig.minerMk2BaseProgress;
+
+        // Or from miner spec
+        if (cachedProgress == 0) {
+            if (spec == null) tryInitSpec();
+            cachedProgress = 256 * 60 * SharedConstants.TICKS_PER_MINUTE / (int) Objects.requireNonNull(spec).minesPerHour();
+        }
+        return cachedProgress;
     }
 
     @Override
