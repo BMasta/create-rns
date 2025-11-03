@@ -1,7 +1,10 @@
 {
   "miner_block": "create_rns:miner_mk1",
   "tier": 1,
-  "mining_area_radius": 1,
-  "mining_area_height": 1,
-  "mining_area_vertical_displacement": -1
+  "mines_per_hour": 45.0,
+  "mining_area": {
+    "radius": 1,
+    "height": 1,
+    "vertical_offset": -1
+  }
 }
