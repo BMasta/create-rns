@@ -4,11 +4,16 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.RNSRecipes;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositWorldgenProvider;
+import com.bmaster.createrns.data.pack.DynamicDatapack;
+import com.bmaster.createrns.data.pack.DynamicDatapackContent;
 import com.bmaster.createrns.deposit.spec.DepositSpec;
 import com.bmaster.createrns.deposit.capability.IDepositIndex;
 import com.bmaster.createrns.mining.miner.MinerSpec;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.repository.PackSource;
 import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.data.event.GatherDataEvent;
@@ -32,11 +37,22 @@ public class ModEvents {
 
     @SubscribeEvent
     public static void onAddPackFinders(AddPackFindersEvent e) {
-        // TODO: Could be useful in the future for compat with other mods
-//        if (e.getPackType() != PackType.SERVER_DATA) return;
-//        DynamicDatapack.addDepositBiomeTag();
-//        DynamicDatapack.addDepositSetAndTag();
-//        e.addRepositorySource(consumer -> consumer.accept(DynamicDatapack.finish()));
+        if (e.getPackType() != PackType.SERVER_DATA) return;
+
+        e.addRepositorySource(consumer -> consumer.accept(
+                DynamicDatapack.createDatapack("dynamic_data")
+                        .title(Component.literal("Dynamic mod data for Create: Rock & Stone"))
+                        .addContent(DynamicDatapackContent.standardDepositBiomeTag())
+                        .build()));
+
+        e.addRepositorySource(consumer -> consumer.accept(
+                DynamicDatapack.createDatapack("no_deposit_worldgen")
+                        .title(Component.literal("Disable deposit generation"))
+                        .source(PackSource.FEATURE)
+                        .optional()
+                        .overwritesLoadedPacks()
+                        .addContent(DynamicDatapackContent.emptyDepositBiomeTag())
+                        .build()));
     }
 
     @SubscribeEvent

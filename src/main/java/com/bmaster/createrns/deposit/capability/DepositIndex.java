@@ -1,7 +1,7 @@
 package com.bmaster.createrns.deposit.capability;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.data.pack.json.DepositStructureSet;
+import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.bmaster.createrns.util.Utils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -261,7 +261,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
         var sl = (ServerLevel) sp.level();
         var gen = sl.getChunkSource().getGenerator();
         var target = sl.registryAccess().registryOrThrow(Registries.STRUCTURE).getHolderOrThrow(depositKey);
-        var searchRadiusRegions = searchRadiusChunks / DepositStructureSet.SPACING;
+        var searchRadiusRegions = searchRadiusChunks / DepositSetConfigBuilder.DEFAULT_SPACING;
 
         var newDeposit = gen.findNearestMapStructure(sl, HolderSet.direct(target), sp.blockPosition(),
                 searchRadiusRegions, true);

@@ -1,9 +1,9 @@
 package com.bmaster.createrns.item.DepositScanner;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.data.pack.json.DepositStructureSet;
-import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
+import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.bmaster.createrns.deposit.capability.IDepositIndex;
+import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler.AntennaStatus;
 import com.bmaster.createrns.util.Utils;
 import net.minecraft.core.BlockPos;
@@ -12,7 +12,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.Nullable;
 
 public class DepositScannerServerHandler {
     public enum RequestType {
@@ -23,7 +22,7 @@ public class DepositScannerServerHandler {
     public static final int MAX_PING_INTERVAL = 60;
     public static final float FOUND_DISTANCE = 5f;
 
-    private static final int SEARCH_RADIUS_CHUNKS = DepositStructureSet.SPACING * 4;
+    private static final int SEARCH_RADIUS_CHUNKS = DepositSetConfigBuilder.DEFAULT_SPACING * 4;
     private static final int MAX_BLOCK_DISTANCE = SEARCH_RADIUS_CHUNKS * 16;
 
     public static void processScanRequest(ServerPlayer sp, Item icon, RequestType rt) {
