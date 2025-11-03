@@ -1,9 +1,6 @@
 package com.bmaster.createrns.data.pack;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.data.pack.json.*;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -13,11 +10,12 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.BuiltInPackSource;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
-import net.minecraft.server.packs.resources.Resource;
 
 import java.util.*;
 
 public class DynamicDatapack {
+    public static List<Pack> DATAPACKS = new ArrayList<>();
+    public static List<Pack> RESOURCE_PACKS = new ArrayList<>();
 
     public static DynamicDatapack createDatapack(String id) {
         return new DynamicDatapack(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, id), PackType.SERVER_DATA);
@@ -84,6 +82,13 @@ public class DynamicDatapack {
 
         return Pack.readMetaAndCreate(resources.location(), BuiltInPackSource.fixedResources(resources),
                 type, new PackSelectionConfig(isRequired, pos, false));
+    }
+
+    public Pack buildAndRegister() {
+        var pack = build();
+        if (type == PackType.SERVER_DATA) DATAPACKS.add(build());
+        if (type == PackType.CLIENT_RESOURCES) RESOURCE_PACKS.add(build());
+        return pack;
     }
 
     private DynamicDatapack(ResourceLocation id, PackType type) {

@@ -2,7 +2,6 @@ package com.bmaster.createrns.data.pack;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.data.pack.DynamicDatapack.DatapackFile;
-import com.bmaster.createrns.data.pack.json.EmptyBiomeTag;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
