@@ -2,6 +2,8 @@ package com.bmaster.createrns;
 
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositStructureConfigBuilder;
+import com.bmaster.createrns.data.pack.DynamicDatapack;
+import com.bmaster.createrns.data.pack.DynamicDatapackContent;
 import com.bmaster.createrns.deposit.DepositBlock;
 import com.bmaster.createrns.deposit.LevelDepositData;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerItem;
@@ -29,6 +31,8 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.repository.Pack;
+import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -243,6 +247,20 @@ public class RNSContent {
             .validBlock(MINER_MK2_BLOCK)
             .renderer(() -> MinerRenderer::new)
             .register();
+
+    // Dynamic packs
+    public static Pack MAIN_PACK = DynamicDatapack.createDatapack("dynamic_data")
+            .title(Component.literal("Dynamic mod data for Create: Rock & Stone"))
+            .addContent(DynamicDatapackContent.standardDepositBiomeTag())
+            .buildAndRegister();
+
+    public static Pack NO_DEPOSIT_PACK = DynamicDatapack.createDatapack("no_deposit_worldgen")
+            .title(Component.literal("Disable deposit generation"))
+            .source(PackSource.FEATURE)
+            .optional()
+            .overwritesLoadedPacks()
+            .addContent(DynamicDatapackContent.emptyDepositBiomeTag())
+            .buildAndRegister();
 
     private static final ResourceLocation DEP_SMALL =
             ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_small");

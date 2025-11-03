@@ -63,22 +63,16 @@ public class CommonEvents {
 
     @SubscribeEvent
     public static void onAddPackFinders(AddPackFindersEvent e) {
-        if (e.getPackType() != PackType.SERVER_DATA) return;
-
-        e.addRepositorySource(consumer -> consumer.accept(
-                DynamicDatapack.createDatapack("dynamic_data")
-                        .title(Component.literal("Dynamic mod data for Create: Rock & Stone"))
-                        .addContent(DynamicDatapackContent.standardDepositBiomeTag())
-                        .build()));
-
-        e.addRepositorySource(consumer -> consumer.accept(
-                DynamicDatapack.createDatapack("no_deposit_worldgen")
-                        .title(Component.literal("Disable deposit generation"))
-                        .source(PackSource.FEATURE)
-                        .optional()
-                        .overwritesLoadedPacks()
-                        .addContent(DynamicDatapackContent.emptyDepositBiomeTag())
-                        .build()));
+        if (e.getPackType() == PackType.SERVER_DATA) {
+            for (var pack : DynamicDatapack.DATAPACKS) {
+                e.addRepositorySource(consumer -> consumer.accept(pack));
+            }
+        }
+        if (e.getPackType() == PackType.CLIENT_RESOURCES) {
+            for (var pack : DynamicDatapack.RESOURCE_PACKS) {
+                e.addRepositorySource(consumer -> consumer.accept(pack));
+            }
+        }
     }
 
     @SubscribeEvent
