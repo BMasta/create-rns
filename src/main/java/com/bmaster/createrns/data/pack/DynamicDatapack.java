@@ -11,6 +11,8 @@ import net.minecraft.server.packs.repository.PackSource;
 import java.util.*;
 
 public class DynamicDatapack {
+    public static List<Pack> DATAPACKS = new ArrayList<>();
+    public static List<Pack> RESOURCE_PACKS = new ArrayList<>();
 
     public static DynamicDatapack createDatapack(String id) {
         return new DynamicDatapack(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, id), PackType.SERVER_DATA);
@@ -75,6 +77,13 @@ public class DynamicDatapack {
         }
 
         return Pack.readMetaAndCreate(id.toString(), title, isRequired, (id) -> resources, type, pos, source);
+    }
+
+    public Pack buildAndRegister() {
+        var pack = build();
+        if (type == PackType.SERVER_DATA) DATAPACKS.add(build());
+        if (type == PackType.CLIENT_RESOURCES) RESOURCE_PACKS.add(build());
+        return pack;
     }
 
     private DynamicDatapack(ResourceLocation id, PackType type) {
