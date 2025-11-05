@@ -1,6 +1,5 @@
 package com.bmaster.createrns.mining.recipe;
 
-import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSRecipeTypes;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
@@ -10,6 +9,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -22,14 +22,16 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MiningRecipe implements Recipe<Container> {
     private final ResourceLocation id;
     private final Block depositBlock;
     private final int tier;
-    private final Item yield;
+    private final Yield yield;
 
-    public MiningRecipe(ResourceLocation id, Block depositBlock, int tier, Item yield) {
+    public MiningRecipe(ResourceLocation id, Block depositBlock, int tier, Yield yield) {
         this.id = id;
         this.depositBlock = depositBlock;
         this.tier = tier;
@@ -54,7 +56,7 @@ public class MiningRecipe implements Recipe<Container> {
         return tier;
     }
 
-    public Item getYield() {
+    public Yield getYield() {
         return yield;
     }
 
@@ -64,10 +66,11 @@ public class MiningRecipe implements Recipe<Container> {
         return false;
     }
 
+    @Deprecated
     @ParametersAreNonnullByDefault
     @Override
     public @NotNull ItemStack assemble(Container c, RegistryAccess ra) {
-        return new ItemStack(yield);
+        return new ItemStack(yield.types.get(0).item);
     }
 
     @Override
@@ -75,10 +78,11 @@ public class MiningRecipe implements Recipe<Container> {
         return false;
     }
 
+    @Deprecated
     @ParametersAreNonnullByDefault
     @Override
     public @NotNull ItemStack getResultItem(RegistryAccess ra) {
-        return new ItemStack(yield);
+        return new ItemStack(yield.types.get(0).item);
     }
 
     @Override
@@ -103,23 +107,36 @@ public class MiningRecipe implements Recipe<Container> {
         public @NotNull MiningRecipe fromJson(ResourceLocation id, JsonObject json) {
             var depBlock = parseBlockId(json, "deposit_block");
             var tier = GsonHelper.getAsInt(json, "tier");
-            var yield = parseItemId(json, "yield");
-            return new MiningRecipe(id, depBlock, tier, yield);
+            var yieldList = GsonHelper.getAsJsonArray(json, "yield").asList().stream().map(e -> {
+                var o = e.getAsJsonObject();
+                return new YieldType(parseItemId(o, "item"),
+                        GsonHelper.getAsInt(o, "chance_weight"));
+            }).toList();
+
+            return new MiningRecipe(id, depBlock, tier, new Yield(yieldList));
         }
 
         @Override
         public MiningRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
             var depBlock = Objects.requireNonNull(ForgeRegistries.BLOCKS.getValue(buf.readResourceLocation()));
             var tier = buf.readInt();
-            var yield = buf.readItem();
-            return new MiningRecipe(id, depBlock, tier, yield.getItem());
+            var sz = buf.readInt();
+            List<YieldType> types = new ArrayList<>(sz);
+            for (int i = 0; i < sz; ++i) {
+                types.add(new YieldType(buf.readItem().getItem(), buf.readInt()));
+            }
+            return new MiningRecipe(id, depBlock, tier, new Yield(types));
         }
 
         @Override
         public void toNetwork(FriendlyByteBuf buf, MiningRecipe r) {
             buf.writeResourceLocation(Objects.requireNonNull(ForgeRegistries.BLOCKS.getKey(r.getDepositBlock())));
             buf.writeInt(r.tier);
-            buf.writeItem(new ItemStack(r.getYield()));
+            buf.writeInt(r.yield.types.size());
+            for (var t : r.yield.types) {
+                buf.writeItem(new ItemStack(t.item));
+                buf.writeInt(t.chanceWeight);
+            }
         }
 
         protected static Block parseBlockId(JsonObject json, String field) {
@@ -148,4 +165,39 @@ public class MiningRecipe implements Recipe<Container> {
             return item;
         }
     }
+
+    public static class Yield {
+        public List<YieldType> types;
+        private int totalWeight = 0;
+
+        public Yield(List<YieldType> types) {
+            this.types = types;
+        }
+
+        public int getTotalWeight() {
+            if (totalWeight == 0) {
+                totalWeight = types.stream()
+                        .map(y -> y.chanceWeight)
+                        .reduce(Integer::sum)
+                        .orElseThrow();
+            }
+            return totalWeight;
+        }
+
+        public Item roll(RandomSource rng) {
+            Item result = types.get(types.size() - 1).item;
+            float threshold = rng.nextFloat();
+            float accChance = 0;
+            for (var t : types) {
+                accChance += (float) t.chanceWeight / getTotalWeight();
+                if (accChance > threshold) {
+                    result = t.item;
+                    break;
+                }
+            }
+            return result;
+        }
+    }
+
+    public record YieldType(Item item, int chanceWeight) {}
 }
