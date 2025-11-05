@@ -4,7 +4,6 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.mining.recipe.MiningRecipe;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.SharedConstants;
@@ -21,7 +20,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
