@@ -3,7 +3,6 @@ package com.bmaster.createrns.compat.jei;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.RNSRecipeTypes;
-import com.bmaster.createrns.mining.MiningLevel;
 import com.bmaster.createrns.mining.recipe.MiningRecipe;
 import com.simibubi.create.compat.jei.EmptyBackground;
 import com.simibubi.create.compat.jei.ItemIcon;
@@ -67,7 +66,7 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
         // TODO: When multiple yields are implemented, draw n slots programmatically
         builder.addSlot(RecipeIngredientRole.OUTPUT, 90, 45)
                 .setBackground(BASIC_SLOT, -1, -1)
-                .addItemStack(new ItemStack(recipe.getYield()));
+                .addItemStack(new ItemStack(recipe.getYield().types.getFirst().item()));
     }
 
     @Override

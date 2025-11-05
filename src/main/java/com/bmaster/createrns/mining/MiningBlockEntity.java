@@ -107,7 +107,7 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
         if (isMining()) {
             if (!level.isClientSide) {
                 process.advance(getCurrentProgressIncrement());
-                inventory.collectMinedItems(process);
+                inventory.collectMinedItems(process, level.random);
             }
         }
     }

@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MinerBlockEntity extends MiningBlockEntity {
     private MinerSpec spec = null;
@@ -196,18 +197,13 @@ public class MinerBlockEntity extends MiningBlockEntity {
             new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
         }
 
-        var stpListSorted = process.innerProcesses.stream()
-                .sorted(Comparator.comparingInt(p -> p.maxProgress))
-                .toList();
-
-        for (var p : stpListSorted) {
-            var progressPerHour = 60 * SharedConstants.TICKS_PER_MINUTE * getCurrentProgressIncrement();
-            var itemsPerHour = (float) ((long) progressPerHour * 10 / p.maxProgress) / 10;
+        var rates = process.getEstimatedRates(getCurrentProgressIncrement());
+        for (var e : rates.object2FloatEntrySet()) {
             new LangBuilder(CreateRNS.MOD_ID)
-                    .add(p.yield.getDescription().copy()
+                    .add(e.getKey().getDescription().copy()
                             .append(": ")
                             .withStyle(ChatFormatting.GRAY))
-                    .add(Component.literal(Float.toString(itemsPerHour))
+                    .add(Component.literal(String.format(java.util.Locale.ROOT, "%.1f", e.getFloatValue()))
                             .append(Component.translatable("%s.miner.per_hour".formatted(CreateRNS.MOD_ID)))
                             .withStyle(ChatFormatting.GREEN))
                     .forGoggles(tooltip, 1);
