@@ -6,6 +6,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -55,10 +56,10 @@ public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<C
     }
 
     /// Attempts to collect items mined by the given mining process.
-    public void collectMinedItems(MiningProcess process) {
+    public void collectMinedItems(MiningProcess process, RandomSource rng) {
         if (process == null) return;
         boolean invUpdated = false;
-        for (var minedStack : process.collect()) {
+        for (var minedStack : process.collect(rng)) {
             var minedType = minedStack.getItem();
             var minedCount = minedStack.getCount();
 

@@ -2,5 +2,10 @@
   "type": "create_rns:mining",
   "deposit_block": "create_rns:zinc_deposit_block",
   "tier": 2,
-  "yield": "create_rns:impure_zinc_ore"
+  "yield": [
+    {
+      "item": "create_rns:impure_zinc_ore",
+      "chance_weight": 1
+    }
+  ]
 }
