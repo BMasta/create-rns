@@ -8,10 +8,10 @@
 - [ ] Add deposits for metals/gems from other mods.
 - [ ] Store deposits known to player on client side. Sync with server for accurate scanning.
 - [ ] Port to Fabric.
-- [ ] Add the ability to specify multiple yields for a deposit block with individual weights.
 - [ ] Allow veins to be finite.
-  - [ ] Figure out a way to store the amount of remaining resources (preferably without adding a BE for deposit blocks).
-  - [ ] How is it configured? Via server config? Via deposit spec for granularity?
+  - [ ] Add server config options to toggle between finite/infinite deposits as well as setting specific durabilities.
+  - [ ] Show cumulative deposit durabilities in miner tooltip.
+  - [ ] Jade integration to show individual deposit durabilities.
 - [ ] Add config option to disable miners' ability to eject items. If miners are made data-driven,
       add this knob to the spec (with config option being a blanket override to disable ejecting for all miners).
       

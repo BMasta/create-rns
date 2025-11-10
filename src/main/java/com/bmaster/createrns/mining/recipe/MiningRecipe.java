@@ -4,7 +4,6 @@ import com.bmaster.createrns.RNSRecipeTypes;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -19,21 +18,25 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class MiningRecipe implements Recipe<SingleRecipeInput> {
     private final Block depositBlock;
+    private final Block replacementBlock;
+    private final Durability dur;
     private final int tier;
     private final Yield yield;
 
-    public MiningRecipe(Block depositBlock, int tier, List<YieldType> types) {
+    public MiningRecipe(Block depositBlock, Block replacementBlock, Durability dur, int tier, List<YieldType> types) {
         this.depositBlock = depositBlock;
+        this.replacementBlock = replacementBlock;
+        this.dur = dur;
         this.tier = tier;
         this.yield = new Yield(types);
     }
@@ -48,6 +51,14 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
 
     public Yield getYield() {
         return yield;
+    }
+
+    public Block getReplacementBlock() {
+        return replacementBlock;
+    }
+
+    public Durability getDurability() {
+        return dur;
     }
 
     @Override
@@ -134,20 +145,6 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
             }
             return result;
         }
-
-        public Yield merge(Yield other) {
-            this.types.addAll(other.types);
-
-            // Merge yield types with the same item by combining their weights
-            types = types.stream()
-                    .collect(Collectors.toMap(t -> t.item, t -> t.chanceWeight, Integer::sum, Object2IntOpenHashMap::new))
-                    .object2IntEntrySet()
-                    .stream()
-                    .map(e -> new YieldType(e.getKey(), e.getIntValue()))
-                    .toList();
-
-            return this;
-        }
     }
 
     public record YieldType(Item item, int chanceWeight) {
@@ -172,11 +169,38 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
         }
     }
 
+    public record Durability(int core, int edge, float randomSpread) {
+        public static final MapCodec<Durability> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
+                Codec.intRange(1, Integer.MAX_VALUE).fieldOf("core").forGetter(Durability::core),
+                Codec.intRange(1, Integer.MAX_VALUE).fieldOf("edge").forGetter(Durability::edge),
+                Codec.floatRange(0f, 1f).fieldOf("random_spread").forGetter(Durability::randomSpread)
+        ).apply(i, Durability::new));
+
+        public static final StreamCodec<RegistryFriendlyByteBuf, Durability> STREAM_CODEC = StreamCodec.of(
+                Durability::toNetwork, Durability::fromNetwork);
+
+        public static void toNetwork(RegistryFriendlyByteBuf buffer, Durability dur) {
+            ByteBufCodecs.INT.encode(buffer, dur.core);
+            ByteBufCodecs.INT.encode(buffer, dur.edge);
+            ByteBufCodecs.FLOAT.encode(buffer, dur.randomSpread);
+        }
+
+        public static Durability fromNetwork(RegistryFriendlyByteBuf buffer) {
+            return new Durability(
+                ByteBufCodecs.INT.decode(buffer),
+                ByteBufCodecs.INT.decode(buffer),
+                ByteBufCodecs.FLOAT.decode(buffer)
+            );
+        }
+    }
+
     public static class Serializer implements RecipeSerializer<MiningRecipe> {
         public static MiningRecipe.Serializer INSTANCE = new MiningRecipe.Serializer();
 
         public static final MapCodec<MiningRecipe> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
                         BuiltInRegistries.BLOCK.byNameCodec().fieldOf("deposit_block").forGetter(MiningRecipe::getDepositBlock),
+                        BuiltInRegistries.BLOCK.byNameCodec().fieldOf("replace_when_depleted").orElse(Blocks.AIR).forGetter(MiningRecipe::getReplacementBlock),
+                        Durability.CODEC.fieldOf("durability").orElse(new Durability(0 ,0, 0)).forGetter(MiningRecipe::getDurability),
                         Codec.INT.fieldOf("tier").forGetter(MiningRecipe::getTier),
                         Yield.CODEC.fieldOf("yield").forGetter((r) -> r.yield.types))
                 .apply(i, MiningRecipe::new));
@@ -185,7 +209,9 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
                 Serializer::toNetwork, Serializer::fromNetwork);
 
         public static void toNetwork(RegistryFriendlyByteBuf buffer, MiningRecipe recipe) {
-            ByteBufCodecs.registry(Registries.BLOCK).encode(buffer, recipe.getDepositBlock());
+            ByteBufCodecs.registry(Registries.BLOCK).encode(buffer, recipe.depositBlock);
+            ByteBufCodecs.registry(Registries.BLOCK).encode(buffer, recipe.replacementBlock);
+            Durability.STREAM_CODEC.encode(buffer, recipe.dur);
             ByteBufCodecs.INT.encode(buffer, recipe.tier);
             Yield.STREAM_CODEC.encode(buffer, new ArrayList<>(recipe.yield.types));
         }
@@ -193,6 +219,8 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
         public static MiningRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
             return new MiningRecipe(
                     ByteBufCodecs.registry(Registries.BLOCK).decode(buffer),
+                    ByteBufCodecs.registry(Registries.BLOCK).decode(buffer),
+                    Durability.STREAM_CODEC.decode(buffer),
                     ByteBufCodecs.INT.decode(buffer),
                     Yield.STREAM_CODEC.decode(buffer)
             );

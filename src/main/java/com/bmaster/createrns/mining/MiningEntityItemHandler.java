@@ -10,6 +10,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
@@ -56,10 +57,10 @@ public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<C
     }
 
     /// Attempts to collect items mined by the given mining process.
-    public void collectMinedItems(MiningProcess process, RandomSource rng) {
+    public void collectMinedItems(MiningProcess process) {
         if (process == null) return;
         boolean invUpdated = false;
-        for (var minedStack : process.collect(rng)) {
+        for (var minedStack : process.collect()) {
             var minedType = minedStack.getItem();
             var minedCount = minedStack.getCount();
 

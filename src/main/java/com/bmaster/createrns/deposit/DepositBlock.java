@@ -1,5 +1,7 @@
 package com.bmaster.createrns.deposit;
 
+import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.mining.MiningBlockEntityInstanceHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -18,7 +20,7 @@ public class DepositBlock extends Block {
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
         if (level.isClientSide) return;
-        for (var m : MiningBlockEntityInstanceHolder.getInstancesThatCouldMine(level, pos)) {
+        for (var m : MiningBlockEntityInstanceHolder.getInstancesMiningAt(level, pos)) {
             m.reserveDepositBlocks();
             var mPos = m.getBlockPos();
             var mState = level.getBlockState(mPos);
@@ -32,7 +34,11 @@ public class DepositBlock extends Block {
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         super.onRemove(state, level, pos, newState, movedByPiston);
         if (level.isClientSide) return;
-        for (var m : MiningBlockEntityInstanceHolder.getInstancesThatCouldMine(level, pos)) {
+        // Only non-depleted deposits have durability
+        if (state.is(RNSTags.Block.DEPOSIT_BLOCKS)) {
+            level.getData(RNSContent.LEVEL_DEPOSIT_DATA.get()).removeDepositBlockDurability(pos);
+        }
+        for (var m : MiningBlockEntityInstanceHolder.getInstancesMiningAt(level, pos)) {
             m.reserveDepositBlocks();
             var mPos = m.getBlockPos();
             var mState = level.getBlockState(mPos);
