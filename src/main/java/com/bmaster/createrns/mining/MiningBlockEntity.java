@@ -141,9 +141,8 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
         tag.put("Inventory", inventory.serializeNBT(p));
         var packed = reservedDepositBlocks.stream().mapToLong(BlockPos::asLong).toArray();
         tag.putLongArray("ReservedDepositBlocks", packed);
-        if (process != null) {
-            tag.put("MiningProgress", process.getProgressAsNBT());
-        }
+        if (process == null) process = new MiningProcess(level, getTier(), reservedDepositBlocks, getBaseProgress());
+        tag.put("MiningProgress", process.getProgressAsNBT());
     }
 
     @Override

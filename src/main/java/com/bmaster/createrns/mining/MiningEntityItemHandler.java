@@ -1,8 +1,10 @@
 package com.bmaster.createrns.mining;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.mining.recipe.MiningRecipe;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -60,7 +62,15 @@ public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<C
     public void collectMinedItems(MiningProcess process) {
         if (process == null) return;
         boolean invUpdated = false;
-        for (var minedStack : process.collect()) {
+        for (var p : process.innerProcesses) {
+            boolean invFull = p.recipe.getYield().types.stream().anyMatch(t -> {
+                var s = typeToStack.getOrDefault(t.item(), null);
+                return s != null && s.getCount() >= MAX_COUNT_PER_TYPE;
+            });
+            if (invFull) continue;
+
+            var minedStack = p.collect();
+            if (minedStack == null) continue;
             var minedType = minedStack.getItem();
             var minedCount = minedStack.getCount();
 
@@ -105,6 +115,7 @@ public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<C
     }
 
     /// Always a no-op as mining entities only permit insertion from a mining process.
+    ///
     /// @return Copy of the given item stack.
     @Override
     public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {

@@ -3,6 +3,7 @@ package com.bmaster.createrns.deposit;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
+import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.bmaster.createrns.mining.MiningRecipeLookup;
 import com.bmaster.createrns.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.util.Utils;
@@ -213,6 +214,7 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
     }
 
     public void initDepositVeinDurability(BlockPos start) {
+        if (ServerConfig.infiniteDeposits) return;
         if (depositDurabilities.containsKey(start)) return;
         var startRecipe = MiningRecipeLookup.find(level, level.getBlockState(start).getBlock());
         if (startRecipe == null) return;
@@ -235,11 +237,25 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
         }
     }
 
+    /// Returns -1 if not initialized, 0 if infinite, actual durability otherwise.
+    public long getDepositBlockDurability(BlockPos dbPos, boolean initIfNeeded) {
+        if (ServerConfig.infiniteDeposits) return 0;
+        if (initIfNeeded) initDepositVeinDurability(dbPos);
+        if (!depositDurabilities.containsKey(dbPos)) return -1;
+        return depositDurabilities.getLong(dbPos);
+    }
+
+    /// Returns 0 if infinite, actual durability otherwise.
+    public long getDepositBlockDurability(BlockPos dbPos) {
+        return getDepositBlockDurability(dbPos, true);
+    }
+
     public void removeDepositBlockDurability(BlockPos dbPos) {
         depositDurabilities.removeLong(dbPos);
     }
 
     public void useDepositBlock(BlockPos dbPos, BlockState replacementBlock) {
+        if (ServerConfig.infiniteDeposits) return;
         initDepositVeinDurability(dbPos); // No-op if already initialized
         var dur = depositDurabilities.getLong(dbPos);
         if (dur == 1) {
