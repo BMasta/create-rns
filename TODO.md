@@ -9,8 +9,6 @@
 - [ ] Store deposits known to player on client side. Sync with server for accurate scanning.
 - [ ] Port to Fabric.
 - [ ] Allow veins to be finite.
-  - [ ] Add server config options to toggle between finite/infinite deposits as well as setting specific durabilities.
-  - [ ] Show cumulative deposit durabilities in miner tooltip.
   - [ ] Jade integration to show individual deposit durabilities.
 - [ ] Add config option to disable miners' ability to eject items. If miners are made data-driven,
       add this knob to the spec (with config option being a blanket override to disable ejecting for all miners).

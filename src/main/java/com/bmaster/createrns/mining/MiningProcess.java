@@ -1,9 +1,11 @@
 package com.bmaster.createrns.mining;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.mining.recipe.MiningRecipe;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.SharedConstants;
@@ -22,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -49,7 +52,7 @@ public class MiningProcess {
 
     public Set<ItemStack> collect() {
         return innerProcesses.stream()
-                .map(p -> p.collect(level))
+                .map(InnerProcess::collect)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
@@ -69,7 +72,7 @@ public class MiningProcess {
             var recipe = MiningRecipeLookup.find(level, db);
             if (recipe == null || tier < recipe.getTier()) continue;
             var depBlockCount = e.getValue().intValue();
-            innerProcesses.add(new InnerProcess(depBlockPositions.get(db), recipe, baseProgress / depBlockCount));
+            innerProcesses.add(new InnerProcess(level, depBlockPositions.get(db), recipe, baseProgress / depBlockCount));
         }
     }
 
@@ -124,16 +127,20 @@ public class MiningProcess {
     }
 
     public static class InnerProcess {
+        public final Level level;
         public final List<BlockPos> depositPositions;
         public final MiningRecipe recipe;
         public int maxProgress;
         public int progress;
+        public long remainingUses;
 
-        public InnerProcess(List<BlockPos> depositPositions, MiningRecipe recipe, int maxProgress) {
+        public InnerProcess(Level level, List<BlockPos> depositPositions, MiningRecipe recipe, int maxProgress) {
+            this.level = level;
             this.depositPositions = depositPositions;
             this.recipe = recipe;
             this.maxProgress = maxProgress;
             this.progress = 0;
+            if (!level.isClientSide) computeRemainingUses(); // Server computes/syncs, client uses
         }
 
         public void advance(int by) {
@@ -141,7 +148,7 @@ public class MiningProcess {
             progress += by;
         }
 
-        public @Nullable ItemStack collect(Level level) {
+        public @Nullable ItemStack collect() {
             if (progress < maxProgress) return null;
             progress = progress - maxProgress; // Keep the extra progress
 
@@ -161,6 +168,8 @@ public class MiningProcess {
             CompoundTag ipTag = new CompoundTag();
             ipTag.putString("deposit_block", dbRL.toString());
             ipTag.putInt("progress", progress);
+            computeRemainingUses();
+            ipTag.putLong("remaining_uses", remainingUses);
 
             return ipTag;
         }
@@ -168,6 +177,21 @@ public class MiningProcess {
         /// Assumes that the yield of the tag matches the yield of this instance
         public void setProgressFromNBT(CompoundTag nbt) {
             this.progress = nbt.getInt("progress");
+            this.remainingUses = nbt.getLong("remaining_uses");
+        }
+
+        /// Returns 0 if deposit is infinite. Only callable on server side
+        private void computeRemainingUses() {
+            var depData = level.getData(RNSContent.LEVEL_DEPOSIT_DATA.get());
+            AtomicBoolean infinite = new AtomicBoolean(false);
+            long totalDur = depositPositions.stream()
+                    .map(bp -> {
+                        var dur = depData.getDepositBlockDurability(bp);
+                        if (dur == 0) infinite.set(true);
+                        return dur;
+                    })
+                    .reduce(Long::sum).orElse(-1L);
+            remainingUses = infinite.get() ? 0 : totalDur;
         }
     }
 }
