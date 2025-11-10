@@ -21,15 +21,15 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class MiningProcess {
     public final int tier;
-    public final Set<InnerProcess> innerProcesses = new ObjectOpenHashSet<>();
+    public final Set<InnerProcess> innerProcesses = Collections.newSetFromMap(new ConcurrentHashMap<>());
     public final Level level;
 
     public MiningProcess(Level l, int tier, Set<BlockPos> depositBlocks, int baseProgress) {
@@ -49,7 +49,7 @@ public class MiningProcess {
 
     public Set<ItemStack> collect() {
         return innerProcesses.stream()
-                .map(p -> p.collect(level))
+                .map(InnerProcess::collect)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
@@ -69,7 +69,7 @@ public class MiningProcess {
             var recipe = MiningRecipeLookup.find(level, db);
             if (recipe == null || tier < recipe.getTier()) continue;
             var depBlockCount = e.getValue().intValue();
-            innerProcesses.add(new InnerProcess(depBlockPositions.get(db), recipe, baseProgress / depBlockCount));
+            innerProcesses.add(new InnerProcess(level, depBlockPositions.get(db), recipe, baseProgress / depBlockCount));
         }
     }
 
@@ -124,16 +124,20 @@ public class MiningProcess {
     }
 
     public static class InnerProcess {
+        public final Level level;
         public final List<BlockPos> depositPositions;
         public final MiningRecipe recipe;
         public int maxProgress;
         public int progress;
+        public long remainingUses;
 
-        public InnerProcess(List<BlockPos> depositPositions, MiningRecipe recipe, int maxProgress) {
+        public InnerProcess(Level level, List<BlockPos> depositPositions, MiningRecipe recipe, int maxProgress) {
+            this.level = level;
             this.depositPositions = depositPositions;
             this.recipe = recipe;
             this.maxProgress = maxProgress;
             this.progress = 0;
+            if (!level.isClientSide) computeRemainingUses(); // Server computes/syncs, client uses
         }
 
         public void advance(int by) {
@@ -141,7 +145,7 @@ public class MiningProcess {
             progress += by;
         }
 
-        public @Nullable ItemStack collect(Level level) {
+        public @Nullable ItemStack collect() {
             if (progress < maxProgress) return null;
             if (!(level instanceof ServerLevel sl)) return null;
             var depIdx = IDepositIndex.fromLevel(sl);
@@ -163,6 +167,8 @@ public class MiningProcess {
             CompoundTag ipTag = new CompoundTag();
             ipTag.putString("deposit_block", dbRL.toString());
             ipTag.putInt("progress", progress);
+            computeRemainingUses();
+            ipTag.putLong("remaining_uses", remainingUses);
 
             return ipTag;
         }
@@ -170,6 +176,24 @@ public class MiningProcess {
         /// Assumes that the yield of the tag matches the yield of this instance
         public void setProgressFromNBT(CompoundTag nbt) {
             this.progress = nbt.getInt("progress");
+            this.remainingUses = nbt.getLong("remaining_uses");
+        }
+
+        /// Returns 0 if deposit is infinite. Only callable on server side
+        private void computeRemainingUses() {
+            if (!(level instanceof ServerLevel sl))
+                throw new IllegalStateException("Clients may not call this function");
+            var depIdx = IDepositIndex.fromLevel(sl);
+            if (depIdx == null) return;
+            AtomicBoolean infinite = new AtomicBoolean(false);
+            long totalDur = depositPositions.stream()
+                    .map(bp -> {
+                        var dur = depIdx.getDepositBlockDurability(bp);
+                        if (dur == 0) infinite.set(true);
+                        return dur;
+                    })
+                    .reduce(Long::sum).orElse(-1L);
+            remainingUses = infinite.get() ? 0 : totalDur;
         }
     }
 }

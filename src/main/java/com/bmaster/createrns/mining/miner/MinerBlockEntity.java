@@ -17,16 +17,16 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class MinerBlockEntity extends MiningBlockEntity {
     private MinerSpec spec = null;
@@ -114,16 +114,32 @@ public class MinerBlockEntity extends MiningBlockEntity {
     }
 
     @Override
+    public void read(@NotNull CompoundTag tag, boolean clientPacket) {
+        super.read(tag, clientPacket);
+        if (level == null) return;
+        // Clients get their reserved blocks from server updates
+        particleOptions = reservedDepositBlocks.stream()
+                .map(bp -> level.getBlockState(bp))
+                .toList();
+    }
+
+    @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         boolean added = false;
 
-        // Try adding desired section
+        // Try adding desired section(s)
         if (!isPlayerSneaking) added = addInventoryToGoggleTooltip(tooltip, true);
-        else added = addRatesToGoggleTooltip(tooltip, true);
+        else {
+            added = addRatesToGoggleTooltip(tooltip, true);
+            if (!ServerConfig.infiniteDeposits && addUsesToGoggleTooltip(tooltip)) added = true;
+        }
 
         // If unsuccessful, try adding the less desired
         if (!added) {
-            if (!isPlayerSneaking) added = addRatesToGoggleTooltip(tooltip, true);
+            if (!isPlayerSneaking) {
+                added = addRatesToGoggleTooltip(tooltip, true);
+                if (!ServerConfig.infiniteDeposits && addUsesToGoggleTooltip(tooltip)) added = true;
+            }
             else added = addInventoryToGoggleTooltip(tooltip, true);
         }
 
@@ -158,6 +174,27 @@ public class MinerBlockEntity extends MiningBlockEntity {
                     .forGoggles(tooltip, 1);
         }
 
+        return true;
+    }
+
+    protected boolean addUsesToGoggleTooltip(List<Component> tooltip) {
+        if (process == null || reservedDepositBlocks.isEmpty() || level == null) return false;
+
+        new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
+        new LangBuilder(CreateRNS.MOD_ID).translate("miner.remaining_deposit_uses").forGoggles(tooltip);
+
+        for (var p : process.innerProcesses) {
+            var usesComp = (p.remainingUses > 0)
+                    ? Component.literal("x" + p.remainingUses)
+                    : Component.translatable("create_rns.miner.infinite");
+            new LangBuilder(CreateRNS.MOD_ID)
+                    .add(p.recipe.getDepositBlock().getName()
+                            .append(": ")
+                            .withStyle(ChatFormatting.GRAY))
+                    .add(usesComp
+                            .withStyle(ChatFormatting.GREEN))
+                    .forGoggles(tooltip, 1);
+        }
         return true;
     }
 
@@ -231,11 +268,7 @@ public class MinerBlockEntity extends MiningBlockEntity {
 
     protected void spawnParticles() {
         if (level == null) return;
-        if (particleOptions == null) {
-            particleOptions = reservedDepositBlocks.stream()
-                    .map(bp -> level.getBlockState(bp))
-                    .toList();
-        }
+        if (particleOptions == null) return;
 
         var r = level.random;
         BlockState selectedParticle = particleOptions.get(r.nextInt(0, particleOptions.size()));

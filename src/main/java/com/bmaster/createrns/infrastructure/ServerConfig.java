@@ -26,13 +26,17 @@ public class ServerConfig {
                      at 256 RPM, with one deposit block claimed, and no deposit multipliers
                      Set to 0 to use the value defined in miner spec.\
                     """)
-            .define("minerMk2Speed", 360f);
+            .define("minerMk2Speed", 45f);
+
+    private static final ForgeConfigSpec.ConfigValue<Boolean> INFINITE_DEPOSITS_CV = BUILDER
+            .define("infiniteDeposits", true);
 
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
     // ------------------------------------------------ Baked values ------------------------------------------------ //
     public static int minerMk1BaseProgress = 0;
     public static int minerMk2BaseProgress = 0;
+    public static boolean infiniteDeposits = true;
 
     // -------------------------------------------------------------------------------------------------------------- //
     @SubscribeEvent
@@ -47,5 +51,6 @@ public class ServerConfig {
         if (MINER_MK2_SPEED_CV.get() != 0) {
             minerMk2BaseProgress = 256 * ticksPerHour / (int) MINER_MK2_SPEED_CV.get().floatValue();
         }
+        infiniteDeposits = INFINITE_DEPOSITS_CV.get();
     }
 }

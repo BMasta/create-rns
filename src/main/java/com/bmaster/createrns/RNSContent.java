@@ -251,6 +251,7 @@ public class RNSContent {
                                 pOutput.accept(ZINC_DEPOSIT_BLOCK.get().asItem());
                                 pOutput.accept(GOLD_DEPOSIT_BLOCK.get().asItem());
                                 pOutput.accept(REDSTONE_DEPOSIT_BLOCK.get().asItem());
+                                pOutput.accept(DEPLETED_DEPOSIT_BLOCK.get().asItem());
                                 pOutput.accept(IMPURE_IRON_ORE.get());
                                 pOutput.accept(IMPURE_COPPER_ORE.get());
                                 pOutput.accept(IMPURE_ZINC_ORE.get());
