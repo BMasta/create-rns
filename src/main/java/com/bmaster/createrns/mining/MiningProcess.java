@@ -2,6 +2,7 @@ package com.bmaster.createrns.mining;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags;
+import com.bmaster.createrns.deposit.capability.IDepositIndex;
 import com.bmaster.createrns.mining.recipe.MiningRecipe;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -12,7 +13,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.RandomSource;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -20,6 +21,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -28,10 +30,12 @@ import java.util.stream.Collectors;
 public class MiningProcess {
     public final int tier;
     public final Set<InnerProcess> innerProcesses = new ObjectOpenHashSet<>();
+    public final Level level;
 
     public MiningProcess(Level l, int tier, Set<BlockPos> depositBlocks, int baseProgress) {
         this.tier = tier;
-        setYields(l, depositBlocks, baseProgress);
+        this.level = l;
+        setYields(depositBlocks, baseProgress);
     }
 
     public boolean isPossible() {
@@ -43,25 +47,29 @@ public class MiningProcess {
         innerProcesses.forEach(p -> p.advance(by));
     }
 
-    public Set<ItemStack> collect(RandomSource rng) {
+    public Set<ItemStack> collect() {
         return innerProcesses.stream()
-                .map(p -> p.collect(rng))
+                .map(p -> p.collect(level))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
 
-    public void setYields(Level l, Set<BlockPos> depositBlocks, int baseProgress) {
-        var depBlocks = depositBlocks.stream()
-                .map(bp -> l.getBlockState(bp).getBlock())
+    public void setYields(Set<BlockPos> depositBlocks, int baseProgress) {
+        var depBlockCounts = depositBlocks.stream()
+                .map(bp -> level.getBlockState(bp).getBlock())
                 .filter(db -> db.defaultBlockState().is(RNSTags.Block.DEPOSIT_BLOCKS))
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        var depBlockPositions = depositBlocks.stream()
+                .filter(bp -> level.getBlockState(bp).getBlock().defaultBlockState().is(RNSTags.Block.DEPOSIT_BLOCKS))
+                .collect(Collectors.groupingBy(bp -> level.getBlockState(bp).getBlock(), Collectors.toList()));
 
         innerProcesses.clear();
-        for (var e : depBlocks.entrySet()) {
-            var recipe = MiningRecipeLookup.find(l, tier, e.getKey());
-            if (recipe == null) continue;
+        for (var e : depBlockCounts.entrySet()) {
+            var db = e.getKey();
+            var recipe = MiningRecipeLookup.find(level, db);
+            if (recipe == null || tier < recipe.getTier()) continue;
             var depBlockCount = e.getValue().intValue();
-            innerProcesses.add(new InnerProcess(recipe, baseProgress / depBlockCount));
+            innerProcesses.add(new InnerProcess(depBlockPositions.get(db), recipe, baseProgress / depBlockCount));
         }
     }
 
@@ -116,11 +124,13 @@ public class MiningProcess {
     }
 
     public static class InnerProcess {
+        public final List<BlockPos> depositPositions;
         public final MiningRecipe recipe;
         public int maxProgress;
         public int progress;
 
-        public InnerProcess(MiningRecipe recipe, int maxProgress) {
+        public InnerProcess(List<BlockPos> depositPositions, MiningRecipe recipe, int maxProgress) {
+            this.depositPositions = depositPositions;
             this.recipe = recipe;
             this.maxProgress = maxProgress;
             this.progress = 0;
@@ -131,10 +141,19 @@ public class MiningProcess {
             progress += by;
         }
 
-        public @Nullable ItemStack collect(RandomSource rng) {
+        public @Nullable ItemStack collect(Level level) {
             if (progress < maxProgress) return null;
+            if (!(level instanceof ServerLevel sl)) return null;
+            var depIdx = IDepositIndex.fromLevel(sl);
+            if (depIdx == null) return null;
+
             progress = progress - maxProgress; // Keep the extra progress
-            return new ItemStack(recipe.getYield().roll(rng));
+
+            // Use a random deposit block
+            var roll = level.random.nextIntBetweenInclusive(0, depositPositions.size() - 1);
+            depIdx.useDepositBlock(depositPositions.get(roll), recipe.getReplacementBlock().defaultBlockState());
+
+            return new ItemStack(recipe.getYield().roll(level.random));
         }
 
         public @Nullable CompoundTag getProgressAsNBT() {
@@ -144,7 +163,6 @@ public class MiningProcess {
             CompoundTag ipTag = new CompoundTag();
             ipTag.putString("deposit_block", dbRL.toString());
             ipTag.putInt("progress", progress);
-            ipTag.putInt("max_progress", maxProgress);
 
             return ipTag;
         }
@@ -152,7 +170,6 @@ public class MiningProcess {
         /// Assumes that the yield of the tag matches the yield of this instance
         public void setProgressFromNBT(CompoundTag nbt) {
             this.progress = nbt.getInt("progress");
-            this.maxProgress = nbt.getInt("max_progress");
         }
     }
 }

@@ -6,6 +6,7 @@
     "create_rns:copper_deposit_block",
     "create_rns:zinc_deposit_block",
     "create_rns:gold_deposit_block",
-    "create_rns:redstone_deposit_block"
+    "create_rns:redstone_deposit_block",
+    "create_rns:depleted_deposit_block"
   ]
 }

@@ -214,6 +214,11 @@ public class RNSContent {
                     .save())
             .register();
 
+    public static final BlockEntry<DepositBlock> DEPLETED_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
+                    "depleted_deposit_block", DepositBlock::new)
+            .transform(deposit(MapColor.COLOR_BLACK))
+            .register();
+
     static {
         // Must run after all deposit configs are saved
         DepositSetConfigBuilder
@@ -298,7 +303,6 @@ public class RNSContent {
                 .tag(BlockTags.NEEDS_DIAMOND_TOOL)
                 .tag(RNSTags.Block.DEPOSIT_BLOCKS)
                 .item()
-                .tag(RNSTags.Item.DEPOSIT_BLOCKS)
                 .build();
     }
 

@@ -26,7 +26,7 @@ public class ServerConfig {
                      at 256 RPM, with one deposit block claimed, and no deposit multipliers
                      Set to 0 to use the value defined in miner spec.\
                     """)
-            .define("minerMk2Speed", 45f);
+            .define("minerMk2Speed", 360f);
 
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
