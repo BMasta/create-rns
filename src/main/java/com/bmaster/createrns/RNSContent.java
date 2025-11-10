@@ -37,6 +37,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -72,7 +73,12 @@ public class RNSContent {
             DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, CreateRNS.MOD_ID);
 
     public static final Supplier<AttachmentType<LevelDepositData>> LEVEL_DEPOSIT_DATA = ATTACHMENT_TYPES.register(
-            "level_deposit_data", () -> AttachmentType.serializable(LevelDepositData::new).build());
+            "level_deposit_data", () -> AttachmentType.serializable(holder -> {
+                if (!(holder instanceof Level level)) {
+                    throw new IllegalStateException("Level deposit data holder is not a level: " + holder);
+                }
+                return new LevelDepositData(level);
+            }).build());
 
     // Creative tabs
     public static final RegistryEntry<CreativeModeTab, CreativeModeTab> MAIN_TAB = CreateRNS.REGISTRATE.defaultCreativeTab(
@@ -231,6 +237,11 @@ public class RNSContent {
                     .save())
             .register();
 
+    public static final BlockEntry<DepositBlock> DEPLETED_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
+                    "depleted_deposit_block", DepositBlock::new)
+            .transform(deposit(MapColor.COLOR_BLACK))
+            .register();
+
     static {
         // Must run after all deposit configs are saved
         DepositSetConfigBuilder
@@ -286,7 +297,6 @@ public class RNSContent {
                 .tag(BlockTags.NEEDS_DIAMOND_TOOL)
                 .tag(RNSTags.Block.DEPOSIT_BLOCKS)
                 .item()
-                .tag(RNSTags.Item.DEPOSIT_BLOCKS)
                 .build();
     }
 

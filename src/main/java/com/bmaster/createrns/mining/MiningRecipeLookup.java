@@ -1,8 +1,10 @@
 package com.bmaster.createrns.mining;
 
+import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSRecipeTypes;
 import com.bmaster.createrns.mining.recipe.MiningRecipe;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -13,11 +15,14 @@ import java.util.stream.Collectors;
 public class MiningRecipeLookup {
     private static Object2ObjectOpenHashMap<Block, MiningRecipe> depBlockToRecipe;
 
-    public static @Nullable MiningRecipe find(Level l, int minerTier, Block depositBlock) {
+    public static @Nullable MiningRecipe find(Level l, Block depositBlock) {
         if (depBlockToRecipe == null) build(l);
-        var recipe = depBlockToRecipe.get(depositBlock);
-        if (recipe == null || minerTier < recipe.getTier()) return null;
-        return recipe;
+        var res = depBlockToRecipe.get(depositBlock);
+        if (res == null) {
+            CreateRNS.LOGGER.error("Could not get mining recipe for deposit block {}",
+                    BuiltInRegistries.BLOCK.getKey(depositBlock));
+        }
+        return res;
     }
 
     public static boolean isDepositMineable(Level l, Block depositBlock, int minerTier) {

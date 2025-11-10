@@ -40,7 +40,7 @@ public class MiningBlockEntityInstanceHolder {
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-    public static Set<MiningBlockEntity> getInstancesThatCouldMine(Level l, BlockPos bp) {
+    public static Set<MiningBlockEntity> getInstancesMiningAt(Level l, BlockPos bp) {
         var levelSet = INSTANCES.get(l);
         if (levelSet == null) return Set.of();
 
