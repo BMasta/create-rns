@@ -2,11 +2,13 @@ package com.bmaster.createrns.mining;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags;
+import com.bmaster.createrns.deposit.capability.IDepositIndex;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -85,7 +87,17 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
         }
 
         // Recompute mining process yields based on claimed mining area. This also happens on process initialization.
-        if (process != null && level != null) process.setYields(level, reservedDepositBlocks, getBaseProgress());
+        if (process != null) process.setYields(reservedDepositBlocks, getBaseProgress());
+
+        // Initialize deposit durabilities as needed
+        if (level instanceof ServerLevel sl) {
+            var depIdx = IDepositIndex.fromLevel(sl);
+            if (depIdx != null) {
+                for (var bp : reservedDepositBlocks) {
+                    depIdx.initDepositVeinDurability(bp);
+                }
+            }
+        }
 
         setChanged();
     }
@@ -109,7 +121,7 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
         if (isMining()) {
             if (!level.isClientSide) {
                 process.advance(getCurrentProgressIncrement());
-                inventory.collectMinedItems(process, level.random);
+                inventory.collectMinedItems(process);
             }
         }
     }
@@ -178,8 +190,8 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
         }
 
         // Recompute mining process yields based on claimed mining area. This also happens on process initialization.
-        if (process != null && level != null) {
-            process.setYields(level, reservedDepositBlocks, getBaseProgress());
+        if (process != null) {
+            process.setYields(reservedDepositBlocks, getBaseProgress());
             if (miningProgressTag != null) process.setProgressFromNBT(miningProgressTag);
         }
     }
@@ -187,7 +199,6 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
     private Set<BlockPos> getDepositVein() {
         if (level == null) return Set.of();
 
-        var depTag = RNSTags.Block.DEPOSIT_BLOCKS;
         var ma = getMiningArea(level);
         Queue<BlockPos> q = new ArrayDeque<>();
         LongOpenHashSet visited = new LongOpenHashSet(ma.getXSpan() * ma.getYSpan() * ma.getZSpan());
@@ -195,12 +206,8 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
         q.offer(worldPosition.relative(Direction.Axis.Y, getMiningAreaYOffset()));
         while (!q.isEmpty()) {
             var bp = q.poll();
-
-            if (visited.contains(bp.asLong())) continue;
-            if (!ma.isInside(bp)) continue;
             var b = level.getBlockState(bp);
-            if (!b.is(depTag)) continue;
-            if (visited.contains(bp.asLong()) || !ma.isInside(bp) || !level.getBlockState(bp).is(depTag)) continue;
+            if (visited.contains(bp.asLong()) || !ma.isInside(bp) || !b.is(RNSTags.Block.DEPOSIT_BLOCKS)) continue;
             visited.add(bp.asLong());
 
             Direction.stream().forEach(d -> q.add(bp.relative(d)));

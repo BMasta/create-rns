@@ -2,6 +2,12 @@
   "type": "create_rns:mining",
   "deposit_block": "create_rns:gold_deposit_block",
   "tier": 2,
+  "durability": {
+    "core": 200000,
+    "edge": 75000,
+    "random_spread": 0.2
+  },
+  "replace_when_depleted": "create_rns:depleted_deposit_block",
   "yield": [
     {
       "item": "create_rns:impure_gold_ore",

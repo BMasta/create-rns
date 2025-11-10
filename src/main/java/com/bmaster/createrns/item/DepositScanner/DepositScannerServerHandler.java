@@ -27,13 +27,12 @@ public class DepositScannerServerHandler {
 
     public static void processScanRequest(ServerPlayer sp, Item icon, RequestType rt) {
         if (!(sp.level() instanceof ServerLevel sl)) return;
-        var depIdxOpt = IDepositIndex.fromLevel(sl).resolve();
-        if (depIdxOpt.isEmpty()) {
+        var depIdx = IDepositIndex.fromLevel(sl);
+        if (depIdx == null) {
             CreateRNS.LOGGER.error("Deposit index is not present on level {}", sl.dimension());
             DepositScannerS2CPacket.send(sp, AntennaStatus.INACTIVE, 0, false, rt);
             return;
         }
-        var depIdx = depIdxOpt.get();
 
         var structKey = DepositSpecLookup.getStructureKey(sl.registryAccess(), icon);
         var nearest = switch (rt) {

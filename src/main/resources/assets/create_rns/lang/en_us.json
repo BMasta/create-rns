@@ -4,6 +4,7 @@
   "block.create_rns.zinc_deposit_block": "Zinc Deposit",
   "block.create_rns.gold_deposit_block": "Gold Deposit",
   "block.create_rns.redstone_deposit_block": "Redstone Deposit",
+  "block.create_rns.depleted_deposit_block": "Depleted Deposit",
   "block.create_rns.miner_mk1": "Miner Mk.1",
   "block.create_rns.miner_mk2": "Miner Mk.2",
   "item.create_rns.deposit_scanner": "Deposit Scanner",

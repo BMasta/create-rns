@@ -28,12 +28,17 @@ import java.util.List;
 public class MiningRecipe implements Recipe<Container> {
     private final ResourceLocation id;
     private final Block depositBlock;
+    private final Block replacementBlock;
+    private final Durability dur;
     private final int tier;
     private final Yield yield;
 
-    public MiningRecipe(ResourceLocation id, Block depositBlock, int tier, Yield yield) {
+    public MiningRecipe(ResourceLocation id, Block depositBlock, Block replacementBlock,
+                Durability dur, int tier, Yield yield) {
         this.id = id;
         this.depositBlock = depositBlock;
+        this.replacementBlock = replacementBlock;
+        this.dur = dur;
         this.tier = tier;
         this.yield = yield;
     }
@@ -73,6 +78,14 @@ public class MiningRecipe implements Recipe<Container> {
         return new ItemStack(yield.types.get(0).item);
     }
 
+    public Block getReplacementBlock() {
+        return replacementBlock;
+    }
+
+    public Durability getDurability() {
+        return dur;
+    }
+
     @Override
     public boolean canCraftInDimensions(int w, int h) {
         return false;
@@ -106,6 +119,22 @@ public class MiningRecipe implements Recipe<Container> {
         @Override
         public @NotNull MiningRecipe fromJson(ResourceLocation id, JsonObject json) {
             var depBlock = parseBlockId(json, "deposit_block");
+            Block replacement;
+            if (GsonHelper.isStringValue(json, "replace_when_depleted")) {
+                replacement = parseBlockId(json, "replace_when_depleted");
+            } else {
+                replacement = Blocks.AIR;
+            }
+            Durability dur;
+            if (GsonHelper.isObjectNode(json, "durability")) {
+                var durObj = GsonHelper.getAsJsonObject(json, "durability");
+                var coreDur = GsonHelper.getAsInt(durObj, "core");
+                var edgeDur = GsonHelper.getAsInt(durObj, "edge");
+                var spread = GsonHelper.getAsFloat(durObj, "random_spread");
+                dur = new Durability(coreDur, edgeDur, spread);
+            } else {
+                dur = new Durability(0 ,0, 0f);
+            }
             var tier = GsonHelper.getAsInt(json, "tier");
             var yieldList = GsonHelper.getAsJsonArray(json, "yield").asList().stream().map(e -> {
                 var o = e.getAsJsonObject();
@@ -113,24 +142,30 @@ public class MiningRecipe implements Recipe<Container> {
                         GsonHelper.getAsInt(o, "chance_weight"));
             }).toList();
 
-            return new MiningRecipe(id, depBlock, tier, new Yield(yieldList));
+            return new MiningRecipe(id, depBlock, replacement, dur, tier, new Yield(yieldList));
         }
 
         @Override
         public MiningRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
             var depBlock = Objects.requireNonNull(ForgeRegistries.BLOCKS.getValue(buf.readResourceLocation()));
+            var replacement = Objects.requireNonNull(ForgeRegistries.BLOCKS.getValue(buf.readResourceLocation()));
+            var dur = new Durability(buf.readInt(), buf.readInt(), buf.readFloat());
             var tier = buf.readInt();
             var sz = buf.readInt();
             List<YieldType> types = new ArrayList<>(sz);
             for (int i = 0; i < sz; ++i) {
                 types.add(new YieldType(buf.readItem().getItem(), buf.readInt()));
             }
-            return new MiningRecipe(id, depBlock, tier, new Yield(types));
+            return new MiningRecipe(id, depBlock, replacement, dur, tier, new Yield(types));
         }
 
         @Override
         public void toNetwork(FriendlyByteBuf buf, MiningRecipe r) {
             buf.writeResourceLocation(Objects.requireNonNull(ForgeRegistries.BLOCKS.getKey(r.getDepositBlock())));
+            buf.writeResourceLocation(Objects.requireNonNull(ForgeRegistries.BLOCKS.getKey(r.getReplacementBlock())));
+            buf.writeInt(r.dur.core);
+            buf.writeInt(r.dur.edge);
+            buf.writeFloat(r.dur.randomSpread);
             buf.writeInt(r.tier);
             buf.writeInt(r.yield.types.size());
             for (var t : r.yield.types) {
@@ -200,4 +235,6 @@ public class MiningRecipe implements Recipe<Container> {
     }
 
     public record YieldType(Item item, int chanceWeight) {}
+
+    public record Durability(int core, int edge, float randomSpread) {}
 }

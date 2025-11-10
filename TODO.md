@@ -11,3 +11,13 @@
 - [ ] Figure out how to publish on curseforge/modrinth.
 - [ ] Figure out how to autoincrement semver and auto-publish to curseforge/modrinth.
 - [ ] Port to Fabric.
+<<<<<<< HEAD
+=======
+- [ ] Allow veins to be finite.
+  - [ ] Add server config options to toggle between finite/infinite deposits as well as setting specific durabilities.
+  - [ ] Show cumulative deposit durabilities in miner tooltip.
+  - [ ] Jade integration to show individual deposit durabilities.
+- [ ] Add config option to disable miners' ability to eject items. If miners are made data-driven,
+      add this knob to the spec (with config option being a blanket override to disable ejecting for all miners).
+      
+>>>>>>> c361f3c (implement finite deposits)
