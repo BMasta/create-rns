@@ -22,6 +22,7 @@ repositories {
     maven { url = "https://maven.ithundxr.dev/snapshots" } // Registrate
     maven { url = "https://maven.blamejared.com" } // JEI
     maven { url = 'https://www.cursemaven.com' }
+    maven { url = "https://api.modrinth.com/maven" } // Jade
 }
 
 base {
@@ -118,6 +119,7 @@ configurations {
 
 dependencies {
     implementation("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
+    implementation "maven.modrinth:jade:${project.jade_version}"
 
     implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
     implementation("net.createmod.ponder:Ponder-NeoForge-${minecraft_version}:${ponder_version}")
