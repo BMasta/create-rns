@@ -33,7 +33,8 @@
   "create_rns.miner.production_rates": "Production Rates:",
   "create_rns.miner.remaining_deposit_uses": "Remaining Resources:",
   "create_rns.miner.per_hour": "/hr",
-  "create_rns.miner.infinite": "infinite",
+  "create_rns.miner.infinite": "Infinite",
+  "create_rns.jade.deposit_not_generated": "Not Generated",
   "create_rns.recipe.mining": "Mining",
   "create_rns.structure.deposit_iron": "Iron Deposit",
   "create_rns.structure.deposit_copper": "Copper Deposit",
@@ -46,5 +47,6 @@
   "create_rns.ponder.mining.text_3": "Its throughput and yield types depend on which deposit blocks it claimed",
   "create_rns.ponder.mining.text_4": "A deposit block cannot be claimed by more than one miner at a time",
   "create_rns.ponder.mining.text_5": "Miner Mk.1 can only mine basic deposits",
-  "create_rns.ponder.mining.text_6": "Miner Mk.2 can mine all types of deposits in a 3x3x5 area"
+  "create_rns.ponder.mining.text_6": "Miner Mk.2 can mine all types of deposits in a 3x3x5 area",
+  "config.jade.plugin_create_rns.deposit_block_info": "Deposit Block Info"
 }
