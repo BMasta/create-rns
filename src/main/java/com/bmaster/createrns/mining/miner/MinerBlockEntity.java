@@ -17,6 +17,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -139,8 +140,7 @@ public class MinerBlockEntity extends MiningBlockEntity {
             if (!isPlayerSneaking) {
                 added = addRatesToGoggleTooltip(tooltip, true);
                 if (!ServerConfig.infiniteDeposits && addUsesToGoggleTooltip(tooltip)) added = true;
-            }
-            else added = addInventoryToGoggleTooltip(tooltip, true);
+            } else added = addInventoryToGoggleTooltip(tooltip, true);
         }
 
         // Add kinetics regardless
@@ -183,18 +183,27 @@ public class MinerBlockEntity extends MiningBlockEntity {
         new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
         new LangBuilder(CreateRNS.MOD_ID).translate("miner.remaining_deposit_uses").forGoggles(tooltip);
 
-        for (var p : process.innerProcesses) {
-            var usesComp = (p.remainingUses > 0)
-                    ? Component.literal("x" + p.remainingUses)
-                    : Component.translatable("create_rns.miner.infinite");
-            new LangBuilder(CreateRNS.MOD_ID)
-                    .add(p.recipe.getDepositBlock().getName()
-                            .append(": ")
-                            .withStyle(ChatFormatting.GRAY))
-                    .add(usesComp
-                            .withStyle(ChatFormatting.GREEN))
-                    .forGoggles(tooltip, 1);
-        }
+        process.innerProcesses.stream().sorted((a, b) -> {
+                    var au = (a.remainingUses == 0) ? Long.MAX_VALUE : a.remainingUses;
+                    var bu = (b.remainingUses == 0) ? Long.MAX_VALUE : b.remainingUses;
+                    // First sort by remaining uses
+                    if (au != bu) return -Long.compare(au, bu);
+                    // Then by deposit block id
+                    return a.recipe.getDepositBlock().getDescriptionId()
+                            .compareToIgnoreCase(b.recipe.getDepositBlock().getDescriptionId());
+                })
+                .forEachOrdered(p -> {
+                    var usesComp = (p.remainingUses > 0)
+                            ? Component.literal("x" + p.remainingUses)
+                            : Component.translatable("create_rns.miner.infinite");
+                    new LangBuilder(CreateRNS.MOD_ID)
+                            .add(p.recipe.getDepositBlock().getName()
+                                    .append(": ")
+                                    .withStyle(ChatFormatting.GRAY))
+                            .add(usesComp
+                                    .withStyle(ChatFormatting.GREEN))
+                            .forGoggles(tooltip, 1);
+                });
         return true;
     }
 
@@ -210,16 +219,25 @@ public class MinerBlockEntity extends MiningBlockEntity {
         }
 
         var rates = process.getEstimatedRates(getCurrentProgressIncrement());
-        for (var e : rates.object2FloatEntrySet()) {
-            new LangBuilder(CreateRNS.MOD_ID)
-                    .add(e.getKey().getDescription().copy()
-                            .append(": ")
-                            .withStyle(ChatFormatting.GRAY))
-                    .add(Component.literal(String.format(java.util.Locale.ROOT, "%.1f", e.getFloatValue()))
-                            .append(Component.translatable("%s.miner.per_hour".formatted(CreateRNS.MOD_ID)))
-                            .withStyle(ChatFormatting.GREEN))
-                    .forGoggles(tooltip, 1);
-        }
+        rates.object2FloatEntrySet().stream().sorted((a, b) -> {
+                    float av = a.getFloatValue();
+                    float bv = b.getFloatValue();
+                    // First sort by rate
+                    if (av != bv) return -Float.compare(av, bv);
+                    // Then by item id
+                    return BuiltInRegistries.ITEM.getKey(a.getKey()).toString()
+                            .compareToIgnoreCase(BuiltInRegistries.ITEM.getKey(b.getKey()).toString());
+                })
+                .forEachOrdered(e -> {
+                    new LangBuilder(CreateRNS.MOD_ID)
+                            .add(e.getKey().getDescription().copy()
+                                    .append(": ")
+                                    .withStyle(ChatFormatting.GRAY))
+                            .add(Component.literal(String.format(java.util.Locale.ROOT, "%.1f", e.getFloatValue()))
+                                    .append(Component.translatable("%s.miner.per_hour".formatted(CreateRNS.MOD_ID)))
+                                    .withStyle(ChatFormatting.GREEN))
+                            .forGoggles(tooltip, 1);
+                });
         return true;
     }
 
