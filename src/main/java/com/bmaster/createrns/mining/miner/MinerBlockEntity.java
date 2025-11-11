@@ -223,7 +223,7 @@ public class MinerBlockEntity extends MiningBlockEntity {
                 })
                 .forEachOrdered(p -> {
                     var usesComp = (p.remainingUses > 0)
-                            ? Component.literal("x" + p.remainingUses)
+                            ? Component.literal(Long.toString(p.remainingUses))
                             : Component.translatable("create_rns.miner.infinite");
                     new LangBuilder(CreateRNS.MOD_ID)
                             .add(p.recipe.getDepositBlock().getName()
