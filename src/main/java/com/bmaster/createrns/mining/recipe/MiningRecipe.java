@@ -3,6 +3,10 @@ package com.bmaster.createrns.mining.recipe;
 import com.bmaster.createrns.RNSRecipeTypes;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import com.bmaster.createrns.util.Utils;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
@@ -128,8 +132,8 @@ public class MiningRecipe implements Recipe<Container> {
             Durability dur;
             if (GsonHelper.isObjectNode(json, "durability")) {
                 var durObj = GsonHelper.getAsJsonObject(json, "durability");
-                var coreDur = GsonHelper.getAsInt(durObj, "core");
-                var edgeDur = GsonHelper.getAsInt(durObj, "edge");
+                var coreDur = GsonHelper.getAsLong(durObj, "core");
+                var edgeDur = GsonHelper.getAsLong(durObj, "edge");
                 var spread = GsonHelper.getAsFloat(durObj, "random_spread");
                 dur = new Durability(coreDur, edgeDur, spread);
             } else {
@@ -149,7 +153,7 @@ public class MiningRecipe implements Recipe<Container> {
         public MiningRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
             var depBlock = Objects.requireNonNull(ForgeRegistries.BLOCKS.getValue(buf.readResourceLocation()));
             var replacement = Objects.requireNonNull(ForgeRegistries.BLOCKS.getValue(buf.readResourceLocation()));
-            var dur = new Durability(buf.readInt(), buf.readInt(), buf.readFloat());
+            var dur = new Durability(buf.readLong(), buf.readLong(), buf.readFloat());
             var tier = buf.readInt();
             var sz = buf.readInt();
             List<YieldType> types = new ArrayList<>(sz);
@@ -163,8 +167,8 @@ public class MiningRecipe implements Recipe<Container> {
         public void toNetwork(FriendlyByteBuf buf, MiningRecipe r) {
             buf.writeResourceLocation(Objects.requireNonNull(ForgeRegistries.BLOCKS.getKey(r.getDepositBlock())));
             buf.writeResourceLocation(Objects.requireNonNull(ForgeRegistries.BLOCKS.getKey(r.getReplacementBlock())));
-            buf.writeInt(r.dur.core);
-            buf.writeInt(r.dur.edge);
+            buf.writeLong(r.dur.core);
+            buf.writeLong(r.dur.edge);
             buf.writeFloat(r.dur.randomSpread);
             buf.writeInt(r.tier);
             buf.writeInt(r.yield.types.size());
@@ -236,5 +240,5 @@ public class MiningRecipe implements Recipe<Container> {
 
     public record YieldType(Item item, int chanceWeight) {}
 
-    public record Durability(int core, int edge, float randomSpread) {}
+    public record Durability(long core, long edge, float randomSpread) {}
 }
