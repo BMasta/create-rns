@@ -471,7 +471,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
         long maxDepthDur = Utils.longClamp(curDur + spread, minDur + spread, maxDur);
         long depthRange = maxDepthDur - minDepthDur;
 
-        long roll = (depthRange != 0) ? (level.random.nextLong() % depthRange + minDepthDur) : minDepthDur;
+        long roll = (depthRange != 0) ? ((Math.abs(level.random.nextLong()) % depthRange) + minDepthDur) : minDepthDur;
 
         long numBarsBefore = (range != 0) ? (Math.round(30 * ((double) (roll - minDur) / range))) : 15;
         CreateRNS.LOGGER.trace("Rolled deposit durability: [{}]{}x{}[{}] {}",
