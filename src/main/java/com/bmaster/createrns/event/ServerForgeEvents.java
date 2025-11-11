@@ -40,7 +40,7 @@ public class ServerForgeEvents {
             sl.registryAccess()
                     .registryOrThrow(Registries.STRUCTURE)
                     .getResourceKey(start.getStructure())
-                    .ifPresent(structKey -> depIdx.add(structKey, start, sl));
+                    .ifPresent(structKey -> depIdx.add(structKey, start));
         }
     }
 }

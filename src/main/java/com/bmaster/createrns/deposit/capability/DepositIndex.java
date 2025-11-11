@@ -23,7 +23,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.Structure;
@@ -43,7 +42,6 @@ import java.util.stream.Collectors;
 public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag> {
     public static final int MIN_COMPUTE_INTERVAL = 90;
     public static final int MAX_DEPOSIT_VEIN_SIZE = 128;
-    public static final float RANDOM_SPREAD_BOUNDARY = 0.2f;
     private static final Set<Direction> xzDirections = Set.of(
             Direction.SOUTH, Direction.WEST, Direction.EAST, Direction.NORTH);
 
@@ -156,7 +154,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
     }
 
     @Override
-    public void add(ResourceKey<Structure> depositKey, StructureStart ss, ServerLevel sl) {
+    public void add(ResourceKey<Structure> depositKey, StructureStart ss) {
         var startChunk = ss.getChunkPos();
         if (!ss.isValid()) {
             CreateRNS.LOGGER.error("Attempted to add an invalid deposit start to deposit index");
@@ -453,29 +451,31 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
     /// Parentheses are minimum and maximum durabilities for the given depth.
     ///
     /// If vein is infinite, 0 is returned. Otherwise, the return value is random, but guaranteed to lie within both ranges.
-    private int rollDurability(MiningRecipe.Durability dur, float depthRatio) {
+    private long rollDurability(MiningRecipe.Durability dur, float depthRatio) {
         assert 0f <= depthRatio && depthRatio <= 1f;
 
-        int minDur = dur.edge();
-        int maxDur = dur.core();
+        long minDur = dur.edge();
+        long maxDur = dur.core();
+        long range = maxDur - minDur;
         if (minDur <= 0 || maxDur <= 0) {
             CreateRNS.LOGGER.trace("Skipped roll for infinite deposit");
             return 0;
         }
 
         // Average durability at given depth and its maximum spread (deviation)
-        int curDur = (int) ((maxDur - minDur) * depthRatio + minDur);
-        int spread = (int) (dur.randomSpread() * curDur);
+        long curDur = (long) ((maxDur - minDur) * depthRatio + minDur);
+        long spread = (long) (dur.randomSpread() * curDur);
 
         // Range of depth durabilities (aka the parentheses) are clamped to the absolute range (aka the square brackets)
-        int minDepthDur = Mth.clamp(curDur - spread, minDur, maxDur - spread);
-        int maxDepthDur = Mth.clamp(curDur + spread, minDur + spread, maxDur);
+        long minDepthDur = Utils.longClamp(curDur - spread, minDur, maxDur - spread);
+        long maxDepthDur = Utils.longClamp(curDur + spread, minDur + spread, maxDur);
+        long depthRange = maxDepthDur - minDepthDur;
 
-        int roll = level.random.nextIntBetweenInclusive(minDepthDur, maxDepthDur);
+        long roll = (depthRange != 0) ? (level.random.nextLong() % depthRange + minDepthDur) : minDepthDur;
 
-        int numBarsBefore = Math.round(30 * (float) (roll - minDur) / (maxDur - minDur));
+        long numBarsBefore = (range != 0) ? (Math.round(30 * ((double) (roll - minDur) / range))) : 15;
         CreateRNS.LOGGER.trace("Rolled deposit durability: [{}]{}x{}[{}] {}",
-                minDur, "-".repeat(numBarsBefore), "-".repeat(30 - numBarsBefore), maxDur, roll);
+                minDur, "-".repeat((int) numBarsBefore), "-".repeat(30 - (int) numBarsBefore), maxDur, roll);
 
         return roll;
     }

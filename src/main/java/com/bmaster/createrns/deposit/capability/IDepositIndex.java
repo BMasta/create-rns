@@ -17,7 +17,7 @@ public interface IDepositIndex {
 
     @Nullable BlockPos getNearestCached(ResourceKey<Structure> depositKey, ServerPlayer sp, int searchRadiusChunks);
 
-    void add(ResourceKey<Structure> depositKey, StructureStart ss, ServerLevel sl);
+    void add(ResourceKey<Structure> depositKey, StructureStart ss);
 
     void markAsFound(BlockPos centerPos);
 

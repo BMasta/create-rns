@@ -1,7 +1,11 @@
 package com.bmaster.createrns.util;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
+
+import java.util.function.Function;
 
 public class Utils {
     public static boolean isPosInChunk(BlockPos pos, ChunkPos chunkPos) {
@@ -23,5 +27,19 @@ public class Utils {
 
     public static float easeOut(float val, float deg) {
         return 1 - (float) Math.pow(1 - val, deg);
+    }
+
+    public static long longClamp(long val, long min, long max) {
+        return Math.max(Math.min(val, max), min);
+    }
+
+    public static Codec<Long> longRangeCodec(long minInclusive, long maxInclusive) {
+        final Function<Long, DataResult<Long>> checker = value -> {
+            if (value.compareTo(minInclusive) >= 0 && value.compareTo(maxInclusive) <= 0) {
+                return DataResult.success(value);
+            }
+            return DataResult.error(() -> "Value " + value + " outside of range [" + minInclusive + ":" + maxInclusive + "]");
+        };
+        return Codec.LONG.flatXmap(checker, checker);
     }
 }
