@@ -1,6 +1,7 @@
 package com.bmaster.createrns.mining.recipe;
 
 import com.bmaster.createrns.RNSRecipeTypes;
+import com.bmaster.createrns.util.Utils;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -169,10 +170,10 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
         }
     }
 
-    public record Durability(int core, int edge, float randomSpread) {
+    public record Durability(long core, long edge, float randomSpread) {
         public static final MapCodec<Durability> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
-                Codec.intRange(1, Integer.MAX_VALUE).fieldOf("core").forGetter(Durability::core),
-                Codec.intRange(1, Integer.MAX_VALUE).fieldOf("edge").forGetter(Durability::edge),
+                Utils.longRangeCodec(1, Long.MAX_VALUE).fieldOf("core").forGetter(Durability::core),
+                Utils.longRangeCodec(1, Long.MAX_VALUE).fieldOf("edge").forGetter(Durability::edge),
                 Codec.floatRange(0f, 1f).fieldOf("random_spread").forGetter(Durability::randomSpread)
         ).apply(i, Durability::new));
 
@@ -180,15 +181,15 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
                 Durability::toNetwork, Durability::fromNetwork);
 
         public static void toNetwork(RegistryFriendlyByteBuf buffer, Durability dur) {
-            ByteBufCodecs.INT.encode(buffer, dur.core);
-            ByteBufCodecs.INT.encode(buffer, dur.edge);
+            ByteBufCodecs.VAR_LONG.encode(buffer, dur.core);
+            ByteBufCodecs.VAR_LONG.encode(buffer, dur.edge);
             ByteBufCodecs.FLOAT.encode(buffer, dur.randomSpread);
         }
 
         public static Durability fromNetwork(RegistryFriendlyByteBuf buffer) {
             return new Durability(
-                ByteBufCodecs.INT.decode(buffer),
-                ByteBufCodecs.INT.decode(buffer),
+                ByteBufCodecs.VAR_LONG.decode(buffer),
+                ByteBufCodecs.VAR_LONG.decode(buffer),
                 ByteBufCodecs.FLOAT.decode(buffer)
             );
         }

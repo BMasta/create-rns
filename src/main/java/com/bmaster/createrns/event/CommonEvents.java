@@ -124,7 +124,7 @@ public class CommonEvents {
             sl.registryAccess()
                     .registryOrThrow(Registries.STRUCTURE)
                     .getResourceKey(start.getStructure())
-                    .ifPresent(structKey -> depData.add(structKey, start, sl));
+                    .ifPresent(structKey -> depData.add(structKey, start));
         }
     }
 }
