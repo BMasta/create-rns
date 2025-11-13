@@ -28,10 +28,6 @@ public class DepositScannerServerHandler {
     public static void processScanRequest(ServerPlayer sp, Item icon, RequestType rt) {
         if (!(sp.level() instanceof ServerLevel sl)) return;
         var depData = sl.getData(RNSContent.LEVEL_DEPOSIT_DATA.get());
-        // TODO: can level not have an attachment?
-//        CreateRNS.LOGGER.error("Deposit index is not present on level {}", sl.dimension());
-//        DepositScannerS2CPacket.send(sp, AntennaStatus.INACTIVE, 0, false, rt);
-//        return;
 
         var structKey = DepositSpecLookup.getStructureKey(sl.registryAccess(), icon);
         var nearest = switch (rt) {
@@ -44,7 +40,7 @@ public class DepositScannerServerHandler {
             state = new ScannerState(AntennaStatus.INACTIVE, MAX_PING_INTERVAL, false);
         } else {
             state = getScannerState(sp, nearest);
-            if (state.found) depData.markAsFound(nearest);
+            if (state.found) depData.setFound(structKey, nearest, true);
         }
         PacketDistributor.sendToPlayer(sp, new DepositScannerS2CPayload(state.antennaStatus, state.interval, state.found, rt));
     }
