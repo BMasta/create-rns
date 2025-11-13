@@ -5,10 +5,8 @@ import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.RNSRecipes;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositWorldgenProvider;
 import com.bmaster.createrns.data.pack.DynamicDatapack;
-import com.bmaster.createrns.data.pack.DynamicDatapackContent;
 import com.bmaster.createrns.deposit.DepositSpec;
 import com.bmaster.createrns.deposit.DepositSpecLookup;
-import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerC2SPayload;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerS2CPayload;
 import com.bmaster.createrns.mining.miner.MinerBlockEntity;
@@ -16,37 +14,29 @@ import com.bmaster.createrns.mining.miner.MinerSpec;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.packs.PackLocationInfo;
-import net.minecraft.server.packs.PackSelectionConfig;
 import net.minecraft.server.packs.PackType;
-import net.minecraft.server.packs.PathPackResources;
-import net.minecraft.server.packs.repository.Pack;
-import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
 import javax.annotation.Nullable;
-import java.util.Optional;
 
 @EventBusSubscriber(modid = CreateRNS.MOD_ID)
 public class CommonEvents {
     // MOD BUS
     @SubscribeEvent
-    public static void registerCapabilities(RegisterCapabilitiesEvent e) {
+    public static void onRegisterCapabilities(RegisterCapabilitiesEvent e) {
         // Miners
         e.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
@@ -76,13 +66,13 @@ public class CommonEvents {
     }
 
     @SubscribeEvent
-    public static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
+    public static void onRegisterAdditionalModels(ModelEvent.RegisterAdditional event) {
         event.register(ModelResourceLocation.standalone(RNSContent.MINER_MK1_DRILL.modelLocation()));
         event.register(ModelResourceLocation.standalone(RNSContent.MINER_MK2_DRILL.modelLocation()));
     }
 
     @SubscribeEvent
-    public static void registerPayloadHandlers(final RegisterPayloadHandlersEvent event) {
+    public static void onRegisterPayloadHandlers(final RegisterPayloadHandlersEvent event) {
         // set a network version string (optional but recommended)
         PayloadRegistrar registrar = event.registrar("1");
 
@@ -101,12 +91,18 @@ public class CommonEvents {
     }
 
     @SubscribeEvent
-    public static void gatherData(GatherDataEvent event) {
+    public static void onGatherData(GatherDataEvent event) {
         var generator = event.getGenerator();
         var output = generator.getPackOutput();
         var provider = event.getLookupProvider();
         generator.addProvider(event.includeServer(), new RNSRecipes.Washing(output, provider));
         generator.addProvider(event.includeServer(), new DepositWorldgenProvider(output));
+    }
+
+    @SubscribeEvent
+    public static void onRegisterCommands(RegisterCommandsEvent event) {
+        var d = event.getDispatcher();
+        d.register(RNSContent.RNS_COMMAND);
     }
 
     // GAME BUS
@@ -124,7 +120,7 @@ public class CommonEvents {
             sl.registryAccess()
                     .registryOrThrow(Registries.STRUCTURE)
                     .getResourceKey(start.getStructure())
-                    .ifPresent(structKey -> depData.add(structKey, start));
+                    .ifPresent(structKey -> depData.addDeposit(structKey, start));
         }
     }
 }

@@ -6,11 +6,14 @@ import com.bmaster.createrns.data.pack.DynamicDatapack;
 import com.bmaster.createrns.data.pack.DynamicDatapackContent;
 import com.bmaster.createrns.deposit.DepositBlock;
 import com.bmaster.createrns.deposit.LevelDepositData;
+import com.bmaster.createrns.infrastructure.command.DepositCommand;
+import com.bmaster.createrns.infrastructure.command.ScannerCommand;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerItem;
 import com.bmaster.createrns.mining.miner.MinerBlock;
 import com.bmaster.createrns.mining.miner.MinerBlockEntity;
 import com.bmaster.createrns.mining.miner.MinerRenderer;
 import com.bmaster.createrns.mining.miner.MinerVisual;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.api.stress.BlockStressValues;
@@ -25,6 +28,8 @@ import com.tterrag.registrate.util.entry.*;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import net.createmod.catnip.lang.FontHelper;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.RecipeCategory;
@@ -272,6 +277,11 @@ public class RNSContent {
             .overwritesLoadedPacks()
             .addContent(DynamicDatapackContent.emptyDepositBiomeTag())
             .buildAndRegister();
+
+    // Commands
+    public static final LiteralArgumentBuilder<CommandSourceStack> RNS_COMMAND = Commands.literal("rns")
+            .then(DepositCommand.CMD)
+            .then(ScannerCommand.CMD);
 
     private static final ResourceLocation DEP_SMALL =
             ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_small");

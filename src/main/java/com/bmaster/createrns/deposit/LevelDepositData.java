@@ -1,7 +1,6 @@
 package com.bmaster.createrns.deposit;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.bmaster.createrns.mining.MiningRecipeLookup;
@@ -9,17 +8,14 @@ import com.bmaster.createrns.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.util.Utils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.LongArrayTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -37,20 +33,16 @@ import org.jetbrains.annotations.UnknownNullability;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 @ParametersAreNonnullByDefault
 public class LevelDepositData implements INBTSerializable<CompoundTag> {
     public static final int MIN_COMPUTE_INTERVAL = 90;
-    public static final int MAX_DEPOSIT_VEIN_SIZE = 128;
-    private static final Set<Direction> xzDirections = Set.of(
-            Direction.SOUTH, Direction.WEST, Direction.EAST, Direction.NORTH);
 
     private final Level level;
 
     // Generated found deposits are represented as bounding box centers of deposit structures (not bound to res. loc.)
-    private final ObjectOpenHashSet<BlockPos> generatedFoundDeposits = new ObjectOpenHashSet<>();
+    private final Object2ObjectOpenHashMap<ResourceLocation, ObjectOpenHashSet<BlockPos>> generatedFoundDeposits =
+            new Object2ObjectOpenHashMap<>();
 
     // Generated deposits are represented as bounding box centers of deposit structures
     private final Object2ObjectOpenHashMap<ResourceLocation, ObjectOpenHashSet<BlockPos>> generatedDeposits =
@@ -72,59 +64,32 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
         this.level = level;
     }
 
+    public @Nullable ResourceKey<Structure> getType(BlockPos pos) {
+        for (var e : generatedFoundDeposits.object2ObjectEntrySet()) {
+            if (e.getValue().contains(pos)) {
+                return ResourceKey.create(Registries.STRUCTURE, e.getKey());
+            }
+        }
+        for (var e : generatedDeposits.object2ObjectEntrySet()) {
+            if (e.getValue().contains(pos)) {
+                return ResourceKey.create(Registries.STRUCTURE, e.getKey());
+            }
+        }
+        for (var e : ungeneratedDeposits.object2ObjectEntrySet()) {
+            if (e.getValue().contains(pos)) {
+                return ResourceKey.create(Registries.STRUCTURE, e.getKey());
+            }
+        }
+        return null;
+    }
+
     public @Nullable BlockPos getNearest(ResourceKey<Structure> depositKey, ServerPlayer sp, int searchRadiusChunks) {
-        var sl = sp.level();
-        var hit = perPlayerCache.getIfPresent(sp.getUUID());
+        return getNearest(depositKey, sp, sp.serverLevel(), sp.blockPosition(), searchRadiusChunks, false, false);
+    }
 
-        // Okay, chill out buddy
-        if (hit != null && sl.getGameTime() - hit.creationTimestamp < MIN_COMPUTE_INTERVAL) {
-            return null;
-        }
-
-        var playerPos = sp.blockPosition();
-        BlockPos closestBP = null;
-        double closestDist = Double.MAX_VALUE;
-        double dist;
-
-        // Get closest generated deposit. Use square distance for best precision.
-        for (var d : generatedDeposits.getOrDefault(depositKey.location(), new ObjectOpenHashSet<>())) {
-            dist = playerPos.distSqr(d);
-            if (dist < closestDist) {
-                closestDist = dist;
-                closestBP = new BlockPos(d);
-            }
-        }
-
-        // Get closest ungenerated, but known deposit. Use square distance for best precision.
-        for (var d : ungeneratedDeposits.getOrDefault(depositKey.location(), new ObjectOpenHashSet<>())) {
-            dist = playerPos.distSqr(d);
-            if (dist < closestDist) {
-                closestDist = dist;
-                closestBP = new BlockPos(d);
-            }
-        }
-
-        // Discover the closest unknown deposit and use it if it's closer than any known deposit (square distance)
-        var closestUnknownBP = discoverNearest(depositKey, sp, searchRadiusChunks);
-        if (closestUnknownBP != null && playerPos.distSqr(closestUnknownBP) < closestDist) {
-            closestBP = closestUnknownBP;
-        }
-
-        // Cache and return result
-        if (closestBP == null) {
-            perPlayerCache.put(sp.getUUID(), new CachedData(null, depositKey, sl.getGameTime()));
-            CreateRNS.LOGGER.debug("No deposits of target type are recorded");
-            return null;
-        }
-        if (isOutsideSearchRadius(playerPos, closestBP, searchRadiusChunks)) {
-            perPlayerCache.put(sp.getUUID(), new CachedData(closestBP.asLong(), depositKey, sl.getGameTime()));
-            CreateRNS.LOGGER.debug("No deposits in scanned area. Closest is at {},{} ({} blocks away)",
-                    closestBP.getX(), closestBP.getZ(), (int) Math.sqrt(closestDist));
-            return null;
-        }
-        perPlayerCache.put(sp.getUUID(), new CachedData(closestBP.asLong(), depositKey, sl.getGameTime()));
-        CreateRNS.LOGGER.debug("Found deposit at {},{}", closestBP.getX(), closestBP.getZ());
-        return closestBP;
+    public @Nullable BlockPos getNearest(ResourceKey<Structure> depositKey, ServerLevel level, BlockPos pos,
+                                         int searchRadiusChunks, boolean allow_discovered, boolean generatedOnly) {
+        return getNearest(depositKey, null, level, pos, searchRadiusChunks, allow_discovered, generatedOnly);
     }
 
     public @Nullable BlockPos getNearestCached(ResourceKey<Structure> depositKey, ServerPlayer sp,
@@ -153,7 +118,7 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
         }
     }
 
-    public void add(ResourceKey<Structure> depositKey, StructureStart ss) {
+    public void addDeposit(ResourceKey<Structure> depositKey, StructureStart ss) {
         var startChunk = ss.getChunkPos();
         if (!ss.isValid()) {
             CreateRNS.LOGGER.error("Attempted to add an invalid deposit start to level data");
@@ -178,7 +143,8 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
         }
 
         // Do not add to generated if it already exists in generated+found
-        if (generatedFoundDeposits.contains(center)) {
+        var genFoundSet = generatedFoundDeposits.get(depositKey.location());
+        if (genFoundSet != null && genFoundSet.contains(center)) {
             return;
         }
 
@@ -186,18 +152,43 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
         generatedDeposits.computeIfAbsent(depositKey.location(), k -> new ObjectOpenHashSet<>()).add(center);
     }
 
-    public void markAsFound(BlockPos centerPos) {
-        Set<BlockPos> foundGenSet = null;
+    public void addDeposit(ResourceKey<Structure> depositKey, BlockPos pos) {
+        generatedDeposits.computeIfAbsent(depositKey.location(), k -> new ObjectOpenHashSet<>()).add(pos);
+    }
 
-        // Find generated deposit with provided center pos
-        for (var e : generatedDeposits.object2ObjectEntrySet()) {
-            var genSet = e.getValue();
-            if (genSet.contains(centerPos)) foundGenSet = genSet;
-
+    public boolean removeDeposit(BlockPos pos) {
+        boolean isRemoved = false;
+        for (var s : generatedFoundDeposits.values()) {
+            if (s.remove(pos)) isRemoved = true;
         }
-        if (foundGenSet == null) {
-            CreateRNS.LOGGER.error("Attempted to mark a non-existent deposit");
-            return;
+        for (var s : generatedDeposits.values()) {
+            if (s.remove(pos)) isRemoved = true;
+        }
+        for (var s : ungeneratedDeposits.values()) {
+            if (s.remove(pos)) isRemoved = true;
+        }
+        return isRemoved;
+    }
+
+    public boolean isFound(BlockPos pos) {
+        for (var s : generatedFoundDeposits.values()) {
+            if (s.contains(pos)) return true;
+        }
+        return false;
+    }
+
+    public boolean setFound(ResourceKey<Structure> depositKey, BlockPos centerPos, boolean val) {
+        Set<BlockPos> genSet = generatedDeposits.values().stream()
+                .filter(s -> s.contains(centerPos))
+                .findFirst().orElse(null);
+        Set<BlockPos> genFoundSet = generatedFoundDeposits.values().stream()
+                .filter(s -> s.contains(centerPos))
+                .findFirst().orElse(null);
+
+        if (genSet == null && genFoundSet == null) {
+            CreateRNS.LOGGER.error("Attempted to mark a non-existent deposit at {},{},{} as {}",
+                    centerPos.getX(), centerPos.getY(), centerPos.getZ(), val ? "found" : "not found");
+            return false;
         }
 
         // Remove all mentions of it from cache
@@ -206,25 +197,33 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
             return d != null && d.dPosPacked != null && d.dPosPacked == centerPos.asLong();
         });
 
-        // Remove it from generated, add to generated+found
-        foundGenSet.remove(centerPos);
-        generatedFoundDeposits.add(centerPos);
-        CreateRNS.LOGGER.debug("Marking {},{},{} as found", centerPos.getX(), centerPos.getY(), centerPos.getZ());
+        // Transfer to a new set
+        if (val) {
+            if (genSet != null) genSet.remove(centerPos);
+            generatedFoundDeposits.computeIfAbsent(depositKey.location(), k -> new ObjectOpenHashSet<>()).add(centerPos);
+        } else {
+            if (genFoundSet != null) genFoundSet.remove(centerPos);
+            generatedDeposits.computeIfAbsent(depositKey.location(), k -> new ObjectOpenHashSet<>()).add(centerPos);
+        }
+        CreateRNS.LOGGER.debug("Marking {},{},{} as {}", centerPos.getX(), centerPos.getY(), centerPos.getZ(),
+                val ? "found" : "not found");
+        return true;
     }
 
-    public void initDepositVeinDurability(BlockPos start) {
-        if (ServerConfig.infiniteDeposits) return;
-        if (depositDurabilities.containsKey(start)) return;
+    public int initDepositVeinDurability(BlockPos start) {
+        if (ServerConfig.infiniteDeposits) return 0;
+        if (depositDurabilities.containsKey(start)) return 0;
         var startRecipe = MiningRecipeLookup.find(level, level.getBlockState(start).getBlock());
-        if (startRecipe == null) return;
+        if (startRecipe == null) return 0;
         var startDur = startRecipe.getDurability();
         // Infinite starts never initialize vein durabilities (but can be initialized from finite starts)
-        if (startDur.edge() <= 0 || startDur.core() <= 0) return;
+        if (startDur.edge() <= 0 || startDur.core() <= 0) return 0;
 
-        var blockToDepth = getDepositVein(start);
-        if (blockToDepth.isEmpty()) return;
+        var blockToDepth = DepositBlock.getVein(level, start);
+        if (blockToDepth.isEmpty()) return 0;
         var maxDepth = blockToDepth.values().intStream().max().orElseThrow();
 
+        int initCount = 0;
         for (var e : blockToDepth.object2IntEntrySet()) {
             var bp = e.getKey();
             if (depositDurabilities.containsKey(bp)) continue;
@@ -233,7 +232,10 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
             if (r == null) continue;
             float depthRatio = (maxDepth != 0) ? ((float) e.getIntValue() / maxDepth) : 0.5f;
             depositDurabilities.put(bp, rollDurability(r.getDurability(), depthRatio));
+            initCount++;
         }
+
+        return initCount;
     }
 
     /// Returns -1 if not initialized, 0 if infinite, actual durability otherwise.
@@ -247,6 +249,12 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
     /// Returns 0 if infinite, actual durability otherwise.
     public long getDepositBlockDurability(BlockPos dbPos) {
         return getDepositBlockDurability(dbPos, true);
+    }
+
+    public boolean setDepositBlockDurability(BlockPos dbPos, long durability) {
+        if (ServerConfig.infiniteDeposits) return false;
+        depositDurabilities.put(dbPos, durability);
+        return true;
     }
 
     public void removeDepositBlockDurability(BlockPos dbPos) {
@@ -271,7 +279,7 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
     @Override
     public @UnknownNullability CompoundTag serializeNBT(HolderLookup.Provider provider) {
         var root = new CompoundTag();
-        long[] generatedFound;
+        var generatedFound = new CompoundTag();
         var generated = new CompoundTag();
         var ungenerated = new CompoundTag();
         var durabilities = new ListTag();
@@ -281,7 +289,11 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
         CreateRNS.LOGGER.trace("Serializing ungenerated {}", ungeneratedDeposits);
         CreateRNS.LOGGER.trace("Serializing durabilities ({} entries)", depositDurabilities.size());
 
-        generatedFound = generatedFoundDeposits.stream().mapToLong(BlockPos::asLong).toArray();
+        for (var e : generatedFoundDeposits.object2ObjectEntrySet()) {
+            ResourceLocation rl = e.getKey();
+            long[] packed = e.getValue().stream().mapToLong(BlockPos::asLong).toArray();
+            generatedFound.putLongArray(rl.toString(), packed);
+        }
 
         for (var e : generatedDeposits.object2ObjectEntrySet()) {
             ResourceLocation rl = e.getKey();
@@ -302,7 +314,7 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
             durabilities.add(d);
         }
 
-        root.putLongArray("generated_found", generatedFound);
+        root.put("generated_found", generatedFound);
         root.put("generated", generated);
         root.put("ungenerated", ungenerated);
         root.put("durabilities", durabilities);
@@ -313,7 +325,7 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
 
     @Override
     public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
-        if (!(nbt.get("generated_found") instanceof LongArrayTag generatedFound) ||
+        if (!(nbt.get("generated_found") instanceof CompoundTag generatedFound) ||
                 !(nbt.get("generated") instanceof CompoundTag generated) ||
                 !(nbt.get("ungenerated") instanceof CompoundTag ungenerated) ||
                 !(nbt.get("durabilities") instanceof ListTag durabilities)) {
@@ -326,8 +338,12 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
         ungeneratedDeposits.clear();
         depositDurabilities.clear();
 
-        for (long l : generatedFound.getAsLongArray()) {
-            generatedFoundDeposits.add(BlockPos.of(l));
+        for (String key : generatedFound.getAllKeys()) {
+            var rl = ResourceLocation.parse(key);
+            long[] packed = generatedFound.getLongArray(key);
+            var set = new ObjectOpenHashSet<BlockPos>(packed.length);
+            for (long l : packed) set.add(BlockPos.of(l));
+            generatedFoundDeposits.put(rl, set);
         }
         for (String key : generated.getAllKeys()) {
             var rl = ResourceLocation.parse(key);
@@ -353,32 +369,99 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
         CreateRNS.LOGGER.trace("Deserialized durabilities ({} entries)", depositDurabilities.size());
     }
 
-    private @Nullable BlockPos discoverNearest(ResourceKey<Structure> depositKey, ServerPlayer sp, int searchRadiusChunks) {
-        var sl = (ServerLevel) sp.level();
+    private @Nullable BlockPos getNearest(ResourceKey<Structure> depositKey, @Nullable ServerPlayer sp,
+                                            ServerLevel sl, BlockPos pos, int searchRadiusChunks,
+                                          boolean allow_discovered, boolean generated_only) {
+        if (sp != null) {
+            var hit = perPlayerCache.getIfPresent(sp.getUUID());
+
+            // Okay, chill out buddy
+            if (hit != null && sl.getGameTime() - hit.creationTimestamp < MIN_COMPUTE_INTERVAL) {
+                return null;
+            }
+        }
+
+        BlockPos closestBP = null;
+        double closestDist = Double.MAX_VALUE;
+        double dist;
+
+        for (var d : generatedDeposits.getOrDefault(depositKey.location(), new ObjectOpenHashSet<>())) {
+            dist = pos.distSqr(d);
+            if (dist < closestDist) {
+                closestDist = dist;
+                closestBP = new BlockPos(d);
+            }
+        }
+
+        for (var d : ungeneratedDeposits.getOrDefault(depositKey.location(), new ObjectOpenHashSet<>())) {
+            dist = pos.distSqr(d);
+            if (dist < closestDist) {
+                closestDist = dist;
+                closestBP = new BlockPos(d);
+            }
+        }
+
+        if (allow_discovered) {
+            for (var d : generatedFoundDeposits.getOrDefault(depositKey.location(), new ObjectOpenHashSet<>())) {
+                dist = pos.distSqr(d);
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    closestBP = new BlockPos(d);
+                }
+            }
+        }
+
+        if (!generated_only) {
+            // Discover the closest unknown deposit and use it if it's closer than any known deposit (square distance)
+            var closestUnknownBP = discoverNearest(depositKey, sl, pos, searchRadiusChunks);
+            if (closestUnknownBP != null && pos.distSqr(closestUnknownBP) < closestDist) {
+                closestBP = closestUnknownBP;
+            }
+        }
+
+        // Cache and return result
+        if (closestBP == null) {
+            if (sp != null) perPlayerCache.put(sp.getUUID(), new CachedData(null, depositKey, sl.getGameTime()));
+            CreateRNS.LOGGER.debug("No deposits of target type are recorded");
+            return null;
+        }
+        if (isOutsideSearchRadius(pos, closestBP, searchRadiusChunks)) {
+            if (sp != null) perPlayerCache.put(sp.getUUID(), new CachedData(closestBP.asLong(), depositKey, sl.getGameTime()));
+            CreateRNS.LOGGER.debug("No deposits in scanned area. Closest is at {},{} ({} blocks away)",
+                    closestBP.getX(), closestBP.getZ(), (int) Math.sqrt(closestDist));
+            return null;
+        }
+        if (sp != null) perPlayerCache.put(sp.getUUID(), new CachedData(closestBP.asLong(), depositKey, sl.getGameTime()));
+        CreateRNS.LOGGER.debug("Found deposit at {},{}", closestBP.getX(), closestBP.getZ());
+        return closestBP;
+    }
+
+    private @Nullable BlockPos discoverNearest(ResourceKey<Structure> depositKey, ServerLevel sl, BlockPos pos,
+                                               int searchRadiusChunks) {
         var gen = sl.getChunkSource().getGenerator();
         var target = sl.registryAccess().registryOrThrow(Registries.STRUCTURE).getHolderOrThrow(depositKey);
         var searchRadiusRegions = searchRadiusChunks / DepositSetConfigBuilder.DEFAULT_SPACING;
 
-        var newDeposit = gen.findNearestMapStructure(sl, HolderSet.direct(target), sp.blockPosition(),
+        var newDeposit = gen.findNearestMapStructure(sl, HolderSet.direct(target), pos,
                 searchRadiusRegions, true);
 
         // If found invalid (not yet generated) deposit, save it to the ungenerated list
         var ss = (newDeposit == null) ? null : sl.structureManager().getStructureWithPieceAt(newDeposit.getFirst(),
                 newDeposit.getSecond().value());
         if (newDeposit != null && !ss.isValid()) {
-            var pos = newDeposit.getFirst();
-            CreateRNS.LOGGER.trace("Found undiscovered deposit at {}, {}, {}", pos.getX(), pos.getY(),
-                    pos.getZ());
-            ungeneratedDeposits.computeIfAbsent(depositKey.location(), k -> new ObjectOpenHashSet<>()).add(pos);
-            return pos;
+            var startPos = newDeposit.getFirst();
+            CreateRNS.LOGGER.trace("Found undiscovered deposit at {}, {}, {}", startPos.getX(), startPos.getY(),
+                    startPos.getZ());
+            ungeneratedDeposits.computeIfAbsent(depositKey.location(), k -> new ObjectOpenHashSet<>()).add(startPos);
+            return startPos;
         }
         // If found valid (generated) deposit, save it to the generated list
         else if (newDeposit != null) {
-            var pos = ss.getBoundingBox().getCenter();
-            CreateRNS.LOGGER.trace("Found undiscovered generated deposit at {}, {}, {}", pos.getX(), pos.getY(),
-                    pos.getZ());
-            generatedDeposits.computeIfAbsent(depositKey.location(), k -> new ObjectOpenHashSet<>()).add(pos);
-            return pos;
+            var centerPos = ss.getBoundingBox().getCenter();
+            CreateRNS.LOGGER.trace("Found undiscovered generated deposit at {}, {}, {}", centerPos.getX(), centerPos.getY(),
+                    centerPos.getZ());
+            generatedDeposits.computeIfAbsent(depositKey.location(), k -> new ObjectOpenHashSet<>()).add(centerPos);
+            return centerPos;
         }
         return null;
     }
@@ -388,56 +471,6 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
         var distX = Math.abs(playerPos.getX() - dPos.getX());
         var distZ = Math.abs(playerPos.getZ() - dPos.getZ());
         return Math.max(distX, distZ) > searchRadiusChunks << 4;
-    }
-
-    private Object2IntOpenHashMap<BlockPos> getDepositVein(BlockPos start) {
-        Queue<BlockPos> q = new ArrayDeque<>();
-        Object2IntOpenHashMap<BlockPos> visited = new Object2IntOpenHashMap<>();
-        if (!level.getBlockState(start).is(RNSTags.Block.DEPOSIT_BLOCKS)) return visited;
-        q.add(start);
-
-        // Collect all blocks in the deposit vein. Assign depth of outer blocks to 0, all other to MAX_VALUE.
-        int depth = 0;
-        while (!q.isEmpty() && depth < LevelDepositData.MAX_DEPOSIT_VEIN_SIZE) {
-            var bp = q.poll();
-            if (visited.containsKey(bp)) continue;
-
-            AtomicBoolean external = new AtomicBoolean(false);
-            Direction.stream().forEach(d -> {
-                var nb = bp.relative(d);
-                if (level.getBlockState(nb).is(RNSTags.Block.DEPOSIT_BLOCKS)) {
-                    q.add(bp.relative(d));
-                } else {
-                    if (xzDirections.contains(d)) external.set(true);
-                }
-            });
-            visited.put(bp, external.get() ? 0 : Integer.MAX_VALUE);
-            ++depth;
-        }
-
-        // Start with outer blocks whose depth is 0. Compute depth of their neighbors until all blocks are processed.
-        for (depth = 0; depth < MAX_DEPOSIT_VEIN_SIZE; ++depth) {
-            int finalDepth = depth;
-            var curDepthBlocks = visited.object2IntEntrySet().stream()
-                    .filter(e -> e.getIntValue() == finalDepth)
-                    .collect(Collectors.toSet());
-            if (curDepthBlocks.isEmpty()) break;
-
-            for (var e : curDepthBlocks) {
-                xzDirections.forEach(d -> {
-                    var neighbor = e.getKey().relative(d);
-                    if (!visited.containsKey(neighbor)) return;
-                    visited.computeInt(neighbor, (k, v) -> Math.min(v, finalDepth + 1));
-                });
-            }
-        }
-
-        if (visited.containsValue(Integer.MAX_VALUE)) {
-            throw new IllegalStateException("Could not process deposit vein starting at %s,%s,%s"
-                    .formatted(start.getX(), start.getY(), start.getZ()));
-        }
-
-        return visited;
     }
 
     /// Durabilities for all deposits fall within that range based on their depth.
