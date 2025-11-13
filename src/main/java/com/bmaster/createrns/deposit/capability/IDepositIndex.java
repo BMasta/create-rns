@@ -15,13 +15,30 @@ import org.jetbrains.annotations.Nullable;
 public interface IDepositIndex {
     @Nullable BlockPos getNearest(ResourceKey<Structure> depositKey, ServerPlayer sp, int searchRadiusChunks);
 
+    @Nullable BlockPos getNearest(ResourceKey<Structure> depositKey, ServerLevel level, BlockPos pos,
+                                  int searchRadiusChunks, boolean allow_discovered, boolean generatedOnly);
+
     @Nullable BlockPos getNearestCached(ResourceKey<Structure> depositKey, ServerPlayer sp, int searchRadiusChunks);
 
-    void add(ResourceKey<Structure> depositKey, StructureStart ss);
+    @Nullable ResourceKey<Structure> getType(BlockPos pos);
 
-    void markAsFound(BlockPos centerPos);
+    void addDeposit(ResourceKey<Structure> depositKey, StructureStart ss);
 
-    void initDepositVeinDurability(BlockPos start);
+    void addDeposit(ResourceKey<Structure> depositKey, BlockPos pos);
+
+    boolean removeDeposit(BlockPos pos);
+
+    boolean isFound(BlockPos pos);
+
+    boolean setFound(ResourceKey<Structure> depositKey, BlockPos centerPos, boolean val);
+
+    int initDepositVeinDurability(BlockPos start);
+
+    long getDepositBlockDurability(BlockPos dbPos, boolean initIfNeeded);
+
+    long getDepositBlockDurability(BlockPos dbPos);
+
+    boolean setDepositBlockDurability(BlockPos dbPos, long durability);
 
     void removeDepositBlockDurability(BlockPos dbPos);
 
@@ -32,5 +49,11 @@ public interface IDepositIndex {
         if (!(cap instanceof DepositIndex depIdx)) return null;
         depIdx.setLevel(level);
         return depIdx;
+    }
+
+    static DepositIndex fromLevelOrThrow(ServerLevel level) {
+        var cap = fromLevel(level);
+        if (cap == null) throw new RuntimeException("Level " + level + " does not have a deposit index");
+        return cap;
     }
 }

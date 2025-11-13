@@ -46,7 +46,7 @@ public class DepositScannerServerHandler {
         } else {
             state = getScannerState(sp, nearest);
         }
-        if (state.found) depIdx.markAsFound(nearest);
+        if (state.found) depIdx.setFound(structKey, nearest, true);
 
         DepositScannerS2CPacket.send(sp, state.antennaStatus, state.interval, state.found, rt);
     }
