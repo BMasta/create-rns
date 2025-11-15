@@ -22,8 +22,11 @@ public class MinerRenderer extends KineticBlockEntityRenderer<MinerBlockEntity> 
         if (VisualizationManager.supportsVisualization(be.getLevel())) return;
 
         VertexConsumer vb = buffer.getBuffer(RenderType.cutoutMipped());
+
+        var spec = be.getSpec();
+        int tier = (spec == null) ? 1 : spec.tier();
         SuperByteBuffer head = CachedBuffers.partial(
-                (be.getTier() <= 1) ? RNSContent.MINER_MK1_DRILL : RNSContent.MINER_MK2_DRILL, be.getBlockState());
+                (tier <= 1) ? RNSContent.MINER_MK1_DRILL : RNSContent.MINER_MK2_DRILL, be.getBlockState());
 
         renderRotatingBuffer(be, head, ms, vb, light);
     }
