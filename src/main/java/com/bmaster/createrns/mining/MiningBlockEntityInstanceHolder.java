@@ -32,11 +32,15 @@ public class MiningBlockEntityInstanceHolder {
         if (l == null) return Set.of();
         var levelSet = INSTANCES.get(l);
         if (levelSet == null) return Set.of();
+        var ma = be.getMiningArea();
+        if (ma == null) return Set.of();
         var pos = be.getBlockPos();
-        var bb = be.getMiningArea(l);
 
         return levelSet.stream()
-                .filter(m -> !m.getBlockPos().equals(pos) && m.getMiningArea(l).intersects(bb))
+                .filter(m -> {
+                    var cur_ma = m.getMiningArea();
+                    return !m.getBlockPos().equals(pos) && cur_ma != null && ma.intersects(cur_ma);
+                })
                 .collect(Collectors.toUnmodifiableSet());
     }
 
@@ -45,7 +49,10 @@ public class MiningBlockEntityInstanceHolder {
         if (levelSet == null) return Set.of();
 
         return levelSet.stream()
-                .filter(m -> m.getMiningArea(l).isInside(bp))
+                .filter(m -> {
+                    var cur_ma = m.getMiningArea();
+                    return cur_ma != null && cur_ma.isInside(bp);
+                })
                 .collect(Collectors.toUnmodifiableSet());
     }
 

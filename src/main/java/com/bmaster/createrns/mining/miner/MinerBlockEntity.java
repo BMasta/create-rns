@@ -9,10 +9,8 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.inventory.InvManipulationBehaviour;
 import com.simibubi.create.foundation.sound.SoundScapes;
 import com.simibubi.create.foundation.utility.CreateLang;
-import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import net.createmod.catnip.lang.LangBuilder;
 import net.minecraft.ChatFormatting;
-import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -24,69 +22,16 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class MinerBlockEntity extends MiningBlockEntity {
-    private MinerSpec spec = null;
     private List<BlockState> particleOptions = null;
-    private int cachedProgress = 0;
 
     public MinerBlockEntity(BlockPos pos, BlockState state) {
         super(RNSContent.MINER_BE.get(), pos, state);
-    }
-
-    @Override
-    public int getMiningAreaRadius() {
-        if (spec == null) tryInitSpec();
-        return Objects.requireNonNull(spec).miningArea().radius();
-    }
-
-    @Override
-    public int getMiningAreaHeight() {
-        if (spec == null) tryInitSpec();
-        return Objects.requireNonNull(spec).miningArea().height();
-    }
-
-    @Override
-    public int getMiningAreaYOffset() {
-        if (spec == null) tryInitSpec();
-        return Objects.requireNonNull(spec).miningArea().verticalOffset();
-    }
-
-    @Override
-    public int getTier() {
-        if (spec == null) tryInitSpec();
-        return Objects.requireNonNull(spec).tier();
-    }
-
-    /// Required for visual and renderer who may try to get the tier before the block entity is loaded
-    public int getTierSafe() {
-        if (spec == null) tryInitSpec();
-        return (spec != null) ? spec.tier() : 0;
-    }
-
-    @Override
-    public int getBaseProgress() {
-        // From server config
-        if ((getTier() == 1) && (ServerConfig.minerMk1BaseProgress != 0)) return ServerConfig.minerMk1BaseProgress;
-        if ((getTier() == 2) && (ServerConfig.minerMk2BaseProgress != 0)) return ServerConfig.minerMk2BaseProgress;
-
-        // Or from miner spec
-        if (cachedProgress == 0) {
-            if (spec == null) tryInitSpec();
-            cachedProgress = 256 * 60 * SharedConstants.TICKS_PER_MINUTE / (int) Objects.requireNonNull(spec).minesPerHour();
-        }
-        return cachedProgress;
-    }
-
-    @Override
-    public int getCurrentProgressIncrement() {
-        return (int) Math.abs(getSpeed());
     }
 
     @Override
@@ -179,6 +124,24 @@ public class MinerBlockEntity extends MiningBlockEntity {
     }
 
     @Override
+    protected boolean tryInitSpec() {
+        if (!super.tryInitSpec()) return false;
+
+        // From miner spec
+        float minesPerHour = spec.minesPerHour();
+        // Or from server config
+        if ((ServerConfig.minerMk1Speed != 0) && spec.tier() == 1) {
+            minesPerHour = ServerConfig.minerMk1Speed;
+        }
+        if ((ServerConfig.minerMk2Speed != 0) && (spec.tier() == 2)) {
+            minesPerHour = ServerConfig.minerMk2Speed;
+        }
+
+        spec = new MinerSpec(spec.minerBlock(), spec.tier(), minesPerHour, spec.miningArea());
+        return true;
+    }
+
+    @Override
     protected void addStressImpactStats(List<Component> tooltip, float stressAtBase) {
         super.addStressImpactStats(tooltip, stressAtBase);
     }
@@ -254,8 +217,11 @@ public class MinerBlockEntity extends MiningBlockEntity {
                     // First sort by rate
                     if (av != bv) return -Float.compare(av, bv);
                     // Then by item id
-                    return BuiltInRegistries.ITEM.getKey(a.getKey()).toString()
-                            .compareToIgnoreCase(BuiltInRegistries.ITEM.getKey(b.getKey()).toString());
+                    var arl = BuiltInRegistries.ITEM.getKeyOrNull(a.getKey());
+                    var brl = BuiltInRegistries.ITEM.getKeyOrNull(b.getKey());
+                    if (arl == null) return 1;
+                    if (brl == null) return -1;
+                    return arl.toString().compareToIgnoreCase(brl.toString());
                 })
                 .forEachOrdered(e -> {
                     new LangBuilder(CreateRNS.MOD_ID)
@@ -300,10 +266,5 @@ public class MinerBlockEntity extends MiningBlockEntity {
                     worldPosition.getY() - 0.5 + r.nextFloat(),
                     worldPosition.getZ() + r.nextFloat(),
                     0, 0, 0);
-    }
-
-    protected void tryInitSpec() {
-        if (level == null) return;
-        spec = MinerSpecLookup.get(level.registryAccess(), (MinerBlock) getBlockState().getBlock());
     }
 }

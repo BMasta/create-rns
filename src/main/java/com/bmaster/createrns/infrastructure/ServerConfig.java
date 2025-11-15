@@ -34,8 +34,8 @@ public class ServerConfig {
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     // ------------------------------------------------ Baked values ------------------------------------------------ //
-    public static int minerMk1BaseProgress = 0;
-    public static int minerMk2BaseProgress = 0;
+    public static float minerMk1Speed = 0;
+    public static float minerMk2Speed = 0;
     public static boolean infiniteDeposits = true;
 
     // -------------------------------------------------------------------------------------------------------------- //
@@ -43,14 +43,8 @@ public class ServerConfig {
     static void onLoadReload(ModConfigEvent event) {
         if (event instanceof ModConfigEvent.Unloading) return;
         if (event.getConfig().getSpec() != ServerConfig.SPEC) return;
-
-        var ticksPerHour = 60 * SharedConstants.TICKS_PER_MINUTE;
-        if (MINER_MK1_SPEED_CV.get() != 0) {
-            minerMk1BaseProgress = 256 * ticksPerHour / (int) MINER_MK1_SPEED_CV.get().floatValue();
-        }
-        if (MINER_MK2_SPEED_CV.get() != 0) {
-            minerMk2BaseProgress = 256 * ticksPerHour / (int) MINER_MK2_SPEED_CV.get().floatValue();
-        }
+        minerMk1Speed = MINER_MK1_SPEED_CV.get();
+        minerMk2Speed = MINER_MK2_SPEED_CV.get();
         infiniteDeposits = INFINITE_DEPOSITS_CV.get();
     }
 }

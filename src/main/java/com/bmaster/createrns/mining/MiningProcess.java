@@ -5,7 +5,6 @@ import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.mining.recipe.MiningRecipe;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.SharedConstants;
@@ -31,14 +30,31 @@ import java.util.stream.Collectors;
 import static com.bmaster.createrns.RNSContent.LEVEL_DEPOSIT_DATA;
 
 public class MiningProcess {
+    // 1 mine per block per hour at 256 points per tick
+    public static final int BASE_PROGRESS = 256 * 60 * SharedConstants.TICKS_PER_MINUTE;
     public final int tier;
     public final Set<InnerProcess> innerProcesses = new ObjectOpenHashSet<>();
     public final Level level;
 
-    public MiningProcess(Level l, int tier, Set<BlockPos> depositBlocks, int baseProgress) {
+    public MiningProcess(Level l, int tier, Set<BlockPos> depositBlocks) {
         this.tier = tier;
         this.level = l;
-        setYields(depositBlocks, baseProgress);
+
+        var depBlockCounts = depositBlocks.stream()
+                .map(bp -> level.getBlockState(bp).getBlock())
+                .filter(db -> db.defaultBlockState().is(RNSTags.Block.DEPOSIT_BLOCKS))
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        var depBlockPositions = depositBlocks.stream()
+                .filter(bp -> level.getBlockState(bp).getBlock().defaultBlockState().is(RNSTags.Block.DEPOSIT_BLOCKS))
+                .collect(Collectors.groupingBy(bp -> level.getBlockState(bp).getBlock(), Collectors.toList()));
+
+        for (var e : depBlockCounts.entrySet()) {
+            var db = e.getKey();
+            var recipe = MiningRecipeLookup.find(level, db);
+            if (recipe == null || tier < recipe.getTier()) continue;
+            var depBlockCount = e.getValue().intValue();
+            innerProcesses.add(new InnerProcess(level, depBlockPositions.get(db), recipe, BASE_PROGRESS / depBlockCount));
+        }
     }
 
     public boolean isPossible() {
@@ -55,25 +71,6 @@ public class MiningProcess {
                 .map(InnerProcess::collect)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
-    }
-
-    public void setYields(Set<BlockPos> depositBlocks, int baseProgress) {
-        var depBlockCounts = depositBlocks.stream()
-                .map(bp -> level.getBlockState(bp).getBlock())
-                .filter(db -> db.defaultBlockState().is(RNSTags.Block.DEPOSIT_BLOCKS))
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-        var depBlockPositions = depositBlocks.stream()
-                .filter(bp -> level.getBlockState(bp).getBlock().defaultBlockState().is(RNSTags.Block.DEPOSIT_BLOCKS))
-                .collect(Collectors.groupingBy(bp -> level.getBlockState(bp).getBlock(), Collectors.toList()));
-
-        innerProcesses.clear();
-        for (var e : depBlockCounts.entrySet()) {
-            var db = e.getKey();
-            var recipe = MiningRecipeLookup.find(level, db);
-            if (recipe == null || tier < recipe.getTier()) continue;
-            var depBlockCount = e.getValue().intValue();
-            innerProcesses.add(new InnerProcess(level, depBlockPositions.get(db), recipe, baseProgress / depBlockCount));
-        }
     }
 
     public Object2FloatOpenHashMap<Item> getEstimatedRates(int progressPerTick) {
@@ -122,7 +119,8 @@ public class MiningProcess {
                 CreateRNS.LOGGER.error("Unknown block '{}' encountered when deserializing mining process", dbStr);
                 continue;
             }
-            dbToProcess.get(db).setProgressFromNBT((CompoundTag) pt);
+            var ip = dbToProcess.get(db);
+            if (ip != null) ip.setProgressFromNBT((CompoundTag) pt);
         }
     }
 
