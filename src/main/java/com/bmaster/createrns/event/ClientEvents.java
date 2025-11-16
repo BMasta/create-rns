@@ -4,7 +4,7 @@ import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.compat.ponder.RNSPonderPlugin;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler;
-import com.bmaster.createrns.mining.MiningAreaOutlineRenderer;
+import com.bmaster.createrns.deposit.DepositClaimerOutlineRenderer;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -19,7 +19,7 @@ public class ClientEvents {
     @SubscribeEvent
     public static void clientTick(ClientTickEvent.Pre event) {
         DepositScannerClientHandler.tick();
-        MiningAreaOutlineRenderer.tick();
+        DepositClaimerOutlineRenderer.tick();
     }
 
     @SubscribeEvent
@@ -52,6 +52,6 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut e) {
         DepositScannerClientHandler.clearState();
-        MiningAreaOutlineRenderer.clearOutline();
+        DepositClaimerOutlineRenderer.clearOutline();
     }
 }

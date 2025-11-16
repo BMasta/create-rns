@@ -37,7 +37,7 @@ public class MinerBlockEntity extends MiningBlockEntity {
     @Override
     public boolean isMining() {
         if (level == null || process == null) return false;
-        return !reservedDepositBlocks.isEmpty() && isSpeedRequirementFulfilled();
+        return !claimedDepositBlocks.isEmpty() && isSpeedRequirementFulfilled();
     }
 
     @Override
@@ -66,7 +66,7 @@ public class MinerBlockEntity extends MiningBlockEntity {
         super.read(tag, p, clientPacket);
         if (level == null) return;
         // Clients get their reserved blocks from server updates
-        particleOptions = reservedDepositBlocks.stream()
+        particleOptions = claimedDepositBlocks.stream()
                 .map(bp -> level.getBlockState(bp))
                 .toList();
     }
@@ -170,7 +170,7 @@ public class MinerBlockEntity extends MiningBlockEntity {
     }
 
     protected boolean addUsesToGoggleTooltip(List<Component> tooltip) {
-        if (process == null || reservedDepositBlocks.isEmpty() || level == null) return false;
+        if (process == null || claimedDepositBlocks.isEmpty() || level == null) return false;
 
         new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
         new LangBuilder(CreateRNS.MOD_ID).translate("miner.remaining_deposit_uses").forGoggles(tooltip);
@@ -201,7 +201,7 @@ public class MinerBlockEntity extends MiningBlockEntity {
 
     @SuppressWarnings("SameParameterValue")
     protected boolean addRatesToGoggleTooltip(List<Component> tooltip, boolean isMainSection) {
-        if (process == null || reservedDepositBlocks.isEmpty()) return false;
+        if (process == null || claimedDepositBlocks.isEmpty()) return false;
 
         if (isMainSection) {
             new LangBuilder(CreateRNS.MOD_ID).translate("miner.production_rates").forGoggles(tooltip);
