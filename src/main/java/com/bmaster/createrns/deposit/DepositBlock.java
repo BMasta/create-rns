@@ -2,7 +2,6 @@ package com.bmaster.createrns.deposit;
 
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.deposit.capability.IDepositIndex;
-import com.bmaster.createrns.mining.MiningBlockEntityInstanceHolder;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -83,12 +82,12 @@ public class DepositBlock extends Block {
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
         if (level.isClientSide) return;
-        for (var m : MiningBlockEntityInstanceHolder.getInstancesMiningAt(level, pos)) {
-            m.reserveDepositBlocks();
-            var mPos = m.getBlockPos();
-            var mState = level.getBlockState(mPos);
+        for (var c : DepositClaimerInstanceHolder.getInstancesThatCanClaim(level, pos)) {
+            c.claimDepositBlocks();
+            var cAnchor = c.getAnchor();
+            var cState = level.getBlockState(cAnchor);
             // onRemove is not called for client levels, so a sync is necessary
-            level.sendBlockUpdated(mPos, mState, mState, Block.UPDATE_CLIENTS);
+            level.sendBlockUpdated(cAnchor, cState, cState, Block.UPDATE_CLIENTS);
         }
     }
 
@@ -104,12 +103,12 @@ public class DepositBlock extends Block {
             if (depIdx == null) return;
             depIdx.removeDepositBlockDurability(pos);
         }
-        for (var m : MiningBlockEntityInstanceHolder.getInstancesMiningAt(level, pos)) {
-            m.reserveDepositBlocks();
-            var mPos = m.getBlockPos();
-            var mState = level.getBlockState(mPos);
+        for (var c : DepositClaimerInstanceHolder.getInstancesThatCanClaim(level, pos)) {
+            c.claimDepositBlocks();
+            var cAnchor = c.getAnchor();
+            var cState = level.getBlockState(cAnchor);
             // onRemove is not called for client levels, so a sync is necessary
-            level.sendBlockUpdated(mPos, mState, mState, Block.UPDATE_CLIENTS);
+            level.sendBlockUpdated(cAnchor, cState, cState, Block.UPDATE_CLIENTS);
         }
     }
 }

@@ -1,9 +1,8 @@
 package com.bmaster.createrns.event;
 
-import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.mining.MiningAreaOutlineRenderer;
-import com.bmaster.createrns.deposit.capability.*;
+import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.deposit.DepositClaimerOutlineRenderer;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
@@ -19,7 +18,7 @@ public class ClientForgeEvents {
     public static void clientTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) {
             DepositScannerClientHandler.tick();
-            MiningAreaOutlineRenderer.tick();
+            DepositClaimerOutlineRenderer.tick();
         }
     }
 
@@ -48,6 +47,6 @@ public class ClientForgeEvents {
     @SubscribeEvent
     public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut e) {
         DepositScannerClientHandler.clearState();
-        MiningAreaOutlineRenderer.clearOutline();
+        DepositClaimerOutlineRenderer.clearOutline();
     }
 }

@@ -1,4 +1,4 @@
-package com.bmaster.createrns.mining;
+package com.bmaster.createrns.deposit;
 
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
@@ -10,7 +10,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
-public class MiningAreaOutlineRenderer {
+import javax.annotation.ParametersAreNonnullByDefault;
+
+public class DepositClaimerOutlineRenderer {
     private static final String OUTLINER_SLOT = "%s:miningAreaOutline".formatted(CreateRNS.MOD_ID);
     private static final int MAX_TTL = 30;
     private static final int OUTLINE_MAX_DIST = 64;
@@ -20,6 +22,7 @@ public class MiningAreaOutlineRenderer {
     private static final ObjectOpenHashSet<BlockPos> selectedCluster = new ObjectOpenHashSet<>();
     private static int ttl = 0;
 
+    @ParametersAreNonnullByDefault
     public static void clearAndAddNearbyMiningBEs() {
         if (!outlineActive) return;
         Player p = Minecraft.getInstance().player;
@@ -28,26 +31,28 @@ public class MiningAreaOutlineRenderer {
 
         selectedCluster.clear();
         outlineChanged = true;
-        MiningBlockEntityInstanceHolder.getInstancesWithinManhattanDistance(l, p.blockPosition(), OUTLINE_MAX_DIST)
-                .forEach(MiningAreaOutlineRenderer::addMiningBE);
+        DepositClaimerInstanceHolder.getInstancesWithinManhattanDistance(l, p.blockPosition(), OUTLINE_MAX_DIST)
+                .forEach(DepositClaimerOutlineRenderer::addClaimer);
     }
 
-    public static void addMiningBE(MiningBlockEntity be) {
+    public static void addClaimer(IDepositBlockClaimer claimer) {
+        Player p = Minecraft.getInstance().player;
+        if (p == null) return;
+        var l = p.level();
+        if (!outlineActive) return;
+        if (Math.sqrt(claimer.getAnchor().distManhattan(p.blockPosition())) > OUTLINE_MAX_DIST) return;
+
+        if (selectedCluster.addAll(claimer.getClaimedDepositBlocks())) outlineChanged = true;
+    }
+
+    public static void removeClaimer(IDepositBlockClaimer claimer) {
         if (!outlineActive) return;
         Player p = Minecraft.getInstance().player;
         if (p == null) return;
-        if (Math.sqrt(be.getBlockPos().distManhattan(p.blockPosition())) > OUTLINE_MAX_DIST) return;
+        var l = p.level();
+        if (Math.sqrt(claimer.getAnchor().distManhattan(p.blockPosition())) > OUTLINE_MAX_DIST) return;
 
-        if (selectedCluster.addAll(be.reservedDepositBlocks)) outlineChanged = true;
-    }
-
-    public static void removeMiningBE(MiningBlockEntity be) {
-        if (!outlineActive) return;
-        Player p = Minecraft.getInstance().player;
-        if (p == null) return;
-        if (Math.sqrt(be.getBlockPos().distManhattan(p.blockPosition())) > OUTLINE_MAX_DIST) return;
-
-        if (selectedCluster.removeAll(be.reservedDepositBlocks)) outlineChanged = true;
+        if (selectedCluster.removeAll(claimer.getClaimedDepositBlocks())) outlineChanged = true;
     }
 
     public static void clearOutline() {
@@ -96,7 +101,7 @@ public class MiningAreaOutlineRenderer {
         var l = p.level();
 
         boolean lookingAtMiningBE = mc.hitResult instanceof BlockHitResult ray &&
-                l.getBlockEntity(ray.getBlockPos()) instanceof MiningBlockEntity;
+                l.getBlockEntity(ray.getBlockPos()) instanceof IDepositBlockClaimer;
 
         if (holdingCorrectItem(p) && lookingAtMiningBE) {
             ttl = MAX_TTL;
