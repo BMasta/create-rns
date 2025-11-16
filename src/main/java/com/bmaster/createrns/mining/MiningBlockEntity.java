@@ -2,27 +2,28 @@ package com.bmaster.createrns.mining;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.RNSTags;
+import com.bmaster.createrns.deposit.DepositClaimerInstanceHolder;
+import com.bmaster.createrns.deposit.DepositClaimerOutlineRenderer;
+import com.bmaster.createrns.deposit.IDepositBlockClaimer;
 import com.bmaster.createrns.mining.miner.MinerBlock;
 import com.bmaster.createrns.mining.miner.MinerSpec;
 import com.bmaster.createrns.mining.miner.MinerSpecLookup;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public abstract class MiningBlockEntity extends KineticBlockEntity {
-    public Set<BlockPos> reservedDepositBlocks = new HashSet<>();
+@ParametersAreNonnullByDefault
+public abstract class MiningBlockEntity extends KineticBlockEntity implements IDepositBlockClaimer {
+    public Set<BlockPos> claimedDepositBlocks = new HashSet<>();
     protected MinerSpec spec = null;
     protected MiningProcess process = null;
 
@@ -34,7 +35,7 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
         }
     });
 
-    private CompoundTag miningProgressTag = null;
+    private CompoundTag pendingProcessTag = null;
 
     public MiningBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -51,48 +52,52 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
         return inventory;
     }
 
-    public @Nullable BoundingBox getMiningArea() {
-        if (level == null || (spec == null && !tryInitSpec())) return null;
-        var pos = this.getBlockPos();
-        int px = pos.getX(), py = pos.getY(), pz = pos.getZ();
-        int minBuildHeight = level.getMinBuildHeight(), maxBuildHeight = level.getMaxBuildHeight();
-
-        var area = spec.miningArea();
-        int yMin = Mth.clamp(py + area.verticalOffset() - area.height() + 1, minBuildHeight, maxBuildHeight);
-        int yMax = Mth.clamp(py + area.verticalOffset(), minBuildHeight, maxBuildHeight);
-
-        return new BoundingBox(
-                px - area.radius(), yMin, pz - area.radius(),
-                px + area.radius(), yMax, pz + area.radius());
+    @Override
+    public ClaimingAreaSpec getClaimingAreaSpec() {
+        var spec = getSpec();
+        if (spec == null) throw new RuntimeException("Failed to get miner spec");
+        return spec.miningArea();
     }
 
-    public int getCurrentProgressIncrement() {
-        if (spec == null || !tryInitSpec()) return 0;
-        return (int) (spec.minesPerHour() * Math.abs(getSpeed()));
+    @Override
+    public BlockPos getAnchor() {
+        return worldPosition;
     }
 
-    public void reserveDepositBlocks() {
+    @Override
+    public Set<BlockPos> getClaimedDepositBlocks() {
+        return claimedDepositBlocks;
+    }
+
+    @Override
+    public void setClaimedDepositBlocks(Set<BlockPos> claimedBlocks) {
+        claimedDepositBlocks = claimedBlocks;
+    }
+
+    @Override
+    public void claimDepositBlocks() {
         if (level == null || (spec == null & !tryInitSpec())) return;
 
-        reservedDepositBlocks = getDepositVein().stream()
+        claimedDepositBlocks = getClaimableDepositVein(level).stream()
                 .filter(pos -> MiningRecipeLookup.isDepositMineable(level, level.getBlockState(pos).getBlock(),
                         spec.tier()))
                 .collect(Collectors.toSet());
-
-        // Exclude deposit blocks reserved by nearby mining entities
-        for (var m : MiningBlockEntityInstanceHolder.getInstancesWithIntersectingMiningArea(this)) {
-            reservedDepositBlocks.removeAll(m.reservedDepositBlocks);
-        }
 
         // Recompute mining process based on claimed mining area
         tryInitProcess(true);
 
         // Initialize deposit durabilities as needed
-        for (var bp : reservedDepositBlocks) {
+        for (var bp : claimedDepositBlocks) {
             level.getData(RNSContent.LEVEL_DEPOSIT_DATA.get()).initDepositVeinDurability(bp);
         }
 
         setChanged();
+        notifyUpdate();
+    }
+
+    public int getCurrentProgressIncrement() {
+        if (spec == null || !tryInitSpec()) return 0;
+        return (int) (spec.minesPerHour() * Math.abs(getSpeed()));
     }
 
     @Override
@@ -110,27 +115,24 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
     @Override
     public void onLoad() {
         super.onLoad();
-        MiningBlockEntityInstanceHolder.addInstance(this);
+        DepositClaimerInstanceHolder.addClaimer(this, Objects.requireNonNull(level));
     }
 
     @Override
     public void invalidate() {
         super.invalidate();
-        MiningBlockEntityInstanceHolder.removeInstance(this);
-
-        if (level == null) return;
+        DepositClaimerInstanceHolder.removeClaimer(this, Objects.requireNonNull(level));
 
         level.invalidateCapabilities(worldPosition);
-        if (level.isClientSide()) MiningAreaOutlineRenderer.removeMiningBE(this);
+        if (level.isClientSide()) DepositClaimerOutlineRenderer.removeClaimer(this);
     }
 
     @Override
     protected void write(CompoundTag tag, HolderLookup.Provider p, boolean clientPacket) {
         super.write(tag, p, clientPacket);
-        tag.put("Inventory", inventory.serializeNBT(p));
-        var packed = reservedDepositBlocks.stream().mapToLong(BlockPos::asLong).toArray();
-        tag.putLongArray("ReservedDepositBlocks", packed);
-        if (process != null || tryInitProcess(false)) tag.put("MiningProgress", process.getProgressAsNBT());
+        tag.put("inventory", inventory.serializeNBT(p));
+        tag.put("claimer", serializeDepositBlockClaimer(p));
+        if (process != null || tryInitProcess(false)) tag.put("process", process.getProgressAsNBT());
     }
 
     @Override
@@ -138,22 +140,20 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
         super.read(tag, p, clientPacket);
         if (clientPacket)
             CreateRNS.LOGGER.trace("Client mining BE synced at {}, {}", worldPosition.getX(), worldPosition.getZ());
-        inventory.deserializeNBT(p, tag.getCompound("Inventory"));
+        inventory.deserializeNBT(p, tag.getCompound("inventory"));
 
         // Clear outline for the claimed mining area of this BE (client side)
-        if (clientPacket) MiningAreaOutlineRenderer.removeMiningBE(this);
+        if (clientPacket) DepositClaimerOutlineRenderer.removeClaimer(this);
 
         // Deserialize claimed mining area
-        reservedDepositBlocks.clear();
-        var packed = tag.getLongArray("ReservedDepositBlocks");
-        for (var l : packed) reservedDepositBlocks.add(BlockPos.of(l));
+        deserializeDepositBlockClaimer(p, tag.getCompound("claimer"));
 
         // Add outline for the freshly deserialized claimed mining area back in (client side)
-        if (clientPacket) MiningAreaOutlineRenderer.addMiningBE(this);
+        if (clientPacket) DepositClaimerOutlineRenderer.addClaimer(this);
 
-        // Deserialize mining progress
-        if (tag.contains("MiningProgress")) {
-            miningProgressTag = tag.getCompound("MiningProgress");
+        // Schedule deserialization of the mining process
+        if (tag.contains("process")) {
+            pendingProcessTag = tag.getCompound("process");
         }
 
         // Recompute mining process yields based on claimed mining area. This also happens on process initialization.
@@ -170,37 +170,18 @@ public abstract class MiningBlockEntity extends KineticBlockEntity {
     protected boolean tryInitProcess(boolean recompute) {
         if (process != null && !recompute) return true;
         if (level == null || (spec == null && !tryInitSpec())) return false;
-        for (var bp : reservedDepositBlocks) {
+        for (var bp : claimedDepositBlocks) {
             if (!level.isLoaded(bp)) return false;
         }
 
-        process = new MiningProcess(level, spec.tier(), reservedDepositBlocks);
+        process = new MiningProcess(level, spec.tier(), claimedDepositBlocks);
 
         // If we got mining progress data from NBT, now is the time to set it
-        if (miningProgressTag != null) {
-            process.setProgressFromNBT(miningProgressTag);
-            miningProgressTag = null;
+        if (pendingProcessTag != null) {
+            process.setProgressFromNBT(pendingProcessTag);
+            pendingProcessTag = null;
         }
 
         return true;
-    }
-
-    private Set<BlockPos> getDepositVein() {
-        if (level == null) return Set.of();
-        var ma = getMiningArea();
-        if (ma == null) return Set.of();
-
-        Queue<BlockPos> q = new ArrayDeque<>();
-        LongOpenHashSet visited = new LongOpenHashSet(ma.getXSpan() * ma.getYSpan() * ma.getZSpan());
-
-        q.offer(worldPosition.relative(Direction.Axis.Y, spec.miningArea().verticalOffset()));
-        while (!q.isEmpty()) {
-            var bp = q.poll();
-            if (visited.contains(bp.asLong()) || !ma.isInside(bp) || !level.getBlockState(bp).is(RNSTags.Block.DEPOSIT_BLOCKS)) continue;
-            visited.add(bp.asLong());
-
-            Direction.stream().forEach(d -> q.add(bp.relative(d)));
-        }
-        return visited.longStream().mapToObj(BlockPos::of).collect(Collectors.toSet());
     }
 }
