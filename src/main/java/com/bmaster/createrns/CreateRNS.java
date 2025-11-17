@@ -19,7 +19,7 @@ public class CreateRNS {
     public static final CreateRegistrate REGISTRATE = CreateRegistrate.create(CreateRNS.MOD_ID);
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-    public CreateRNS(ModContainer container, IEventBus modBus)  {
+    public CreateRNS(ModContainer container, IEventBus modBus) {
         REGISTRATE.registerEventListeners(modBus);
         RNSTags.register();
         RNSContent.register(modBus);

@@ -1,18 +1,18 @@
 package com.bmaster.createrns.item.DepositScanner;
 
+import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.util.Utils;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
+import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer;
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer;
+import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import dev.engine_room.flywheel.lib.transform.PoseTransformStack;
 import dev.engine_room.flywheel.lib.transform.TransformStack;
 import net.createmod.catnip.animation.AnimationFunctions;
 import net.createmod.catnip.animation.AnimationTickHolder;
-import net.createmod.catnip.animation.LerpedFloat.Chaser;
-import com.bmaster.createrns.CreateRNS;
-import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer;
-import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import net.createmod.catnip.animation.LerpedFloat;
+import net.createmod.catnip.animation.LerpedFloat.Chaser;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.model.ItemTransform;
@@ -68,7 +68,7 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
         }
 
         var am = ambientItemMovement.getValue();
-        if (Mth.equal(am,4)) ambientItemMovement.setValue(0);
+        if (Mth.equal(am, 4)) ambientItemMovement.setValue(0);
 
         if (remainingJitterTicks > 0) {
             itemJitterX.updateChaseTarget(rng.nextFloat() - 0.5f);

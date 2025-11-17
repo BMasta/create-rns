@@ -9,6 +9,7 @@ import com.bmaster.createrns.util.Utils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -25,13 +26,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.*;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @ParametersAreNonnullByDefault
@@ -370,7 +371,7 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
     }
 
     private @Nullable BlockPos getNearest(ResourceKey<Structure> depositKey, @Nullable ServerPlayer sp,
-                                            ServerLevel sl, BlockPos pos, int searchRadiusChunks,
+                                          ServerLevel sl, BlockPos pos, int searchRadiusChunks,
                                           boolean allow_discovered, boolean generated_only) {
         if (sp != null) {
             var hit = perPlayerCache.getIfPresent(sp.getUUID());

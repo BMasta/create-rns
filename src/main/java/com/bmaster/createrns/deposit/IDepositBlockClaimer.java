@@ -64,7 +64,9 @@ public interface IDepositBlockClaimer {
         q.offer(anchor.relative(Direction.Axis.Y, spec.verticalOffset()));
         while (!q.isEmpty()) {
             var bp = q.poll();
-            if (visited.contains(bp.asLong()) || !ma.isInside(bp) || !level.getBlockState(bp).is(RNSTags.Block.DEPOSIT_BLOCKS)) continue;
+            if (visited.contains(bp.asLong()) || !ma.isInside(bp) || !level.getBlockState(bp).is(RNSTags.Block.DEPOSIT_BLOCKS)) {
+                continue;
+            }
             visited.add(bp.asLong());
 
             Direction.stream().forEach(d -> q.add(bp.relative(d)));

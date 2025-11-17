@@ -1,10 +1,10 @@
 package com.bmaster.createrns.event;
 
-import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.compat.ponder.RNSPonderPlugin;
-import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler;
 import com.bmaster.createrns.deposit.DepositClaimerOutlineRenderer;
+import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;

@@ -58,7 +58,7 @@ public interface IHaveMiningGoggleInformation extends IHaveGoggleInformation {
         if (inventory == null) return false;
         boolean empty = true;
         for (int i = 0; i < inventory.getSlots(); ++i) {
-            if (!inventory.getStackInSlot(i).isEmpty()){
+            if (!inventory.getStackInSlot(i).isEmpty()) {
                 empty = false;
                 break;
             }

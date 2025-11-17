@@ -1,7 +1,6 @@
 package com.bmaster.createrns.infrastructure;
 
 import com.bmaster.createrns.CreateRNS;
-import net.minecraft.SharedConstants;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.config.ModConfigEvent;

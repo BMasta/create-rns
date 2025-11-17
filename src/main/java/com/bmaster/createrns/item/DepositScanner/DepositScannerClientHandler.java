@@ -1,8 +1,8 @@
 package com.bmaster.createrns.item.DepositScanner;
 
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.deposit.DepositSpecLookup;
 import com.bmaster.createrns.RNSSoundEvents;
+import com.bmaster.createrns.deposit.DepositSpecLookup;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
