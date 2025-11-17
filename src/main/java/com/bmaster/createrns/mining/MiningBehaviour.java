@@ -11,7 +11,6 @@ import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
@@ -34,7 +33,7 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
 
     private CompoundTag pendingProcessTag = null;
 
-    public MiningBehaviour(MiningBlockEntity be) {
+    public MiningBehaviour(KineticBlockEntity be) {
         super(be);
         kBE = be;
     }
@@ -52,7 +51,7 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
 
         process.advance(getCurrentProgressIncrement());
         var inv = level.getCapability(Capabilities.ItemHandler.BLOCK, getPos(), null);
-        if (!(inv instanceof MiningEntityItemHandler mInv)) throw new IllegalStateException(
+        if (!(inv instanceof MiningItemHandler mInv)) throw new IllegalStateException(
                 "BE with this mining behavior does not have a mining item handler");
         mInv.collectMinedItems(process);
     }

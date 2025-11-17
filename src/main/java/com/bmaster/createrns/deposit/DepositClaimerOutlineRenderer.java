@@ -2,7 +2,9 @@ package com.bmaster.createrns.deposit;
 
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.mining.MiningBehaviour;
 import com.simibubi.create.AllItems;
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.createmod.catnip.outliner.Outliner;
 import net.minecraft.client.Minecraft;
@@ -11,6 +13,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DepositClaimerOutlineRenderer {
     private static final String OUTLINER_SLOT = "%s:miningAreaOutline".formatted(CreateRNS.MOD_ID);
@@ -100,10 +103,10 @@ public class DepositClaimerOutlineRenderer {
         if (p == null) return;
         var l = p.level();
 
-        boolean lookingAtMiningBE = mc.hitResult instanceof BlockHitResult ray &&
-                l.getBlockEntity(ray.getBlockPos()) instanceof IDepositBlockClaimer;
+        boolean renderOutline = (mc.hitResult instanceof BlockHitResult ray &&
+                l.getBlockState(ray.getBlockPos()).getBlock() instanceof IDepositClaimerOutlineTarget);
 
-        if (holdingCorrectItem(p) && lookingAtMiningBE) {
+        if (renderOutline && holdingCorrectItem(p)) {
             ttl = MAX_TTL;
             outlineActive = true;
             clearAndAddNearbyMiningBEs();

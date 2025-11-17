@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-public class DepositBlock extends Block {
+public class DepositBlock extends Block implements IDepositClaimerOutlineTarget {
     public static final int MAX_DEPOSIT_VEIN_SIZE = 128;
     private static final Set<Direction> xzDirections = Set.of(
             Direction.SOUTH, Direction.WEST, Direction.EAST, Direction.NORTH);

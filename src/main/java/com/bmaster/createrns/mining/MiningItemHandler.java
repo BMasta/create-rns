@@ -1,44 +1,38 @@
 package com.bmaster.createrns.mining;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.mining.recipe.MiningRecipe;
 import com.simibubi.create.foundation.blockEntity.SyncedBlockEntity;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<CompoundTag> {
+public class MiningItemHandler implements IItemHandler, INBTSerializable<CompoundTag> {
     private static final int MAX_COUNT_PER_TYPE = 64;
 
     private List<Item> types;
     private final Object2ObjectOpenHashMap<Item, ItemStack> typeToStack;
     private final Runnable onContentsChangedRunnable;
 
-    public MiningEntityItemHandler(Runnable onContentsChanged) {
+    public MiningItemHandler(Runnable onContentsChanged) {
         types = new ArrayList<>();
         typeToStack = new Object2ObjectOpenHashMap<>();
         this.onContentsChangedRunnable = onContentsChanged;
     }
 
     /// Syncs BE state to clients on inventory change
-    public MiningEntityItemHandler(SyncedBlockEntity be) {
+    public MiningItemHandler(SyncedBlockEntity be) {
         types = new ArrayList<>();
         typeToStack = new Object2ObjectOpenHashMap<>();
         this.onContentsChangedRunnable = () -> {
