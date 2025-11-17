@@ -2,7 +2,7 @@ package com.bmaster.createrns.infrastructure.gametest;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.mining.MiningEntityItemHandler;
+import com.bmaster.createrns.mining.MiningItemHandler;
 import com.bmaster.createrns.mining.miner.MinerBlockEntity;
 import com.simibubi.create.content.kinetics.motor.CreativeMotorBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -70,10 +70,10 @@ public final class MinerTest {
 
             for (var d : Direction.values()) {
                 helper.assertTrue(miner1.getCapability(ForgeCapabilities.ITEM_HANDLER, d).resolve().isPresent(),
-                    "Could not get mining BE inventory");
+                        "Could not get mining BE inventory");
             }
 
-            var inv = (MiningEntityItemHandler) miner1.getCapability(ForgeCapabilities.ITEM_HANDLER).resolve().orElse(null);
+            var inv = (MiningItemHandler) miner1.getCapability(ForgeCapabilities.ITEM_HANDLER).resolve().orElse(null);
             helper.assertTrue(inv != null, "Could not get mining BE inventory without direction");
             assert inv != null; // IDE complains otherwise
 
@@ -93,7 +93,7 @@ public final class MinerTest {
             var barrel = helper.getBlockEntity(miner1AbovePos);
             assert miner1 != null && barrel != null;
             IItemHandler barrelInv = barrel.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.DOWN).resolve().orElse(null);
-            var inv = (MiningEntityItemHandler) miner1.getCapability(ForgeCapabilities.ITEM_HANDLER).resolve().orElse(null);
+            var inv = (MiningItemHandler) miner1.getCapability(ForgeCapabilities.ITEM_HANDLER).resolve().orElse(null);
             helper.assertTrue(inv != null, "Could not get mining BE inventory without direction");
             assert ((inv != null) && (barrelInv != null));
             var extractedItem = inv.extractFirstAvailableItem(true);

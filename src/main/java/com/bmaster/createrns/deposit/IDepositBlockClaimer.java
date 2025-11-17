@@ -102,6 +102,14 @@ public interface IDepositBlockClaimer {
         setClaimedDepositBlocks(blocks);
     }
 
+    /// All claimers whose area intersects the provided area will reclaim their blocks
+    static void reclaimArea(Level level, BoundingBox area) {
+        var claimers = DepositClaimerInstanceHolder.getInstancesWithIntersectingArea(level, area);
+        for (var c : claimers) {
+            c.claimDepositBlocks();
+        }
+    }
+
     record ClaimingAreaSpec(int radius, int height, int verticalOffset) {
         public static final Codec<ClaimingAreaSpec> CODEC = RecordCodecBuilder.create(i -> i.group(
                 Codec.intRange(0, Integer.MAX_VALUE).fieldOf("radius").forGetter(ClaimingAreaSpec::radius),

@@ -33,7 +33,7 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
 
     private CompoundTag pendingProcessTag = null;
 
-    public MiningBehaviour(MiningBlockEntity be) {
+    public MiningBehaviour(KineticBlockEntity be) {
         super(be);
         kBE = be;
     }
@@ -51,7 +51,7 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
 
         process.advance(getCurrentProgressIncrement());
         var inv = kBE.getCapability(ForgeCapabilities.ITEM_HANDLER, null).resolve().orElse(null);
-        if (!(inv instanceof MiningEntityItemHandler mInv)) throw new IllegalStateException(
+        if (!(inv instanceof MiningItemHandler mInv)) throw new IllegalStateException(
                 "BE with this mining behavior does not have a mining item handler");
         mInv.collectMinedItems(process);
     }

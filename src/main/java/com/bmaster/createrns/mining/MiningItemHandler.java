@@ -16,21 +16,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
-public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<CompoundTag> {
+public class MiningItemHandler implements IItemHandler, INBTSerializable<CompoundTag> {
     private static final int MAX_COUNT_PER_TYPE = 64;
 
     private List<Item> types;
     private final Object2ObjectOpenHashMap<Item, ItemStack> typeToStack;
     private final Runnable onContentsChangedRunnable;
 
-    public MiningEntityItemHandler(Runnable onContentsChanged) {
+    public MiningItemHandler(Runnable onContentsChanged) {
         types = new ArrayList<>();
         typeToStack = new Object2ObjectOpenHashMap<>();
         this.onContentsChangedRunnable = onContentsChanged;
     }
 
     /// Syncs BE state to clients on inventory change
-    public MiningEntityItemHandler(SyncedBlockEntity be) {
+    public MiningItemHandler(SyncedBlockEntity be) {
         types = new ArrayList<>();
         typeToStack = new Object2ObjectOpenHashMap<>();
         this.onContentsChangedRunnable = () -> {
