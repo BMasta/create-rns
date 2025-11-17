@@ -10,7 +10,7 @@ import com.bmaster.createrns.deposit.DepositSpecLookup;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerC2SPayload;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerS2CPayload;
 import com.bmaster.createrns.mining.miner.MinerBlockEntity;
-import com.bmaster.createrns.mining.miner.MinerSpec;
+import com.bmaster.createrns.mining.MinerSpec;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;

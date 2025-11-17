@@ -23,7 +23,7 @@ public abstract class MiningBlock extends KineticBlock {
         super.onPlace(state, level, pos, oldState, isMoving);
         if (level.isClientSide || oldState.is(state.getBlock()) ||
                 !(level.getBlockEntity(pos) instanceof MiningBlockEntity be)) return;
-        be.claimDepositBlocks();
+        be.getBehaviour(MiningBehaviour.TYPE).claimDepositBlocks();
     }
 
     @ParametersAreNonnullByDefault
@@ -46,7 +46,8 @@ public abstract class MiningBlock extends KineticBlock {
 
                 // Collect all nearby deposit claimers
                 if (!level.isClientSide) {
-                    nearbyClaimers = DepositClaimerInstanceHolder.getInstancesWithIntersectingArea(minerBE, level);
+                    nearbyClaimers = DepositClaimerInstanceHolder.getInstancesWithIntersectingArea(
+                            minerBE.getBehaviour(MiningBehaviour.TYPE), level);
                 }
             }
         }
@@ -54,8 +55,8 @@ public abstract class MiningBlock extends KineticBlock {
 
         if (nearbyClaimers != null) {
             // Now that our own claimer is removed, let others re-reserve their deposit blocks
-            for (var m : nearbyClaimers) {
-                m.claimDepositBlocks();
+            for (var c : nearbyClaimers) {
+                c.claimDepositBlocks();
             }
         }
     }

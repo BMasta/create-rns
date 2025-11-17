@@ -2,6 +2,7 @@ package com.bmaster.createrns.mining;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.mining.recipe.MiningRecipe;
+import com.simibubi.create.foundation.blockEntity.SyncedBlockEntity;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -13,6 +14,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +26,7 @@ import java.util.stream.IntStream;
 
 public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<CompoundTag> {
     private static final int MAX_COUNT_PER_TYPE = 64;
+
     private List<Item> types;
     private final Object2ObjectOpenHashMap<Item, ItemStack> typeToStack;
     private final Runnable onContentsChangedRunnable;
@@ -34,13 +37,18 @@ public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<C
         this.onContentsChangedRunnable = onContentsChanged;
     }
 
-    public MiningEntityItemHandler(List<Item> slotTypes, Runnable onContentsChanged) {
-        types = new ArrayList<>(slotTypes);
-        typeToStack = slotTypes.stream().collect(Collectors.toMap(
-                i -> i, i -> ItemStack.EMPTY, (o, n) -> n,
-                () -> new Object2ObjectOpenHashMap<>(slotTypes.size())
-        ));
-        this.onContentsChangedRunnable = onContentsChanged;
+    /// Syncs BE state to clients on inventory change
+    public MiningEntityItemHandler(SyncedBlockEntity be) {
+        types = new ArrayList<>();
+        typeToStack = new Object2ObjectOpenHashMap<>();
+        this.onContentsChangedRunnable = () -> {
+            var level = be.getLevel();
+            if (level != null && !level.isClientSide) {
+                level.invalidateCapabilities(be.getBlockPos());
+                be.setChanged();
+                be.notifyUpdate();
+            }
+        };
     }
 
     public boolean isEmpty() {
