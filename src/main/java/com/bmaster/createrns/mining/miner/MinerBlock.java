@@ -1,8 +1,11 @@
 package com.bmaster.createrns.mining.miner;
 
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.mining.MiningBlock;
+import com.bmaster.createrns.deposit.IDepositBlockClaimer;
+import com.bmaster.createrns.deposit.IDepositClaimerOutlineTarget;
+import com.bmaster.createrns.mining.MiningBehaviour;
 import com.simibubi.create.AllShapes;
+import com.simibubi.create.content.kinetics.base.KineticBlock;
 import com.simibubi.create.content.kinetics.simpleRelays.ICogWheel;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
@@ -16,6 +19,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -25,13 +29,36 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Objects;
 
-public class MinerBlock extends MiningBlock implements IBE<MinerBlockEntity>, ICogWheel {
-    public static Direction.Axis getRotationAxis() {
-        return Direction.Axis.Y;
-    }
-
+public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity>, IDepositClaimerOutlineTarget, ICogWheel {
     public MinerBlock(Properties props) {
         super(props);
+    }
+
+    @Override
+    public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
+        super.onPlace(state, level, pos, oldState, isMoving);
+        if (level.isClientSide || oldState.is(state.getBlock()) ||
+                !(level.getBlockEntity(pos) instanceof MinerBlockEntity be)) return;
+        be.getBehaviour(MiningBehaviour.TYPE).claimDepositBlocks();
+    }
+
+    @ParametersAreNonnullByDefault
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        // Area must be collected from this BE before it's removed
+        BoundingBox area = null;
+        if (!level.isClientSide && !state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof MinerBlockEntity be) {
+            area = be.getBehaviour(MiningBehaviour.TYPE).getClaimingBoundingBox();
+        }
+
+        super.onRemove(state, level, pos, newState, movedByPiston);
+
+        // Area must be reclaimed after this BE is removed
+        if (area != null) IDepositBlockClaimer.reclaimArea(level, area);
+    }
+
+    public static Direction.Axis getRotationAxis() {
+        return Direction.Axis.Y;
     }
 
     @ParametersAreNonnullByDefault

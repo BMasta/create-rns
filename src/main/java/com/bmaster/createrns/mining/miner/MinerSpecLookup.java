@@ -16,7 +16,7 @@ public class MinerSpecLookup {
         var regEntries = access.registryOrThrow(MinerSpec.REGISTRY_KEY).entrySet();
 
         minerToSpec = new HashMap<>(regEntries.size());
-        regEntries.forEach(e -> {
+        for (var e : regEntries) {
             var spec = e.getValue();
             var miner = spec.minerBlock();
             if (BuiltInRegistries.BLOCK.getKeyOrNull(miner) != null) {
@@ -28,7 +28,7 @@ public class MinerSpecLookup {
                 }
                 minerToSpec.put(minerFrFr, spec);
             }
-        });
+        }
     }
 
     public static MinerSpec get(RegistryAccess access, MinerBlock miner) {

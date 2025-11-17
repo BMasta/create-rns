@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Set;
@@ -40,6 +41,18 @@ public class DepositClaimerInstanceHolder {
                 .filter(c -> {
                     var cur_bb = c.getClaimingBoundingBox();
                     return !c.getAnchor().equals(anchor) && cur_bb != null && bb.intersects(cur_bb);
+                })
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
+    public static Set<IDepositBlockClaimer> getInstancesWithIntersectingArea(Level level, BoundingBox area) {
+        var levelSet = INSTANCES.get(level);
+        if (levelSet == null) return Set.of();
+
+        return levelSet.stream()
+                .filter(c -> {
+                    var cur_bb = c.getClaimingBoundingBox();
+                    return cur_bb != null && area.intersects(cur_bb);
                 })
                 .collect(Collectors.toUnmodifiableSet());
     }
