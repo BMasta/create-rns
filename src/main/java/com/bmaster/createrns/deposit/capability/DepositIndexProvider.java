@@ -24,7 +24,7 @@ public class DepositIndexProvider implements ICapabilitySerializable<CompoundTag
 
     @Override
     public void deserializeNBT(CompoundTag tag) {
-            data.deserializeNBT(tag);
+        data.deserializeNBT(tag);
     }
 
     @NotNull

@@ -11,7 +11,7 @@ public class AnimatedMiner extends AnimatedKinetics {
     private final MinerBlock miner;
     private final PartialModel drill;
 
-    public AnimatedMiner(MinerBlock  minerBlock, PartialModel drill) {
+    public AnimatedMiner(MinerBlock minerBlock, PartialModel drill) {
         this.miner = minerBlock;
         this.drill = drill;
     }

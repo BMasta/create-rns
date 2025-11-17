@@ -8,7 +8,8 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.registries.RegisterEvent;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RNSSoundEvents {
     public static final List<RNSSoundEntry> ALL = new ArrayList<>();

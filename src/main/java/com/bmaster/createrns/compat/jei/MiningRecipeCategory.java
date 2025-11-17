@@ -87,7 +87,7 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
     @SuppressWarnings("removal")
     @Override
     public List<Component> getTooltipStrings(MiningRecipe recipe, IRecipeSlotsView recipeSlotsView,
-                                                double mouseX, double mouseY) {
+                                             double mouseX, double mouseY) {
         if (32 < mouseX && mouseX < 53 && 0 <= mouseY && mouseY < 14) {
             return List.of(Component.literal("Mining tier: " + recipe.getTier()));
         }

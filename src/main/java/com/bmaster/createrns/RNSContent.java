@@ -6,11 +6,10 @@ import com.bmaster.createrns.data.gen.depositworldgen.DepositStructureConfigBuil
 import com.bmaster.createrns.data.pack.DynamicDatapack;
 import com.bmaster.createrns.data.pack.DynamicDatapackContent;
 import com.bmaster.createrns.deposit.DepositBlock;
-import com.bmaster.createrns.mining.miner.*;
 import com.bmaster.createrns.deposit.capability.IDepositIndex;
-import com.bmaster.createrns.item.DepositScanner.DepositScannerItem;
 import com.bmaster.createrns.infrastructure.command.DepositCommand;
 import com.bmaster.createrns.infrastructure.command.ScannerCommand;
+import com.bmaster.createrns.item.DepositScanner.DepositScannerItem;
 import com.bmaster.createrns.mining.miner.MinerBlock;
 import com.bmaster.createrns.mining.miner.MinerBlockEntity;
 import com.bmaster.createrns.mining.miner.MinerRenderer;
@@ -26,7 +25,10 @@ import com.simibubi.create.foundation.item.KineticStats;
 import com.simibubi.create.foundation.item.TooltipModifier;
 import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.providers.RegistrateRecipeProvider;
-import com.tterrag.registrate.util.entry.*;
+import com.tterrag.registrate.util.entry.BlockEntityEntry;
+import com.tterrag.registrate.util.entry.BlockEntry;
+import com.tterrag.registrate.util.entry.ItemEntry;
+import com.tterrag.registrate.util.entry.RegistryEntry;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import net.createmod.catnip.lang.FontHelper;
@@ -57,7 +59,8 @@ import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import static com.simibubi.create.foundation.data.TagGen.*;
+import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
+import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
 
 public class RNSContent {
     // Partial models

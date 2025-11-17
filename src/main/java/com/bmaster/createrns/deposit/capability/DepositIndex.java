@@ -10,6 +10,7 @@ import com.bmaster.createrns.util.Utils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderSet;
@@ -25,7 +26,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.minecraftforge.common.util.INBTSerializable;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
@@ -382,7 +382,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
     }
 
     private @Nullable BlockPos getNearest(ResourceKey<Structure> depositKey, @Nullable ServerPlayer sp,
-                                            ServerLevel sl, BlockPos pos, int searchRadiusChunks,
+                                          ServerLevel sl, BlockPos pos, int searchRadiusChunks,
                                           boolean allow_discovered, boolean generated_only) {
         if (sp != null) {
             var hit = perPlayerCache.getIfPresent(sp.getUUID());
@@ -438,12 +438,14 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
             return null;
         }
         if (isOutsideSearchRadius(pos, closestBP, searchRadiusChunks)) {
-            if (sp != null) perPlayerCache.put(sp.getUUID(), new CachedData(closestBP.asLong(), depositKey, sl.getGameTime()));
+            if (sp != null)
+                perPlayerCache.put(sp.getUUID(), new CachedData(closestBP.asLong(), depositKey, sl.getGameTime()));
             CreateRNS.LOGGER.debug("No deposits in scanned area. Closest is at {},{} ({} blocks away)",
                     closestBP.getX(), closestBP.getZ(), (int) Math.sqrt(closestDist));
             return null;
         }
-        if (sp != null) perPlayerCache.put(sp.getUUID(), new CachedData(closestBP.asLong(), depositKey, sl.getGameTime()));
+        if (sp != null)
+            perPlayerCache.put(sp.getUUID(), new CachedData(closestBP.asLong(), depositKey, sl.getGameTime()));
         CreateRNS.LOGGER.debug("Found deposit at {},{}", closestBP.getX(), closestBP.getZ());
         return closestBP;
     }

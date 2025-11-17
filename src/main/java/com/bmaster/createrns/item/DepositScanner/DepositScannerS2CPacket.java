@@ -1,14 +1,12 @@
 package com.bmaster.createrns.item.DepositScanner;
 
+import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler.AntennaStatus;
 import com.bmaster.createrns.item.DepositScanner.DepositScannerServerHandler.RequestType;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
-import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler.AntennaStatus;
 import net.minecraftforge.network.PacketDistributor;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 

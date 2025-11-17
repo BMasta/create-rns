@@ -1,14 +1,5 @@
 package com.bmaster.createrns.data.gen.depositworldgen;
 
-import com.mojang.datafixers.util.Either;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.level.biome.Biome;
-
-import java.util.ArrayList;
-import java.util.List;
-
 public class DepositSetConfigBuilder {
     public static final int DEFAULT_SALT = 591646342;
     public static final int DEFAULT_SPACING = 48;

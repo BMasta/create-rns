@@ -3,21 +3,20 @@ package com.bmaster.createrns.mining.recipe;
 import com.bmaster.createrns.RNSRecipeTypes;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
-import com.bmaster.createrns.util.Utils;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
-import net.minecraft.world.Container;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -25,9 +24,9 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Objects;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class MiningRecipe implements Recipe<Container> {
     private final ResourceLocation id;
@@ -38,7 +37,7 @@ public class MiningRecipe implements Recipe<Container> {
     private final Yield yield;
 
     public MiningRecipe(ResourceLocation id, Block depositBlock, Block replacementBlock,
-                Durability dur, int tier, Yield yield) {
+                        Durability dur, int tier, Yield yield) {
         this.id = id;
         this.depositBlock = depositBlock;
         this.replacementBlock = replacementBlock;
@@ -137,7 +136,7 @@ public class MiningRecipe implements Recipe<Container> {
                 var spread = GsonHelper.getAsFloat(durObj, "random_spread");
                 dur = new Durability(coreDur, edgeDur, spread);
             } else {
-                dur = new Durability(0 ,0, 0f);
+                dur = new Durability(0, 0, 0f);
             }
             var tier = GsonHelper.getAsInt(json, "tier");
             var yieldList = GsonHelper.getAsJsonArray(json, "yield").asList().stream().map(e -> {

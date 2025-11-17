@@ -1,24 +1,15 @@
 package com.bmaster.createrns.infrastructure.command;
 
-import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.deposit.DepositBlock;
 import com.bmaster.createrns.deposit.capability.IDepositIndex;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.mojang.brigadier.Command;
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.ResourceKeyArgument;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.level.levelgen.structure.BoundingBox;
-
-import java.util.Objects;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 

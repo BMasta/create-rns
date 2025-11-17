@@ -8,7 +8,8 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DynamicDatapack {
     public static List<Pack> DATAPACKS = new ArrayList<>();
