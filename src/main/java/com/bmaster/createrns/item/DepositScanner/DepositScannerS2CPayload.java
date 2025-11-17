@@ -13,10 +13,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
-
 @MethodsReturnNonnullByDefault
-public record DepositScannerS2CPayload(AntennaStatus antennaStatus, int interval, boolean found, RequestType rt) implements CustomPacketPayload {
+public record DepositScannerS2CPayload(AntennaStatus antennaStatus, int interval, boolean found,
+                                       RequestType rt) implements CustomPacketPayload {
     public static final Type<DepositScannerS2CPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "deposit_scanner_s2c"));
 

@@ -2,7 +2,6 @@ package com.bmaster.createrns.item.DepositScanner;
 
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.deposit.LevelDepositData;
-import com.simibubi.create.content.redstone.link.controller.LinkedControllerItemRenderer;
 import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.InteractionHand;

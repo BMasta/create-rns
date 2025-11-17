@@ -3,7 +3,6 @@ package com.bmaster.createrns.compat.jade;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.infrastructure.ServerConfig;
-import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.LongTag;
 import net.minecraft.network.chat.Component;

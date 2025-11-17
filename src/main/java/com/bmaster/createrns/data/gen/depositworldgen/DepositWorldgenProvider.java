@@ -20,7 +20,9 @@ import java.util.function.Function;
 @MethodsReturnNonnullByDefault
 public class DepositWorldgenProvider implements DataProvider {
     public record NBT(ResourceLocation loc, int weight) {}
+
     public record Deposit(String name, ResourceLocation depositBlock, List<NBT> nbts, int depth, int weight) {}
+
     public record DepositSet(int separation, int spacing, int salt) {}
 
     protected static DepositSet setConf;

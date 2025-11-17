@@ -188,9 +188,9 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
 
         public static Durability fromNetwork(RegistryFriendlyByteBuf buffer) {
             return new Durability(
-                ByteBufCodecs.VAR_LONG.decode(buffer),
-                ByteBufCodecs.VAR_LONG.decode(buffer),
-                ByteBufCodecs.FLOAT.decode(buffer)
+                    ByteBufCodecs.VAR_LONG.decode(buffer),
+                    ByteBufCodecs.VAR_LONG.decode(buffer),
+                    ByteBufCodecs.FLOAT.decode(buffer)
             );
         }
     }
@@ -201,7 +201,7 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
         public static final MapCodec<MiningRecipe> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
                         BuiltInRegistries.BLOCK.byNameCodec().fieldOf("deposit_block").forGetter(MiningRecipe::getDepositBlock),
                         BuiltInRegistries.BLOCK.byNameCodec().fieldOf("replace_when_depleted").orElse(Blocks.AIR).forGetter(MiningRecipe::getReplacementBlock),
-                        Durability.CODEC.fieldOf("durability").orElse(new Durability(0 ,0, 0)).forGetter(MiningRecipe::getDurability),
+                        Durability.CODEC.fieldOf("durability").orElse(new Durability(0, 0, 0)).forGetter(MiningRecipe::getDurability),
                         Codec.INT.fieldOf("tier").forGetter(MiningRecipe::getTier),
                         Yield.CODEC.fieldOf("yield").forGetter((r) -> r.yield.types))
                 .apply(i, MiningRecipe::new));

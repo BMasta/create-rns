@@ -23,7 +23,7 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.*;
+import java.util.List;
 
 @ParametersAreNonnullByDefault
 public class MinerBlockEntity extends KineticBlockEntity implements IHaveMiningGoggleInformation {

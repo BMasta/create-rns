@@ -3,7 +3,6 @@ package com.bmaster.createrns.compat.jei;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.RNSRecipeTypes;
-import com.bmaster.createrns.mining.recipe.MiningRecipe;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
