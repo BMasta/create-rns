@@ -49,7 +49,6 @@ public class DepositClaimerOutlineRenderer {
         if (!outlineActive) return;
         Player p = Minecraft.getInstance().player;
         if (p == null) return;
-        var l = p.level();
         if (Math.sqrt(claimer.getAnchor().distManhattan(p.blockPosition())) > OUTLINE_MAX_DIST) return;
 
         if (selectedCluster.removeAll(claimer.getClaimedDepositBlocks())) outlineChanged = true;

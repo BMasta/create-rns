@@ -1,129 +1,43 @@
 package com.bmaster.createrns.mining;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.deposit.DepositClaimerInstanceHolder;
-import com.bmaster.createrns.deposit.DepositClaimerOutlineRenderer;
-import com.bmaster.createrns.deposit.IDepositBlockClaimer;
-import com.bmaster.createrns.deposit.capability.IDepositIndex;
-import com.bmaster.createrns.mining.miner.MinerBlock;
-import com.bmaster.createrns.mining.miner.MinerSpec;
-import com.bmaster.createrns.mining.miner.MinerSpecLookup;
+import com.bmaster.createrns.infrastructure.ServerConfig;
+import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import com.simibubi.create.foundation.utility.CreateLang;
+import net.createmod.catnip.lang.LangBuilder;
+import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class MiningBlockEntity extends KineticBlockEntity implements IDepositBlockClaimer {
-    public Set<BlockPos> claimedDepositBlocks = new HashSet<>();
-    protected MinerSpec spec = null;
-    protected MiningProcess process = null;
-
-    protected final MiningEntityItemHandler inventory = new MiningEntityItemHandler(() -> {
-        if (level != null && !level.isClientSide) {
-            setChanged();
-            notifyUpdate();
-        }
-    });
-
+public abstract class MiningBlockEntity extends KineticBlockEntity {
     private LazyOptional<IItemHandler> inventoryCap = LazyOptional.empty();
-    private CompoundTag pendingProcessTag = null;
+    protected final MiningEntityItemHandler inventory = new MiningEntityItemHandler(this);
 
     public MiningBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
 
-    public abstract boolean isMining();
-
-    public @Nullable MinerSpec getSpec() {
-        if (spec == null && !tryInitSpec()) return null;
-        return spec;
-    }
-
-    public MiningEntityItemHandler getInventory() {
-        return inventory;
-    }
-
-    @Override
-    public ClaimingAreaSpec getClaimingAreaSpec() {
-        var spec = getSpec();
-        if (spec == null) throw new RuntimeException("Failed to get miner spec");
-        return spec.miningArea();
-    }
-
-    @Override
-    public BlockPos getAnchor() {
-        return worldPosition;
-    }
-
-    @Override
-    public Set<BlockPos> getClaimedDepositBlocks() {
-        return claimedDepositBlocks;
-    }
-
-    @Override
-    public void setClaimedDepositBlocks(Set<BlockPos> claimedBlocks) {
-        claimedDepositBlocks = claimedBlocks;
-    }
-
-    @Override
-    public void claimDepositBlocks() {
-        if (level == null || (spec == null & !tryInitSpec())) return;
-
-        claimedDepositBlocks = getClaimableDepositVein(level).stream()
-                .filter(pos -> MiningRecipeLookup.isDepositMineable(level, level.getBlockState(pos).getBlock(),
-                        spec.tier()))
-                .collect(Collectors.toSet());
-
-        // Recompute mining process based on claimed mining area
-        tryInitProcess(true);
-
-        // Initialize deposit durabilities as needed
-        if (level instanceof ServerLevel sl) {
-            var depIdx = IDepositIndex.fromLevel(sl);
-            if (depIdx != null) {
-                for (var bp : claimedDepositBlocks) {
-                    depIdx.initDepositVeinDurability(bp);
-                }
-            }
-        }
-
-        setChanged();
-        notifyUpdate();
-    }
-
-    public int getCurrentProgressIncrement() {
-        if (spec == null || !tryInitSpec()) return 0;
-        return (int) (spec.minesPerHour() * Math.abs(getSpeed()));
-    }
-
-    @Override
-    public void tick() {
-        super.tick();
-
-        if (level == null) return;
-        if ((process == null && !tryInitProcess(false))) return;
-        if (level.isClientSide || !isMining()) return;
-
-        process.advance(getCurrentProgressIncrement());
-        inventory.collectMinedItems(process);
-    }
+    protected abstract String getLangIdentifier();
 
     @Override
     public void onLoad() {
@@ -131,16 +45,10 @@ public abstract class MiningBlockEntity extends KineticBlockEntity implements ID
 
         // Initialize the inventory capability when the BE is first loaded
         inventoryCap = LazyOptional.of(() -> inventory);
-
-        DepositClaimerInstanceHolder.addClaimer(this, Objects.requireNonNull(level));
     }
 
-    @Override
-    public void invalidate() {
-        super.invalidate();
-        DepositClaimerInstanceHolder.removeClaimer(this, Objects.requireNonNull(level));
-        inventoryCap.invalidate();
-        if (level.isClientSide()) DepositClaimerOutlineRenderer.removeClaimer(this);
+    public MiningEntityItemHandler getItemHandler(@Nullable Direction side) {
+        return inventory;
     }
 
     @Override
@@ -152,61 +60,168 @@ public abstract class MiningBlockEntity extends KineticBlockEntity implements ID
     }
 
     @Override
-    protected void write(CompoundTag tag, boolean clientPacket) {
-        super.write(tag, clientPacket);
-        tag.put("inventory", inventory.serializeNBT());
-        tag.put("claimer", serializeDepositBlockClaimer());
-        if (process != null || tryInitProcess(false)) tag.put("process", process.getProgressAsNBT());
+    public void invalidate() {
+        super.invalidate();
+        inventoryCap.invalidate();
+    }
+
+    public boolean isMining() {
+        return getBehaviour(MiningBehaviour.TYPE).isMining();
     }
 
     @Override
-    public void read(CompoundTag tag, boolean clientPacket) {
-        super.read(tag, clientPacket);
-        if (clientPacket)
-            CreateRNS.LOGGER.trace("Client mining BE synced at {}, {}", worldPosition.getX(), worldPosition.getZ());
-
-        inventory.deserializeNBT(tag.getCompound("inventory"));
-
-        // Clear outline for the claimed mining area of this BE (client side)
-        if (clientPacket) DepositClaimerOutlineRenderer.removeClaimer(this);
-
-        // Deserialize claimed mining area
-        deserializeDepositBlockClaimer(tag.getCompound("claimer"));
-
-        // Add outline for the freshly deserialized claimed mining area back in (client side)
-        if (clientPacket) DepositClaimerOutlineRenderer.addClaimer(this);
-
-        // Schedule deserialization of the mining process
-        if (tag.contains("process")) {
-            pendingProcessTag = tag.getCompound("process");
-        }
-
-        // Recompute mining process yields based on claimed mining area. This also happens on process initialization.
-        tryInitProcess(true);
+    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+        super.addBehaviours(behaviours);
+        behaviours.add(new MiningBehaviour(this));
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    protected boolean tryInitSpec() {
-        if (level == null) return false;
-        spec = MinerSpecLookup.get(level.registryAccess(), (MinerBlock) getBlockState().getBlock());
+
+    @Override
+    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        boolean added;
+
+        // Try adding desired section(s)
+        if (!isPlayerSneaking) added = addInventoryToGoggleTooltip(tooltip, true);
+        else {
+            added = addRatesToGoggleTooltip(tooltip, true);
+            if (!ServerConfig.infiniteDeposits && addUsesToGoggleTooltip(tooltip)) added = true;
+        }
+
+        // If unsuccessful, try adding the less desired
+        if (!added) {
+            if (!isPlayerSneaking) {
+                added = addRatesToGoggleTooltip(tooltip, true);
+                if (!ServerConfig.infiniteDeposits && addUsesToGoggleTooltip(tooltip)) added = true;
+            } else added = addInventoryToGoggleTooltip(tooltip, true);
+        }
+
+        // Add kinetics regardless
+        added = addKineticsToGoggleTooltip(tooltip, !added);
+        return added;
+    }
+
+    @Override
+    protected void write(CompoundTag tag, boolean clientPacket) {
+        super.write(tag, clientPacket);
+        tag.put("inventory", inventory.serializeNBT());
+    }
+
+    @Override
+    protected void read(CompoundTag tag, boolean clientPacket) {
+        super.read(tag, clientPacket);
+        inventory.deserializeNBT(tag.getCompound("inventory"));
+    }
+
+    @Override
+    protected void addStressImpactStats(List<Component> tooltip, float stressAtBase) {
+        super.addStressImpactStats(tooltip, stressAtBase);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    protected boolean addInventoryToGoggleTooltip(List<Component> tooltip, boolean isMainSection) {
+        if (inventory.isEmpty()) return false;
+
+        if (isMainSection) {
+            new LangBuilder(CreateRNS.MOD_ID).translate(getLangIdentifier() + ".contents").forGoggles(tooltip);
+        } else {
+            // Newline between sections
+            new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
+        }
+
+        for (int slot = 0; slot < inventory.getSlots(); ++slot) {
+            var is = inventory.getStackInSlot(slot);
+            if (is.equals(ItemStack.EMPTY)) continue;
+            new LangBuilder(CreateRNS.MOD_ID)
+                    .add(is.getHoverName().copy().withStyle(ChatFormatting.GRAY))
+                    .add(Component.literal(" x" + is.getCount()).withStyle(ChatFormatting.GREEN))
+                    .forGoggles(tooltip, 1);
+        }
+
         return true;
     }
 
-    protected boolean tryInitProcess(boolean recompute) {
-        if (process != null && !recompute) return true;
-        if (level == null || (spec == null && !tryInitSpec())) return false;
-        for (var bp : claimedDepositBlocks) {
-            if (!level.isLoaded(bp)) return false;
+    protected boolean addUsesToGoggleTooltip(List<Component> tooltip) {
+        var mb = getBehaviour(MiningBehaviour.TYPE);
+        var process = mb.getProcess();
+        if (process == null || mb.getClaimedDepositBlocks().isEmpty() || level == null) return false;
+
+        new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
+        new LangBuilder(CreateRNS.MOD_ID).translate(getLangIdentifier() + ".remaining_deposit_uses").forGoggles(tooltip);
+
+        process.innerProcesses.stream().sorted((a, b) -> {
+                    var au = (a.remainingUses == 0) ? Long.MAX_VALUE : a.remainingUses;
+                    var bu = (b.remainingUses == 0) ? Long.MAX_VALUE : b.remainingUses;
+                    // First sort by remaining uses
+                    if (au != bu) return -Long.compare(au, bu);
+                    // Then by deposit block id
+                    return a.recipe.getDepositBlock().getDescriptionId()
+                            .compareToIgnoreCase(b.recipe.getDepositBlock().getDescriptionId());
+                })
+                .forEachOrdered(p -> {
+                    var usesComp = (p.remainingUses > 0)
+                            ? Component.literal(Long.toString(p.remainingUses))
+                            : Component.translatable("create_rns." + getLangIdentifier() + ".infinite");
+                    new LangBuilder(CreateRNS.MOD_ID)
+                            .add(p.recipe.getDepositBlock().getName()
+                                    .append(": ")
+                                    .withStyle(ChatFormatting.GRAY))
+                            .add(usesComp
+                                    .withStyle(ChatFormatting.GREEN))
+                            .forGoggles(tooltip, 1);
+                });
+        return true;
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    protected boolean addRatesToGoggleTooltip(List<Component> tooltip, boolean isMainSection) {
+        var mb = getBehaviour(MiningBehaviour.TYPE);
+        var process = mb.getProcess();
+        if (process == null || mb.getClaimedDepositBlocks().isEmpty()) return false;
+
+        if (isMainSection) {
+            new LangBuilder(CreateRNS.MOD_ID).translate(getLangIdentifier() + ".production_rates").forGoggles(tooltip);
+        } else {
+            // Newline between sections
+            new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
         }
 
-        process = new MiningProcess(level, spec.tier(), claimedDepositBlocks);
+        var rates = process.getEstimatedRates(mb.getCurrentProgressIncrement());
+        rates.object2FloatEntrySet().stream().sorted((a, b) -> {
+                    float av = a.getFloatValue();
+                    float bv = b.getFloatValue();
+                    // First sort by rate
+                    if (av != bv) return -Float.compare(av, bv);
+                    // Then by item id
+                    var arl = ForgeRegistries.ITEMS.getKey(a.getKey());
+                    var brl = ForgeRegistries.ITEMS.getKey(b.getKey());
+                    if (arl == null) return 1;
+                    if (brl == null) return -1;
+                    return arl.toString().compareToIgnoreCase(brl.toString());
+                })
+                .forEachOrdered(e -> new LangBuilder(CreateRNS.MOD_ID)
+                        .add(e.getKey().getDescription().copy()
+                                .append(": ")
+                                .withStyle(ChatFormatting.GRAY))
+                        .add(Component.literal(String.format(java.util.Locale.ROOT, "%.1f", e.getFloatValue()))
+                                .append(Component.translatable(CreateRNS.MOD_ID + "." + getLangIdentifier() + ".per_hour"))
+                                .withStyle(ChatFormatting.GREEN))
+                        .forGoggles(tooltip, 1)
+                );
+        return true;
+    }
 
-        // If we got mining progress data from NBT, now is the time to set it
-        if (pendingProcessTag != null) {
-            process.setProgressFromNBT(pendingProcessTag);
-            pendingProcessTag = null;
+    protected boolean addKineticsToGoggleTooltip(List<Component> tooltip, boolean isMainSection) {
+        float stressAtBase = 0f;
+        if (IRotate.StressImpact.isEnabled()) stressAtBase = calculateStressApplied();
+        if (Mth.equal(stressAtBase, 0)) return false;
+
+        if (isMainSection) {
+            CreateLang.translate("gui.goggles.kinetic_stats").forGoggles(tooltip);
+        } else {
+            // Newline between sections
+            new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
         }
-
+        addStressImpactStats(tooltip, calculateStressApplied());
         return true;
     }
 }

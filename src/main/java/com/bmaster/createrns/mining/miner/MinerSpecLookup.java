@@ -1,5 +1,6 @@
 package com.bmaster.createrns.mining.miner;
 
+import com.bmaster.createrns.mining.MinerSpec;
 import net.minecraft.core.RegistryAccess;
 import net.minecraftforge.registries.ForgeRegistries;
 

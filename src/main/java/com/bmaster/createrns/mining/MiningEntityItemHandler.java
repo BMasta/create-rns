@@ -1,6 +1,7 @@
 package com.bmaster.createrns.mining;
 
 import com.bmaster.createrns.CreateRNS;
+import com.simibubi.create.foundation.blockEntity.SyncedBlockEntity;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -13,11 +14,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<CompoundTag> {
     private static final int MAX_COUNT_PER_TYPE = 64;
+
     private List<Item> types;
     private final Object2ObjectOpenHashMap<Item, ItemStack> typeToStack;
     private final Runnable onContentsChangedRunnable;
@@ -28,13 +29,18 @@ public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<C
         this.onContentsChangedRunnable = onContentsChanged;
     }
 
-    public MiningEntityItemHandler(List<Item> slotTypes, Runnable onContentsChanged) {
-        types = new ArrayList<>(slotTypes);
-        typeToStack = slotTypes.stream().collect(Collectors.toMap(
-                i -> i, i -> ItemStack.EMPTY, (o, n) -> n,
-                () -> new Object2ObjectOpenHashMap<>(slotTypes.size())
-        ));
-        this.onContentsChangedRunnable = onContentsChanged;
+    /// Syncs BE state to clients on inventory change
+    public MiningEntityItemHandler(SyncedBlockEntity be) {
+        types = new ArrayList<>();
+        typeToStack = new Object2ObjectOpenHashMap<>();
+        this.onContentsChangedRunnable = () -> {
+            var level = be.getLevel();
+            if (level != null && !level.isClientSide) {
+                be.invalidateCaps();
+                be.setChanged();
+                be.notifyUpdate();
+            }
+        };
     }
 
     public boolean isEmpty() {
@@ -164,8 +170,7 @@ public class MiningEntityItemHandler implements IItemHandler, INBTSerializable<C
     }
 
     @Override
-    public CompoundTag serializeNBT()
-    {
+    public CompoundTag serializeNBT() {
         ListTag nbtTagList = new ListTag();
         for (int i = 0; i < types.size(); ++i) {
             var type = types.get(i);

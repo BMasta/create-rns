@@ -1,7 +1,6 @@
-package com.bmaster.createrns.mining.miner;
+package com.bmaster.createrns.mining;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.deposit.IDepositBlockClaimer;
 import com.bmaster.createrns.deposit.IDepositBlockClaimer.ClaimingAreaSpec;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;

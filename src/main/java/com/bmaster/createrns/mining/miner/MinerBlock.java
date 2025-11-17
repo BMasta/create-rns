@@ -6,7 +6,6 @@ import com.simibubi.create.AllShapes;
 import com.simibubi.create.Create;
 import com.simibubi.create.content.kinetics.simpleRelays.ICogWheel;
 import com.simibubi.create.foundation.block.IBE;
-import net.createmod.catnip.math.VoxelShaper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
@@ -59,7 +58,7 @@ public class MinerBlock extends MiningBlock implements IBE<MinerBlockEntity>, IC
     public @NotNull InteractionResult use(BlockState state, Level l, BlockPos pos, Player p, InteractionHand hand,
                                           BlockHitResult hit) {
         return onBlockEntityUse(l, pos, be -> {
-            var minerInv = be.getInventory();
+            var minerInv = be.getItemHandler(null);
             if (minerInv.isEmpty()) return InteractionResult.PASS;
             var playerInv = p.getInventory();
             boolean pickedUp = false;

@@ -1,33 +1,28 @@
 package com.bmaster.createrns.mining.miner;
 
-import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.infrastructure.ServerConfig;
-import com.bmaster.createrns.mining.*;
-import com.simibubi.create.content.kinetics.base.IRotate;
+import com.bmaster.createrns.mining.MiningBehaviour;
+import com.bmaster.createrns.mining.MiningBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.inventory.InvManipulationBehaviour;
 import com.simibubi.create.foundation.sound.SoundScapes;
-import com.simibubi.create.foundation.utility.CreateLang;
-import net.createmod.catnip.lang.LangBuilder;
-import net.minecraft.ChatFormatting;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.registries.ForgeRegistries;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.List;
 
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public class MinerBlockEntity extends MiningBlockEntity {
     private List<BlockState> particleOptions = null;
 
@@ -36,9 +31,8 @@ public class MinerBlockEntity extends MiningBlockEntity {
     }
 
     @Override
-    public boolean isMining() {
-        if (level == null || process == null) return false;
-        return !claimedDepositBlocks.isEmpty() && isSpeedRequirementFulfilled();
+    protected String getLangIdentifier() {
+        return "miner";
     }
 
     @Override
@@ -63,167 +57,15 @@ public class MinerBlockEntity extends MiningBlockEntity {
     }
 
     @Override
-    public void read(@NotNull CompoundTag tag, boolean clientPacket) {
+    public void read(CompoundTag tag, boolean clientPacket) {
         super.read(tag, clientPacket);
         if (level == null) return;
-        // Clients get their reserved blocks from server updates
-        particleOptions = claimedDepositBlocks.stream()
-                .map(bp -> level.getBlockState(bp))
-                .toList();
-    }
-
-    @Override
-    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        boolean added = false;
-
-        // Try adding desired section(s)
-        if (!isPlayerSneaking) added = addInventoryToGoggleTooltip(tooltip, true);
-        else {
-            added = addRatesToGoggleTooltip(tooltip, true);
-            if (!ServerConfig.infiniteDeposits && addUsesToGoggleTooltip(tooltip)) added = true;
+        // Clients get their claimed blocks from server updates
+        if (clientPacket) {
+            particleOptions = getBehaviour(MiningBehaviour.TYPE).getClaimedDepositBlocks().stream()
+                    .map(bp -> level.getBlockState(bp))
+                    .toList();
         }
-
-        // If unsuccessful, try adding the less desired
-        if (!added) {
-            if (!isPlayerSneaking) {
-                added = addRatesToGoggleTooltip(tooltip, true);
-                if (!ServerConfig.infiniteDeposits && addUsesToGoggleTooltip(tooltip)) added = true;
-            } else added = addInventoryToGoggleTooltip(tooltip, true);
-        }
-
-        // Add kinetics regardless
-        added = addKineticsToGoggleTooltip(tooltip, !added);
-
-        return added;
-    }
-
-    @Override
-    protected boolean tryInitSpec() {
-        if (!super.tryInitSpec()) return false;
-
-        // From miner spec
-        float minesPerHour = spec.minesPerHour();
-        // Or from server config
-        if ((ServerConfig.minerMk1Speed != 0) && spec.tier() == 1) {
-            minesPerHour = ServerConfig.minerMk1Speed;
-        }
-        if ((ServerConfig.minerMk2Speed != 0) && (spec.tier() == 2)) {
-            minesPerHour = ServerConfig.minerMk2Speed;
-        }
-
-        spec = new MinerSpec(spec.minerBlock(), spec.tier(), minesPerHour, spec.miningArea());
-        return true;
-    }
-
-    @Override
-    protected void addStressImpactStats(List<Component> tooltip, float stressAtBase) {
-        super.addStressImpactStats(tooltip, stressAtBase);
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    protected boolean addInventoryToGoggleTooltip(List<Component> tooltip, boolean isMainSection) {
-        if (inventory.isEmpty()) return false;
-
-        if (isMainSection) {
-            new LangBuilder(CreateRNS.MOD_ID).translate("miner.contents").forGoggles(tooltip);
-        } else {
-            // Newline between sections
-            new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
-        }
-
-        for (int slot = 0; slot < inventory.getSlots(); ++slot) {
-            var is = inventory.getStackInSlot(slot);
-            if (is.equals(ItemStack.EMPTY)) continue;
-            new LangBuilder(CreateRNS.MOD_ID)
-                    .add(is.getHoverName().copy().withStyle(ChatFormatting.GRAY))
-                    .add(Component.literal(" x" + is.getCount()).withStyle(ChatFormatting.GREEN))
-                    .forGoggles(tooltip, 1);
-        }
-
-        return true;
-    }
-
-    protected boolean addUsesToGoggleTooltip(List<Component> tooltip) {
-        if (process == null || claimedDepositBlocks.isEmpty() || level == null) return false;
-
-        new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
-        new LangBuilder(CreateRNS.MOD_ID).translate("miner.remaining_deposit_uses").forGoggles(tooltip);
-
-        process.innerProcesses.stream().sorted((a, b) -> {
-                    var au = (a.remainingUses == 0) ? Long.MAX_VALUE : a.remainingUses;
-                    var bu = (b.remainingUses == 0) ? Long.MAX_VALUE : b.remainingUses;
-                    // First sort by remaining uses
-                    if (au != bu) return -Long.compare(au, bu);
-                    // Then by deposit block id
-                    return a.recipe.getDepositBlock().getDescriptionId()
-                            .compareToIgnoreCase(b.recipe.getDepositBlock().getDescriptionId());
-                })
-                .forEachOrdered(p -> {
-                    var usesComp = (p.remainingUses > 0)
-                            ? Component.literal(Long.toString(p.remainingUses))
-                            : Component.translatable("create_rns.miner.infinite");
-                    new LangBuilder(CreateRNS.MOD_ID)
-                            .add(p.recipe.getDepositBlock().getName()
-                                    .append(": ")
-                                    .withStyle(ChatFormatting.GRAY))
-                            .add(usesComp
-                                    .withStyle(ChatFormatting.GREEN))
-                            .forGoggles(tooltip, 1);
-                });
-        return true;
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    protected boolean addRatesToGoggleTooltip(List<Component> tooltip, boolean isMainSection) {
-        if (process == null || claimedDepositBlocks.isEmpty()) return false;
-
-        if (isMainSection) {
-            new LangBuilder(CreateRNS.MOD_ID).translate("miner.production_rates").forGoggles(tooltip);
-        } else {
-            // Newline between sections
-            new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
-        }
-
-        var rates = process.getEstimatedRates(getCurrentProgressIncrement());
-        rates.object2FloatEntrySet().stream().sorted((a, b) -> {
-                    float av = a.getFloatValue();
-                    float bv = b.getFloatValue();
-                    // First sort by rate
-                    if (av != bv) return -Float.compare(av, bv);
-                    // Then by item id
-                    var arl = ForgeRegistries.ITEMS.getKey(a.getKey());
-                    var brl = ForgeRegistries.ITEMS.getKey(b.getKey());
-                    if (arl == null) return 1;
-                    if (brl == null) return -1;
-                    return arl.toString().compareToIgnoreCase(brl.toString());
-                })
-                .forEachOrdered(e -> {
-                    new LangBuilder(CreateRNS.MOD_ID)
-                            .add(e.getKey().getDescription().copy()
-                                    .append(": ")
-                                    .withStyle(ChatFormatting.GRAY))
-                            .add(Component.literal(String.format(java.util.Locale.ROOT, "%.1f", e.getFloatValue()))
-                                    .append(Component.translatable("%s.miner.per_hour".formatted(CreateRNS.MOD_ID)))
-                                    .withStyle(ChatFormatting.GREEN))
-                            .forGoggles(tooltip, 1);
-                });
-        return true;
-    }
-
-    @SuppressWarnings("UnusedReturnValue")
-    protected boolean addKineticsToGoggleTooltip(List<Component> tooltip, boolean isMainSection) {
-        float stressAtBase = 0f;
-        if (IRotate.StressImpact.isEnabled()) stressAtBase = calculateStressApplied();
-        if (Mth.equal(stressAtBase, 0)) return false;
-
-        if (isMainSection) {
-            CreateLang.translate("gui.goggles.kinetic_stats").forGoggles(tooltip);
-        } else {
-            // Newline between sections
-            new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
-        }
-        addStressImpactStats(tooltip, calculateStressApplied());
-        return true;
     }
 
     protected void tryEjectUp() {
@@ -236,6 +78,7 @@ public class MinerBlockEntity extends MiningBlockEntity {
         var targetInv = be == null ? null
                 : be.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.DOWN)
                 .orElse(inserter == null ? null : inserter.getInventory());
+
         if (targetInv == null) return;
 
         var extracted = inventory.extractFirstAvailableItem(true);
