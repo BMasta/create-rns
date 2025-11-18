@@ -1,6 +1,6 @@
 package com.bmaster.createrns.compat.jade;
 
-import com.bmaster.createrns.deposit.DepositBlock;
+import com.bmaster.createrns.content.deposit.DepositBlock;
 import snownee.jade.api.IWailaClientRegistration;
 import snownee.jade.api.IWailaCommonRegistration;
 import snownee.jade.api.IWailaPlugin;
