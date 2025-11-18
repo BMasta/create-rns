@@ -3,7 +3,7 @@ package com.bmaster.createrns.compat.jei;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.RNSRecipeTypes;
-import com.bmaster.createrns.mining.recipe.MiningRecipe;
+import com.bmaster.createrns.content.deposit.mining.MiningRecipe;
 import com.bmaster.createrns.util.FlexibleLayoutHelper;
 import com.simibubi.create.compat.jei.EmptyBackground;
 import com.simibubi.create.compat.jei.ItemIcon;
