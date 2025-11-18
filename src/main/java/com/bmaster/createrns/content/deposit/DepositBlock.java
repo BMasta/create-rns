@@ -4,6 +4,7 @@ import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
 import com.bmaster.createrns.content.deposit.claiming.IDepositClaimerOutlineTarget;
+import com.bmaster.createrns.content.deposit.mining.MiningBehaviour;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -18,7 +19,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-public class DepositBlock extends Block implements IDepositClaimerOutlineTarget {
+public class DepositBlock extends Block {
     public static final int MAX_DEPOSIT_VEIN_SIZE = 128;
     private static final Set<Direction> xzDirections = Set.of(
             Direction.SOUTH, Direction.WEST, Direction.EAST, Direction.NORTH);
@@ -82,7 +83,7 @@ public class DepositBlock extends Block implements IDepositClaimerOutlineTarget 
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
         if (level.isClientSide) return;
-        for (var c : DepositClaimerInstanceHolder.getInstancesThatCanClaim(level, pos)) {
+        for (var c : DepositClaimerInstanceHolder.getInstancesThatCanClaim(level, pos, MiningBehaviour.CLAIMER_TYPE)) {
             c.claimDepositBlocks();
             var cAnchor = c.getAnchor();
             var cState = level.getBlockState(cAnchor);
@@ -100,7 +101,7 @@ public class DepositBlock extends Block implements IDepositClaimerOutlineTarget 
         if (state.is(RNSTags.Block.DEPOSIT_BLOCKS)) {
             level.getData(RNSContent.LEVEL_DEPOSIT_DATA.get()).removeDepositBlockDurability(pos);
         }
-        for (var c : DepositClaimerInstanceHolder.getInstancesThatCanClaim(level, pos)) {
+        for (var c : DepositClaimerInstanceHolder.getInstancesThatCanClaim(level, pos, MiningBehaviour.CLAIMER_TYPE)) {
             c.claimDepositBlocks();
             var cAnchor = c.getAnchor();
             var cState = level.getBlockState(cAnchor);

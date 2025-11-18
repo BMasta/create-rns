@@ -428,12 +428,14 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
             return null;
         }
         if (isOutsideSearchRadius(pos, closestBP, searchRadiusChunks)) {
-            if (sp != null) perPlayerCache.put(sp.getUUID(), new CachedData(closestBP.asLong(), depositKey, sl.getGameTime()));
+            if (sp != null)
+                perPlayerCache.put(sp.getUUID(), new CachedData(closestBP.asLong(), depositKey, sl.getGameTime()));
             CreateRNS.LOGGER.debug("No deposits in scanned area. Closest is at {},{} ({} blocks away)",
                     closestBP.getX(), closestBP.getZ(), (int) Math.sqrt(closestDist));
             return null;
         }
-        if (sp != null) perPlayerCache.put(sp.getUUID(), new CachedData(closestBP.asLong(), depositKey, sl.getGameTime()));
+        if (sp != null)
+            perPlayerCache.put(sp.getUUID(), new CachedData(closestBP.asLong(), depositKey, sl.getGameTime()));
         CreateRNS.LOGGER.debug("Found deposit at {},{}", closestBP.getX(), closestBP.getZ());
         return closestBP;
     }

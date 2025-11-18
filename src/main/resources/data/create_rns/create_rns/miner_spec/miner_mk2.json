@@ -4,7 +4,7 @@
   "mines_per_hour": 45.0,
   "mining_area": {
     "radius": 1,
-    "height": 5,
-    "vertical_offset": -1
+    "length": 5,
+    "offset": 1
   }
 }

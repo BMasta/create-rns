@@ -9,6 +9,7 @@ import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
@@ -18,22 +19,25 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @ParametersAreNonnullByDefault
 public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlockClaimer {
-    public static final BehaviourType<MiningBehaviour> TYPE = new BehaviourType<>(CreateRNS.MOD_ID + ":mining");
+    public static final BehaviourType<MiningBehaviour> BEHAVIOUR_TYPE = new BehaviourType<>(CreateRNS.MOD_ID + ":mining");
+    public static final ClaimerType CLAIMER_TYPE = new ClaimerType(CreateRNS.MOD_ID + ":mining");
 
     private final KineticBlockEntity kBE;
+    private final Supplier<Direction> claimingDirection;
     private Set<BlockPos> claimedDepositBlocks = new HashSet<>();
     private MinerSpec spec = null;
     private MiningProcess process = null;
-
     private CompoundTag pendingProcessTag = null;
 
-    public MiningBehaviour(KineticBlockEntity be) {
+    public MiningBehaviour(KineticBlockEntity be, Supplier<Direction> claimingDirection) {
         super(be);
         kBE = be;
+        this.claimingDirection = claimingDirection;
     }
 
     @Override
@@ -65,7 +69,7 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
 
     @Override
     public BehaviourType<?> getType() {
-        return TYPE;
+        return BEHAVIOUR_TYPE;
     }
 
     @Override
@@ -110,6 +114,21 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
     public @Nullable MiningProcess getProcess() {
         if (process == null && !tryInitProcess(false)) return null;
         return process;
+    }
+
+    @Override
+    public ClaimingMode getClaimingMode() {
+        return ClaimingMode.EXCLUSIVE;
+    }
+
+    @Override
+    public ClaimerType getClaimerType() {
+        return CLAIMER_TYPE;
+    }
+
+    @Override
+    public Direction getClaimingDirection() {
+        return claimingDirection.get();
     }
 
     @Override
