@@ -1,19 +1,19 @@
 package com.bmaster.createrns;
 
 import com.bmaster.createrns.compat.ponder.RNSPonderPlugin;
+import com.bmaster.createrns.content.deposit.DepositBlock;
+import com.bmaster.createrns.content.deposit.info.IDepositIndex;
+import com.bmaster.createrns.content.deposit.mining.MinerBlock;
+import com.bmaster.createrns.content.deposit.mining.MinerBlockEntity;
+import com.bmaster.createrns.content.deposit.mining.MinerRenderer;
+import com.bmaster.createrns.content.deposit.mining.MinerVisual;
+import com.bmaster.createrns.content.deposit.scanning.DepositScannerItem;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositStructureConfigBuilder;
 import com.bmaster.createrns.data.pack.DynamicDatapack;
 import com.bmaster.createrns.data.pack.DynamicDatapackContent;
-import com.bmaster.createrns.deposit.DepositBlock;
-import com.bmaster.createrns.deposit.capability.IDepositIndex;
 import com.bmaster.createrns.infrastructure.command.DepositCommand;
 import com.bmaster.createrns.infrastructure.command.ScannerCommand;
-import com.bmaster.createrns.item.DepositScanner.DepositScannerItem;
-import com.bmaster.createrns.mining.miner.MinerBlock;
-import com.bmaster.createrns.mining.miner.MinerBlockEntity;
-import com.bmaster.createrns.mining.miner.MinerRenderer;
-import com.bmaster.createrns.mining.miner.MinerVisual;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;

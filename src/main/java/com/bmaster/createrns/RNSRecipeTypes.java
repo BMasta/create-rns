@@ -1,6 +1,6 @@
 package com.bmaster.createrns;
 
-import com.bmaster.createrns.mining.recipe.MiningRecipe;
+import com.bmaster.createrns.content.deposit.mining.MiningRecipe;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;

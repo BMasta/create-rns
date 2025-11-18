@@ -1,6 +1,6 @@
 package com.bmaster.createrns.compat.jei;
 
-import com.bmaster.createrns.mining.miner.MinerBlock;
+import com.bmaster.createrns.content.deposit.mining.MinerBlock;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.simibubi.create.compat.jei.category.animations.AnimatedKinetics;

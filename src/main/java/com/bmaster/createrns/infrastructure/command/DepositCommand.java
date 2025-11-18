@@ -1,7 +1,7 @@
 package com.bmaster.createrns.infrastructure.command;
 
-import com.bmaster.createrns.deposit.DepositBlock;
-import com.bmaster.createrns.deposit.capability.IDepositIndex;
+import com.bmaster.createrns.content.deposit.DepositBlock;
+import com.bmaster.createrns.content.deposit.info.IDepositIndex;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.LongArgumentType;

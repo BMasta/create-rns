@@ -1,0 +1,45 @@
+package com.bmaster.createrns.content.deposit.scanning;
+
+import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler.AntennaStatus;
+import com.bmaster.createrns.content.deposit.scanning.DepositScannerServerHandler.RequestType;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
+
+import java.util.function.Supplier;
+
+public record DepositScannerS2CPacket(AntennaStatus antennaStatus, int interval, boolean found,
+                                      RequestType rt) {
+    public static void send(ServerPlayer receiver, AntennaStatus status, int interval, boolean found,
+                            RequestType rt) {
+        DepositScannerChannel.CHANNEL.send(PacketDistributor.PLAYER.with(() -> receiver),
+                new DepositScannerS2CPacket(status, interval, found, rt));
+    }
+
+    public static void encode(DepositScannerS2CPacket p, FriendlyByteBuf buf) {
+        buf.writeEnum(p.antennaStatus);
+        buf.writeInt(p.interval);
+        buf.writeBoolean(p.found);
+        buf.writeEnum(p.rt);
+    }
+
+    public static DepositScannerS2CPacket decode(FriendlyByteBuf buf) {
+        return new DepositScannerS2CPacket(buf.readEnum(AntennaStatus.class), buf.readInt(), buf.readBoolean(),
+                buf.readEnum(RequestType.class));
+    }
+
+    public static void handle(DepositScannerS2CPacket p, Supplier<NetworkEvent.Context> ctxSup) {
+        var ctx = ctxSup.get();
+        ctx.enqueueWork(() -> {
+            var mc = Minecraft.getInstance();
+            if (mc.player == null || !mc.player.level().isClientSide()) return;
+            switch (p.rt) {
+                case DISCOVER -> DepositScannerClientHandler.processDiscoverReply(p.antennaStatus);
+                case TRACK -> DepositScannerClientHandler.processTrackingReply(p.antennaStatus, p.interval, p.found);
+            }
+        });
+        ctx.setPacketHandled(true);
+    }
+}

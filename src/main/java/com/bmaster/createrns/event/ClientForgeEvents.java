@@ -2,8 +2,8 @@ package com.bmaster.createrns.event;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.deposit.DepositClaimerOutlineRenderer;
-import com.bmaster.createrns.item.DepositScanner.DepositScannerClientHandler;
+import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
+import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;

@@ -2,9 +2,9 @@ package com.bmaster.createrns.event;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.deposit.capability.DepositIndexProvider;
-import com.bmaster.createrns.deposit.capability.IDepositIndex;
-import com.bmaster.createrns.deposit.spec.DepositSpecLookup;
+import com.bmaster.createrns.content.deposit.info.DepositIndexProvider;
+import com.bmaster.createrns.content.deposit.info.DepositSpecLookup;
+import com.bmaster.createrns.content.deposit.info.IDepositIndex;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
