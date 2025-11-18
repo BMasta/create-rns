@@ -29,7 +29,7 @@ public class DepositScannerServerHandler {
         if (!(sp.level() instanceof ServerLevel sl)) return;
         var depData = sl.getData(RNSContent.LEVEL_DEPOSIT_DATA.get());
 
-    var structKey = DepositSpecLookup.getStructureKey(sl.registryAccess(), icon);
+        var structKey = DepositSpecLookup.getStructureKey(sl.registryAccess(), icon);
         var nearest = switch (rt) {
             case DISCOVER -> depData.getNearest(structKey, sp, SEARCH_RADIUS_CHUNKS);
             case TRACK -> depData.getNearestCached(structKey, sp, SEARCH_RADIUS_CHUNKS);

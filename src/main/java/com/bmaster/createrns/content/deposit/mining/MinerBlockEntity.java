@@ -46,7 +46,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements IHaveMiningG
     }
 
     public boolean isMining() {
-        return getBehaviour(MiningBehaviour.TYPE).isMining();
+        return getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE).isMining();
     }
 
     @Override
@@ -73,7 +73,8 @@ public class MinerBlockEntity extends KineticBlockEntity implements IHaveMiningG
     @Override
     public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
         super.addBehaviours(behaviours);
-        behaviours.add(new MiningBehaviour(this));
+
+        behaviours.add(new MiningBehaviour(this, () -> Direction.DOWN));
     }
 
     @Override
@@ -89,7 +90,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements IHaveMiningG
 
         // Clients get their claimed blocks from server updates
         if (clientPacket && level != null) {
-            particleOptions = getBehaviour(MiningBehaviour.TYPE).getClaimedDepositBlocks().stream()
+            particleOptions = getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE).getClaimedDepositBlocks().stream()
                     .map(bp -> level.getBlockState(bp))
                     .toList();
         }
