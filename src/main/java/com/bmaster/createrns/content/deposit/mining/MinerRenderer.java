@@ -23,7 +23,7 @@ public class MinerRenderer extends KineticBlockEntityRenderer<MinerBlockEntity> 
 
         VertexConsumer vb = buffer.getBuffer(RenderType.cutoutMipped());
 
-        var spec = be.getBehaviour(MiningBehaviour.TYPE).getSpec();
+        var spec = be.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE).getSpec();
         int tier = (spec == null) ? 1 : spec.tier();
         SuperByteBuffer head = CachedBuffers.partial(
                 (tier <= 1) ? RNSContent.MINER_MK1_DRILL : RNSContent.MINER_MK2_DRILL, be.getBlockState());

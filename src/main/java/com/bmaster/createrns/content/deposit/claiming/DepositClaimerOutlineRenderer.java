@@ -2,6 +2,7 @@ package com.bmaster.createrns.content.deposit.claiming;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer.ClaimerType;
 import com.simibubi.create.AllItems;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.createmod.catnip.outliner.Outliner;
@@ -23,7 +24,7 @@ public class DepositClaimerOutlineRenderer {
     private static int ttl = 0;
 
     @ParametersAreNonnullByDefault
-    public static void clearAndAddNearbyMiningBEs() {
+    public static void clearAndAddNearbyMiningBEs(ClaimerType type) {
         if (!outlineActive) return;
         Player p = Minecraft.getInstance().player;
         if (p == null) return;
@@ -31,7 +32,7 @@ public class DepositClaimerOutlineRenderer {
 
         selectedCluster.clear();
         outlineChanged = true;
-        DepositClaimerInstanceHolder.getInstancesWithinManhattanDistance(l, p.blockPosition(), OUTLINE_MAX_DIST)
+        DepositClaimerInstanceHolder.getInstancesWithinManhattanDistance(l, p.blockPosition(), OUTLINE_MAX_DIST, type)
                 .forEach(DepositClaimerOutlineRenderer::addClaimer);
     }
 
@@ -99,13 +100,12 @@ public class DepositClaimerOutlineRenderer {
         if (p == null) return;
         var l = p.level();
 
-        boolean renderOutline = (mc.hitResult instanceof BlockHitResult ray &&
-                l.getBlockState(ray.getBlockPos()).getBlock() instanceof IDepositClaimerOutlineTarget);
+        if (!(mc.hitResult instanceof BlockHitResult ray) ||
+                !(l.getBlockState(ray.getBlockPos()).getBlock() instanceof IDepositClaimerOutlineTarget target) ||
+                !holdingCorrectItem(p)) return;
 
-        if (renderOutline && holdingCorrectItem(p)) {
-            ttl = MAX_TTL;
-            outlineActive = true;
-            clearAndAddNearbyMiningBEs();
-        }
+        ttl = MAX_TTL;
+        outlineActive = true;
+        clearAndAddNearbyMiningBEs(target.getClaimerType());
     }
 }

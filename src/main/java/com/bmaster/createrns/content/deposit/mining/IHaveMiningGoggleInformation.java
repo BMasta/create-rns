@@ -85,7 +85,7 @@ public interface IHaveMiningGoggleInformation extends IHaveGoggleInformation {
 
     default boolean addUsesToGoggleTooltip(List<Component> tooltip) {
         var be = getTargetBlockEntity();
-        var mb = be.getBehaviour(MiningBehaviour.TYPE);
+        var mb = be.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
         var process = mb.getProcess();
         if (process == null || mb.getClaimedDepositBlocks().isEmpty()) return false;
 
@@ -119,7 +119,7 @@ public interface IHaveMiningGoggleInformation extends IHaveGoggleInformation {
     @SuppressWarnings("SameParameterValue")
     default boolean addRatesToGoggleTooltip(List<Component> tooltip, boolean isMainSection) {
         var be = getTargetBlockEntity();
-        var mb = be.getBehaviour(MiningBehaviour.TYPE);
+        var mb = be.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
         var process = mb.getProcess();
         if (process == null || mb.getClaimedDepositBlocks().isEmpty()) return false;
 

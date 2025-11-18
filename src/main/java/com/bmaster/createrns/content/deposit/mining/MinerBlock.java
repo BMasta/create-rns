@@ -35,26 +35,34 @@ public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity>, I
     }
 
     @Override
+    public IDepositBlockClaimer.ClaimerType getClaimerType() {
+        return MiningBehaviour.CLAIMER_TYPE;
+    }
+
+    @Override
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
         super.onPlace(state, level, pos, oldState, isMoving);
         if (level.isClientSide || oldState.is(state.getBlock()) ||
                 !(level.getBlockEntity(pos) instanceof MinerBlockEntity be)) return;
-        be.getBehaviour(MiningBehaviour.TYPE).claimDepositBlocks();
+        be.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE).claimDepositBlocks();
     }
 
     @ParametersAreNonnullByDefault
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         // Area must be collected from this BE before it's removed
+        IDepositBlockClaimer.ClaimerType type = null;
         BoundingBox area = null;
         if (!level.isClientSide && !state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof MinerBlockEntity be) {
-            area = be.getBehaviour(MiningBehaviour.TYPE).getClaimingBoundingBox();
+            var mb = be.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
+            type = mb.getClaimerType();
+            area = mb.getClaimingBoundingBox();
         }
 
         super.onRemove(state, level, pos, newState, movedByPiston);
 
         // Area must be reclaimed after this BE is removed
-        if (area != null) IDepositBlockClaimer.reclaimArea(level, area);
+        if (type != null && area != null) IDepositBlockClaimer.reclaimArea(level, area, type);
     }
 
     public static Direction.Axis getRotationAxis() {

@@ -6,10 +6,10 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.LongTag;
-import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import org.jetbrains.annotations.Nullable;
@@ -19,15 +19,24 @@ import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @ParametersAreNonnullByDefault
 public interface IDepositBlockClaimer {
+    /// Claimers with the same identifier in exclusive mode will never share a claimed block.
+    /// Claimers with the same identifier in stackable mode will keep track of how m
+    ClaimingMode getClaimingMode();
+
+    ClaimerType getClaimerType();
+
     Level getLevel();
 
     ClaimingAreaSpec getClaimingAreaSpec();
 
     BlockPos getAnchor();
+
+    Direction getClaimingDirection();
 
     Set<BlockPos> getClaimedDepositBlocks();
 
@@ -39,15 +48,21 @@ public interface IDepositBlockClaimer {
         var level = getLevel();
         var spec = getClaimingAreaSpec();
         var anchor = getAnchor();
-        int px = anchor.getX(), py = anchor.getY(), pz = anchor.getZ();
-        int minBuildHeight = level.getMinBuildHeight(), maxBuildHeight = level.getMaxBuildHeight();
+        var dir = getClaimingDirection();
+        Vec3i pos = new Vec3i(anchor.getX(), anchor.getY(), anchor.getZ());
 
-        int yMin = Mth.clamp(py + spec.verticalOffset() - spec.height() + 1, minBuildHeight, maxBuildHeight);
-        int yMax = Mth.clamp(py + spec.verticalOffset(), minBuildHeight, maxBuildHeight);
+        var minOffset = dir.getNormal().multiply(
+                dir.getAxisDirection() == Direction.AxisDirection.POSITIVE ? spec.offset : spec.offset + spec.length - 1);
+        var maxOffset = dir.getNormal().multiply(
+                dir.getAxisDirection() == Direction.AxisDirection.NEGATIVE ? spec.offset : spec.offset + spec.length - 1);
 
-        return new BoundingBox(
-                px - spec.radius(), yMin, pz - spec.radius(),
-                px + spec.radius(), yMax, pz + spec.radius());
+        var minRadiusDelta = diagonalPlaneVec(dir, false).multiply(spec.radius);
+        var maxRadiusDelta = diagonalPlaneVec(dir, true).multiply(spec.radius);
+
+        var minPos = pos.offset(minOffset).offset(minRadiusDelta);
+        var maxPos = pos.offset(maxOffset).offset(maxRadiusDelta);
+
+        return new BoundingBox(minPos.getX(), minPos.getY(), minPos.getZ(), maxPos.getX(), maxPos.getY(), maxPos.getZ());
     }
 
     default Set<BlockPos> getConfinedDepositVein() {
@@ -56,11 +71,12 @@ public interface IDepositBlockClaimer {
         var anchor = getAnchor();
         var ma = getClaimingBoundingBox();
         if (ma == null) return Set.of();
+        var dir = getClaimingDirection();
 
         Queue<BlockPos> q = new ArrayDeque<>();
         LongOpenHashSet visited = new LongOpenHashSet(ma.getXSpan() * ma.getYSpan() * ma.getZSpan());
 
-        q.offer(anchor.relative(Direction.Axis.Y, spec.verticalOffset()));
+        q.offer(anchor.relative(dir, spec.offset()));
         while (!q.isEmpty()) {
             var bp = q.poll();
             if (visited.contains(bp.asLong()) || !ma.isInside(bp) || !level.getBlockState(bp).is(RNSTags.Block.DEPOSIT_BLOCKS)) {
@@ -75,8 +91,11 @@ public interface IDepositBlockClaimer {
 
     default Set<BlockPos> getClaimableDepositVein(Level level) {
         var vein = getConfinedDepositVein();
-        for (var c : DepositClaimerInstanceHolder.getInstancesWithIntersectingArea(this, level)) {
-            vein.removeAll(c.getClaimedDepositBlocks());
+        if (getClaimingMode() == ClaimingMode.EXCLUSIVE) {
+            // Remove blocks claimed by other claimers of the same type
+            for (var c : DepositClaimerInstanceHolder.getInstancesWithIntersectingArea(this, level, getClaimerType())) {
+                vein.removeAll(c.getClaimedDepositBlocks());
+            }
         }
         return vein;
     }
@@ -104,18 +123,40 @@ public interface IDepositBlockClaimer {
     }
 
     /// All claimers whose area intersects the provided area will reclaim their blocks
-    static void reclaimArea(Level level, BoundingBox area) {
-        var claimers = DepositClaimerInstanceHolder.getInstancesWithIntersectingArea(level, area);
+    static void reclaimArea(Level level, BoundingBox area, ClaimerType type) {
+        var claimers = DepositClaimerInstanceHolder.getInstancesWithIntersectingArea(level, area, type);
         for (var c : claimers) {
             c.claimDepositBlocks();
         }
     }
 
-    record ClaimingAreaSpec(int radius, int height, int verticalOffset) {
+    record ClaimingAreaSpec(int radius, int length, int offset) {
         public static final Codec<ClaimingAreaSpec> CODEC = RecordCodecBuilder.create(i -> i.group(
                 Codec.intRange(0, Integer.MAX_VALUE).fieldOf("radius").forGetter(ClaimingAreaSpec::radius),
-                Codec.intRange(0, Integer.MAX_VALUE).fieldOf("height").forGetter(ClaimingAreaSpec::height),
-                Codec.INT.fieldOf("vertical_offset").forGetter(ClaimingAreaSpec::verticalOffset)
+                Codec.intRange(1, Integer.MAX_VALUE).fieldOf("length").forGetter(ClaimingAreaSpec::length),
+                Codec.INT.fieldOf("offset").forGetter(ClaimingAreaSpec::offset)
         ).apply(i, ClaimingAreaSpec::new));
+    }
+
+    record ClaimerType(String name) {
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            } else {
+                return obj instanceof ClaimerType ct && this.name.equalsIgnoreCase(ct.name);
+            }
+        }
+    }
+
+    enum ClaimingMode {
+        EXCLUSIVE, STACKABLE
+    }
+
+    private static Vec3i diagonalPlaneVec(Direction dir, boolean positive) {
+        var n = dir.getNormal();
+        var flipVal = (positive ? 1 : -1);
+        Function<Integer, Integer> flip = v -> v == 0 ? flipVal : 0;
+        return new Vec3i(flip.apply(n.getX()), flip.apply(n.getY()), flip.apply(n.getZ()));
     }
 }
