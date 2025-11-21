@@ -2,10 +2,14 @@ package com.bmaster.createrns;
 
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.content.deposit.info.LevelDepositData;
-import com.bmaster.createrns.content.deposit.mining.MinerBlock;
-import com.bmaster.createrns.content.deposit.mining.MinerBlockEntity;
-import com.bmaster.createrns.content.deposit.mining.MinerRenderer;
-import com.bmaster.createrns.content.deposit.mining.MinerVisual;
+import com.bmaster.createrns.content.deposit.mining.block.MinerBlock;
+import com.bmaster.createrns.content.deposit.mining.block.MinerBlockEntity;
+import com.bmaster.createrns.content.deposit.mining.block.MinerRenderer;
+import com.bmaster.createrns.content.deposit.mining.block.MinerVisual;
+import com.bmaster.createrns.content.deposit.mining.multiblock.DrillHeadBlock;
+import com.bmaster.createrns.content.deposit.mining.multiblock.DrillHeadMovementBehaviour;
+import com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlock;
+import com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlockEntity;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerItem;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositStructureConfigBuilder;
@@ -16,7 +20,11 @@ import com.bmaster.createrns.infrastructure.command.ScannerCommand;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
+import com.simibubi.create.AllTags;
 import com.simibubi.create.api.stress.BlockStressValues;
+import com.simibubi.create.content.contraptions.bearing.BearingRenderer;
+import com.simibubi.create.content.contraptions.bearing.BearingVisual;
+import com.simibubi.create.content.contraptions.bearing.StabilizedBearingMovementBehaviour;
 import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.SharedProperties;
 import com.simibubi.create.foundation.item.ItemDescription;
@@ -59,6 +67,7 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import java.util.function.Supplier;
 
+import static com.simibubi.create.api.behaviour.movement.MovementBehaviour.movementBehaviour;
 import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
 import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
 
@@ -178,6 +187,36 @@ public class RNSContent {
             .build()
             .register();
 
+    public static final BlockEntry<MinerBearingBlock> MINER_BEARING_BLOCK = CreateRNS.REGISTRATE.block(
+                    "miner_bearing", MinerBearingBlock::new)
+            .initialProperties(SharedProperties::stone)
+            .properties(p -> p
+                    .mapColor(MapColor.PODZOL)
+                    .noOcclusion())
+            .transform(axeOrPickaxe())
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 4))
+            .onRegister(movementBehaviour(new StabilizedBearingMovementBehaviour()))
+            .blockstate((c, p) ->
+                    p.directionalBlock(c.get(), AssetLookup.partialBaseModel(c, p)))
+            .item()
+            .model(AssetLookup::customItemModel)
+            .build()
+            .register();
+
+    public static final BlockEntry<DrillHeadBlock> DRILL_HEAD_BLOCK = CreateRNS.REGISTRATE.block(
+                    "drill_head", DrillHeadBlock::new)
+            .initialProperties(() -> Blocks.IRON_BLOCK)
+            .properties(p -> p
+                    .mapColor(MapColor.COLOR_GRAY)
+                    .noOcclusion())
+            .transform(pickaxeOnly())
+            .blockstate((c, p) ->
+                    p.horizontalFaceBlock(c.get(), AssetLookup.standardModel(c, p)))
+            .onRegister(movementBehaviour(new DrillHeadMovementBehaviour()))
+            .simpleItem()
+            .register();
+
     public static final BlockEntry<DepositBlock> IRON_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "iron_deposit_block", DepositBlock::new)
             .transform(deposit(MapColor.RAW_IRON))
@@ -268,6 +307,13 @@ public class RNSContent {
             .renderer(() -> MinerRenderer::new)
             .register();
 
+    public static final BlockEntityEntry<MinerBearingBlockEntity> MINER_BEARING_BE = CreateRNS.REGISTRATE.blockEntity("miner_bearing",
+                    MinerBearingBlockEntity::new)
+            .visual(() -> BearingVisual::new)
+            .validBlocks(MINER_BEARING_BLOCK)
+            .renderer(() -> BearingRenderer::new)
+            .register();
+
     // Dynamic packs
     public static Pack MAIN_PACK = DynamicDatapack.createDatapack("dynamic_data")
             .title(Component.literal("Dynamic mod data for Create: Rock & Stone"))
@@ -307,7 +353,6 @@ public class RNSContent {
                         .pushReaction(PushReaction.BLOCK)
                         .noLootTable())
                 .transform(pickaxeOnly())
-                .tag(BlockTags.MINEABLE_WITH_PICKAXE)
                 .tag(BlockTags.NEEDS_DIAMOND_TOOL)
                 .tag(RNSTags.Block.DEPOSIT_BLOCKS)
                 .item()

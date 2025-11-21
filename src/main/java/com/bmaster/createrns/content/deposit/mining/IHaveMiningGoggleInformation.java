@@ -1,6 +1,7 @@
 package com.bmaster.createrns.content.deposit.mining;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.content.deposit.mining.block.MiningBehaviour;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.content.kinetics.base.IRotate;
@@ -91,7 +92,7 @@ public interface IHaveMiningGoggleInformation extends IHaveGoggleInformation {
         if (process == null || mb.getClaimedDepositBlocks().isEmpty()) return false;
 
         new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
-        new LangBuilder(CreateRNS.MOD_ID).translate(getLangIdentifier() + ".remaining_deposit_uses").forGoggles(tooltip);
+        new LangBuilder(CreateRNS.MOD_ID).translate("mining.remaining_deposit_uses").forGoggles(tooltip);
 
         process.innerProcesses.stream().sorted((a, b) -> {
                     var au = (a.remainingUses == 0) ? Long.MAX_VALUE : a.remainingUses;
@@ -105,7 +106,7 @@ public interface IHaveMiningGoggleInformation extends IHaveGoggleInformation {
                 .forEachOrdered(p -> {
                     var usesComp = (p.remainingUses > 0)
                             ? Component.literal(Long.toString(p.remainingUses))
-                            : Component.translatable("create_rns." + getLangIdentifier() + ".infinite");
+                            : Component.translatable("create_rns.mining.infinite");
                     new LangBuilder(CreateRNS.MOD_ID)
                             .add(p.recipe.getDepositBlock().getName()
                                     .append(": ")
@@ -125,7 +126,7 @@ public interface IHaveMiningGoggleInformation extends IHaveGoggleInformation {
         if (process == null || mb.getClaimedDepositBlocks().isEmpty()) return false;
 
         if (isMainSection) {
-            new LangBuilder(CreateRNS.MOD_ID).translate(getLangIdentifier() + ".production_rates").forGoggles(tooltip);
+            new LangBuilder(CreateRNS.MOD_ID).translate("mining.production_rates").forGoggles(tooltip);
         } else {
             // Newline between sections
             new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
@@ -150,7 +151,7 @@ public interface IHaveMiningGoggleInformation extends IHaveGoggleInformation {
                                         .append(": ")
                                         .withStyle(ChatFormatting.GRAY))
                                 .add(Component.literal(String.format(java.util.Locale.ROOT, "%.1f", e.getFloatValue()))
-                                        .append(Component.translatable(CreateRNS.MOD_ID + "." + getLangIdentifier() + ".per_hour"))
+                                        .append(Component.translatable(CreateRNS.MOD_ID + ".mining.per_hour"))
                                         .withStyle(ChatFormatting.GREEN))
                                 .forGoggles(tooltip, 1)
                 );

@@ -1,8 +1,10 @@
 {
   "block.create_rns.copper_deposit_block": "Copper Deposit Block",
   "block.create_rns.depleted_deposit_block": "Depleted Deposit Block",
+  "block.create_rns.drill_head": "Drill Head",
   "block.create_rns.gold_deposit_block": "Gold Deposit Block",
   "block.create_rns.iron_deposit_block": "Iron Deposit Block",
+  "block.create_rns.miner_bearing": "Miner Bearing",
   "block.create_rns.miner_mk1": "Miner Mk1",
   "block.create_rns.miner_mk2": "Miner Mk2",
   "block.create_rns.redstone_deposit_block": "Redstone Deposit Block",

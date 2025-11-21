@@ -1,7 +1,6 @@
 package com.bmaster.createrns.content.deposit.claiming;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer.ClaimerType;
 import com.simibubi.create.AllItems;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -9,6 +8,7 @@ import net.createmod.catnip.outliner.Outliner;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.phys.BlockHitResult;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -88,9 +88,13 @@ public class DepositClaimerOutlineRenderer {
 
     private static boolean holdingCorrectItem(Player p) {
         var mainHandItem = p.getMainHandItem();
-        return AllItems.WRENCH.isIn(mainHandItem) ||
-                RNSContent.MINER_MK1_BLOCK.isIn(mainHandItem) ||
-                RNSContent.MINER_MK2_BLOCK.isIn(mainHandItem);
+        // Wrench
+        if (AllItems.WRENCH.isIn(mainHandItem)) return true;
+
+        if (!(mainHandItem.getItem() instanceof BlockItem mainHandBlockItem)) return false;
+
+        // Or any block that acts as an outline target
+        return IDepositClaimerOutlineTarget.class.isAssignableFrom(mainHandBlockItem.getBlock().getClass());
     }
 
     private static void activateOutlineIfNeeded() {
