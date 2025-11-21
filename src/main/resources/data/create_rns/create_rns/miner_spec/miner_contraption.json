@@ -1,0 +1,10 @@
+{
+  "miner_block": "create_rns:miner_bearing",
+  "tier": 2,
+  "mines_per_hour": 60.0,
+  "mining_area": {
+    "radius": 3,
+    "length": 9,
+    "offset": 0
+  }
+}

@@ -24,15 +24,13 @@ import java.util.stream.Collectors;
 
 @ParametersAreNonnullByDefault
 public interface IDepositBlockClaimer {
-    /// Claimers with the same identifier in exclusive mode will never share a claimed block.
-    /// Claimers with the same identifier in stackable mode will keep track of how m
     ClaimingMode getClaimingMode();
 
     ClaimerType getClaimerType();
 
     Level getLevel();
 
-    ClaimingAreaSpec getClaimingAreaSpec();
+    @Nullable ClaimingAreaSpec getClaimingAreaSpec();
 
     BlockPos getAnchor();
 
@@ -47,6 +45,7 @@ public interface IDepositBlockClaimer {
     default @Nullable BoundingBox getClaimingBoundingBox() {
         var level = getLevel();
         var spec = getClaimingAreaSpec();
+        if (spec == null) return null;
         var anchor = getAnchor();
         var dir = getClaimingDirection();
         Vec3i pos = new Vec3i(anchor.getX(), anchor.getY(), anchor.getZ());
@@ -68,6 +67,7 @@ public interface IDepositBlockClaimer {
     default Set<BlockPos> getConfinedDepositVein() {
         var level = getLevel();
         var spec = getClaimingAreaSpec();
+        if (spec == null) return Set.of();
         var anchor = getAnchor();
         var ma = getClaimingBoundingBox();
         if (ma == null) return Set.of();
@@ -119,7 +119,13 @@ public interface IDepositBlockClaimer {
             if (!(t instanceof LongTag lt)) continue;
             blocks.add(BlockPos.of(lt.getAsLong()));
         }
+        if (getClaimedDepositBlocks().equals(blocks)) return;
+
+        // Clients also need to update the outline
+        var level = getLevel();
+        if (level != null && level.isClientSide) DepositClaimerOutlineRenderer.removeClaimer(this);
         setClaimedDepositBlocks(blocks);
+        if (level != null && level.isClientSide) DepositClaimerOutlineRenderer.addClaimer(this);
     }
 
     /// All claimers whose area intersects the provided area will reclaim their blocks

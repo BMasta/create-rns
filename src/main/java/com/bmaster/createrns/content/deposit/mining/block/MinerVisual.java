@@ -1,4 +1,4 @@
-package com.bmaster.createrns.content.deposit.mining;
+package com.bmaster.createrns.content.deposit.mining.block;
 
 import com.bmaster.createrns.RNSContent;
 import com.simibubi.create.content.kinetics.base.SingleAxisRotatingVisual;

@@ -2,8 +2,8 @@ package com.bmaster.createrns.infrastructure.gametest;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.content.deposit.mining.MinerBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.MiningItemHandler;
+import com.bmaster.createrns.content.deposit.mining.block.MinerBlockEntity;
 import com.simibubi.create.content.kinetics.motor.CreativeMotorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
