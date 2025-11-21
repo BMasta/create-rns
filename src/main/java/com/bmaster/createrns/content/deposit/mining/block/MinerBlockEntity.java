@@ -1,20 +1,18 @@
-package com.bmaster.createrns.content.deposit.mining;
+package com.bmaster.createrns.content.deposit.mining.block;
 
 import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.content.deposit.mining.IHaveMiningGoggleInformation;
+import com.bmaster.createrns.content.deposit.mining.MiningEffectsGenerator;
+import com.bmaster.createrns.content.deposit.mining.MiningItemHandler;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.inventory.InvManipulationBehaviour;
 import com.simibubi.create.foundation.item.ItemHelper;
-import com.simibubi.create.foundation.sound.SoundScapes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.particles.BlockParticleOption;
-import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +23,7 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 public class MinerBlockEntity extends KineticBlockEntity implements IHaveMiningGoggleInformation {
     protected final MiningItemHandler inventory = new MiningItemHandler(this);
-    private List<BlockState> particleOptions = null;
+    protected MiningEffectsGenerator effects = null;
 
     public MinerBlockEntity(BlockPos pos, BlockState state) {
         super(RNSContent.MINER_BE.get(), pos, state);
@@ -50,12 +48,18 @@ public class MinerBlockEntity extends KineticBlockEntity implements IHaveMiningG
     }
 
     @Override
+    public void onLoad() {
+        super.onLoad();
+        effects = new MiningEffectsGenerator(level, worldPosition);
+    }
+
+    @Override
     public void tick() {
         super.tick();
         if (level == null) return;
 
         if (level.isClientSide) {
-            if (isMining()) spawnParticles();
+            if (isMining()) effects.spawnParticles();
         } else {
             tryEjectUp();
         }
@@ -64,10 +68,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements IHaveMiningG
     @Override
     public void tickAudio() {
         if (!isMining()) return;
-        float speed = Math.abs(getSpeed());
-
-        float pitch = Mth.clamp((speed / 256f) + .45f, .85f, 1f);
-        SoundScapes.play(SoundScapes.AmbienceGroup.CRUSHING, worldPosition, pitch);
+        effects.tickSoundScape(getSpeed());
     }
 
     @Override
@@ -88,11 +89,8 @@ public class MinerBlockEntity extends KineticBlockEntity implements IHaveMiningG
         super.read(tag, p, clientPacket);
         inventory.deserializeNBT(p, tag.getCompound("inventory"));
 
-        // Clients get their claimed blocks from server updates
-        if (clientPacket && level != null) {
-            particleOptions = getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE).getClaimedDepositBlocks().stream()
-                    .map(bp -> level.getBlockState(bp))
-                    .toList();
+        if (clientPacket && effects != null) {
+            effects.setParticles(getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE).getClaimedDepositBlocks());
         }
     }
 
@@ -133,21 +131,5 @@ public class MinerBlockEntity extends KineticBlockEntity implements IHaveMiningG
                 return;
             }
         }
-    }
-
-    protected void spawnParticles() {
-        if (level == null) return;
-        if (particleOptions == null) return;
-
-        var r = level.random;
-        BlockState selectedParticle = particleOptions.get(r.nextInt(0, particleOptions.size()));
-        ParticleOptions particleData = new BlockParticleOption(ParticleTypes.BLOCK, selectedParticle);
-
-        for (int i = 0; i < 2; i++)
-            level.addParticle(particleData,
-                    worldPosition.getX() + r.nextFloat(),
-                    worldPosition.getY() - 0.5 + r.nextFloat(),
-                    worldPosition.getZ() + r.nextFloat(),
-                    0, 0, 0);
     }
 }

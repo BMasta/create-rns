@@ -1,10 +1,11 @@
-package com.bmaster.createrns.content.deposit.mining;
+package com.bmaster.createrns.content.deposit.mining.block;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
+import com.bmaster.createrns.content.deposit.mining.*;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
@@ -12,6 +13,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import org.jetbrains.annotations.Nullable;
@@ -27,12 +29,12 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
     public static final BehaviourType<MiningBehaviour> BEHAVIOUR_TYPE = new BehaviourType<>(CreateRNS.MOD_ID + ":mining");
     public static final ClaimerType CLAIMER_TYPE = new ClaimerType(CreateRNS.MOD_ID + ":mining");
 
-    private final KineticBlockEntity kBE;
-    private final Supplier<Direction> claimingDirection;
-    private Set<BlockPos> claimedDepositBlocks = new HashSet<>();
-    private MinerSpec spec = null;
-    private MiningProcess process = null;
-    private CompoundTag pendingProcessTag = null;
+    protected final KineticBlockEntity kBE;
+    protected final Supplier<Direction> claimingDirection;
+    protected Set<BlockPos> claimedDepositBlocks = new HashSet<>();
+    protected MinerSpec spec = null;
+    protected MiningProcess process = null;
+    protected Tuple<CompoundTag, Boolean> pendingProcessTag = null;
 
     public MiningBehaviour(KineticBlockEntity be, Supplier<Direction> claimingDirection) {
         super(be);
@@ -52,10 +54,7 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
         if ((process == null && !tryInitProcess(false)) || !isMining()) return;
 
         process.advance(getCurrentProgressIncrement());
-        var inv = level.getCapability(Capabilities.ItemHandler.BLOCK, getPos(), null);
-        if (!(inv instanceof MiningItemHandler mInv)) throw new IllegalStateException(
-                "BE with this mining behavior does not have a mining item handler");
-        mInv.collectMinedItems(process);
+        collect();
     }
 
     @Override
@@ -76,29 +75,25 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
     public void write(CompoundTag nbt, HolderLookup.Provider provider, boolean clientPacket) {
         super.write(nbt, provider, clientPacket);
         nbt.put("claimer", serializeDepositBlockClaimer(provider));
-        if (process != null || tryInitProcess(false)) nbt.put("process", process.getProgressAsNBT());
+        if (process != null || tryInitProcess(false)) {
+            var processNBT = process.write(provider, clientPacket);
+            if (processNBT != null) nbt.put("process", processNBT);
+        }
     }
 
     @Override
     public void read(CompoundTag nbt, HolderLookup.Provider provider, boolean clientPacket) {
         super.read(nbt, provider, clientPacket);
 
-        // Clear outline for the claimed area of this BE (client side)
-        if (clientPacket) DepositClaimerOutlineRenderer.removeClaimer(this);
-
         // Deserialize claimed area
         deserializeDepositBlockClaimer(provider, nbt.getCompound("claimer"));
 
-        // Add outline for the freshly deserialized claimed area back in (client side)
-        if (clientPacket) DepositClaimerOutlineRenderer.addClaimer(this);
-
-        // Schedule deserialization of the mining process
+        // Deserialize or schedule deserialization of the mining process
         if (nbt.contains("process")) {
-            pendingProcessTag = nbt.getCompound("process");
+            var processTag = nbt.getCompound("process");
+            if (process != null) process.read(processTag, provider, clientPacket);
+            else pendingProcessTag = new Tuple<>(processTag, clientPacket);
         }
-
-        // Recompute mining process yields based on claimed mining area. This also happens on process initialization.
-        tryInitProcess(true);
     }
 
     public boolean isMining() {
@@ -132,9 +127,9 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
     }
 
     @Override
-    public ClaimingAreaSpec getClaimingAreaSpec() {
+    public @Nullable ClaimingAreaSpec getClaimingAreaSpec() {
         var spec = getSpec();
-        if (spec == null) throw new RuntimeException("Failed to get miner spec");
+        if (spec == null) return null;
         return spec.miningArea();
     }
 
@@ -155,7 +150,11 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
 
     @Override
     public void setClaimedDepositBlocks(Set<BlockPos> claimedBlocks) {
+        if (claimedDepositBlocks.equals(claimedBlocks)) return;
         claimedDepositBlocks = claimedBlocks;
+
+        // Recompute mining process based on claimed mining area
+        tryInitProcess(true);
     }
 
     @Override
@@ -185,6 +184,13 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
         return (int) (spec.minesPerHour() * Math.abs(kBE.getSpeed()));
     }
 
+    public void collect() {
+        var inv = getLevel().getCapability(Capabilities.ItemHandler.BLOCK, getPos(), null);
+        if (!(inv instanceof MiningItemHandler mInv)) throw new IllegalStateException(
+                "BE with this mining behavior does not have a mining item handler");
+        mInv.collectMinedItems(process);
+    }
+
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     protected boolean tryInitSpec() {
         var level = getLevel();
@@ -205,7 +211,7 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
 
         // If we got mining progress data from NBT, now is the time to set it
         if (pendingProcessTag != null) {
-            process.setProgressFromNBT(pendingProcessTag);
+            process.read(pendingProcessTag.getA(), level.registryAccess(), pendingProcessTag.getB());
             pendingProcessTag = null;
         }
 

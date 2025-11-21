@@ -6,8 +6,10 @@ import com.bmaster.createrns.RNSTags;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -19,6 +21,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -28,6 +31,8 @@ import java.util.stream.Collectors;
 
 import static com.bmaster.createrns.RNSContent.LEVEL_DEPOSIT_DATA;
 
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public class MiningProcess {
     // 1 mine per block per hour at 256 points per tick
     public static final int BASE_PROGRESS = 256 * 60 * SharedConstants.TICKS_PER_MINUTE;
@@ -87,25 +92,26 @@ public class MiningProcess {
         return rates;
     }
 
-    public CompoundTag getProgressAsNBT() {
-        CompoundTag root = new CompoundTag();
+    public @Nullable CompoundTag write(Provider provider, boolean clientPacket) {
 
         ListTag progressTags = new ListTag();
         innerProcesses.stream()
-                .map(InnerProcess::getProgressAsNBT)
+                .map(p -> p.write(provider, clientPacket))
                 .filter(Objects::nonNull)
                 .forEach(progressTags::add);
-        root.put("per_deposit_progress", progressTags);
 
+        if (progressTags.isEmpty()) return null;
+        CompoundTag root = new CompoundTag();
+        root.put("inner_processes", progressTags);
         return root;
     }
 
-    public void setProgressFromNBT(CompoundTag nbt) {
+    public void read(CompoundTag nbt, Provider provider, boolean clientPacket) {
         Object2ObjectOpenHashMap<Block, InnerProcess> dbToProcess = innerProcesses.stream()
                 .collect(Collectors.toMap(p -> p.recipe.getDepositBlock(), p -> p,
                         (o, n) -> n, Object2ObjectOpenHashMap::new));
 
-        ListTag progressTags = nbt.getList("per_deposit_progress", Tag.TAG_COMPOUND);
+        ListTag progressTags = nbt.getList("inner_processes", Tag.TAG_COMPOUND);
         for (var pt : progressTags) {
             var dbStr = ((CompoundTag) pt).getString("deposit_block");
             var dbRL = ResourceLocation.tryParse(dbStr);
@@ -119,7 +125,7 @@ public class MiningProcess {
                 continue;
             }
             var ip = dbToProcess.get(db);
-            if (ip != null) ip.setProgressFromNBT((CompoundTag) pt);
+            if (ip != null) ip.read((CompoundTag) pt, provider, clientPacket);
         }
     }
 
@@ -158,23 +164,24 @@ public class MiningProcess {
             return new ItemStack(recipe.getYield().roll(level.random));
         }
 
-        public @Nullable CompoundTag getProgressAsNBT() {
-            var dbRL = BuiltInRegistries.BLOCK.getKeyOrNull(recipe.getDepositBlock());
-            if (dbRL == null) return null;
+        public @Nullable CompoundTag write(Provider provider, boolean clientPacket) {
+            CompoundTag root = new CompoundTag();
+            var dbRL = BuiltInRegistries.BLOCK.getKey(recipe.getDepositBlock());
+            root.putString("deposit_block", dbRL.toString());
 
-            CompoundTag ipTag = new CompoundTag();
-            ipTag.putString("deposit_block", dbRL.toString());
-            ipTag.putInt("progress", progress);
             computeRemainingUses();
-            ipTag.putLong("remaining_uses", remainingUses);
+            root.putLong("remaining_uses", remainingUses);
 
-            return ipTag;
+            if (!clientPacket) root.putInt("progress", progress);
+
+            return root;
+
         }
 
-        /// Assumes that the yield of the tag matches the yield of this instance
-        public void setProgressFromNBT(CompoundTag nbt) {
-            this.progress = nbt.getInt("progress");
+        public void read(CompoundTag nbt, Provider provider, boolean clientPacket) {
             this.remainingUses = nbt.getLong("remaining_uses");
+            if (!clientPacket) this.progress = nbt.getInt("progress");
+
         }
 
         /// Returns 0 if deposit is infinite. Only callable on server side

@@ -26,10 +26,10 @@ public enum DepositBlockComponentProvider implements IBlockComponentProvider, IS
 
         MutableComponent durComp;
         if (dur == -1) durComp = Component.translatable("create_rns.jade.deposit_not_generated");
-        else if (dur == 0) durComp = Component.translatable("create_rns.miner.infinite");
+        else if (dur == 0) durComp = Component.translatable("create_rns.mining.infinite");
         else durComp = Component.literal(Long.toString(dur));
 
-        tooltip.add(Component.translatable("create_rns.miner.remaining_deposit_uses").append(" "));
+        tooltip.add(Component.translatable("create_rns.mining.remaining_deposit_uses").append(" "));
         tooltip.append(durComp);
     }
 
