@@ -50,6 +50,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -61,6 +62,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
@@ -175,12 +177,22 @@ public class RNSContent {
                     .noOcclusion())
             .transform(axeOrPickaxe())
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 4))
+            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 32))
             .onRegister(movementBehaviour(new StabilizedBearingMovementBehaviour()))
             .blockstate((c, p) ->
                     p.directionalBlock(c.get(), AssetLookup.partialBaseModel(c, p)))
             .item()
             .model(AssetLookup::customItemModel)
+            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
+                    .define('W', ItemTags.WOODEN_SLABS)
+                    .define('S', Tags.Items.STONE)
+                    .define('A', Items.AMETHYST_SHARD)
+                    .define('F', AllBlocks.SHAFT)
+                    .pattern(" W ")
+                    .pattern("ASA")
+                    .pattern(" F ")
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.ANDESITE_ALLOY))
+                    .save(p))
             .build()
             .register();
 
@@ -192,9 +204,17 @@ public class RNSContent {
                     .noOcclusion())
             .transform(pickaxeOnly())
             .blockstate((c, p) ->
-                    p.horizontalFaceBlock(c.get(), AssetLookup.standardModel(c, p)))
+                    p.directionalBlock(c.get(), AssetLookup.standardModel(c, p)))
             .onRegister(movementBehaviour(new DrillHeadMovementBehaviour()))
             .simpleItem()
+            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
+                    .define('I', Items.IRON_INGOT)
+                    .define('A', AllItems.ANDESITE_ALLOY)
+                    .pattern("III")
+                    .pattern("AIA")
+                    .pattern("AAA")
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.ANDESITE_ALLOY))
+                    .save(p))
             .register();
 
     public static final BlockEntry<DepositBlock> IRON_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(

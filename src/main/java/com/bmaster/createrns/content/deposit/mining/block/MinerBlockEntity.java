@@ -49,7 +49,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements IHaveMiningG
     public void onLoad() {
         super.onLoad(); // Initialize the inventory capability when the BE is first loaded
         inventoryCap = LazyOptional.of(() -> inventory);
-        effects = new MiningEffectsGenerator(level, worldPosition);
+        effects = new MiningEffectsGenerator(level, () -> worldPosition, () -> Direction.DOWN);
     }
 
     public MiningItemHandler getItemHandler(@Nullable Direction side) {

@@ -3,6 +3,8 @@ package com.bmaster.createrns.util;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.ChunkPos;
 
 import java.util.function.Function;
@@ -41,5 +43,17 @@ public class Utils {
             return DataResult.error(() -> "Value " + value + " outside of range [" + minInclusive + ":" + maxInclusive + "]");
         };
         return Codec.LONG.flatXmap(checker, checker);
+    }
+
+    /// Flips non-zero vector components to zero, and zero components to either -1 or 1
+    public static Vec3i normalVecFlip(Direction dir, boolean positive) {
+        var n = dir.getNormal();
+        var flipVal = (positive ? 1 : -1);
+        Function<Integer, Integer> flip = v -> v == 0 ? flipVal : 0;
+        return new Vec3i(flip.apply(n.getX()), flip.apply(n.getY()), flip.apply(n.getZ()));
+    }
+
+    public static int dot(Vec3i a, Vec3i b) {
+        return a.getX() * b.getX() + a.getY() * b.getY() + a.getZ() * b.getZ();
     }
 }

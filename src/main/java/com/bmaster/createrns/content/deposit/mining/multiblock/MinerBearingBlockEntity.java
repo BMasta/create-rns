@@ -31,7 +31,8 @@ public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity implem
     @Override
     public void onLoad() {
         super.onLoad();
-        effects = new MiningEffectsGenerator(level);
+        effects = new MiningEffectsGenerator(level, () -> miningBehaviour.getDrillHeadAbsPos(),
+                () -> getBlockState().getValue(MinerBearingBlock.FACING));
     }
 
     @Override
@@ -101,7 +102,6 @@ public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity implem
     protected void read(CompoundTag compound, boolean clientPacket) {
         super.read(compound, clientPacket);
         if (clientPacket && effects != null) {
-            effects.setSourcePosition(miningBehaviour.getDrillHeadAbsPos());
             effects.setParticles(miningBehaviour.getClaimedDepositBlocks());
         }
     }

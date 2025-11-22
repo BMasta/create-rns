@@ -1,6 +1,7 @@
 package com.bmaster.createrns.content.deposit.claiming;
 
 import com.bmaster.createrns.RNSTags;
+import com.bmaster.createrns.util.Utils;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -55,8 +56,8 @@ public interface IDepositBlockClaimer {
         var maxOffset = dir.getNormal().multiply(
                 dir.getAxisDirection() == Direction.AxisDirection.NEGATIVE ? spec.offset : spec.offset + spec.length - 1);
 
-        var minRadiusDelta = diagonalPlaneVec(dir, false).multiply(spec.radius);
-        var maxRadiusDelta = diagonalPlaneVec(dir, true).multiply(spec.radius);
+        var minRadiusDelta = Utils.normalVecFlip(dir, false).multiply(spec.radius);
+        var maxRadiusDelta = Utils.normalVecFlip(dir, true).multiply(spec.radius);
 
         var minPos = pos.offset(minOffset).offset(minRadiusDelta);
         var maxPos = pos.offset(maxOffset).offset(maxRadiusDelta);
@@ -157,12 +158,5 @@ public interface IDepositBlockClaimer {
 
     enum ClaimingMode {
         EXCLUSIVE, STACKABLE
-    }
-
-    private static Vec3i diagonalPlaneVec(Direction dir, boolean positive) {
-        var n = dir.getNormal();
-        var flipVal = (positive ? 1 : -1);
-        Function<Integer, Integer> flip = v -> v == 0 ? flipVal : 0;
-        return new Vec3i(flip.apply(n.getX()), flip.apply(n.getY()), flip.apply(n.getZ()));
     }
 }

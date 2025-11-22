@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "create:andesite_alloy"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "pattern": [
+    "III",
+    "AIA",
+    "AAA"
+  ],
+  "result": {
+    "item": "create_rns:drill_head"
+  },
+  "show_notification": true
+}

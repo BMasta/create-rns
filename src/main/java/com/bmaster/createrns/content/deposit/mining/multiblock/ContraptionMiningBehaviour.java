@@ -10,6 +10,8 @@ import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate.StructureBlockInfo;
 
 import javax.annotation.Nullable;
@@ -20,6 +22,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class ContraptionMiningBehaviour extends MiningBehaviour {
     protected final MinerBearingBlockEntity bearing;
     protected MinerSpec baseSpec = null;
+    protected BlockPos drillPos = null;
 
     public ContraptionMiningBehaviour(MinerBearingBlockEntity bearing) {
         super(bearing, () -> bearing.getBlockState().getValue(DirectionalKineticBlock.FACING));
@@ -40,9 +43,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     }
 
     public @Nullable BlockPos getDrillHeadAbsPos() {
-        var actor = getDrillHeadActor();
-        if (actor == null) return null;
-        return actor.getFirst().pos().relative(claimingDirection.get()).offset(bearing.getBlockPos());
+        return drillPos;
     }
 
     @Override
@@ -74,6 +75,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
         claimedDepositBlocks.clear();
         spec = null;
         process = null;
+        drillPos = null;
 
         // We get the first opportunity to reclaim
         claimDepositBlocks();
@@ -81,6 +83,19 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
         // Other claimers in the area get what is left
         var area = getClaimingBoundingBox();
         if (area != null) IDepositBlockClaimer.reclaimArea(getLevel(), area, getClaimerType());
+
+        var actor = getDrillHeadActor();
+        if (actor == null) return;
+        drillPos = actor.getFirst().pos().relative(claimingDirection.get()).offset(bearing.getBlockPos());
+    }
+
+    @Override
+    public void read(CompoundTag nbt, boolean clientPacket) {
+        super.read(nbt, clientPacket);
+        if (!clientPacket) return;
+        var actor = getDrillHeadActor();
+        if (actor == null) return;
+        drillPos = actor.getFirst().pos().relative(claimingDirection.get()).offset(bearing.getBlockPos());
     }
 
     @Override

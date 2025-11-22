@@ -12,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -25,6 +26,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class MinerBearingBlock extends BearingBlock implements IBE<MinerBearingBlockEntity>, IDepositClaimerOutlineTarget {
     public MinerBearingBlock(Properties properties) {
         super(properties);
+    }
+
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return super.getStateForPlacement(context);
     }
 
     @Override
@@ -80,5 +86,10 @@ public class MinerBearingBlock extends BearingBlock implements IBE<MinerBearingB
     @Override
     public BlockEntityType<MinerBearingBlockEntity> getBlockEntityType() {
         return RNSContent.MINER_BEARING_BE.get();
+    }
+
+    @Override
+    public SpeedLevel getMinimumRequiredSpeedLevel() {
+        return SpeedLevel.FAST;
     }
 }
