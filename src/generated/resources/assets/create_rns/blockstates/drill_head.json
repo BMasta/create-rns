@@ -1,54 +1,27 @@
 {
   "variants": {
-    "face=ceiling,facing=east": {
-      "model": "create_rns:block/drill_head",
-      "x": 180,
-      "y": 270
-    },
-    "face=ceiling,facing=north": {
-      "model": "create_rns:block/drill_head",
-      "x": 180,
-      "y": 180
-    },
-    "face=ceiling,facing=south": {
+    "facing=down": {
       "model": "create_rns:block/drill_head",
       "x": 180
     },
-    "face=ceiling,facing=west": {
-      "model": "create_rns:block/drill_head",
-      "x": 180,
-      "y": 90
-    },
-    "face=floor,facing=east": {
-      "model": "create_rns:block/drill_head",
-      "y": 90
-    },
-    "face=floor,facing=north": {
-      "model": "create_rns:block/drill_head"
-    },
-    "face=floor,facing=south": {
-      "model": "create_rns:block/drill_head",
-      "y": 180
-    },
-    "face=floor,facing=west": {
-      "model": "create_rns:block/drill_head",
-      "y": 270
-    },
-    "face=wall,facing=east": {
+    "facing=east": {
       "model": "create_rns:block/drill_head",
       "x": 90,
       "y": 90
     },
-    "face=wall,facing=north": {
+    "facing=north": {
       "model": "create_rns:block/drill_head",
       "x": 90
     },
-    "face=wall,facing=south": {
+    "facing=south": {
       "model": "create_rns:block/drill_head",
       "x": 90,
       "y": 180
     },
-    "face=wall,facing=west": {
+    "facing=up": {
+      "model": "create_rns:block/drill_head"
+    },
+    "facing=west": {
       "model": "create_rns:block/drill_head",
       "x": 90,
       "y": 270
