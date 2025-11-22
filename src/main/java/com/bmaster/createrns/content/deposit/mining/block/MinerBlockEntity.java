@@ -50,7 +50,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements IHaveMiningG
     @Override
     public void onLoad() {
         super.onLoad();
-        effects = new MiningEffectsGenerator(level, worldPosition);
+        effects = new MiningEffectsGenerator(level, () -> worldPosition, () -> Direction.DOWN);
     }
 
     @Override

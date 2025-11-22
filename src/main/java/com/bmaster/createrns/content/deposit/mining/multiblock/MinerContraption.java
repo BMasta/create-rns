@@ -1,6 +1,7 @@
 package com.bmaster.createrns.content.deposit.mining.multiblock;
 
 import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.util.Utils;
 import com.simibubi.create.content.contraptions.AssemblyException;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
 import net.minecraft.core.BlockPos;
@@ -14,7 +15,7 @@ import java.util.Queue;
 import java.util.Set;
 
 public class MinerContraption extends BearingContraption {
-    boolean foundDrillHead = false;
+    public BlockPos drillHeadPos;
 
     public MinerContraption(boolean isWindmill, Direction facing) {
         super(isWindmill, facing);
@@ -27,7 +28,7 @@ public class MinerContraption extends BearingContraption {
 
     @Override
     public boolean searchMovedStructure(Level world, BlockPos pos, @Nullable Direction forcedDirection) throws AssemblyException {
-        foundDrillHead = false;
+        drillHeadPos = null;
         if (world.getBlockState(pos).is(RNSContent.DRILL_HEAD_BLOCK.get())) {
             anchor = pos;
             if (bounds == null) bounds = new AABB(BlockPos.ZERO);
@@ -35,7 +36,13 @@ public class MinerContraption extends BearingContraption {
             return true;
         }
         boolean result = super.searchMovedStructure(world, pos, forcedDirection);
-        if (!foundDrillHead) throw new RNSAssemblyException("not_one_drill_head");
+        if (drillHeadPos == null) throw new RNSAssemblyException("not_one_drill_head");
+
+        // Local position of the drill head must not differ from origin on any axis other than the one the contraption is facing
+        if (Utils.dot(Utils.normalVecFlip(facing, true), toLocalPos(drillHeadPos)) != 0) {
+            throw new RNSAssemblyException("drill_head_not_aligned_with_bearing");
+        }
+
         return result;
     }
 
@@ -45,10 +52,10 @@ public class MinerContraption extends BearingContraption {
         if (pos != null) {
             var bs = world.getBlockState(pos);
             if (bs.is(RNSContent.DRILL_HEAD_BLOCK.get())) {
-                if (foundDrillHead) throw new RNSAssemblyException("not_one_drill_head");
-                if (DrillHeadBlock.getConnectedDirection(bs) != facing)
+                if (drillHeadPos != null) throw new RNSAssemblyException("not_one_drill_head");
+                if (bs.getValue(DrillHeadBlock.FACING) != facing)
                     throw new RNSAssemblyException("wrong_drill_head_direction");
-                foundDrillHead = true;
+                drillHeadPos = pos;
             }
         }
         return super.moveBlock(world, forcedDirection, frontier, visited);

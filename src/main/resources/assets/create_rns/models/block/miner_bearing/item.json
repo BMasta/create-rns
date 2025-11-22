@@ -4,7 +4,7 @@
   "textures": {
     "bearing_side": "create_rns:block/miner_bearing_side",
     "bearing_top": "create_rns:block/miner_bearing_top",
-    "gearbox": "create:block/gearbox",
+    "gearbox": "create_rns:block/miner_bearing_bottom",
     "particle": "create_rns:block/miner_bearing_side"
   },
   "elements": [

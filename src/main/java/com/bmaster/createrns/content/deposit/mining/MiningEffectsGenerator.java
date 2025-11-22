@@ -2,32 +2,27 @@ package com.bmaster.createrns.content.deposit.mining;
 
 import com.simibubi.create.foundation.sound.SoundScapes;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class MiningEffectsGenerator {
     public final Level level;
-    public BlockPos sourcePosition;
+    public final Supplier<BlockPos> srcPositionSup;
+    public final Supplier<Direction> srcDirectionSup;
     protected List<BlockParticleOption> particleOptions = null;
 
-    public MiningEffectsGenerator(Level level) {
+    public MiningEffectsGenerator(Level level, Supplier<BlockPos> srcPositionSup, Supplier<Direction> srcDirectionSup) {
         this.level = level;
-    }
-
-    public MiningEffectsGenerator(Level level, BlockPos sourcePosition) {
-        this.level = level;
-        this.sourcePosition = sourcePosition;
-    }
-
-    public void setSourcePosition(@Nullable BlockPos sourcePosition) {
-        this.sourcePosition = sourcePosition;
+        this.srcPositionSup = srcPositionSup;
+        this.srcDirectionSup = srcDirectionSup;
     }
 
     public void setParticles(Set<BlockPos> minedBlocks) {
@@ -38,22 +33,27 @@ public class MiningEffectsGenerator {
     }
 
     public void tickSoundScape(float speed) {
-        if (sourcePosition == null) return;
+        var srcPos = srcPositionSup.get();
+        if (srcPos == null) return;
         float pitch = Mth.clamp((Math.abs(speed) / 256f) + .45f, .85f, 1f);
-        SoundScapes.play(SoundScapes.AmbienceGroup.CRUSHING, sourcePosition, pitch);
+        SoundScapes.play(SoundScapes.AmbienceGroup.CRUSHING, srcPos, pitch);
     }
 
     public void spawnParticles() {
-        if (level == null || !level.isClientSide || sourcePosition == null || particleOptions == null) return;
+        if (level == null || !level.isClientSide || particleOptions == null) return;
+        var srcPos = srcPositionSup.get();
+        if (srcPos == null) return;
+        var srcDir = srcDirectionSup.get();
+        if (srcDir == null) return;
 
         var r = level.random;
         ParticleOptions selectedParticle = particleOptions.get(r.nextInt(0, particleOptions.size()));
 
         for (int i = 0; i < 2; i++)
             level.addParticle(selectedParticle,
-                    sourcePosition.getX() + r.nextFloat(),
-                    sourcePosition.getY() - 0.5 + r.nextFloat(),
-                    sourcePosition.getZ() + r.nextFloat(),
+                    srcPos.getX() + 0.5 * srcDir.getStepX() + r.nextFloat(),
+                    srcPos.getY() + 0.5 * srcDir.getStepY() + r.nextFloat(),
+                    srcPos.getZ() + 0.5 * srcDir.getStepZ() + r.nextFloat(),
                     0, 0, 0);
     }
 }
