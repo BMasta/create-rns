@@ -39,7 +39,7 @@ public class MinerBearingBlock extends BearingBlock implements IBE<MinerBearingB
         ClaimerType type = null;
         BoundingBox area = null;
         if (!level.isClientSide && !state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof MinerBearingBlockEntity be) {
-            var mb = be.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
+            var mb = be.getBehaviour(ContraptionMiningBehaviour.BEHAVIOUR_TYPE);
             type = mb.getClaimerType();
             area = mb.getClaimingBoundingBox();
         }

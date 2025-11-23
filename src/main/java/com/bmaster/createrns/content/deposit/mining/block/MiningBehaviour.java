@@ -79,9 +79,9 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
     @Override
     public void write(CompoundTag nbt, boolean clientPacket) {
         super.write(nbt, clientPacket);
-        if (pendingSync.claimer) {
+        if (!clientPacket || pendingSync.claimer) {
             nbt.put("claimer", serializeDepositBlockClaimer());
-            pendingSync.claimer = false;
+            if (clientPacket) pendingSync.claimer = false;
         }
 
         if (process != null || tryInitProcess(false)) {
@@ -95,6 +95,8 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
         super.read(nbt, clientPacket);
 
         if (nbt.get("claimer") instanceof CompoundTag claimerTag) {
+            // Clients wouldn't have the claimed blocks in their nbt a sync packet is needed.
+            if (!clientPacket) pendingSync.claimer = true;
             deserializeDepositBlockClaimer(claimerTag);
             // When claimer changes, mining process is no longer accurate. Re-initialization is needed.
             tryInitProcess(true);
@@ -115,7 +117,7 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
     }
 
     public @Nullable MinerSpec getSpec() {
-        if (spec == null && !tryInitSpec()) return null;
+        if (spec == null && !refreshSpec()) return null;
         return spec;
     }
 
@@ -168,12 +170,18 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
 
         // Recompute mining process based on claimed mining area
         tryInitProcess(true);
+
+        var level = getLevel();
+        if (level != null && !level.isClientSide) {
+            pendingSync.claimer = true;
+            kBE.notifyUpdate();
+        }
     }
 
     @Override
     public void claimDepositBlocks() {
         var level = getLevel();
-        if (level == null || (spec == null & !tryInitSpec())) return;
+        if (level == null || level.isClientSide || (spec == null & !refreshSpec())) return;
 
         claimedDepositBlocks = getClaimableDepositVein(level).stream()
                 .filter(pos -> MiningRecipeLookup.isDepositMineable(level, level.getBlockState(pos).getBlock(),
@@ -198,7 +206,7 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
     }
 
     public int getCurrentProgressIncrement() {
-        if (spec == null || !tryInitSpec()) return 0;
+        if (spec == null || !refreshSpec()) return 0;
         return (int) (spec.minesPerHour() * Math.abs(kBE.getSpeed()));
     }
 
@@ -209,18 +217,17 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
         mInv.collectMinedItems(process);
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    protected boolean tryInitSpec() {
+    protected boolean refreshSpec() {
         var level = getLevel();
         if (level == null) return false;
-        spec = MinerSpecLookup.get(level.registryAccess(), (MinerBlock) kBE.getBlockState().getBlock());
+        spec = MinerSpecLookup.get(level.registryAccess(), kBE.getBlockState().getBlock());
         return true;
     }
 
-    protected boolean tryInitProcess(boolean recompute) {
-        if (process != null && !recompute) return true;
+    protected boolean tryInitProcess(boolean refresh) {
+        if (process != null && !refresh) return true;
         var level = getLevel();
-        if (level == null || (spec == null && !tryInitSpec())) return false;
+        if (level == null || (spec == null && !refreshSpec())) return false;
         for (var bp : claimedDepositBlocks) {
             if (!level.isLoaded(bp)) return false;
         }

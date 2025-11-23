@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "C": {
+      "item": "create:brass_casing"
+    },
+    "R": {
+      "item": "create_rns:resonant_mechanism"
+    }
+  },
+  "pattern": [
+    "A",
+    "R",
+    "C"
+  ],
+  "result": {
+    "item": "create_rns:resonator"
+  },
+  "show_notification": true
+}

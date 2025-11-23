@@ -1,11 +1,13 @@
-package com.bmaster.createrns.content.deposit.mining;
+package com.bmaster.createrns.util;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.content.deposit.mining.IHaveAdaptiveGoggleInformation.Context;
 import com.bmaster.createrns.content.deposit.mining.block.MiningBehaviour;
+import com.bmaster.createrns.content.deposit.mining.multiblock.ContraptionMiningBehaviour;
 import com.bmaster.createrns.infrastructure.ServerConfig;
-import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.utility.CreateLang;
 import net.createmod.catnip.lang.LangBuilder;
 import net.minecraft.ChatFormatting;
@@ -17,41 +19,11 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
 
-import static net.minecraft.ChatFormatting.GRAY;
 
-public interface IHaveMiningGoggleInformation extends IHaveGoggleInformation {
-    /// Must have a mining behavior
-    KineticBlockEntity getTargetBlockEntity();
-
-    String getLangIdentifier();
-
-    @Override
-    default boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        boolean added;
-
-        // Try adding desired section(s)
-        if (!isPlayerSneaking) added = addInventoryToGoggleTooltip(tooltip, true);
-        else {
-            added = addRatesToGoggleTooltip(tooltip, true);
-            if (!ServerConfig.infiniteDeposits && addUsesToGoggleTooltip(tooltip)) added = true;
-        }
-
-        // If unsuccessful, try adding the less desired
-        if (!added) {
-            if (!isPlayerSneaking) {
-                added = addRatesToGoggleTooltip(tooltip, true);
-                if (!ServerConfig.infiniteDeposits && addUsesToGoggleTooltip(tooltip)) added = true;
-            } else added = addInventoryToGoggleTooltip(tooltip, true);
-        }
-
-        // Add kinetics regardless
-        added = addKineticsToGoggleTooltip(tooltip, !added);
-        return added;
-    }
-
+public class GoggleTooltipModifiers {
     @SuppressWarnings("SameParameterValue")
-    default boolean addInventoryToGoggleTooltip(List<Component> tooltip, boolean isMainSection) {
-        var be = getTargetBlockEntity();
+    public static boolean addInventoryToGoggleTooltip(Context c, List<Component> tooltip) {
+        var be = c.target();
         var level = be.getLevel();
         if (level == null) return false;
         var inventory = be.getCapability(ForgeCapabilities.ITEM_HANDLER, null).resolve().orElse(null);
@@ -65,8 +37,8 @@ public interface IHaveMiningGoggleInformation extends IHaveGoggleInformation {
         }
         if (empty) return false;
 
-        if (isMainSection) {
-            new LangBuilder(CreateRNS.MOD_ID).translate(getLangIdentifier() + ".contents").forGoggles(tooltip);
+        if (c.isFirstSection()) {
+            new LangBuilder(CreateRNS.MOD_ID).translate(c.langId() + ".contents").forGoggles(tooltip);
         } else {
             // Newline between sections
             new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
@@ -84,13 +56,18 @@ public interface IHaveMiningGoggleInformation extends IHaveGoggleInformation {
         return true;
     }
 
-    default boolean addUsesToGoggleTooltip(List<Component> tooltip) {
-        var be = getTargetBlockEntity();
-        var mb = be.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
+    public static boolean addUsesToGoggleTooltip(Context c, List<Component> tooltip) {
+        if (ServerConfig.infiniteDeposits) return false;
+        var be = c.target();
+        if (!(be instanceof SmartBlockEntity sbe)) return false;
+        var mb = sbe.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
+        if (mb == null) return false;
         var process = mb.getProcess();
         if (process == null || mb.getClaimedDepositBlocks().isEmpty()) return false;
 
-        new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
+        if (!c.isFirstSection()) {
+            new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
+        }
         new LangBuilder(CreateRNS.MOD_ID).translate("mining.remaining_deposit_uses").forGoggles(tooltip);
 
         process.innerProcesses.stream().sorted((a, b) -> {
@@ -117,14 +94,15 @@ public interface IHaveMiningGoggleInformation extends IHaveGoggleInformation {
         return true;
     }
 
-    @SuppressWarnings("SameParameterValue")
-    default boolean addRatesToGoggleTooltip(List<Component> tooltip, boolean isMainSection) {
-        var be = getTargetBlockEntity();
-        var mb = be.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
+    public static boolean addRatesToGoggleTooltip(Context c, List<Component> tooltip) {
+        var be = c.target();
+        if (!(be instanceof SmartBlockEntity sbe)) return false;
+        var mb = sbe.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
+        if (mb == null) return false;
         var process = mb.getProcess();
-        if (process == null || mb.getClaimedDepositBlocks().isEmpty()) return false;
+        if (process == null || !mb.isMining()) return false;
 
-        if (isMainSection) {
+        if (c.isFirstSection()) {
             new LangBuilder(CreateRNS.MOD_ID).translate("mining.production_rates").forGoggles(tooltip);
         } else {
             // Newline between sections
@@ -157,14 +135,45 @@ public interface IHaveMiningGoggleInformation extends IHaveGoggleInformation {
         return true;
     }
 
-    default boolean addKineticsToGoggleTooltip(List<Component> tooltip, boolean isMainSection) {
-        var be = getTargetBlockEntity();
+    public static boolean addAttachmentInfoToGoggleTooltip(Context c, List<Component> tooltip) {
+        var be = c.target();
+        if (!(be instanceof SmartBlockEntity sbe)) return false;
+        var mb = sbe.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
+        if (!(mb instanceof ContraptionMiningBehaviour cmb)) return false;
+        if (cmb.equipment == null) return false;
+        var spec = mb.getSpec();
+        if (spec == null) return false;
 
+        if (c.isFirstSection()) {
+            new LangBuilder(CreateRNS.MOD_ID).translate("contraption_mining.attachments").forGoggles(tooltip);
+        } else {
+            // Newline between sections
+            new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
+        }
+
+        var tierC = new LangBuilder(CreateRNS.MOD_ID)
+                .text(Integer.toString(spec.tier()))
+                .style(ChatFormatting.GREEN);
+        var resC = new LangBuilder(CreateRNS.MOD_ID)
+                .text(Integer.toString(cmb.equipment.resonatorCount))
+                .style(ChatFormatting.LIGHT_PURPLE);
+
+        new LangBuilder(CreateRNS.MOD_ID)
+                .translate("contraption_mining.attachments.tier", tierC, resC)
+                .style(ChatFormatting.GRAY)
+                .forGoggles(tooltip);
+
+        return true;
+    }
+
+    public static boolean addKineticsToGoggleTooltip(Context c, List<Component> tooltip) {
+        var be = c.target();
+        if (!(be instanceof KineticBlockEntity kbe)) return false;
         float stressAtBase = 0f;
-        if (IRotate.StressImpact.isEnabled()) stressAtBase = be.calculateStressApplied();
+        if (IRotate.StressImpact.isEnabled()) stressAtBase = kbe.calculateStressApplied();
         if (Mth.equal(stressAtBase, 0)) return false;
 
-        if (isMainSection) {
+        if (c.isFirstSection()) {
             CreateLang.translate("gui.goggles.kinetic_stats").forGoggles(tooltip);
         } else {
             // Newline between sections
@@ -172,10 +181,10 @@ public interface IHaveMiningGoggleInformation extends IHaveGoggleInformation {
         }
 
         CreateLang.translate("tooltip.stressImpact")
-                .style(GRAY)
+                .style(ChatFormatting.GRAY)
                 .forGoggles(tooltip);
 
-        float stressTotal = stressAtBase * Math.abs(be.getTheoreticalSpeed());
+        float stressTotal = stressAtBase * Math.abs(kbe.getTheoreticalSpeed());
 
         CreateLang.number(stressTotal)
                 .translate("generic.unit.stress")

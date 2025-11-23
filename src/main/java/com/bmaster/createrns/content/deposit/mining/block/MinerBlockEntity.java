@@ -1,9 +1,10 @@
 package com.bmaster.createrns.content.deposit.mining.block;
 
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.content.deposit.mining.IHaveMiningGoggleInformation;
+import com.bmaster.createrns.content.deposit.mining.IHaveAdaptiveGoggleInformation;
 import com.bmaster.createrns.content.deposit.mining.MiningEffectsGenerator;
 import com.bmaster.createrns.content.deposit.mining.MiningItemHandler;
+import com.bmaster.createrns.util.GoggleTooltipModifiers;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.inventory.InvManipulationBehaviour;
@@ -23,10 +24,11 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
+import java.util.function.BiFunction;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class MinerBlockEntity extends KineticBlockEntity implements IHaveMiningGoggleInformation {
+public class MinerBlockEntity extends KineticBlockEntity implements IHaveAdaptiveGoggleInformation {
     protected LazyOptional<IItemHandler> inventoryCap = LazyOptional.empty();
     protected final MiningItemHandler inventory = new MiningItemHandler(this);
     protected MiningEffectsGenerator effects = null;
@@ -35,15 +37,6 @@ public class MinerBlockEntity extends KineticBlockEntity implements IHaveMiningG
         super(RNSContent.MINER_BE.get(), pos, state);
     }
 
-    @Override
-    public String getLangIdentifier() {
-        return "miner";
-    }
-
-    @Override
-    public KineticBlockEntity getTargetBlockEntity() {
-        return this;
-    }
 
     @Override
     public void onLoad() {
@@ -121,10 +114,35 @@ public class MinerBlockEntity extends KineticBlockEntity implements IHaveMiningG
         ItemHelper.dropContents(level, worldPosition, inventory);
     }
 
+    @Override
+    public String getLangIdentifier() {
+        return "miner";
+    }
+
+    @Override
+    public KineticBlockEntity getTargetBlockEntity() {
+        return this;
+    }
+
+    @Override
+    public List<BiFunction<Context, List<Component>, Boolean>> getPrimarySections() {
+        return List.of(GoggleTooltipModifiers::addInventoryToGoggleTooltip);
+    }
+
+    @Override
+    public List<BiFunction<Context, List<Component>, Boolean>> getSecondarySections() {
+        return List.of(GoggleTooltipModifiers::addRatesToGoggleTooltip, GoggleTooltipModifiers::addUsesToGoggleTooltip);
+    }
+
+    @Override
+    public List<BiFunction<Context, List<Component>, Boolean>> getMandatoryBottomSections() {
+        return List.of(GoggleTooltipModifiers::addKineticsToGoggleTooltip);
+    }
+
     /// Kinetic BE already implements IHaveGoggleInformation, so an explicit override is needed
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        return IHaveMiningGoggleInformation.super.addToGoggleTooltip(tooltip, isPlayerSneaking);
+        return IHaveAdaptiveGoggleInformation.super.addToGoggleTooltip(tooltip, isPlayerSneaking);
     }
 
     protected void tryEjectUp() {
