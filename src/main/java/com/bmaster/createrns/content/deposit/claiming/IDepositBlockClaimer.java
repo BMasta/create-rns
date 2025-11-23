@@ -20,7 +20,6 @@ import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @ParametersAreNonnullByDefault
@@ -120,13 +119,13 @@ public interface IDepositBlockClaimer {
             if (!(t instanceof LongTag lt)) continue;
             blocks.add(BlockPos.of(lt.getAsLong()));
         }
-        if (getClaimedDepositBlocks().equals(blocks)) return;
 
-        // Clients also need to update the outline
         var level = getLevel();
-        if (level != null && level.isClientSide) DepositClaimerOutlineRenderer.removeClaimer(this);
+        boolean updateOutline = level != null && level.isClientSide && !getClaimedDepositBlocks().equals(blocks);
+
+        if (updateOutline) DepositClaimerOutlineRenderer.removeClaimer(this);
         setClaimedDepositBlocks(blocks);
-        if (level != null && level.isClientSide) DepositClaimerOutlineRenderer.addClaimer(this);
+        if (updateOutline) DepositClaimerOutlineRenderer.addClaimer(this);
     }
 
     /// All claimers whose area intersects the provided area will reclaim their blocks

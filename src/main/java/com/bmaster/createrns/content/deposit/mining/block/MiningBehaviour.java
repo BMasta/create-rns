@@ -34,6 +34,11 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
     protected Set<BlockPos> claimedDepositBlocks = new HashSet<>();
     protected MinerSpec spec = null;
     protected MiningProcess process = null;
+
+    // Used by server to keep track of what needs to be synced on next client packet
+    protected PendingClientSync pendingSync = new PendingClientSync();
+
+    // Used by client to defer process sync until it is initialized
     protected Tuple<CompoundTag, Boolean> pendingProcessTag = null;
 
     public MiningBehaviour(KineticBlockEntity be, Supplier<Direction> claimingDirection) {
@@ -74,7 +79,11 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
     @Override
     public void write(CompoundTag nbt, boolean clientPacket) {
         super.write(nbt, clientPacket);
-        nbt.put("claimer", serializeDepositBlockClaimer());
+        if (pendingSync.claimer) {
+            nbt.put("claimer", serializeDepositBlockClaimer());
+            pendingSync.claimer = false;
+        }
+
         if (process != null || tryInitProcess(false)) {
             var processNBT = process.write(clientPacket);
             if (processNBT != null) nbt.put("process", processNBT);
@@ -85,10 +94,14 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
     public void read(CompoundTag nbt, boolean clientPacket) {
         super.read(nbt, clientPacket);
 
-        // Deserialize claimed area
-        deserializeDepositBlockClaimer(nbt.getCompound("claimer"));
+        if (nbt.get("claimer") instanceof CompoundTag claimerTag) {
+            deserializeDepositBlockClaimer(claimerTag);
+            // When claimer changes, mining process is no longer accurate. Re-initialization is needed.
+            tryInitProcess(true);
+            var pos = getPos();
+            CreateRNS.LOGGER.trace("Synced area of miner at {}, {}, {}", pos.getX(), pos.getY(), pos.getZ());
+        }
 
-        // Deserialize or schedule deserialization of the mining process
         if (nbt.contains("process")) {
             var processTag = nbt.getCompound("process");
             if (process != null) process.read(processTag, clientPacket);
@@ -180,7 +193,7 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
             }
         }
 
-        kBE.setChanged();
+        pendingSync.claimer = true;
         kBE.notifyUpdate();
     }
 
@@ -221,5 +234,9 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
         }
 
         return true;
+    }
+
+    protected static class PendingClientSync {
+        public boolean claimer = false;
     }
 }
