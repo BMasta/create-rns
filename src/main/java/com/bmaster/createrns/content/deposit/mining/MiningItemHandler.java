@@ -38,7 +38,6 @@ public class MiningItemHandler implements IItemHandler, INBTSerializable<Compoun
             var level = be.getLevel();
             if (level != null && !level.isClientSide) {
                 level.invalidateCapabilities(be.getBlockPos());
-                be.setChanged();
                 be.notifyUpdate();
             }
         };
