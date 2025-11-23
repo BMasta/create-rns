@@ -6,10 +6,12 @@ import com.bmaster.createrns.content.deposit.mining.block.MinerBlock;
 import com.bmaster.createrns.content.deposit.mining.block.MinerBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.block.MinerRenderer;
 import com.bmaster.createrns.content.deposit.mining.block.MinerVisual;
-import com.bmaster.createrns.content.deposit.mining.multiblock.DrillHeadBlock;
-import com.bmaster.createrns.content.deposit.mining.multiblock.DrillHeadMovementBehaviour;
+import com.bmaster.createrns.content.deposit.mining.multiblock.equipment.drillhead.DrillHeadBlock;
+import com.bmaster.createrns.content.deposit.mining.multiblock.equipment.drillhead.DrillHeadMovementBehaviour;
 import com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlock;
 import com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlockEntity;
+import com.bmaster.createrns.content.deposit.mining.multiblock.equipment.resonator.ResonatorBlock;
+import com.bmaster.createrns.content.deposit.mining.multiblock.equipment.resonator.ResonatorMovementBehaviour;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerItem;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositStructureConfigBuilder;
@@ -234,6 +236,28 @@ public class RNSContent {
                     .pattern("AIA")
                     .pattern("AAA")
                     .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.ANDESITE_ALLOY))
+                    .save(p))
+            .register();
+
+    public static final BlockEntry<ResonatorBlock> RESONATOR_BLOCK = CreateRNS.REGISTRATE.block(
+                    "resonator", ResonatorBlock::new)
+            .initialProperties(() -> Blocks.RAW_IRON_BLOCK)
+            .properties(p -> p
+                    .mapColor(MapColor.COLOR_PURPLE)
+                    .noOcclusion())
+            .transform(axeOrPickaxe())
+            .blockstate((c, p) ->
+                    p.directionalBlock(c.get(), AssetLookup.standardModel(c, p)))
+            .onRegister(movementBehaviour(new ResonatorMovementBehaviour()))
+            .simpleItem()
+            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
+                    .define('A', Items.AMETHYST_SHARD)
+                    .define('R', RNSContent.RESONANT_MECHANISM)
+                    .define('C', AllBlocks.BRASS_CASING)
+                    .pattern("A")
+                    .pattern("R")
+                    .pattern("C")
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.PRECISION_MECHANISM))
                     .save(p))
             .register();
 
