@@ -1,7 +1,8 @@
 package com.bmaster.createrns.content.deposit.mining.multiblock;
 
-import com.bmaster.createrns.content.deposit.mining.IHaveMiningGoggleInformation;
+import com.bmaster.createrns.content.deposit.mining.IHaveAdaptiveGoggleInformation;
 import com.bmaster.createrns.content.deposit.mining.MiningEffectsGenerator;
+import com.bmaster.createrns.util.GoggleTooltipModifiers;
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.content.contraptions.AssemblyException;
 import com.simibubi.create.content.contraptions.ControlledContraptionEntity;
@@ -19,8 +20,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.List;
+import java.util.function.BiFunction;
 
-public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity implements IHaveMiningGoggleInformation {
+public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity implements IHaveAdaptiveGoggleInformation {
     protected ContraptionMiningBehaviour miningBehaviour;
     protected MiningEffectsGenerator effects;
 
@@ -31,7 +33,8 @@ public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity implem
     @Override
     public void onLoad() {
         super.onLoad();
-        effects = new MiningEffectsGenerator(level, () -> miningBehaviour.getDrillHeadAbsPos(),
+        effects = new MiningEffectsGenerator(level,
+                () -> (miningBehaviour.equipment != null) ? miningBehaviour.equipment.drillHeadPos : null,
                 () -> getBlockState().getValue(MinerBearingBlock.FACING));
     }
 
@@ -116,13 +119,23 @@ public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity implem
         return "megadrill";
     }
 
-    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        return IHaveMiningGoggleInformation.super.addToGoggleTooltip(tooltip, isPlayerSneaking);
+    @Override
+    public List<BiFunction<Context, List<Component>, Boolean>> getPrimarySections() {
+        return List.of(GoggleTooltipModifiers::addRatesToGoggleTooltip, GoggleTooltipModifiers::addUsesToGoggleTooltip);
     }
 
     @Override
-    public boolean addInventoryToGoggleTooltip(List<Component> tooltip, boolean isMainSection) {
-        return false;
+    public List<BiFunction<Context, List<Component>, Boolean>> getSecondarySections() {
+        return List.of(GoggleTooltipModifiers::addAttachmentInfoToGoggleTooltip);
+    }
+
+    @Override
+    public List<BiFunction<Context, List<Component>, Boolean>> getMandatoryBottomSections() {
+        return List.of(GoggleTooltipModifiers::addKineticsToGoggleTooltip);
+    }
+
+    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        return IHaveAdaptiveGoggleInformation.super.addToGoggleTooltip(tooltip, isPlayerSneaking);
     }
 }
 

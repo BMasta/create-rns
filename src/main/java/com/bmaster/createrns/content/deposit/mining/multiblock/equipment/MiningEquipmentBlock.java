@@ -1,33 +1,25 @@
-package com.bmaster.createrns.content.deposit.mining.multiblock;
+package com.bmaster.createrns.content.deposit.mining.multiblock.equipment;
 
-import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer.ClaimerType;
 import com.bmaster.createrns.content.deposit.claiming.IDepositClaimerOutlineTarget;
 import com.bmaster.createrns.content.deposit.mining.block.MiningBehaviour;
 import com.mojang.serialization.MapCodec;
-import com.simibubi.create.AllShapes;
-import net.createmod.catnip.math.VoxelShaper;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class DrillHeadBlock extends DirectionalBlock implements IDepositClaimerOutlineTarget {
-    public static final MapCodec<DrillHeadBlock> CODEC = simpleCodec(DrillHeadBlock::new);
-    public static final VoxelShaper SHAPE = new AllShapes.Builder(Block.box(2, 0, 2, 14, 22, 14)).forDirectional();
+public class MiningEquipmentBlock extends DirectionalBlock implements IDepositClaimerOutlineTarget {
+    public static final MapCodec<MiningEquipmentBlock> CODEC = simpleCodec(MiningEquipmentBlock::new);
 
-    public DrillHeadBlock(Properties properties) {
+    public MiningEquipmentBlock(Properties properties) {
         super(properties);
     }
 
@@ -42,15 +34,10 @@ public class DrillHeadBlock extends DirectionalBlock implements IDepositClaimerO
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return SHAPE.get(state.getValue(FACING));
-    }
-
-    @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-            Direction nearestLookingDirection = context.getNearestLookingDirection();
-            return defaultBlockState().setValue(FACING, context.getPlayer() != null && context.getPlayer()
-                    .isShiftKeyDown() ? nearestLookingDirection : nearestLookingDirection.getOpposite());
+        Direction clickedFace = context.getClickedFace();
+        return defaultBlockState().setValue(FACING, context.getPlayer() != null && context.getPlayer()
+                .isShiftKeyDown() ? clickedFace.getOpposite() : clickedFace);
     }
 
     @Override
@@ -58,3 +45,4 @@ public class DrillHeadBlock extends DirectionalBlock implements IDepositClaimerO
         return MiningBehaviour.CLAIMER_TYPE;
     }
 }
+

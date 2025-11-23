@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "create_rns:block/resonator",
+      "x": 180
+    },
+    "facing=east": {
+      "model": "create_rns:block/resonator",
+      "x": 90,
+      "y": 90
+    },
+    "facing=north": {
+      "model": "create_rns:block/resonator",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "create_rns:block/resonator",
+      "x": 90,
+      "y": 180
+    },
+    "facing=up": {
+      "model": "create_rns:block/resonator"
+    },
+    "facing=west": {
+      "model": "create_rns:block/resonator",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

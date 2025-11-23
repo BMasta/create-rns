@@ -1,6 +1,7 @@
 package com.bmaster.createrns.content.deposit.mining.multiblock;
 
 import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.content.deposit.mining.multiblock.equipment.drillhead.DrillHeadBlock;
 import com.bmaster.createrns.util.Utils;
 import com.simibubi.create.content.contraptions.AssemblyException;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
