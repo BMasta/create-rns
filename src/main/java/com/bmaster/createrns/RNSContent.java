@@ -6,12 +6,12 @@ import com.bmaster.createrns.content.deposit.mining.block.MinerBlock;
 import com.bmaster.createrns.content.deposit.mining.block.MinerBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.block.MinerRenderer;
 import com.bmaster.createrns.content.deposit.mining.block.MinerVisual;
+import com.bmaster.createrns.content.deposit.mining.multiblock.equipment.MiningEquipmentMovementBehaviour;
+import com.bmaster.createrns.content.deposit.mining.multiblock.equipment.collector.CollectorBlock;
 import com.bmaster.createrns.content.deposit.mining.multiblock.equipment.drillhead.DrillHeadBlock;
-import com.bmaster.createrns.content.deposit.mining.multiblock.equipment.drillhead.DrillHeadMovementBehaviour;
 import com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlock;
 import com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.multiblock.equipment.resonator.ResonatorBlock;
-import com.bmaster.createrns.content.deposit.mining.multiblock.equipment.resonator.ResonatorMovementBehaviour;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerItem;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositStructureConfigBuilder;
@@ -19,6 +19,7 @@ import com.bmaster.createrns.data.pack.DynamicDatapack;
 import com.bmaster.createrns.data.pack.DynamicDatapackContent;
 import com.bmaster.createrns.infrastructure.command.DepositCommand;
 import com.bmaster.createrns.infrastructure.command.ScannerCommand;
+import com.bmaster.createrns.util.RNSAssetLookup;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
@@ -57,8 +58,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
@@ -226,8 +226,8 @@ public class RNSContent {
                     .noOcclusion())
             .transform(pickaxeOnly())
             .blockstate((c, p) ->
-                    p.directionalBlock(c.get(), AssetLookup.standardModel(c, p)))
-            .onRegister(movementBehaviour(new DrillHeadMovementBehaviour()))
+                    p.horizontalFaceBlock(c.get(), AssetLookup.standardModel(c, p)))
+            .onRegister(movementBehaviour(new MiningEquipmentMovementBehaviour()))
             .simpleItem()
             .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
                     .define('I', Items.IRON_INGOT)
@@ -241,14 +241,14 @@ public class RNSContent {
 
     public static final BlockEntry<ResonatorBlock> RESONATOR_BLOCK = CreateRNS.REGISTRATE.block(
                     "resonator", ResonatorBlock::new)
-            .initialProperties(() -> Blocks.RAW_IRON_BLOCK)
+            .initialProperties(SharedProperties::softMetal)
             .properties(p -> p
                     .mapColor(MapColor.COLOR_PURPLE)
                     .noOcclusion())
             .transform(axeOrPickaxe())
             .blockstate((c, p) ->
-                    p.directionalBlock(c.get(), AssetLookup.standardModel(c, p)))
-            .onRegister(movementBehaviour(new ResonatorMovementBehaviour()))
+                    p.horizontalFaceBlock(c.get(), AssetLookup.standardModel(c, p)))
+            .onRegister(movementBehaviour(new MiningEquipmentMovementBehaviour()))
             .simpleItem()
             .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
                     .define('A', Items.AMETHYST_SHARD)
@@ -259,6 +259,20 @@ public class RNSContent {
                     .pattern("C")
                     .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.PRECISION_MECHANISM))
                     .save(p))
+            .register();
+
+    public static final BlockEntry<CollectorBlock> COLLECTOR_BLOCK = CreateRNS.REGISTRATE.block(
+                    "collector", CollectorBlock::new)
+            .initialProperties(SharedProperties::stone)
+            .properties(p -> p
+                    .mapColor(MapColor.TERRACOTTA_CYAN)
+                    .sound(SoundType.NETHERITE_BLOCK)
+                    .noOcclusion())
+            .transform(axeOrPickaxe())
+            .blockstate((c, p) ->
+                    p.horizontalFaceBlock(c.get(), RNSAssetLookup.faceAttachedHalfRotatedModel(c, p)))
+            .onRegister(movementBehaviour(new MiningEquipmentMovementBehaviour()))
+            .simpleItem()
             .register();
 
     public static final BlockEntry<DepositBlock> IRON_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(

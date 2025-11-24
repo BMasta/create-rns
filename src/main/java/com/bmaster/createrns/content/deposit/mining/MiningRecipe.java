@@ -33,13 +33,16 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
     private final Durability dur;
     private final int tier;
     private final Yield yield;
+    private final Byproduct byproduct;
 
-    public MiningRecipe(Block depositBlock, Block replacementBlock, Durability dur, int tier, List<YieldType> types) {
+    public MiningRecipe(Block depositBlock, Block replacementBlock, Durability dur, int tier, List<YieldType> types,
+                        Byproduct byproduct) {
         this.depositBlock = depositBlock;
         this.replacementBlock = replacementBlock;
         this.dur = dur;
         this.tier = tier;
         this.yield = new Yield(types);
+        this.byproduct = byproduct;
     }
 
     public Block getDepositBlock() {
@@ -52,6 +55,10 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
 
     public Yield getYield() {
         return yield;
+    }
+
+    public Byproduct getByproduct() {
+        return byproduct;
     }
 
     public Block getReplacementBlock() {
@@ -100,6 +107,41 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
     @Override
     public RecipeType<?> getType() {
         return RNSRecipeTypes.MINING_RECIPE_TYPE.get();
+    }
+
+    public static class Byproduct {
+        public final float chancePerStack;
+        public final int maxStacks;
+        public final Yield yield;
+
+        public Byproduct(float chancePerStack, int maxStacks, List<YieldType> types) {
+            this.chancePerStack = chancePerStack;
+            this.maxStacks = maxStacks;
+            this.yield = new Yield(types);
+        }
+
+        public static final Codec<Byproduct> CODEC = RecordCodecBuilder.create(i -> i.group(
+                        Codec.floatRange(0, 1).fieldOf("chance_per_stack").forGetter(bp -> bp.chancePerStack),
+                        Codec.intRange(0, Integer.MAX_VALUE).fieldOf("max_stacks").orElse(Integer.MAX_VALUE).forGetter(bp -> bp.maxStacks),
+                        Yield.CODEC.fieldOf("yield").forGetter(bp -> bp.yield.types))
+                .apply(i, Byproduct::new));
+
+        public static final StreamCodec<RegistryFriendlyByteBuf, Byproduct> STREAM_CODEC = StreamCodec.of(
+                Byproduct::toNetwork, Byproduct::fromNetwork);
+
+        public static void toNetwork(RegistryFriendlyByteBuf buffer, Byproduct bp) {
+            ByteBufCodecs.FLOAT.encode(buffer, bp.chancePerStack);
+            ByteBufCodecs.INT.encode(buffer, bp.maxStacks);
+            Yield.STREAM_CODEC.encode(buffer, bp.yield.types);
+        }
+
+        public static Byproduct fromNetwork(RegistryFriendlyByteBuf buffer) {
+            return new Byproduct(
+                    ByteBufCodecs.FLOAT.decode(buffer),
+                    ByteBufCodecs.INT.decode(buffer),
+                    Yield.STREAM_CODEC.decode(buffer)
+            );
+        }
     }
 
     public static class Yield {
@@ -203,7 +245,9 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
                         BuiltInRegistries.BLOCK.byNameCodec().fieldOf("replace_when_depleted").orElse(Blocks.AIR).forGetter(MiningRecipe::getReplacementBlock),
                         Durability.CODEC.fieldOf("durability").orElse(new Durability(0, 0, 0)).forGetter(MiningRecipe::getDurability),
                         Codec.INT.fieldOf("tier").forGetter(MiningRecipe::getTier),
-                        Yield.CODEC.fieldOf("yield").forGetter((r) -> r.yield.types))
+                        Yield.CODEC.fieldOf("yield").forGetter((r) -> r.yield.types),
+                        Byproduct.CODEC.fieldOf("byproduct").orElse(new Byproduct(0, 0, List.of()))
+                                .forGetter(MiningRecipe::getByproduct))
                 .apply(i, MiningRecipe::new));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, MiningRecipe> STREAM_CODEC = StreamCodec.of(
@@ -215,6 +259,7 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
             Durability.STREAM_CODEC.encode(buffer, recipe.dur);
             ByteBufCodecs.INT.encode(buffer, recipe.tier);
             Yield.STREAM_CODEC.encode(buffer, new ArrayList<>(recipe.yield.types));
+            Byproduct.STREAM_CODEC.encode(buffer, recipe.byproduct);
         }
 
         public static MiningRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
@@ -223,7 +268,8 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
                     ByteBufCodecs.registry(Registries.BLOCK).decode(buffer),
                     Durability.STREAM_CODEC.decode(buffer),
                     ByteBufCodecs.INT.decode(buffer),
-                    Yield.STREAM_CODEC.decode(buffer)
+                    Yield.STREAM_CODEC.decode(buffer),
+                    Byproduct.STREAM_CODEC.decode(buffer)
             );
         }
 

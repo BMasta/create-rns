@@ -32,6 +32,11 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     }
 
     @Override
+    public int getByproductChanceStacks() {
+        return equipment != null ? equipment.collectorCount: -1;
+    }
+
+    @Override
     public void collect() {
         if ((process == null && !tryInitProcess(false)) ||
                 (equipment == null && !refreshEquipment())) return;

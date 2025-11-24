@@ -211,6 +211,10 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
         mInv.collectMinedItems(process);
     }
 
+    public int getByproductChanceStacks() {
+        return 0;
+    }
+
     protected boolean refreshSpec() {
         var level = getLevel();
         if (level == null) return false;
@@ -225,8 +229,10 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
         for (var bp : claimedDepositBlocks) {
             if (!level.isLoaded(bp)) return false;
         }
+        var byproductChanceStacks = getByproductChanceStacks();
+        if (byproductChanceStacks < 0) return false;
 
-        process = new MiningProcess(level, spec.tier(), claimedDepositBlocks);
+        process = new MiningProcess(level, spec.tier(), byproductChanceStacks, claimedDepositBlocks);
 
         // If we got mining progress data from NBT, now is the time to set it
         if (pendingProcessTag != null) {

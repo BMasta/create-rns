@@ -4,27 +4,25 @@ import com.bmaster.createrns.content.deposit.mining.multiblock.equipment.MiningE
 import com.simibubi.create.AllShapes;
 import net.createmod.catnip.math.VoxelShaper;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.BlockGetter;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class ResonatorBlock extends MiningEquipmentBlock {
-    public static final VoxelShaper SHAPE = new AllShapes.Builder(Block.box(6, 0, 6, 10, 14, 10)).forDirectional();
+    public static final AllShapes.Builder SHAPE = new AllShapes.Builder(Block.box(6, 0, 6, 10, 14, 10));
 
     public ResonatorBlock(Properties properties) {
         super(properties);
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return SHAPE.get(state.getValue(FACING));
+    public VoxelShaper getAttachedRotatedShape(Direction attachedFace, Rotation rot) {
+        return SHAPE.forDirectional(attachedFace);
     }
 
     @Override

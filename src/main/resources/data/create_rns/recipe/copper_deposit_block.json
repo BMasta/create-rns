@@ -13,5 +13,22 @@
       "item": "create_rns:impure_copper_ore",
       "chance_weight": 1
     }
-  ]
+  ],
+  "byproduct": {
+    "chance_per_stack": 0.01,
+    "yield": [
+      {
+        "item": "minecraft:lapis_lazuli",
+        "chance_weight": 1
+      },
+      {
+        "item": "minecraft:amethyst_shard",
+        "chance_weight": 1
+      },
+      {
+        "item": "minecraft:emerald",
+        "chance_weight": 1
+      }
+    ]
+  }
 }
