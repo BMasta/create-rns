@@ -37,11 +37,13 @@ public class MiningProcess {
     // 1 mine per block per hour at 256 points per tick
     public static final int BASE_PROGRESS = 256 * 60 * SharedConstants.TICKS_PER_MINUTE;
     public final int tier;
+    public final int byproductChanceStacks;
     public final Set<InnerProcess> innerProcesses = new ObjectOpenHashSet<>();
     public final Level level;
 
-    public MiningProcess(Level l, int tier, Set<BlockPos> depositBlocks) {
+    public MiningProcess(Level l, int tier, int byproductChanceStacks, Set<BlockPos> depositBlocks) {
         this.tier = tier;
+        this.byproductChanceStacks = byproductChanceStacks;
         this.level = l;
 
         var depBlockCounts = depositBlocks.stream()
@@ -57,7 +59,8 @@ public class MiningProcess {
             var recipe = MiningRecipeLookup.find(level, db);
             if (recipe == null || tier < recipe.getTier()) continue;
             var depBlockCount = e.getValue().intValue();
-            innerProcesses.add(new InnerProcess(level, depBlockPositions.get(db), recipe, BASE_PROGRESS / depBlockCount));
+            innerProcesses.add(new InnerProcess(level, depBlockPositions.get(db), recipe, BASE_PROGRESS / depBlockCount,
+                    Math.min(byproductChanceStacks, recipe.getByproduct().maxStacks)));
         }
     }
 
@@ -136,13 +139,18 @@ public class MiningProcess {
         public int maxProgress;
         public int progress;
         public long remainingUses;
+        public final int byproductChanceStacks;
 
-        public InnerProcess(Level level, List<BlockPos> depositPositions, MiningRecipe recipe, int maxProgress) {
+        protected ItemStack uncollectedByproduct = null;
+
+        public InnerProcess(Level level, List<BlockPos> depositPositions, MiningRecipe recipe, int maxProgress,
+                            int byproductChanceStacks) {
             this.level = level;
             this.depositPositions = depositPositions;
             this.recipe = recipe;
             this.maxProgress = maxProgress;
             this.progress = 0;
+            this.byproductChanceStacks = byproductChanceStacks;
             if (!level.isClientSide) computeRemainingUses(); // Server computes/syncs, client uses
         }
 
@@ -152,14 +160,30 @@ public class MiningProcess {
         }
 
         public @Nullable ItemStack collect() {
+            if (uncollectedByproduct != null) {
+                var ret = uncollectedByproduct;
+                uncollectedByproduct = null;
+                return ret;
+            }
+
             if (progress < maxProgress) return null;
             progress = progress - maxProgress; // Keep the extra progress
 
             var depData = level.getData(LEVEL_DEPOSIT_DATA.get());
 
             // Use a random deposit block
-            var roll = level.random.nextIntBetweenInclusive(0, depositPositions.size() - 1);
-            depData.useDepositBlock(depositPositions.get(roll), recipe.getReplacementBlock().defaultBlockState());
+            var rollDep = level.random.nextIntBetweenInclusive(0, depositPositions.size() - 1);
+            depData.useDepositBlock(depositPositions.get(rollDep), recipe.getReplacementBlock().defaultBlockState());
+
+            // Try rolling for a byproduct. If successful, it will be collected on the next call.
+            var by = recipe.getByproduct();
+            if (by.chancePerStack > 0) {
+                var rollBy = level.random.nextFloat();
+                if (by.chancePerStack * byproductChanceStacks > rollBy) {
+                    uncollectedByproduct = new ItemStack(by.yield.roll(level.random));
+                    CreateRNS.LOGGER.trace("Successfully rolled for byproduct {}", uncollectedByproduct);
+                }
+            }
 
             return new ItemStack(recipe.getYield().roll(level.random));
         }

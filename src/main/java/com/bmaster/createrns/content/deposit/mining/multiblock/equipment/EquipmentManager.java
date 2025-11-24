@@ -26,6 +26,7 @@ public class EquipmentManager {
     public final Direction correctFacingDirection;
     public final BlockPos drillHeadPos;
     public final int resonatorCount;
+    public final int collectorCount;
 
     protected final Contraption contraption;
     protected final MovementContext drillMovementContext;
@@ -61,6 +62,7 @@ public class EquipmentManager {
         MovementContext drillMovementContext = null;
         Direction correctFacingDirection = null;
         int resonatorCount = 0;
+        int collectorCount = 0;
 
         for (var a : contraption.getActors()) {
             var bs = a.left.state();
@@ -71,6 +73,8 @@ public class EquipmentManager {
                 correctFacingDirection = bs.getValue(DrillHeadBlock.FACING);
             } else if (bs.is(RNSContent.RESONATOR_BLOCK.get())) {
                 resonatorCount++;
+            } else if (bs.is(RNSContent.COLLECTOR_BLOCK.get())) {
+                collectorCount++;
             }
         }
         if (drillHeadPos == null) throw new IllegalStateException("Miner contraption does not have a drill head");
@@ -79,5 +83,6 @@ public class EquipmentManager {
         this.correctFacingDirection = correctFacingDirection;
         this.drillMovementContext = drillMovementContext;
         this.resonatorCount = resonatorCount;
+        this.collectorCount = collectorCount;
     }
 }
