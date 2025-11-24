@@ -143,6 +143,8 @@ public class GoggleTooltipModifiers {
         if (cmb.equipment == null) return false;
         var spec = mb.getSpec();
         if (spec == null) return false;
+        var process = mb.getProcess();
+        if (process == null) return false;
 
         if (c.isFirstSection()) {
             new LangBuilder(CreateRNS.MOD_ID).translate("contraption_mining.attachments").forGoggles(tooltip);
@@ -160,6 +162,19 @@ public class GoggleTooltipModifiers {
 
         new LangBuilder(CreateRNS.MOD_ID)
                 .translate("contraption_mining.attachments.tier", tierC, resC)
+                .style(ChatFormatting.GRAY)
+                .forGoggles(tooltip);
+
+        var chanceC = new LangBuilder(CreateRNS.MOD_ID)
+                .text("x" + process.byproductChanceStacks)
+                .style(ChatFormatting.GREEN);
+
+        var collectorC = new LangBuilder(CreateRNS.MOD_ID)
+                .text(Integer.toString(cmb.equipment.collectorCount))
+                .style(ChatFormatting.LIGHT_PURPLE);
+
+        new LangBuilder(CreateRNS.MOD_ID)
+                .translate("contraption_mining.attachments.byproduct_chance", chanceC, collectorC)
                 .style(ChatFormatting.GRAY)
                 .forGoggles(tooltip);
 
