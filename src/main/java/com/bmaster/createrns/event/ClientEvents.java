@@ -2,6 +2,7 @@ package com.bmaster.createrns.event;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSParticleTypes;
 import com.bmaster.createrns.compat.ponder.RNSPonderPlugin;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler;
@@ -13,6 +14,7 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 
 @EventBusSubscriber(modid = CreateRNS.MOD_ID, value = Dist.CLIENT)
 public class ClientEvents {
@@ -53,5 +55,12 @@ public class ClientEvents {
     public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut e) {
         DepositScannerClientHandler.clearState();
         DepositClaimerOutlineRenderer.clearOutline();
+    }
+
+    @SubscribeEvent
+    public static void onRegisterParticleProviders(RegisterParticleProvidersEvent event) {
+        RNSParticleTypes.RESONANCE.register(RNSParticleTypes.RESONANCE_TYPE.get(), event);
+        RNSParticleTypes.STABILIZING_RESONANCE.register(RNSParticleTypes.STABILIZING_RESONANCE_TYPE.get(), event);
+        RNSParticleTypes.SHATTERING_RESONANCE.register(RNSParticleTypes.SHATTERING_RESONANCE_TYPE.get(), event);
     }
 }

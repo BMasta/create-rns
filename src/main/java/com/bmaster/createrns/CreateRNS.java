@@ -4,6 +4,7 @@ import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mojang.logging.LogUtils;
+import com.simibubi.create.AllParticleTypes;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -24,6 +25,7 @@ public class CreateRNS {
         RNSTags.register();
         RNSContent.register(modBus);
         RNSRecipeTypes.register();
+        RNSParticleTypes.register(modBus);
         RNSRecipes.register();
         modBus.addListener(RNSSoundEvents::register);
         container.registerConfig(ModConfig.Type.SERVER, ServerConfig.SPEC);

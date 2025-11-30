@@ -1,0 +1,7 @@
+{
+  "parent": "create_rns:block/resonator/shard",
+  "textures": {
+    "0": "create_rns:block/shattering_resonator",
+    "particle": "create_rns:block/shattering_resonator"
+  }
+}

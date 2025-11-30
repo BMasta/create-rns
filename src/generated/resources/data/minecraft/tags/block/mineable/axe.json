@@ -4,6 +4,7 @@
     "create_rns:miner_mk2",
     "create_rns:miner_bearing",
     "create_rns:resonator",
-    "create_rns:collector"
+    "create_rns:stabilizing_resonator",
+    "create_rns:shattering_resonator"
   ]
 }

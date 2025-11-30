@@ -2,6 +2,9 @@ package com.bmaster.createrns.content.deposit.mining;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSRecipeTypes;
+import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystHandler;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -9,6 +12,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class MiningRecipeLookup {
@@ -24,11 +28,12 @@ public class MiningRecipeLookup {
         return res;
     }
 
-    public static boolean isDepositMineable(Level l, Block depositBlock, int minerTier) {
+    public static boolean isDepositMineable(Level l, Block depositBlock, Set<Catalyst> catalysts) {
         if (depBlockToRecipe == null) build(l);
         var recipe = depBlockToRecipe.get(depositBlock);
         if (recipe == null) return false;
-        return minerTier >= recipe.getTier();
+
+        return new CatalystHandler(recipe, catalysts).isMiningPossible();
     }
 
     public static void build(Level l) {
