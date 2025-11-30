@@ -2,8 +2,8 @@ package com.bmaster.createrns.content.deposit.info;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.DepositBlock;
-import com.bmaster.createrns.content.deposit.mining.MiningRecipe;
 import com.bmaster.createrns.content.deposit.mining.MiningRecipeLookup;
+import com.bmaster.createrns.content.deposit.mining.recipe.DepositDurability;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.bmaster.createrns.util.Utils;
@@ -245,7 +245,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
         return initCount;
     }
 
-    /// Returns -1 if not initialized, 0 if infinite, actual durability otherwise.
+    /// Returns -1 if not initialized, 0 if infinite, actual dur otherwise.
     @Override
     public long getDepositBlockDurability(BlockPos dbPos, boolean initIfNeeded) {
         if (ServerConfig.infiniteDeposits) return 0;
@@ -254,7 +254,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
         return depositDurabilities.getLong(dbPos);
     }
 
-    /// Returns 0 if infinite, actual durability otherwise.
+    /// Returns 0 if infinite, actual dur otherwise.
     @Override
     public long getDepositBlockDurability(BlockPos dbPos) {
         return getDepositBlockDurability(dbPos, true);
@@ -322,7 +322,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
         for (var e : depositDurabilities.object2LongEntrySet()) {
             var d = new CompoundTag();
             d.putLong("pos", e.getKey().asLong());
-            d.putLong("durability", e.getLongValue());
+            d.putLong("dur", e.getLongValue());
             durabilities.add(d);
         }
 
@@ -373,7 +373,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
         }
         for (var d : durabilities) {
             if (!(d instanceof CompoundTag dc)) continue;
-            depositDurabilities.put(BlockPos.of(dc.getLong("pos")), dc.getLong("durability"));
+            depositDurabilities.put(BlockPos.of(dc.getLong("pos")), dc.getLong("dur"));
         }
         CreateRNS.LOGGER.trace("Deserialized generated_found to {}", generatedFoundDeposits);
         CreateRNS.LOGGER.trace("Deserialized generated to {}", generatedDeposits);
@@ -488,7 +488,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
     }
 
     /// Durabilities for all deposits fall within that range based on their depth.
-    /// For each depth, there is a yet another range which confines the possible random durability values.
+    /// For each depth, there is a yet another range which confines the possible random dur values.
     ///
     /// E.g. assume depth ratio is 0.3, then:
     /// \[--(--)--------] where
@@ -496,7 +496,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
     /// Parentheses are minimum and maximum durabilities for the given depth.
     ///
     /// If vein is infinite, 0 is returned. Otherwise, the return value is random, but guaranteed to lie within both ranges.
-    private long rollDurability(MiningRecipe.Durability dur, float depthRatio) {
+    private long rollDurability(DepositDurability dur, float depthRatio) {
         assert 0f <= depthRatio && depthRatio <= 1f;
 
         long minDur = dur.edge();
@@ -507,7 +507,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
             return 0;
         }
 
-        // Average durability at given depth and its maximum spread (deviation)
+        // Average dur at given depth and its maximum spread (deviation)
         long curDur = (long) ((maxDur - minDur) * depthRatio + minDur);
         long spread = (long) (dur.randomSpread() * curDur);
 
@@ -519,7 +519,7 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
         long roll = (depthRange != 0) ? ((Math.abs(level.random.nextLong()) % depthRange) + minDepthDur) : minDepthDur;
 
         long numBarsBefore = (range != 0) ? (Math.round(30 * ((double) (roll - minDur) / range))) : 15;
-        CreateRNS.LOGGER.trace("Rolled deposit durability: [{}]{}x{}[{}] {}",
+        CreateRNS.LOGGER.trace("Rolled deposit dur: [{}]{}x{}[{}] {}",
                 minDur, "-".repeat((int) numBarsBefore), "-".repeat(30 - (int) numBarsBefore), maxDur, roll);
 
         return roll;

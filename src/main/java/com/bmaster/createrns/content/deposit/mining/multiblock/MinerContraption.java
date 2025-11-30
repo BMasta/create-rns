@@ -1,7 +1,7 @@
 package com.bmaster.createrns.content.deposit.mining.multiblock;
 
 import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.content.deposit.mining.multiblock.equipment.MiningEquipmentBlock;
+import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.MiningEquipmentBlock;
 import com.bmaster.createrns.util.Utils;
 import com.simibubi.create.content.contraptions.AssemblyException;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
@@ -41,9 +41,9 @@ public class MinerContraption extends BearingContraption {
         boolean result = super.searchMovedStructure(world, pos, forcedDirection);
         if (drillHeadPos == null) throw new RNSAssemblyException("not_one_drill_head");
 
-        for (var bp : equipmentPositions) {
-            if (bp.distManhattan(drillHeadPos) > 1) throw new RNSAssemblyException("wrong_equipment_position");
-        }
+//        for (var bp : equipmentPositions) {
+//            if (bp.distManhattan(drillHeadPos) > 1) throw new RNSAssemblyException("wrong_equipment_position");
+//        }
 
         return result;
     }
@@ -54,9 +54,9 @@ public class MinerContraption extends BearingContraption {
         if (pos != null) {
             var bs = world.getBlockState(pos);
             if (bs.getBlock() instanceof MiningEquipmentBlock) {
-                if (MiningEquipmentBlock.getConnectedDirection(bs) != facing) {
-                    throw new RNSAssemblyException("wrong_equipment_direction");
-                }
+//                if (MiningEquipmentBlock.getConnectedDirection(bs) != facing) {
+//                    throw new RNSAssemblyException("wrong_equipment_direction");
+//                }
                 equipmentPositions.add(pos);
             }
 

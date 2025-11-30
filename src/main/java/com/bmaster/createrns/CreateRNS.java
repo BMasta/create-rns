@@ -25,6 +25,7 @@ public class CreateRNS {
         RNSTags.register();
         RNSContent.register();
         RNSRecipeTypes.register();
+        RNSParticleTypes.register(modEventBus);
         RNSRecipes.register();
 
         modEventBus.addListener(this::commonSetup);

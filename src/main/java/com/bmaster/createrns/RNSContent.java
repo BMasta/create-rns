@@ -9,10 +9,9 @@ import com.bmaster.createrns.content.deposit.mining.block.MinerRenderer;
 import com.bmaster.createrns.content.deposit.mining.block.MinerVisual;
 import com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlock;
 import com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlockEntity;
-import com.bmaster.createrns.content.deposit.mining.multiblock.equipment.MiningEquipmentMovementBehaviour;
-import com.bmaster.createrns.content.deposit.mining.multiblock.equipment.collector.CollectorBlock;
-import com.bmaster.createrns.content.deposit.mining.multiblock.equipment.drillhead.DrillHeadBlock;
-import com.bmaster.createrns.content.deposit.mining.multiblock.equipment.resonator.ResonatorBlock;
+import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.MiningEquipmentMovementBehaviour;
+import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.drillhead.DrillHeadBlock;
+import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator.*;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerItem;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositStructureConfigBuilder;
@@ -20,7 +19,6 @@ import com.bmaster.createrns.data.pack.DynamicDatapack;
 import com.bmaster.createrns.data.pack.DynamicDatapackContent;
 import com.bmaster.createrns.infrastructure.command.DepositCommand;
 import com.bmaster.createrns.infrastructure.command.ScannerCommand;
-import com.bmaster.createrns.util.RNSAssetLookup;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
@@ -60,7 +58,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
@@ -84,6 +81,24 @@ public class RNSContent {
 
     public static final PartialModel MINER_MK2_DRILL = PartialModel.of(
             ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "block/miner_mk2/drill_head"));
+
+    public static final PartialModel RESONATOR_SHARD = PartialModel.of(
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "block/resonator/shard"));
+
+    public static final PartialModel RESONATOR_SHARD_ACTIVE = PartialModel.of(
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "block/resonator/shard_active"));
+
+    public static final PartialModel STABILIZING_RESONATOR_SHARD = PartialModel.of(
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "block/stabilizing_resonator/shard"));
+
+    public static final PartialModel STABILIZING_RESONATOR_SHARD_ACTIVE = PartialModel.of(
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "block/stabilizing_resonator/shard_active"));
+
+    public static final PartialModel SHATTERING_RESONATOR_SHARD = PartialModel.of(
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "block/shattering_resonator/shard"));
+
+    public static final PartialModel SHATTERING_RESONATOR_SHARD_ACTIVE = PartialModel.of(
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "block/shattering_resonator/shard_active"));
 
     // Item tooltips
     static {
@@ -109,16 +124,8 @@ public class RNSContent {
                     .save(p))
             .register();
 
-    public static final ItemEntry<Item> RESONANT_MECHANISM = CreateRNS.REGISTRATE.item(
-                    "resonant_mechanism", Item::new)
-            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
-                    .define('A', Items.AMETHYST_SHARD)
-                    .define('M', AllItems.PRECISION_MECHANISM)
-                    .pattern(" A ")
-                    .pattern("AMA")
-                    .pattern(" A ")
-                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.PRECISION_MECHANISM))
-                    .save(p))
+    public static final ItemEntry<Item> RESONANT_AMETHYST = CreateRNS.REGISTRATE.item(
+                    "resonant_amethyst", Item::new)
             .register();
 
     public static final ItemEntry<Item> IMPURE_IRON_ORE = CreateRNS.REGISTRATE.item(
@@ -139,7 +146,7 @@ public class RNSContent {
     // Blocks
     public static final BlockEntry<MinerBlock> MINER_MK1_BLOCK = CreateRNS.REGISTRATE.block("miner_mk1",
                     MinerBlock::new)
-            .transform(minerBlockCommon())
+            .transform(minerBlock())
             .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
             .item()
             .model(AssetLookup::customItemModel)
@@ -157,17 +164,18 @@ public class RNSContent {
 
     public static final BlockEntry<MinerBlock> MINER_MK2_BLOCK = CreateRNS.REGISTRATE.block("miner_mk2",
                     MinerBlock::new)
-            .transform(minerBlockCommon())
+            .transform(minerBlock())
             .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
             .item()
             .model(AssetLookup::customItemModel)
             .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
                     .define('F', AllBlocks.BRASS_FUNNEL)
-                    .define('R', RESONANT_MECHANISM)
+                    .define('R', AllItems.PRECISION_MECHANISM)
+                    .define('A', Items.AMETHYST_SHARD)
                     .define('M', MINER_MK1_BLOCK)
-                    .pattern("F")
-                    .pattern("R")
-                    .pattern("M")
+                    .pattern(" F ")
+                    .pattern("ARA")
+                    .pattern(" M ")
                     .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.PRECISION_MECHANISM))
                     .save(p))
             .build()
@@ -223,18 +231,10 @@ public class RNSContent {
 
     public static final BlockEntry<ResonatorBlock> RESONATOR_BLOCK = CreateRNS.REGISTRATE.block(
                     "resonator", ResonatorBlock::new)
-            .initialProperties(SharedProperties::softMetal)
-            .properties(p -> p
-                    .mapColor(MapColor.COLOR_PURPLE)
-                    .noOcclusion())
-            .transform(axeOrPickaxe())
-            .blockstate((c, p) ->
-                    p.horizontalFaceBlock(c.get(), AssetLookup.standardModel(c, p)))
-            .onRegister(movementBehaviour(new MiningEquipmentMovementBehaviour()))
-            .simpleItem()
+            .transform(resonatorBlock(MapColor.COLOR_PURPLE))
             .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
                     .define('A', Items.AMETHYST_SHARD)
-                    .define('R', RNSContent.RESONANT_MECHANISM)
+                    .define('R', AllItems.PRECISION_MECHANISM)
                     .define('C', AllBlocks.BRASS_CASING)
                     .pattern("A")
                     .pattern("R")
@@ -243,23 +243,21 @@ public class RNSContent {
                     .save(p))
             .register();
 
-    public static final BlockEntry<CollectorBlock> COLLECTOR_BLOCK = CreateRNS.REGISTRATE.block(
-                    "collector", CollectorBlock::new)
-            .initialProperties(SharedProperties::stone)
-            .properties(p -> p
-                    .mapColor(MapColor.TERRACOTTA_CYAN)
-                    .sound(SoundType.NETHERITE_BLOCK)
-                    .noOcclusion())
-            .transform(axeOrPickaxe())
-            .blockstate((c, p) ->
-                    p.horizontalFaceBlock(c.get(), RNSAssetLookup.faceAttachedHalfRotatedModel(c, p)))
-            .onRegister(movementBehaviour(new MiningEquipmentMovementBehaviour()))
-            .simpleItem()
+    public static final BlockEntry<StabilizingResonatorBlock> STABILIZING_RESONATOR_BLOCK = CreateRNS.REGISTRATE.block(
+                    "stabilizing_resonator", StabilizingResonatorBlock::new)
+            .transform(resonatorBlock(MapColor.COLOR_CYAN))
+            .tag(RNSTags.Block.MINING_CATALYSTS)
+            .register();
+
+    public static final BlockEntry<ShatteringResonatorBlock> SHATTERING_RESONATOR_BLOCK = CreateRNS.REGISTRATE.block(
+                    "shattering_resonator", ShatteringResonatorBlock::new)
+            .transform(resonatorBlock(MapColor.COLOR_RED))
+            .tag(RNSTags.Block.MINING_CATALYSTS)
             .register();
 
     public static final BlockEntry<DepositBlock> IRON_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "iron_deposit_block", DepositBlock::new)
-            .transform(deposit(MapColor.RAW_IRON))
+            .transform(depositBlock(MapColor.RAW_IRON))
             .onRegister(d -> DepositStructureConfigBuilder
                     .create("iron")
                     .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
@@ -272,7 +270,7 @@ public class RNSContent {
 
     public static final BlockEntry<DepositBlock> COPPER_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "copper_deposit_block", DepositBlock::new)
-            .transform(deposit(MapColor.COLOR_ORANGE))
+            .transform(depositBlock(MapColor.COLOR_ORANGE))
             .onRegister(d -> DepositStructureConfigBuilder
                     .create("copper")
                     .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
@@ -285,7 +283,7 @@ public class RNSContent {
 
     public static final BlockEntry<DepositBlock> ZINC_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "zinc_deposit_block", DepositBlock::new)
-            .transform(deposit(MapColor.GLOW_LICHEN))
+            .transform(depositBlock(MapColor.GLOW_LICHEN))
             .onRegister(d -> DepositStructureConfigBuilder
                     .create("zinc")
                     .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
@@ -299,7 +297,7 @@ public class RNSContent {
 
     public static final BlockEntry<DepositBlock> GOLD_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "gold_deposit_block", DepositBlock::new)
-            .transform(deposit(MapColor.GOLD))
+            .transform(depositBlock(MapColor.GOLD))
             .onRegister(d -> DepositStructureConfigBuilder
                     .create("gold")
                     .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
@@ -313,7 +311,7 @@ public class RNSContent {
 
     public static final BlockEntry<DepositBlock> REDSTONE_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "redstone_deposit_block", DepositBlock::new)
-            .transform(deposit(MapColor.FIRE))
+            .transform(depositBlock(MapColor.FIRE))
             .onRegister(d -> DepositStructureConfigBuilder
                     .create("redstone")
                     .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
@@ -327,7 +325,7 @@ public class RNSContent {
 
     public static final BlockEntry<DepositBlock> DEPLETED_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
                     "depleted_deposit_block", DepositBlock::new)
-            .transform(deposit(MapColor.COLOR_BLACK))
+            .transform(depositBlock(MapColor.COLOR_BLACK))
             .register();
 
     static {
@@ -338,17 +336,17 @@ public class RNSContent {
     }
 
     // Block entities
-    public static final BlockEntityEntry<MinerBlockEntity> MINER_BE = CreateRNS.REGISTRATE.blockEntity("miner",
-                    (BlockEntityType<MinerBlockEntity> t, BlockPos p, BlockState s) ->
-                            new MinerBlockEntity(p, s))
+    public static final BlockEntityEntry<MinerBlockEntity> MINER_BE = CreateRNS.REGISTRATE
+            .blockEntity("miner", (BlockEntityType<MinerBlockEntity> t, BlockPos p, BlockState s) ->
+                    new MinerBlockEntity(p, s))
             .visual(() -> MinerVisual::new)
             .validBlock(MINER_MK1_BLOCK)
             .validBlock(MINER_MK2_BLOCK)
             .renderer(() -> MinerRenderer::new)
             .register();
 
-    public static final BlockEntityEntry<MinerBearingBlockEntity> MINER_BEARING_BE = CreateRNS.REGISTRATE.blockEntity("miner_bearing",
-                    MinerBearingBlockEntity::new)
+    public static final BlockEntityEntry<MinerBearingBlockEntity> MINER_BEARING_BE = CreateRNS.REGISTRATE
+            .blockEntity("miner_bearing", MinerBearingBlockEntity::new)
             .visual(() -> BearingVisual::new)
             .validBlocks(MINER_BEARING_BLOCK)
             .renderer(() -> BearingRenderer::new)
@@ -365,9 +363,7 @@ public class RNSContent {
                                 pOutput.accept(MINER_BEARING_BLOCK.get().asItem());
                                 pOutput.accept(DRILL_HEAD_BLOCK.get().asItem());
                                 pOutput.accept(RESONATOR_BLOCK.get().asItem());
-                                pOutput.accept(COLLECTOR_BLOCK.get().asItem());
                                 pOutput.accept(DEPOSIT_SCANNER_ITEM.get());
-                                pOutput.accept(RESONANT_MECHANISM.get());
                                 pOutput.accept(IRON_DEPOSIT_BLOCK.get().asItem());
                                 pOutput.accept(COPPER_DEPOSIT_BLOCK.get().asItem());
                                 pOutput.accept(ZINC_DEPOSIT_BLOCK.get().asItem());
@@ -387,6 +383,14 @@ public class RNSContent {
     // Capabilities
     public static final Capability<IDepositIndex> DEPOSIT_INDEX =
             CapabilityManager.get(new CapabilityToken<>() {});
+
+    public static final BlockEntityEntry<ResonatorBlockEntity> RESONATOR_BE = CreateRNS.REGISTRATE
+            .blockEntity("resonator", ResonatorBlockEntity::new)
+            .validBlocks(RESONATOR_BLOCK)
+            .validBlocks(SHATTERING_RESONATOR_BLOCK)
+            .validBlocks(STABILIZING_RESONATOR_BLOCK)
+            .renderer(() -> ResonatorRenderer::new)
+            .register();
 
     // Dynamic packs
     public static Pack MAIN_PACK = DynamicDatapack.createDatapack("dynamic_data")
@@ -418,7 +422,7 @@ public class RNSContent {
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> RNSPonderPlugin::register);
     }
 
-    public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> deposit(MapColor mapColor) {
+    public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> depositBlock(MapColor mapColor) {
         return b -> b
                 .initialProperties(() -> Blocks.RAW_IRON_BLOCK)
                 .properties(p -> p
@@ -433,7 +437,7 @@ public class RNSContent {
                 .build();
     }
 
-    public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> minerBlockCommon() {
+    public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> minerBlock() {
         return builder -> builder
                 .initialProperties(SharedProperties::stone)
                 .properties(p -> p
@@ -443,5 +447,20 @@ public class RNSContent {
                 .transform(axeOrPickaxe())
                 .blockstate((c, p) ->
                         p.simpleBlock(c.get(), AssetLookup.partialBaseModel(c, p)));
+    }
+
+    public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> resonatorBlock(MapColor mapColor) {
+        return builder -> builder
+                .initialProperties(SharedProperties::softMetal)
+                .properties(p -> p
+                        .mapColor(mapColor)
+                        .noOcclusion())
+                .transform(axeOrPickaxe())
+                .blockstate((c, p) ->
+                        p.horizontalFaceBlock(c.get(), AssetLookup.partialBaseModel(c, p)))
+                .onRegister(movementBehaviour(new ResonatorMovementBehaviour()))
+                .item()
+                .model(AssetLookup::customItemModel)
+                .build();
     }
 }

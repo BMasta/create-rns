@@ -1,11 +1,15 @@
 {
   "type": "create_rns:mining",
   "deposit_block": "create_rns:depleted_deposit_block",
-  "tier": 1,
-  "yield": [
+  "yields": [
     {
-      "item": "minecraft:cobblestone",
-      "chance_weight": 1
+      "chance": 1.0,
+      "items": [
+        {
+          "item": "minecraft:cobblestone",
+          "chance_weight": 1
+        }
+      ]
     }
   ]
 }

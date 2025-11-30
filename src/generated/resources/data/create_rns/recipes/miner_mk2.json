@@ -2,6 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
     "F": {
       "item": "create:brass_funnel"
     },
@@ -9,13 +12,13 @@
       "item": "create_rns:miner_mk1"
     },
     "R": {
-      "item": "create_rns:resonant_mechanism"
+      "item": "create:precision_mechanism"
     }
   },
   "pattern": [
-    "F",
-    "R",
-    "M"
+    " F ",
+    "ARA",
+    " M "
   ],
   "result": {
     "item": "create_rns:miner_mk2"

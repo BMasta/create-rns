@@ -37,7 +37,6 @@ public class MinerBlockEntity extends KineticBlockEntity implements IHaveAdaptiv
         super(RNSContent.MINER_BE.get(), pos, state);
     }
 
-
     @Override
     public void onLoad() {
         super.onLoad(); // Initialize the inventory capability when the BE is first loaded

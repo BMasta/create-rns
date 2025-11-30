@@ -63,12 +63,6 @@ public class MiningItemHandler implements IItemHandler, INBTSerializable<Compoun
         if (process == null) return;
         boolean invUpdated = false;
         for (var p : process.innerProcesses) {
-            boolean invFull = p.recipe.getYield().types.stream().anyMatch(t -> {
-                var s = typeToStack.getOrDefault(t.item(), null);
-                return s != null && s.getCount() >= MAX_COUNT_PER_TYPE;
-            });
-            if (invFull) continue;
-
             var minedStack = p.collect();
             if (minedStack == null) continue;
             var minedType = minedStack.getItem();

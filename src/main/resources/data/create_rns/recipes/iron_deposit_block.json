@@ -1,34 +1,41 @@
 {
   "type": "create_rns:mining",
   "deposit_block": "create_rns:iron_deposit_block",
-  "tier": 1,
   "durability": {
     "core": 200000,
     "edge": 75000,
     "random_spread": 0.2
   },
   "replace_when_depleted": "create_rns:depleted_deposit_block",
-  "yield": [
+  "yields": [
     {
-      "item": "create_rns:impure_iron_ore",
-      "chance_weight": 1
-    }
-  ],
-  "byproduct": {
-    "chance_per_stack": 0.01,
-    "yield": [
-      {
-        "item": "minecraft:lapis_lazuli",
-        "chance_weight": 1
-      },
-      {
-        "item": "minecraft:amethyst_shard",
-        "chance_weight": 1
-      },
-      {
-        "item": "minecraft:emerald",
-        "chance_weight": 1
+      "chance": 1.0,
+      "items": [
+        {
+          "item": "create_rns:impure_iron_ore",
+          "chance_weight": 1
+        }
+      ]
+    },
+    {
+      "items": [
+        {
+          "item": "minecraft:lapis_lazuli",
+          "chance_weight": 1
+        },
+        {
+          "item": "minecraft:amethyst_shard",
+          "chance_weight": 1
+        },
+        {
+          "item": "minecraft:emerald",
+          "chance_weight": 1
+        }
+      ],
+      "stabilizing_resonance": {
+        "chance_per_resonator": 0.01,
+        "min_resonators": 1
       }
-    ]
-  }
+    }
+  ]
 }

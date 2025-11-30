@@ -2,6 +2,7 @@ package com.bmaster.createrns.content.deposit.mining.multiblock;
 
 import com.bmaster.createrns.content.deposit.mining.IHaveAdaptiveGoggleInformation;
 import com.bmaster.createrns.content.deposit.mining.MiningEffectsGenerator;
+import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.EquipmentManager;
 import com.bmaster.createrns.util.GoggleTooltipModifiers;
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.content.contraptions.AssemblyException;
@@ -17,6 +18,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.BiFunction;
@@ -27,6 +29,11 @@ public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity implem
 
     public MinerBearingBlockEntity(BlockEntityType<MinerBearingBlockEntity> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
+    }
+
+    public @Nullable EquipmentManager getEquipmentManager() {
+        if (miningBehaviour == null) return null;
+        return miningBehaviour.equipment;
     }
 
     @Override
@@ -120,12 +127,12 @@ public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity implem
 
     @Override
     public List<BiFunction<Context, List<Component>, Boolean>> getPrimarySections() {
-        return List.of(GoggleTooltipModifiers::addRatesToGoggleTooltip, GoggleTooltipModifiers::addUsesToGoggleTooltip);
+        return List.of(GoggleTooltipModifiers::addMinerInfoToGoggleTooltip);
     }
 
     @Override
     public List<BiFunction<Context, List<Component>, Boolean>> getSecondarySections() {
-        return List.of(GoggleTooltipModifiers::addAttachmentInfoToGoggleTooltip);
+        return List.of(GoggleTooltipModifiers::addRatesToGoggleTooltip, GoggleTooltipModifiers::addUsesToGoggleTooltip);
     }
 
     @Override

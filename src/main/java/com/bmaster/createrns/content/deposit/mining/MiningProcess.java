@@ -3,6 +3,9 @@ package com.bmaster.createrns.content.deposit.mining;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.content.deposit.info.IDepositIndex;
+import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystHandler;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -26,6 +29,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -35,14 +39,10 @@ import java.util.stream.Collectors;
 public class MiningProcess {
     // 1 mine per block per hour at 256 points per tick
     public static final int BASE_PROGRESS = 256 * 60 * SharedConstants.TICKS_PER_MINUTE;
-    public final int tier;
-    public final int byproductChanceStacks;
     public final Set<InnerProcess> innerProcesses = Collections.newSetFromMap(new ConcurrentHashMap<>());
     public final Level level;
 
-    public MiningProcess(Level l, int tier, int byproductChanceStacks, Set<BlockPos> depositBlocks) {
-        this.tier = tier;
-        this.byproductChanceStacks = byproductChanceStacks;
+    public MiningProcess(Level l, Set<Catalyst> catalysts, Set<BlockPos> depositBlocks) {
         this.level = l;
 
         var depBlockCounts = depositBlocks.stream()
@@ -56,10 +56,10 @@ public class MiningProcess {
         for (var e : depBlockCounts.entrySet()) {
             var db = e.getKey();
             var recipe = MiningRecipeLookup.find(level, db);
-            if (recipe == null || tier < recipe.getTier()) continue;
+            if (recipe == null) continue;
             var depBlockCount = e.getValue().intValue();
-            innerProcesses.add(new InnerProcess(level, depBlockPositions.get(db), recipe, BASE_PROGRESS / depBlockCount,
-                    Math.min(byproductChanceStacks, recipe.getByproduct().maxStacks)));
+            innerProcesses.add(new InnerProcess(level, depBlockPositions.get(db), recipe,
+                    BASE_PROGRESS / depBlockCount, catalysts));
         }
     }
 
@@ -85,9 +85,11 @@ public class MiningProcess {
 
         for (var p : innerProcesses) {
             var minesPerHour = (float) progressPerHour / p.maxProgress;
-            var y = p.recipe.getYield();
-            for (var t : y.types) {
-                rates.addTo(t.item(), minesPerHour * t.chanceWeight() / y.getTotalWeight());
+            var ys = p.recipe.getYields();
+            for (var y : ys) {
+                for (var i : y.items) {
+                    rates.addTo(i.item(), minesPerHour * i.chanceWeight() / y.getTotalWeight());
+                }
             }
         }
 
@@ -138,19 +140,19 @@ public class MiningProcess {
         public int maxProgress;
         public int progress;
         public long remainingUses;
-        public final int byproductChanceStacks;
+        public final CatalystHandler catalystHandler;
 
-        protected ItemStack uncollectedByproduct = null;
+        protected Queue<ItemStack> uncollectedItems = new ArrayDeque<>();
 
         public InnerProcess(Level level, List<BlockPos> depositPositions, MiningRecipe recipe, int maxProgress,
-                            int byproductChanceStacks) {
+                            Set<Catalyst> catalysts) {
             this.level = level;
             this.depositPositions = depositPositions;
             this.recipe = recipe;
             this.maxProgress = maxProgress;
             this.progress = 0;
-            this.byproductChanceStacks = byproductChanceStacks;
             if (!level.isClientSide) computeRemainingUses(); // Server computes/syncs, client uses
+            this.catalystHandler = new CatalystHandler(recipe, catalysts);
         }
 
         public void advance(int by) {
@@ -159,10 +161,8 @@ public class MiningProcess {
         }
 
         public @Nullable ItemStack collect() {
-            if (uncollectedByproduct != null) {
-                var ret = uncollectedByproduct;
-                uncollectedByproduct = null;
-                return ret;
+            if (!uncollectedItems.isEmpty()) {
+                return uncollectedItems.poll();
             }
 
             if (progress < maxProgress) return null;
@@ -176,17 +176,23 @@ public class MiningProcess {
             var rollDep = level.random.nextIntBetweenInclusive(0, depositPositions.size() - 1);
             depIdx.useDepositBlock(depositPositions.get(rollDep), recipe.getReplacementBlock().defaultBlockState());
 
-            // Try rolling for a byproduct. If successful, it will be collected on the next call.
-            var by = recipe.getByproduct();
-            if (by.chancePerStack > 0) {
-                var rollBy = level.random.nextFloat();
-                if (by.chancePerStack * byproductChanceStacks > rollBy) {
-                    uncollectedByproduct = new ItemStack(by.yield.roll(level.random));
-                    CreateRNS.LOGGER.trace("Successfully rolled for byproduct {}", uncollectedByproduct);
+            // For each yield: use all of its catalysts, then roll for success and add to collection queue if successful
+            var yields = recipe.getYields();
+            for (int i = 0; i < yields.size(); ++i) {
+                var chance = catalystHandler.useCatalysts(i);
+                if (chance > 0) {
+                    var chanceRoll = level.random.nextFloat();
+                    if (chance > chanceRoll) {
+                        var myPrecious = new ItemStack(yields.get(i).roll(level.random));
+                        uncollectedItems.offer(myPrecious);
+                        if (chance != 1) {
+                            CreateRNS.LOGGER.trace("Successfully rolled for {} ({}% chance)", myPrecious, (int)(chance * 100));
+                        }
+                    }
                 }
             }
 
-            return new ItemStack(recipe.getYield().roll(level.random));
+            return uncollectedItems.isEmpty() ? null : uncollectedItems.poll();
         }
 
         public @Nullable CompoundTag write(boolean clientPacket) {

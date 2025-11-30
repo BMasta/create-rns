@@ -1,5 +1,4 @@
 {
-  "block.create_rns.collector": "ɹoʇɔǝןןoƆ",
   "block.create_rns.copper_deposit_block": "ʞɔoןᗺ ʇısodǝᗡ ɹǝddoƆ",
   "block.create_rns.depleted_deposit_block": "ʞɔoןᗺ ʇısodǝᗡ pǝʇǝןdǝᗡ",
   "block.create_rns.drill_head": "pɐǝH ןןıɹᗡ",
@@ -10,6 +9,8 @@
   "block.create_rns.miner_mk2": "ᄅʞW ɹǝuıW",
   "block.create_rns.redstone_deposit_block": "ʞɔoןᗺ ʇısodǝᗡ ǝuoʇspǝᴚ",
   "block.create_rns.resonator": "ɹoʇɐuosǝᴚ",
+  "block.create_rns.shattering_resonator": "ɹoʇɐuosǝᴚ buıɹǝʇʇɐɥS",
+  "block.create_rns.stabilizing_resonator": "ɹoʇɐuosǝᴚ buızıןıqɐʇS",
   "block.create_rns.zinc_deposit_block": "ʞɔoןᗺ ʇısodǝᗡ ɔuıZ",
   "item.create_rns.deposit_scanner": "ɹǝuuɐɔS ʇısodǝᗡ",
   "item.create_rns.impure_copper_ore": "ǝɹO ɹǝddoƆ ǝɹndɯI",
@@ -18,6 +19,6 @@
   "item.create_rns.impure_redstone_dust": "ʇsnᗡ ǝuoʇspǝᴚ ǝɹndɯI",
   "item.create_rns.impure_zinc_ore": "ǝɹO ɔuıZ ǝɹndɯI",
   "item.create_rns.redstone_small_dust": "ʇsnᗡ ןןɐɯS ǝuoʇspǝᴚ",
-  "item.create_rns.resonant_mechanism": "ɯsıuɐɥɔǝW ʇuɐuosǝᴚ",
+  "item.create_rns.resonant_amethyst": "ʇsʎɥʇǝɯⱯ ʇuɐuosǝᴚ",
   "itemGroup.create_rns.create_rns": "suᴚ ǝʇɐǝɹƆ"
 }

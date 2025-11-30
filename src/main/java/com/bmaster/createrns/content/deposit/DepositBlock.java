@@ -99,7 +99,7 @@ public class DepositBlock extends Block {
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         super.onRemove(state, level, pos, newState, movedByPiston);
         if (!(level instanceof ServerLevel sl)) return;
-        // Only non-depleted deposits have durability
+        // Only non-depleted deposits have dur
         if (state.is(RNSTags.Block.DEPOSIT_BLOCKS)) {
             var depIdx = IDepositIndex.fromLevel(sl);
             if (depIdx == null) return;
