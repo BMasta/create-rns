@@ -2,8 +2,8 @@ package com.bmaster.createrns.content.deposit.info;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.DepositBlock;
-import com.bmaster.createrns.content.deposit.mining.MiningRecipe;
 import com.bmaster.createrns.content.deposit.mining.MiningRecipeLookup;
+import com.bmaster.createrns.content.deposit.mining.recipe.DepositDurability;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.bmaster.createrns.util.Utils;
@@ -486,7 +486,7 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
     /// Parentheses are minimum and maximum durabilities for the given depth.
     ///
     /// If vein is infinite, 0 is returned. Otherwise, the return value is random, but guaranteed to lie within both ranges.
-    private long rollDurability(MiningRecipe.Durability dur, float depthRatio) {
+    private long rollDurability(DepositDurability dur, float depthRatio) {
         assert 0f <= depthRatio && depthRatio <= 1f;
 
         long minDur = dur.edge();

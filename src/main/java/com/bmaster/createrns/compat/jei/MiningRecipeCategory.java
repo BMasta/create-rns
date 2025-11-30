@@ -3,7 +3,7 @@ package com.bmaster.createrns.compat.jei;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSContent;
 import com.bmaster.createrns.RNSRecipeTypes;
-import com.bmaster.createrns.content.deposit.mining.MiningRecipe;
+import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.util.FlexibleLayoutHelper;
 import com.simibubi.create.compat.jei.EmptyBackground;
 import com.simibubi.create.compat.jei.ItemIcon;
@@ -17,7 +17,6 @@ import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
-import mezz.jei.library.gui.elements.DrawableBuilder;
 import net.createmod.catnip.layout.LayoutHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -54,7 +53,6 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
     private static final IDrawable BASIC_SLOT = asDrawable(AllGuiTextures.JEI_SLOT);
     private static final IDrawable CHANCE_SLOT = asDrawable(AllGuiTextures.JEI_CHANCE_SLOT);
     private static final AnimatedMiner MINER = new AnimatedMiner(RNSContent.MINER_MK1_BLOCK.get(), RNSContent.MINER_MK1_DRILL);
-    private static IDrawable TIER_ICON = null;
 
     private static final int SLOTS_PER_YIELD_ROW = 5;
     private static final int MAX_YIELD_ROWS = 3;
@@ -63,10 +61,6 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
 
     public MiningRecipeCategory(IGuiHelper gui) {
         super(INFO);
-        TIER_ICON = new DrawableBuilder(
-                ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "textures/gui/tier_icon.png"),
-                0, 0, 16, 16
-        ).setTextureSize(16, 16).build();
     }
 
     @Override
@@ -86,19 +80,10 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
     }
 
     @Override
-    protected List<Component> getTooltipStrings(MiningRecipe recipe, IRecipeSlotsView recipeSlotsView,
-                                                double mouseX, double mouseY) {
-        if (32 < mouseX && mouseX < 53 && 0 <= mouseY && mouseY < 14) {
-            return List.of(Component.literal("Mining tier: " + recipe.getTier()));
-        }
-        return List.of();
-    }
-
-    @Override
     public void draw(MiningRecipe r, IRecipeSlotsView rsv, GuiGraphics gui, double mX, double mY) {
-        var yieldTypes = r.getYield().types;
-        if (yieldTypes.size() > MAX_YIELD_SLOTS) yieldTypes = yieldTypes.subList(0, MAX_YIELD_SLOTS);
-        var rows = Mth.clamp((yieldTypes.size() - 1) / SLOTS_PER_YIELD_ROW + 1, 1, MAX_YIELD_ROWS);
+        var yields = r.getYields().stream().flatMap(y -> y.items.stream()).toList();
+        if (yields.size() > MAX_YIELD_SLOTS) yields = yields.subList(0, MAX_YIELD_SLOTS);
+        var rows = Mth.clamp((yields.size() - 1) / SLOTS_PER_YIELD_ROW + 1, 1, MAX_YIELD_ROWS);
 
         MINER.draw(gui, 25, 45);
         AllGuiTextures.JEI_SHADOW.render(gui, 15, 67);
@@ -109,26 +94,20 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
         gui.pose().scale(0.6f, 0.6f, 1f);
         int ic = Objects.requireNonNull(ChatFormatting.GRAY.getColor());
         gui.setColor(((ic >>> 16) & 0xff) / 255f, ((ic >>> 8) & 0xff) / 255f, (ic & 0xff) / 255f, 1);
-        TIER_ICON.draw(gui);
         gui.setColor(1, 1, 1, 1);
         gui.pose().popPose();
-
-        gui.drawString(Minecraft.getInstance().font, Integer.toString(r.getTier()), 45, 4,
-                Objects.requireNonNull(ChatFormatting.GRAY.getColor()), false);
     }
 
     private List<LayoutEntry> layoutOutput(MiningRecipe recipe) {
-        var yield = recipe.getYield();
-        var yieldTypes = yield.types;
-        if (yieldTypes.size() > MAX_YIELD_SLOTS) yieldTypes = yieldTypes.subList(0, MAX_YIELD_SLOTS);
-        var size = yieldTypes.size();
+        var yields = recipe.getYields().stream().flatMap(y -> y.items.stream()).toList();
+        if (yields.size() > MAX_YIELD_SLOTS) yields = yields.subList(0, MAX_YIELD_SLOTS);
+        var size = yields.size();
         var rows = Mth.clamp((size - 1) / SLOTS_PER_YIELD_ROW + 1, 1, MAX_YIELD_ROWS);
 
         LayoutHelper layout = new FlexibleLayoutHelper(size, rows, 18, 18, 1, true, true);
         List<LayoutEntry> positions = new ArrayList<>(size);
-        for (var t : yieldTypes) {
-            var output = new ProcessingOutput(new ItemStack(t.item()),
-                    (float) t.chanceWeight() / yield.getTotalWeight());
+        for (var y : yields) {
+            var output = new ProcessingOutput(new ItemStack(y.item()), 1f);
             positions.add(new LayoutEntry(output, layout.getX(), layout.getY()));
             layout.next();
         }

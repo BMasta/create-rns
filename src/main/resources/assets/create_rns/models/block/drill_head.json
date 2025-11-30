@@ -134,7 +134,8 @@
   ],
   "display": {
     "ground": {
-      "scale": [0.3, 0.3, 0.3]
+      "translation": [0, 2.25, 0],
+      "scale": [0.25, 0.25, 0.25]
     },
     "gui": {
       "rotation": [27, 0, 0],

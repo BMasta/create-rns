@@ -6,9 +6,11 @@ import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHold
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.bmaster.createrns.content.deposit.mining.*;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -181,10 +183,11 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
     public void claimDepositBlocks() {
         var level = getLevel();
         if (level == null || level.isClientSide || (spec == null & !refreshSpec())) return;
+        var catalysts = getCatalysts();
+        if (catalysts == null) return;
 
         claimedDepositBlocks = getClaimableDepositVein(level).stream()
-                .filter(pos -> MiningRecipeLookup.isDepositMineable(level, level.getBlockState(pos).getBlock(),
-                        spec.tier()))
+                .filter(pos -> MiningRecipeLookup.isDepositMineable(level, level.getBlockState(pos).getBlock(), catalysts))
                 .collect(Collectors.toSet());
 
         // Recompute mining process based on claimed mining area
@@ -211,8 +214,8 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
         mInv.collectMinedItems(process);
     }
 
-    public int getByproductChanceStacks() {
-        return 0;
+    public @Nullable Set<Catalyst> getCatalysts() {
+        return new ObjectOpenHashSet<>();
     }
 
     protected boolean refreshSpec() {
@@ -229,10 +232,10 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
         for (var bp : claimedDepositBlocks) {
             if (!level.isLoaded(bp)) return false;
         }
-        var byproductChanceStacks = getByproductChanceStacks();
-        if (byproductChanceStacks < 0) return false;
+        var catalysts = getCatalysts();
+        if (catalysts == null) return false;
 
-        process = new MiningProcess(level, spec.tier(), byproductChanceStacks, claimedDepositBlocks);
+        process = new MiningProcess(level, catalysts, claimedDepositBlocks);
 
         // If we got mining progress data from NBT, now is the time to set it
         if (pendingProcessTag != null) {

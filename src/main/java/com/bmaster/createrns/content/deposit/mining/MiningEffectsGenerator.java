@@ -40,7 +40,7 @@ public class MiningEffectsGenerator {
     }
 
     public void spawnParticles() {
-        if (level == null || !level.isClientSide || particleOptions == null) return;
+        if (level == null || !level.isClientSide || particleOptions == null || particleOptions.isEmpty()) return;
         var srcPos = srcPositionSup.get();
         if (srcPos == null) return;
         var srcDir = srcDirectionSup.get();

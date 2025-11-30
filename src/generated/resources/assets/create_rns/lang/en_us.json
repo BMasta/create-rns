@@ -1,5 +1,4 @@
 {
-  "block.create_rns.collector": "Collector",
   "block.create_rns.copper_deposit_block": "Copper Deposit Block",
   "block.create_rns.depleted_deposit_block": "Depleted Deposit Block",
   "block.create_rns.drill_head": "Drill Head",
@@ -10,6 +9,8 @@
   "block.create_rns.miner_mk2": "Miner Mk2",
   "block.create_rns.redstone_deposit_block": "Redstone Deposit Block",
   "block.create_rns.resonator": "Resonator",
+  "block.create_rns.shattering_resonator": "Shattering Resonator",
+  "block.create_rns.stabilizing_resonator": "Stabilizing Resonator",
   "block.create_rns.zinc_deposit_block": "Zinc Deposit Block",
   "item.create_rns.deposit_scanner": "Deposit Scanner",
   "item.create_rns.impure_copper_ore": "Impure Copper Ore",
@@ -18,6 +19,6 @@
   "item.create_rns.impure_redstone_dust": "Impure Redstone Dust",
   "item.create_rns.impure_zinc_ore": "Impure Zinc Ore",
   "item.create_rns.redstone_small_dust": "Redstone Small Dust",
-  "item.create_rns.resonant_mechanism": "Resonant Mechanism",
+  "item.create_rns.resonant_amethyst": "Resonant Amethyst",
   "itemGroup.create_rns.create_rns": "Create Rns"
 }

@@ -4,6 +4,9 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.mining.IHaveAdaptiveGoggleInformation.Context;
 import com.bmaster.createrns.content.deposit.mining.block.MiningBehaviour;
 import com.bmaster.createrns.content.deposit.mining.multiblock.ContraptionMiningBehaviour;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ResonanceCatalyst;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ShatteringResonanceCatalyst;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.StabilizingResonanceCatalyst;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
@@ -18,6 +21,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.Capabilities;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GoggleTooltipModifiers {
     @SuppressWarnings("SameParameterValue")
@@ -134,7 +138,7 @@ public class GoggleTooltipModifiers {
         return true;
     }
 
-    public static boolean addAttachmentInfoToGoggleTooltip(Context c, List<Component> tooltip) {
+    public static boolean addMinerInfoToGoggleTooltip(Context c, List<Component> tooltip) {
         var be = c.target();
         if (!(be instanceof SmartBlockEntity sbe)) return false;
         var mb = sbe.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
@@ -146,36 +150,53 @@ public class GoggleTooltipModifiers {
         if (process == null) return false;
 
         if (c.isFirstSection()) {
-            new LangBuilder(CreateRNS.MOD_ID).translate("contraption_mining.attachments").forGoggles(tooltip);
+            new LangBuilder(CreateRNS.MOD_ID)
+                    .translate("contraption_mining.info")
+                    .forGoggles(tooltip);
         } else {
             // Newline between sections
             new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
         }
 
-        var tierC = new LangBuilder(CreateRNS.MOD_ID)
-                .text(Integer.toString(spec.tier()))
-                .style(ChatFormatting.GREEN);
-        var resC = new LangBuilder(CreateRNS.MOD_ID)
-                .text(Integer.toString(cmb.equipment.resonatorCount))
-                .style(ChatFormatting.LIGHT_PURPLE);
+        AtomicBoolean resonanceFound = new AtomicBoolean(false);
+        cmb.equipment.catalysts.stream()
+                .filter(cat -> cat instanceof ShatteringResonanceCatalyst)
+                .findFirst()
+                .ifPresent(cat -> {
+                    new LangBuilder(CreateRNS.MOD_ID)
+                            .translate("contraption_mining.resonance.shattering",
+                                    Integer.toString(((ShatteringResonanceCatalyst) cat).resonatorCount))
+                            .style(ChatFormatting.RED)
+                            .forGoggles(tooltip);
+                    resonanceFound.set(true);
+                });
 
-        new LangBuilder(CreateRNS.MOD_ID)
-                .translate("contraption_mining.attachments.tier", tierC, resC)
-                .style(ChatFormatting.GRAY)
-                .forGoggles(tooltip);
+        if (!resonanceFound.get()) {
+            cmb.equipment.catalysts.stream()
+                    .filter(cat -> cat instanceof StabilizingResonanceCatalyst)
+                    .findFirst()
+                    .ifPresent(cat -> {
+                        new LangBuilder(CreateRNS.MOD_ID)
+                                .translate("contraption_mining.resonance.stabilizing",
+                                        Integer.toString(((StabilizingResonanceCatalyst) cat).resonatorCount))
+                                .style(ChatFormatting.AQUA)
+                                .forGoggles(tooltip);
+                        resonanceFound.set(true);
+                    });
+        }
 
-        var chanceC = new LangBuilder(CreateRNS.MOD_ID)
-                .text("x" + process.byproductChanceStacks)
-                .style(ChatFormatting.GREEN);
-
-        var collectorC = new LangBuilder(CreateRNS.MOD_ID)
-                .text(Integer.toString(cmb.equipment.collectorCount))
-                .style(ChatFormatting.LIGHT_PURPLE);
-
-        new LangBuilder(CreateRNS.MOD_ID)
-                .translate("contraption_mining.attachments.byproduct_chance", chanceC, collectorC)
-                .style(ChatFormatting.GRAY)
-                .forGoggles(tooltip);
+        if (!resonanceFound.get()) {
+            cmb.equipment.catalysts.stream()
+                    .filter(cat -> cat instanceof ResonanceCatalyst)
+                    .findFirst()
+                    .ifPresent(cat -> {
+                        new LangBuilder(CreateRNS.MOD_ID)
+                                .translate("contraption_mining.resonance.standard")
+                                .style(ChatFormatting.LIGHT_PURPLE)
+                                .forGoggles(tooltip);
+                        resonanceFound.set(true);
+                    });
+        }
 
         return true;
     }
