@@ -1,6 +1,6 @@
 package com.bmaster.createrns.infrastructure.command;
 
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.mojang.brigadier.Command;
@@ -73,7 +73,7 @@ public class ScannerCommand {
         return ctx -> {
             var src = ctx.getSource();
             var sl = src.getLevel();
-            var depData = sl.getData(RNSContent.LEVEL_DEPOSIT_DATA.get());
+            var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
             if (isVein) {
                 var start = BlockPosArgument.getLoadedBlockPos(ctx, "target_position");
                 var vein = DepositBlock.getVein(sl, start);
@@ -116,7 +116,7 @@ public class ScannerCommand {
         return ctx -> {
             var src = ctx.getSource();
             var sl = src.getLevel();
-            var depData = sl.getData(RNSContent.LEVEL_DEPOSIT_DATA.get());
+            var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
             BlockPos pos = BlockPosArgument.getLoadedBlockPos(ctx, "target_position");
             if (depData.getType(pos) == null) {
                 src.sendFailure(Component.literal("Target does not exist"));
@@ -131,7 +131,7 @@ public class ScannerCommand {
         return ctx -> {
             var src = ctx.getSource();
             var sl = src.getLevel();
-            var depData = sl.getData(RNSContent.LEVEL_DEPOSIT_DATA.get());
+            var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
 
             BlockPos pos = BlockPosArgument.getLoadedBlockPos(ctx, "target_position");
             boolean val = ctx.getArgument("new_value", Boolean.class);
@@ -166,7 +166,7 @@ public class ScannerCommand {
             }
             var pos = entity.blockPosition();
             var keys = parseResourceOrTag(ctx, "structure", Registries.STRUCTURE);
-            var depData = sl.getData(RNSContent.LEVEL_DEPOSIT_DATA.get());
+            var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
             for (var k : keys) {
                 var nearest = depData.getNearest(k, sl, pos, DepositSetConfigBuilder.DEFAULT_SPACING * 4,
                         !undiscovered, generated);

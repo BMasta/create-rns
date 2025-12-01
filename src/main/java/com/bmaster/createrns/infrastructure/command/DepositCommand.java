@@ -1,6 +1,6 @@
 package com.bmaster.createrns.infrastructure.command;
 
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.mojang.brigadier.Command;
@@ -53,7 +53,7 @@ public class DepositCommand {
                 return 0;
             }
             var sl = src.getLevel();
-            var depData = sl.getData(RNSContent.LEVEL_DEPOSIT_DATA.get());
+            var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
             var pos = BlockPosArgument.getLoadedBlockPos(ctx, "dep_block_pos");
             switch (action) {
                 case SET -> {

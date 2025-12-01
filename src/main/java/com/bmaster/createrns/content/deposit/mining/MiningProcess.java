@@ -1,7 +1,7 @@
 package com.bmaster.createrns.content.deposit.mining;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.bmaster.createrns.RNSContent.LEVEL_DEPOSIT_DATA;
+import static com.bmaster.createrns.RNSMisc.LEVEL_DEPOSIT_DATA;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
@@ -213,7 +213,7 @@ public class MiningProcess {
 
         /// Returns 0 if deposit is infinite. Only callable on server side
         private void computeRemainingUses() {
-            var depData = level.getData(RNSContent.LEVEL_DEPOSIT_DATA.get());
+            var depData = level.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
             AtomicBoolean infinite = new AtomicBoolean(false);
             long totalDur = depositPositions.stream()
                     .map(bp -> {

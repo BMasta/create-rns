@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.block;
 
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSPartialModels;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
@@ -26,7 +26,7 @@ public class MinerRenderer extends KineticBlockEntityRenderer<MinerBlockEntity> 
         var spec = be.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE).getSpec();
         int tier = (spec == null) ? 1 : spec.tier();
         SuperByteBuffer head = CachedBuffers.partial(
-                (tier <= 1) ? RNSContent.MINER_MK1_DRILL : RNSContent.MINER_MK2_DRILL, be.getBlockState());
+                (tier <= 1) ? RNSPartialModels.MINER_MK1_DRILL : RNSPartialModels.MINER_MK2_DRILL, be.getBlockState());
 
         renderRotatingBuffer(be, head, ms, vb, light);
     }

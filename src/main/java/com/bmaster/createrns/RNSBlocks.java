@@ -1,168 +1,44 @@
 package com.bmaster.createrns;
 
 import com.bmaster.createrns.content.deposit.DepositBlock;
-import com.bmaster.createrns.content.deposit.info.LevelDepositData;
 import com.bmaster.createrns.content.deposit.mining.block.MinerBlock;
-import com.bmaster.createrns.content.deposit.mining.block.MinerBlockEntity;
-import com.bmaster.createrns.content.deposit.mining.block.MinerRenderer;
-import com.bmaster.createrns.content.deposit.mining.block.MinerVisual;
 import com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlock;
-import com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.MiningEquipmentMovementBehaviour;
 import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.drillhead.DrillHeadBlock;
-import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator.*;
-import com.bmaster.createrns.content.deposit.scanning.DepositScannerItem;
+import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator.ResonatorBlock;
+import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator.ResonatorMovementBehaviour;
+import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator.ShatteringResonatorBlock;
+import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator.StabilizingResonatorBlock;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositStructureConfigBuilder;
-import com.bmaster.createrns.data.pack.DynamicDatapack;
-import com.bmaster.createrns.data.pack.DynamicDatapackContent;
-import com.bmaster.createrns.infrastructure.command.DepositCommand;
-import com.bmaster.createrns.infrastructure.command.ScannerCommand;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.AllTags;
 import com.simibubi.create.api.stress.BlockStressValues;
-import com.simibubi.create.content.contraptions.bearing.BearingRenderer;
-import com.simibubi.create.content.contraptions.bearing.BearingVisual;
 import com.simibubi.create.content.contraptions.bearing.StabilizedBearingMovementBehaviour;
 import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.SharedProperties;
-import com.simibubi.create.foundation.item.ItemDescription;
-import com.simibubi.create.foundation.item.KineticStats;
-import com.simibubi.create.foundation.item.TooltipModifier;
 import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.providers.RegistrateRecipeProvider;
-import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.BlockEntry;
-import com.tterrag.registrate.util.entry.ItemEntry;
-import com.tterrag.registrate.util.entry.RegistryEntry;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
-import dev.engine_room.flywheel.lib.model.baked.PartialModel;
-import net.createmod.catnip.lang.FontHelper;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.repository.Pack;
-import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.common.Tags;
-import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.registries.NeoForgeRegistries;
-
-import java.util.function.Supplier;
 
 import static com.simibubi.create.api.behaviour.movement.MovementBehaviour.movementBehaviour;
 import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
 import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
 
-public class RNSContent {
-    // Partial models
-    public static final PartialModel MINER_MK1_DRILL = PartialModel.of(
-            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "block/miner_mk1/drill_head"));
-
-    public static final PartialModel MINER_MK2_DRILL = PartialModel.of(
-            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "block/miner_mk2/drill_head"));
-
-    public static final PartialModel RESONATOR_SHARD = PartialModel.of(
-            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "block/resonator/shard"));
-
-    public static final PartialModel RESONATOR_SHARD_ACTIVE = PartialModel.of(
-            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "block/resonator/shard_active"));
-
-    public static final PartialModel STABILIZING_RESONATOR_SHARD = PartialModel.of(
-            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "block/stabilizing_resonator/shard"));
-
-    public static final PartialModel STABILIZING_RESONATOR_SHARD_ACTIVE = PartialModel.of(
-            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "block/stabilizing_resonator/shard_active"));
-
-    public static final PartialModel SHATTERING_RESONATOR_SHARD = PartialModel.of(
-            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "block/shattering_resonator/shard"));
-
-    public static final PartialModel SHATTERING_RESONATOR_SHARD_ACTIVE = PartialModel.of(
-            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "block/shattering_resonator/shard_active"));
-
-    // Item tooltips
-    static {
-        CreateRNS.REGISTRATE.setTooltipModifierFactory(item ->
-                new ItemDescription.Modifier(item, FontHelper.Palette.STANDARD_CREATE)
-                        .andThen(TooltipModifier.mapNull(KineticStats.create(item))));
-    }
-
-    // Level attachments
-    private static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES =
-            DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, CreateRNS.MOD_ID);
-
-    public static final Supplier<AttachmentType<LevelDepositData>> LEVEL_DEPOSIT_DATA = ATTACHMENT_TYPES.register(
-            "level_deposit_data", () -> AttachmentType.serializable(holder -> {
-                if (!(holder instanceof Level level)) {
-                    throw new IllegalStateException("Level deposit data holder is not a level: " + holder);
-                }
-                return new LevelDepositData(level);
-            }).build());
-
-    // Creative tabs
-    public static final RegistryEntry<CreativeModeTab, CreativeModeTab> MAIN_TAB = CreateRNS.REGISTRATE.defaultCreativeTab(
-                    CreateRNS.MOD_ID, c -> c
-                            .icon(RNSContent.MINER_MK2_BLOCK::asStack)
-                            .title(Component.translatable("creativetab.%s".formatted(CreateRNS.MOD_ID)))
-                            .build())
-            .register();
-
-    // Items
-    public static final ItemEntry<DepositScannerItem> DEPOSIT_SCANNER_ITEM = CreateRNS.REGISTRATE.item(
-                    "deposit_scanner", DepositScannerItem::new)
-            .properties(p -> p.stacksTo(1))
-            .model(AssetLookup.itemModelWithPartials())
-            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
-                    .define('E', AllItems.ELECTRON_TUBE)
-                    .define('W', AllBlocks.COGWHEEL)
-                    .define('C', AllBlocks.ANDESITE_CASING)
-                    .define('T', AllItems.TRANSMITTER)
-                    .pattern(" E ")
-                    .pattern("TWT")
-                    .pattern(" C ")
-                    .unlockedBy("has_electron_tube", RegistrateRecipeProvider.has(AllItems.ELECTRON_TUBE))
-                    .save(p))
-            .register();
-
-    public static final ItemEntry<Item> RESONANT_AMETHYST = CreateRNS.REGISTRATE.item(
-                    "resonant_amethyst", Item::new)
-            .register();
-
-    public static final ItemEntry<Item> IMPURE_IRON_ORE = CreateRNS.REGISTRATE.item(
-            "impure_iron_ore", Item::new).tag(RNSTags.Item.IMPURE_ORES).register();
-    public static final ItemEntry<Item> IMPURE_COPPER_ORE = CreateRNS.REGISTRATE.item(
-            "impure_copper_ore", Item::new).tag(RNSTags.Item.IMPURE_ORES).register();
-    public static final ItemEntry<Item> IMPURE_ZINC_ORE = CreateRNS.REGISTRATE.item(
-            "impure_zinc_ore", Item::new).tag(RNSTags.Item.IMPURE_ORES).register();
-    public static final ItemEntry<Item> IMPURE_GOLD_ORE = CreateRNS.REGISTRATE.item(
-            "impure_gold_ore", Item::new).tag(RNSTags.Item.IMPURE_ORES).register();
-    public static final ItemEntry<Item> IMPURE_REDSTONE_DUST = CreateRNS.REGISTRATE.item(
-            "impure_redstone_dust", Item::new).tag(RNSTags.Item.IMPURE_ORES).register();
-
-    // Yoinked from tech reborn
-    public static final ItemEntry<Item> REDSTONE_SMALL_DUST = CreateRNS.REGISTRATE.item(
-            "redstone_small_dust", Item::new).register();
-
+public class RNSBlocks {
     // Blocks
     public static final BlockEntry<MinerBlock> MINER_MK1_BLOCK = CreateRNS.REGISTRATE.block("miner_mk1",
                     MinerBlock::new)
@@ -281,8 +157,8 @@ public class RNSContent {
                     .depositBlock(BuiltInRegistries.BLOCK.getKey(d))
                     .depth(8)
                     .weight(10)
-                    .nbt(RNSContent.DEP_MEDIUM, 70)
-                    .nbt(RNSContent.DEP_LARGE, 30)
+                    .nbt(DepositStructureConfigBuilder.DEP_MEDIUM, 70)
+                    .nbt(DepositStructureConfigBuilder.DEP_LARGE, 30)
                     .save())
             .register();
 
@@ -294,8 +170,8 @@ public class RNSContent {
                     .depositBlock(BuiltInRegistries.BLOCK.getKey(d))
                     .depth(8)
                     .weight(5)
-                    .nbt(RNSContent.DEP_MEDIUM, 70)
-                    .nbt(RNSContent.DEP_LARGE, 30)
+                    .nbt(DepositStructureConfigBuilder.DEP_MEDIUM, 70)
+                    .nbt(DepositStructureConfigBuilder.DEP_LARGE, 30)
                     .save())
             .register();
 
@@ -307,9 +183,9 @@ public class RNSContent {
                     .depositBlock(BuiltInRegistries.BLOCK.getKey(d))
                     .depth(8)
                     .weight(2)
-                    .nbt(RNSContent.DEP_SMALL, 70)
-                    .nbt(RNSContent.DEP_MEDIUM, 28)
-                    .nbt(RNSContent.DEP_LARGE, 2)
+                    .nbt(DepositStructureConfigBuilder.DEP_SMALL, 70)
+                    .nbt(DepositStructureConfigBuilder.DEP_MEDIUM, 28)
+                    .nbt(DepositStructureConfigBuilder.DEP_LARGE, 2)
                     .save())
             .register();
 
@@ -321,9 +197,9 @@ public class RNSContent {
                     .depositBlock(BuiltInRegistries.BLOCK.getKey(d))
                     .depth(12)
                     .weight(2)
-                    .nbt(RNSContent.DEP_SMALL, 70)
-                    .nbt(RNSContent.DEP_MEDIUM, 28)
-                    .nbt(RNSContent.DEP_LARGE, 2)
+                    .nbt(DepositStructureConfigBuilder.DEP_SMALL, 70)
+                    .nbt(DepositStructureConfigBuilder.DEP_MEDIUM, 28)
+                    .nbt(DepositStructureConfigBuilder.DEP_LARGE, 2)
                     .save())
             .register();
 
@@ -335,9 +211,9 @@ public class RNSContent {
                     .depositBlock(BuiltInRegistries.BLOCK.getKey(d))
                     .depth(12)
                     .weight(2)
-                    .nbt(RNSContent.DEP_SMALL, 70)
-                    .nbt(RNSContent.DEP_MEDIUM, 28)
-                    .nbt(RNSContent.DEP_LARGE, 2)
+                    .nbt(DepositStructureConfigBuilder.DEP_SMALL, 70)
+                    .nbt(DepositStructureConfigBuilder.DEP_MEDIUM, 28)
+                    .nbt(DepositStructureConfigBuilder.DEP_LARGE, 2)
                     .save())
             .register();
 
@@ -351,61 +227,6 @@ public class RNSContent {
         DepositSetConfigBuilder
                 .create()
                 .save();
-    }
-
-    // Block entities
-    public static final BlockEntityEntry<MinerBlockEntity> MINER_BE = CreateRNS.REGISTRATE
-            .blockEntity("miner", (BlockEntityType<MinerBlockEntity> t, BlockPos p, BlockState s) ->
-                    new MinerBlockEntity(p, s))
-            .visual(() -> MinerVisual::new)
-            .validBlock(MINER_MK1_BLOCK)
-            .validBlock(MINER_MK2_BLOCK)
-            .renderer(() -> MinerRenderer::new)
-            .register();
-
-    public static final BlockEntityEntry<MinerBearingBlockEntity> MINER_BEARING_BE = CreateRNS.REGISTRATE
-            .blockEntity("miner_bearing", MinerBearingBlockEntity::new)
-            .visual(() -> BearingVisual::new)
-            .validBlocks(MINER_BEARING_BLOCK)
-            .renderer(() -> BearingRenderer::new)
-            .register();
-
-    public static final BlockEntityEntry<ResonatorBlockEntity> RESONATOR_BE = CreateRNS.REGISTRATE
-            .blockEntity("resonator", ResonatorBlockEntity::new)
-            .validBlocks(RESONATOR_BLOCK)
-            .validBlocks(SHATTERING_RESONATOR_BLOCK)
-            .validBlocks(STABILIZING_RESONATOR_BLOCK)
-            .renderer(() -> ResonatorRenderer::new)
-            .register();
-
-    // Dynamic packs
-    public static Pack MAIN_PACK = DynamicDatapack.createDatapack("dynamic_data")
-            .title(Component.literal("Dynamic mod data for Create: Rock & Stone"))
-            .addContent(DynamicDatapackContent.standardDepositBiomeTag())
-            .buildAndRegister();
-
-    public static Pack NO_DEPOSIT_PACK = DynamicDatapack.createDatapack("no_deposit_worldgen")
-            .title(Component.literal("Disable deposit generation"))
-            .source(PackSource.FEATURE)
-            .optional()
-            .overwritesLoadedPacks()
-            .addContent(DynamicDatapackContent.emptyDepositBiomeTag())
-            .buildAndRegister();
-
-    // Commands
-    public static final LiteralArgumentBuilder<CommandSourceStack> RNS_COMMAND = Commands.literal("rns")
-            .then(DepositCommand.CMD)
-            .then(ScannerCommand.CMD);
-
-    private static final ResourceLocation DEP_SMALL =
-            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_small");
-    private static final ResourceLocation DEP_MEDIUM =
-            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium");
-    private static final ResourceLocation DEP_LARGE =
-            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_large");
-
-    public static void register(IEventBus modBus) {
-        ATTACHMENT_TYPES.register(modBus);
     }
 
     public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> depositBlock(MapColor mapColor) {
@@ -448,5 +269,8 @@ public class RNSContent {
                 .item()
                 .model(AssetLookup::customItemModel)
                 .build();
+    }
+
+    public static void register() {
     }
 }

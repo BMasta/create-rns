@@ -1,8 +1,6 @@
 package com.bmaster.createrns.event;
 
-import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.RNSRecipes;
+import com.bmaster.createrns.*;
 import com.bmaster.createrns.content.deposit.info.DepositSpec;
 import com.bmaster.createrns.content.deposit.info.DepositSpecLookup;
 import com.bmaster.createrns.content.deposit.mining.MinerSpec;
@@ -32,7 +30,7 @@ import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
 import javax.annotation.Nullable;
 
-@EventBusSubscriber(modid = CreateRNS.MOD_ID)
+@EventBusSubscriber(modid = CreateRNS.ID)
 public class CommonEvents {
     // MOD BUS
     @SubscribeEvent
@@ -40,7 +38,7 @@ public class CommonEvents {
         // Miners
         e.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
-                RNSContent.MINER_BE.get(),
+                RNSBlockEntities.MINER_BE.get(),
                 (MinerBlockEntity be, @Nullable Direction side) -> be.getItemHandler(side)
         );
     }
@@ -67,8 +65,8 @@ public class CommonEvents {
 
     @SubscribeEvent
     public static void onRegisterAdditionalModels(ModelEvent.RegisterAdditional event) {
-        event.register(ModelResourceLocation.standalone(RNSContent.MINER_MK1_DRILL.modelLocation()));
-        event.register(ModelResourceLocation.standalone(RNSContent.MINER_MK2_DRILL.modelLocation()));
+        event.register(ModelResourceLocation.standalone(RNSPartialModels.MINER_MK1_DRILL.modelLocation()));
+        event.register(ModelResourceLocation.standalone(RNSPartialModels.MINER_MK2_DRILL.modelLocation()));
     }
 
     @SubscribeEvent
@@ -103,7 +101,7 @@ public class CommonEvents {
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         var d = event.getDispatcher();
-        d.register(RNSContent.RNS_COMMAND);
+        d.register(RNSMisc.RNS_COMMAND);
     }
 
     // GAME BUS
@@ -112,7 +110,7 @@ public class CommonEvents {
     public static void onChunkLoad(ChunkEvent.Load e) {
         if (!(e.getLevel() instanceof ServerLevel sl)) return;
 
-        var depData = sl.getData(RNSContent.LEVEL_DEPOSIT_DATA.get());
+        var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
 
         ChunkPos pos = e.getChunk().getPos();
         var sm = sl.structureManager();

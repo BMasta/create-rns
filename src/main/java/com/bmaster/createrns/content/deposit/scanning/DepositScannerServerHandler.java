@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.scanning;
 
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.content.deposit.info.DepositSpecLookup;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler.AntennaStatus;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
@@ -27,7 +27,7 @@ public class DepositScannerServerHandler {
 
     public static void processScanRequest(ServerPlayer sp, Item icon, RequestType rt) {
         if (!(sp.level() instanceof ServerLevel sl)) return;
-        var depData = sl.getData(RNSContent.LEVEL_DEPOSIT_DATA.get());
+        var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
 
         var structKey = DepositSpecLookup.getStructureKey(sl.registryAccess(), icon);
         var nearest = switch (rt) {

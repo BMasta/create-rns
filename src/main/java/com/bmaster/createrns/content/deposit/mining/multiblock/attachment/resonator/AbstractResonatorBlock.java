@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator;
 
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSBlockEntities;
 import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.MiningEquipmentBlock;
 import com.simibubi.create.AllShapes;
 import com.simibubi.create.foundation.block.IBE;
@@ -46,6 +46,6 @@ public abstract class AbstractResonatorBlock extends MiningEquipmentBlock implem
 
     @Override
     public BlockEntityType<? extends ResonatorBlockEntity> getBlockEntityType() {
-        return RNSContent.RESONATOR_BE.get();
+        return RNSBlockEntities.RESONATOR_BE.get();
     }
 }

@@ -11,7 +11,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 @SuppressWarnings("Convert2MethodRef")
 public class RNSParticleTypes {
     protected static final DeferredRegister<ParticleType<?>> REGISTER =
-            DeferredRegister.create(Registries.PARTICLE_TYPE, CreateRNS.MOD_ID);
+            DeferredRegister.create(Registries.PARTICLE_TYPE, CreateRNS.ID);
 
     public static final BasicParticleData<ResonanceParticle> RESONANCE = new ResonanceParticle.Data(
             () -> RNSParticleTypes.RESONANCE_TYPE.get());
