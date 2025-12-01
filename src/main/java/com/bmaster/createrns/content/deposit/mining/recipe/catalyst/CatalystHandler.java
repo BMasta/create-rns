@@ -37,10 +37,11 @@ public class CatalystHandler {
                 boolean isCROptional = cr.isOptional();
                 boolean satisfied = false;
                 for (var c : catalysts) {
-                    var chance = cr.getChance(c);
-                    if (chance == 0) continue;
+                    if (!cr.isSatisfiedBy(c)) continue;
 
+                    var chance = cr.getChance(c);
                     satisfied = true;
+
                     if (isCROptional) {
                         optionalCatalysts.computeIfAbsent(i, ignored -> new ObjectOpenHashSet<>()).add(c);
                     } else {

@@ -1,24 +1,12 @@
 package com.bmaster.createrns.content.deposit.mining;
 
-import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.content.deposit.mining.block.MiningBehaviour;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
-import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
-import com.simibubi.create.foundation.utility.CreateLang;
-import net.createmod.catnip.lang.LangBuilder;
-import net.minecraft.ChatFormatting;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Mth;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.capabilities.Capabilities;
 
 import java.util.List;
 import java.util.function.BiFunction;
-
-import static net.minecraft.ChatFormatting.GRAY;
 
 public interface IHaveAdaptiveGoggleInformation extends IHaveGoggleInformation {
     /// Must have a mining behavior

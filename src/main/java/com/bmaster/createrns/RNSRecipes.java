@@ -1,6 +1,7 @@
 package com.bmaster.createrns;
 
 import com.simibubi.create.AllItems;
+import com.simibubi.create.api.data.recipe.MechanicalCraftingRecipeGen;
 import com.simibubi.create.api.data.recipe.WashingRecipeGen;
 import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.providers.RegistrateRecipeProvider;
@@ -11,6 +12,7 @@ import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Blocks;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -39,6 +41,40 @@ public class RNSRecipes {
             return create(name, b -> b.require(in)
                     .output(Items.COBBLESTONE)
                     .output(0.5f, out));
+        }
+    }
+
+    public static class MechanicalCrafting extends MechanicalCraftingRecipeGen {
+        GeneratedRecipe SHATTERING_RESONATOR = create(RNSContent.SHATTERING_RESONATOR_BLOCK::get).returns(1)
+                .recipe(b -> b
+                        .key('T', Blocks.REDSTONE_BLOCK)
+                        .key('A', RNSContent.RESONANT_AMETHYST)
+                        .key('M', AllItems.PRECISION_MECHANISM)
+                        .key('R', RNSContent.RESONATOR_BLOCK)
+                        .key('S', AllItems.STURDY_SHEET)
+                        .patternLine(" T ")
+                        .patternLine("SAS")
+                        .patternLine("SMS")
+                        .patternLine("SRS")
+                        .patternLine("SSS")
+                        .disallowMirrored());
+
+        GeneratedRecipe STABILIZING_RESONATOR = create(RNSContent.STABILIZING_RESONATOR_BLOCK::get).returns(1)
+                .recipe(b -> b
+                        .key('T', Blocks.DIAMOND_BLOCK)
+                        .key('A', RNSContent.RESONANT_AMETHYST)
+                        .key('M', AllItems.PRECISION_MECHANISM)
+                        .key('R', RNSContent.RESONATOR_BLOCK)
+                        .key('S', AllItems.STURDY_SHEET)
+                        .patternLine(" T ")
+                        .patternLine("SAS")
+                        .patternLine("SMS")
+                        .patternLine("SRS")
+                        .patternLine("SSS")
+                        .disallowMirrored());
+
+        public MechanicalCrafting(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
+            super(output, registries, CreateRNS.MOD_ID);
         }
     }
 
