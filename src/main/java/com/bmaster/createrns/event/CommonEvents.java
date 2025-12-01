@@ -96,6 +96,7 @@ public class CommonEvents {
         var output = generator.getPackOutput();
         var provider = event.getLookupProvider();
         generator.addProvider(event.includeServer(), new RNSRecipes.Washing(output, provider));
+        generator.addProvider(event.includeServer(), new RNSRecipes.MechanicalCrafting(output, provider));
         generator.addProvider(event.includeServer(), new DepositWorldgenProvider(output));
     }
 

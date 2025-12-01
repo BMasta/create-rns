@@ -100,9 +100,9 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     protected boolean refreshEquipment() {
         var ce = bearing.getMovedContraption();
         if ((!getLevel().isClientSide || wasAssembled) && (!bearing.isRunning() || ce == null)) {
-                equipment = null;
-                wasAssembled = false;
-                return false;
+            equipment = null;
+            wasAssembled = false;
+            return false;
         } else if ((!getLevel().isClientSide || !wasAssembled) && bearing.isRunning() && ce != null) {
             equipment = EquipmentManager.from((BearingContraption) ce.getContraption());
             wasAssembled = true;

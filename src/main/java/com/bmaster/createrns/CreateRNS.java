@@ -4,7 +4,6 @@ import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mojang.logging.LogUtils;
-import com.simibubi.create.AllParticleTypes;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;

@@ -1,7 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.recipe;
 
 import com.bmaster.createrns.RNSRecipeTypes;
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
