@@ -26,24 +26,6 @@ public class RNSRecipes {
         });
     }
 
-    public static class Washing extends WashingRecipeGen {
-        GeneratedRecipe IMPURE_IRON_ORE = fromImpure("impure_iron_ore", RNSItems.IMPURE_IRON_ORE, Items.IRON_NUGGET);
-        GeneratedRecipe IMPURE_COPPER_ORE = fromImpure("impure_copper_ore", RNSItems.IMPURE_COPPER_ORE, AllItems.COPPER_NUGGET);
-        GeneratedRecipe IMPURE_ZINC_ORE = fromImpure("impure_zinc_ore", RNSItems.IMPURE_ZINC_ORE, AllItems.ZINC_NUGGET);
-        GeneratedRecipe IMPURE_GOLD_ORE = fromImpure("impure_gold_ore", RNSItems.IMPURE_GOLD_ORE, Items.GOLD_NUGGET);
-        GeneratedRecipe IMPURE_REDSTONE_DUST = fromImpure("impure_redstone_dust", RNSItems.IMPURE_REDSTONE_DUST, RNSItems.REDSTONE_SMALL_DUST);
-
-        public Washing(PackOutput output, CompletableFuture<HolderLookup.Provider> provider) {
-            super(output, provider, CreateRNS.ID);
-        }
-
-        private GeneratedRecipe fromImpure(String name, ItemLike in, ItemLike out) {
-            return create(name, b -> b.require(in)
-                    .output(Items.COBBLESTONE)
-                    .output(0.5f, out));
-        }
-    }
-
     public static class MechanicalCrafting extends MechanicalCraftingRecipeGen {
         GeneratedRecipe SHATTERING_RESONATOR = create(RNSBlocks.SHATTERING_RESONATOR_BLOCK::get).returns(1)
                 .recipe(b -> b

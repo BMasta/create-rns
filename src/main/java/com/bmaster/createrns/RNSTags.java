@@ -6,8 +6,6 @@ import net.minecraft.tags.TagKey;
 
 public class RNSTags {
     public static class Item {
-        public static final TagKey<net.minecraft.world.item.Item> IMPURE_ORES = TagKey.create(Registries.ITEM,
-                CreateRNS.asResource("impure_ores"));
     }
 
     public static class Block {

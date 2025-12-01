@@ -85,7 +85,7 @@ public class Yield {
     public record WeightedItem(Item item, int chanceWeight) {
         public static final Codec<WeightedItem> CODEC = RecordCodecBuilder.create(i -> i.group(
                         BuiltInRegistries.ITEM.byNameCodec().fieldOf("item").forGetter(WeightedItem::item),
-                        Codec.intRange(0, Integer.MAX_VALUE).fieldOf("chance_weight").forGetter(WeightedItem::chanceWeight))
+                        Codec.intRange(1, Integer.MAX_VALUE).fieldOf("weight").orElse(1).forGetter(WeightedItem::chanceWeight))
                 .apply(i, WeightedItem::new));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, WeightedItem> STREAM_CODEC = StreamCodec.of(

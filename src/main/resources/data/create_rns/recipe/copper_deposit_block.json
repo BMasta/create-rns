@@ -8,49 +8,33 @@
   },
   "replace_when_depleted": "create_rns:depleted_deposit_block",
   "yields": [
+    {"chance": 1.0, "items": [{"item": "minecraft:cobblestone"}]},
+    {"chance": 0.5, "items": [{"item": "create:copper_nugget"}]},
+    {"chance": 0.05, "items": [{"item": "minecraft:raw_copper"}], "resonance": {"min_resonators": 4}},
+    {"chance": 0.005, "items": [{"item": "minecraft:raw_copper_block"}], "resonance": {"min_resonators": 4}},
+    {"chance": 0.0005, "items": [{"item": "create_rns:resonant_amethyst"}], "resonance": {"min_resonators": 4}},
     {
-      "chance": 1.0,
       "items": [
-        {
-          "item": "create_rns:impure_copper_ore",
-          "chance_weight": 1
-        }
-      ]
+        {"item": "minecraft:tuff"},
+        {"item": "minecraft:calcite"},
+        {"item": "create:limestone"},
+        {"item": "create:crimsite"},
+        {"item": "create:veridium"},
+        {"item": "create:asurine"},
+        {"item": "create:ochrum"}
+      ],
+      "resonance": {"min_resonators": 4},
+      "shattering_resonance": {"chance_per_resonator": 0.25, "min_resonators": 1}
     },
     {
       "items": [
-        {
-          "item": "minecraft:lapis_lazuli",
-          "chance_weight": 1
-        },
-        {
-          "item": "minecraft:amethyst_shard",
-          "chance_weight": 1
-        },
-        {
-          "item": "minecraft:emerald",
-          "chance_weight": 1
-        }
+        {"item": "minecraft:raw_copper"},
+        {"item": "minecraft:lapis_lazuli"},
+        {"item": "minecraft:amethyst_shard"},
+        {"item": "minecraft:emerald"}
       ],
-      "resonance": {
-        "min_resonators": 4
-      },
-      "stabilizing_resonance": {
-        "chance_per_resonator": 0.01,
-        "min_resonators": 1
-      }
-    },
-    {
-      "chance": 0.0005,
-      "items": [
-        {
-          "item": "create_rns:resonant_amethyst",
-          "chance_weight": 1
-        }
-      ],
-      "resonance": {
-        "min_resonators": 4
-      }
+      "resonance": {"min_resonators": 4},
+      "stabilizing_resonance": {"chance_per_resonator": 0.01, "min_resonators": 1}
     }
   ]
 }

@@ -2,6 +2,7 @@ package com.bmaster.createrns.compat.ponder;
 
 import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.RNSItems;
+import com.simibubi.create.AllItems;
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
 import net.createmod.ponder.api.ParticleEmitter;
 import net.createmod.ponder.api.PonderPalette;
@@ -15,6 +16,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 
 public class RNSPonderScenes {
@@ -54,8 +56,8 @@ public class RNSPonderScenes {
         scene.world().showSection(miner1, Direction.DOWN);
         scene.idle(10);
         var depItem = new ItemStack(RNSBlocks.IRON_DEPOSIT_BLOCK.get().asItem());
-        var impureIron = new ItemStack(RNSItems.IMPURE_IRON_ORE.get());
-        var impureCopper = new ItemStack(RNSItems.IMPURE_COPPER_ORE.get());
+        var ironNugget = new ItemStack(Items.IRON_NUGGET);
+        var copperNugget = new ItemStack(AllItems.COPPER_NUGGET.get());
         ParticleEmitter depositParticle = scene.effects().particleEmitterWithinBlockSpace(
                 new ItemParticleOption(ParticleTypes.ITEM, depItem), util.vector().of(0, 0, 0));
         scene.effects().emitParticles(miner1.getCenter().subtract(0, 0.5, 0),
@@ -95,13 +97,13 @@ public class RNSPonderScenes {
                 .placeNearTarget();
 
         scene.idle(90);
-        scene.world().createItemOnBelt(miner1Above, Direction.UP, impureIron);
+        scene.world().createItemOnBelt(miner1Above, Direction.UP, ironNugget);
 
         scene.idle(20);
-        scene.world().createItemOnBelt(miner1Above, Direction.UP, impureIron);
+        scene.world().createItemOnBelt(miner1Above, Direction.UP, ironNugget);
 
         scene.idle(20);
-        scene.world().createItemOnBelt(miner1Above, Direction.UP, impureCopper);
+        scene.world().createItemOnBelt(miner1Above, Direction.UP, copperNugget);
 
         scene.idle(10);
         scene.world().showSection(deposit2, Direction.EAST);

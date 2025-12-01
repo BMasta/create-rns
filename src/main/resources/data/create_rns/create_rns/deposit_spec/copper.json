@@ -1,4 +1,4 @@
 {
-  "scanner_icon_item": "create_rns:impure_copper_ore",
+  "scanner_icon_item": "minecraft:raw_copper",
   "structure": "create_rns:deposit_copper"
 }
