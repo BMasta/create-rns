@@ -17,9 +17,14 @@ public class ShatteringResonanceCatalystRequirement extends AbstractResonanceCat
     }
 
     @Override
+    public boolean isSatisfiedBy(Catalyst catalyst) {
+        if (!(catalyst instanceof ShatteringResonanceCatalyst rc)) return false;
+        return rc.resonatorCount >= minResonators;
+    }
+
+    @Override
     public float getChance(Catalyst catalyst) {
-        if (!(catalyst instanceof ShatteringResonanceCatalyst rc)) return 0f;
-        if (rc.resonatorCount < minResonators) return 0f;
-        return baseChance + rc.resonatorCount * chancePerResonator;
+        if (!isSatisfiedBy(catalyst)) return 0f;
+        return baseChance + ((ShatteringResonanceCatalyst) catalyst).resonatorCount * chancePerResonator;
     }
 }

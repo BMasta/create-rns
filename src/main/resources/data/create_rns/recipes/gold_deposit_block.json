@@ -39,9 +39,24 @@
           "chance_weight": 1
         }
       ],
+      "resonance": {
+        "min_resonators": 4
+      },
       "stabilizing_resonance": {
         "chance_per_resonator": 0.01,
         "min_resonators": 1
+      }
+    },
+    {
+      "chance": 0.0005,
+      "items": [
+        {
+          "item": "create_rns:resonant_amethyst",
+          "chance_weight": 1
+        }
+      ],
+      "resonance": {
+        "min_resonators": 4
       }
     }
   ]

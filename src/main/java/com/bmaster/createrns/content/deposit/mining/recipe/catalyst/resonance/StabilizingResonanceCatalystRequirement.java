@@ -17,9 +17,14 @@ public class StabilizingResonanceCatalystRequirement extends AbstractResonanceCa
     }
 
     @Override
+    public boolean isSatisfiedBy(Catalyst catalyst) {
+        if (!(catalyst instanceof StabilizingResonanceCatalyst rc)) return false;
+        return rc.resonatorCount >= minResonators;
+    }
+
+    @Override
     public float getChance(Catalyst catalyst) {
-        if (!(catalyst instanceof StabilizingResonanceCatalyst rc)) return 0f;
-        if (rc.resonatorCount < minResonators) return 0f;
-        return baseChance + rc.resonatorCount * chancePerResonator;
+        if (!isSatisfiedBy(catalyst)) return 0f;
+        return baseChance + ((StabilizingResonanceCatalyst) catalyst).resonatorCount * chancePerResonator;
     }
 }

@@ -57,6 +57,7 @@ public class ModEvents {
         DataGenerator generator = event.getGenerator();
         PackOutput output = generator.getPackOutput();
         generator.addProvider(event.includeServer(), new RNSRecipes.Washing(output));
+        generator.addProvider(event.includeServer(), new RNSRecipes.MechanicalCrafting(output));
         generator.addProvider(event.includeServer(), new DepositWorldgenProvider(output));
     }
 }

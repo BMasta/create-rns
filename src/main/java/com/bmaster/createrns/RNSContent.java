@@ -246,13 +246,11 @@ public class RNSContent {
     public static final BlockEntry<StabilizingResonatorBlock> STABILIZING_RESONATOR_BLOCK = CreateRNS.REGISTRATE.block(
                     "stabilizing_resonator", StabilizingResonatorBlock::new)
             .transform(resonatorBlock(MapColor.COLOR_CYAN))
-            .tag(RNSTags.Block.MINING_CATALYSTS)
             .register();
 
     public static final BlockEntry<ShatteringResonatorBlock> SHATTERING_RESONATOR_BLOCK = CreateRNS.REGISTRATE.block(
                     "shattering_resonator", ShatteringResonatorBlock::new)
             .transform(resonatorBlock(MapColor.COLOR_RED))
-            .tag(RNSTags.Block.MINING_CATALYSTS)
             .register();
 
     public static final BlockEntry<DepositBlock> IRON_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(

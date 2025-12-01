@@ -186,7 +186,7 @@ public class MiningProcess {
                         var myPrecious = new ItemStack(yields.get(i).roll(level.random));
                         uncollectedItems.offer(myPrecious);
                         if (chance != 1) {
-                            CreateRNS.LOGGER.trace("Successfully rolled for {} ({}% chance)", myPrecious, (int)(chance * 100));
+                            CreateRNS.LOGGER.trace("Successfully rolled for {} ({}% chance)", myPrecious, (int) (chance * 100));
                         }
                     }
                 }

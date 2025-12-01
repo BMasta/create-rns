@@ -21,7 +21,6 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class GoggleTooltipModifiers {
@@ -159,44 +158,34 @@ public class GoggleTooltipModifiers {
             new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
         }
 
-        AtomicBoolean resonanceFound = new AtomicBoolean(false);
-        cmb.equipment.catalysts.stream()
-                .filter(cat -> cat instanceof ShatteringResonanceCatalyst)
-                .findFirst()
-                .ifPresent(cat -> {
-                    new LangBuilder(CreateRNS.MOD_ID)
-                            .translate("contraption_mining.resonance.shattering",
-                                    Integer.toString(((ShatteringResonanceCatalyst) cat).resonatorCount))
-                            .style(ChatFormatting.RED)
-                            .forGoggles(tooltip);
-                    resonanceFound.set(true);
-                });
-
-        if (!resonanceFound.get()) {
-            cmb.equipment.catalysts.stream()
-                    .filter(cat -> cat instanceof StabilizingResonanceCatalyst)
-                    .findFirst()
-                    .ifPresent(cat -> {
-                        new LangBuilder(CreateRNS.MOD_ID)
-                                .translate("contraption_mining.resonance.stabilizing",
-                                        Integer.toString(((StabilizingResonanceCatalyst) cat).resonatorCount))
-                                .style(ChatFormatting.AQUA)
-                                .forGoggles(tooltip);
-                        resonanceFound.set(true);
-                    });
+        int standard = 0;
+        int shattering = 0;
+        int stabilizing = 0;
+        for (var cat : cmb.equipment.catalysts) {
+            if (cat instanceof ResonanceCatalyst) standard += ((ResonanceCatalyst) cat).resonatorCount;
+            if (cat instanceof ShatteringResonanceCatalyst)
+                shattering += ((ShatteringResonanceCatalyst) cat).resonatorCount;
+            else if (cat instanceof StabilizingResonanceCatalyst)
+                stabilizing += ((StabilizingResonanceCatalyst) cat).resonatorCount;
         }
 
-        if (!resonanceFound.get()) {
-            cmb.equipment.catalysts.stream()
-                    .filter(cat -> cat instanceof ResonanceCatalyst)
-                    .findFirst()
-                    .ifPresent(cat -> {
-                        new LangBuilder(CreateRNS.MOD_ID)
-                                .translate("contraption_mining.resonance.standard")
-                                .style(ChatFormatting.LIGHT_PURPLE)
-                                .forGoggles(tooltip);
-                        resonanceFound.set(true);
-                    });
+        if (standard > 0) {
+            new LangBuilder(CreateRNS.MOD_ID)
+                    .translate("contraption_mining.resonance.standard", Integer.toString(standard))
+                    .style(ChatFormatting.LIGHT_PURPLE)
+                    .forGoggles(tooltip);
+        }
+        if (shattering > 0) {
+            new LangBuilder(CreateRNS.MOD_ID)
+                    .translate("contraption_mining.resonance.shattering", Integer.toString(shattering))
+                    .style(ChatFormatting.RED)
+                    .forGoggles(tooltip);
+        }
+        if (stabilizing > 0) {
+            new LangBuilder(CreateRNS.MOD_ID)
+                    .translate("contraption_mining.resonance.stabilizing", Integer.toString(stabilizing))
+                    .style(ChatFormatting.AQUA)
+                    .forGoggles(tooltip);
         }
 
         return true;

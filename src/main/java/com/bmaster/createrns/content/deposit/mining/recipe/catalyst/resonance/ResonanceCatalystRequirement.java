@@ -17,9 +17,15 @@ public class ResonanceCatalystRequirement extends AbstractResonanceCatalystRequi
     }
 
     @Override
+    public boolean isSatisfiedBy(Catalyst catalyst) {
+        // Any resonance catalyst will do
+        if (!(catalyst instanceof AbstractResonanceCatalyst rc)) return false;
+        return rc.resonatorCount >= minResonators;
+    }
+
+    @Override
     public float getChance(Catalyst catalyst) {
-        if (!(catalyst instanceof AbstractResonanceCatalyst rc)) return 0f;
-        if (rc.resonatorCount < minResonators) return 0f;
-        return baseChance + rc.resonatorCount * chancePerResonator;
+        if (!isSatisfiedBy(catalyst)) return 0f;
+        return baseChance + ((AbstractResonanceCatalyst) catalyst).resonatorCount * chancePerResonator;
     }
 }
