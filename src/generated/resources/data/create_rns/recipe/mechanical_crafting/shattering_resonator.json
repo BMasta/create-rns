@@ -6,8 +6,8 @@
     "A": {
       "item": "create_rns:resonant_amethyst"
     },
-    "M": {
-      "item": "create:precision_mechanism"
+    "E": {
+      "item": "create:electron_tube"
     },
     "R": {
       "item": "create_rns:resonator"
@@ -22,7 +22,7 @@
   "pattern": [
     " T ",
     "SAS",
-    "SMS",
+    "SES",
     "SRS",
     "SSS"
   ],

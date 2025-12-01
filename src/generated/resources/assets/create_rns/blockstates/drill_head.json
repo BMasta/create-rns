@@ -1,213 +1,54 @@
 {
   "variants": {
-    "face=ceiling,facing=east,rotation=180": {
+    "face=ceiling,facing=east": {
       "model": "create_rns:block/drill_head",
       "x": 180,
       "y": 270
     },
-    "face=ceiling,facing=east,rotation=clockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "x": 180,
-      "y": 270
-    },
-    "face=ceiling,facing=east,rotation=counterclockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "x": 180,
-      "y": 270
-    },
-    "face=ceiling,facing=east,rotation=none": {
-      "model": "create_rns:block/drill_head",
-      "x": 180,
-      "y": 270
-    },
-    "face=ceiling,facing=north,rotation=180": {
+    "face=ceiling,facing=north": {
       "model": "create_rns:block/drill_head",
       "x": 180,
       "y": 180
     },
-    "face=ceiling,facing=north,rotation=clockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "x": 180,
-      "y": 180
-    },
-    "face=ceiling,facing=north,rotation=counterclockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "x": 180,
-      "y": 180
-    },
-    "face=ceiling,facing=north,rotation=none": {
-      "model": "create_rns:block/drill_head",
-      "x": 180,
-      "y": 180
-    },
-    "face=ceiling,facing=south,rotation=180": {
+    "face=ceiling,facing=south": {
       "model": "create_rns:block/drill_head",
       "x": 180
     },
-    "face=ceiling,facing=south,rotation=clockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "x": 180
-    },
-    "face=ceiling,facing=south,rotation=counterclockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "x": 180
-    },
-    "face=ceiling,facing=south,rotation=none": {
-      "model": "create_rns:block/drill_head",
-      "x": 180
-    },
-    "face=ceiling,facing=west,rotation=180": {
+    "face=ceiling,facing=west": {
       "model": "create_rns:block/drill_head",
       "x": 180,
       "y": 90
     },
-    "face=ceiling,facing=west,rotation=clockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "x": 180,
-      "y": 90
-    },
-    "face=ceiling,facing=west,rotation=counterclockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "x": 180,
-      "y": 90
-    },
-    "face=ceiling,facing=west,rotation=none": {
-      "model": "create_rns:block/drill_head",
-      "x": 180,
-      "y": 90
-    },
-    "face=floor,facing=east,rotation=180": {
+    "face=floor,facing=east": {
       "model": "create_rns:block/drill_head",
       "y": 90
     },
-    "face=floor,facing=east,rotation=clockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "y": 90
-    },
-    "face=floor,facing=east,rotation=counterclockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "y": 90
-    },
-    "face=floor,facing=east,rotation=none": {
-      "model": "create_rns:block/drill_head",
-      "y": 90
-    },
-    "face=floor,facing=north,rotation=180": {
+    "face=floor,facing=north": {
       "model": "create_rns:block/drill_head"
     },
-    "face=floor,facing=north,rotation=clockwise_90": {
-      "model": "create_rns:block/drill_head"
-    },
-    "face=floor,facing=north,rotation=counterclockwise_90": {
-      "model": "create_rns:block/drill_head"
-    },
-    "face=floor,facing=north,rotation=none": {
-      "model": "create_rns:block/drill_head"
-    },
-    "face=floor,facing=south,rotation=180": {
+    "face=floor,facing=south": {
       "model": "create_rns:block/drill_head",
       "y": 180
     },
-    "face=floor,facing=south,rotation=clockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "y": 180
-    },
-    "face=floor,facing=south,rotation=counterclockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "y": 180
-    },
-    "face=floor,facing=south,rotation=none": {
-      "model": "create_rns:block/drill_head",
-      "y": 180
-    },
-    "face=floor,facing=west,rotation=180": {
+    "face=floor,facing=west": {
       "model": "create_rns:block/drill_head",
       "y": 270
     },
-    "face=floor,facing=west,rotation=clockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "y": 270
-    },
-    "face=floor,facing=west,rotation=counterclockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "y": 270
-    },
-    "face=floor,facing=west,rotation=none": {
-      "model": "create_rns:block/drill_head",
-      "y": 270
-    },
-    "face=wall,facing=east,rotation=180": {
+    "face=wall,facing=east": {
       "model": "create_rns:block/drill_head",
       "x": 90,
       "y": 90
     },
-    "face=wall,facing=east,rotation=clockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "x": 90,
-      "y": 90
-    },
-    "face=wall,facing=east,rotation=counterclockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "x": 90,
-      "y": 90
-    },
-    "face=wall,facing=east,rotation=none": {
-      "model": "create_rns:block/drill_head",
-      "x": 90,
-      "y": 90
-    },
-    "face=wall,facing=north,rotation=180": {
+    "face=wall,facing=north": {
       "model": "create_rns:block/drill_head",
       "x": 90
     },
-    "face=wall,facing=north,rotation=clockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "x": 90
-    },
-    "face=wall,facing=north,rotation=counterclockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "x": 90
-    },
-    "face=wall,facing=north,rotation=none": {
-      "model": "create_rns:block/drill_head",
-      "x": 90
-    },
-    "face=wall,facing=south,rotation=180": {
+    "face=wall,facing=south": {
       "model": "create_rns:block/drill_head",
       "x": 90,
       "y": 180
     },
-    "face=wall,facing=south,rotation=clockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "x": 90,
-      "y": 180
-    },
-    "face=wall,facing=south,rotation=counterclockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "x": 90,
-      "y": 180
-    },
-    "face=wall,facing=south,rotation=none": {
-      "model": "create_rns:block/drill_head",
-      "x": 90,
-      "y": 180
-    },
-    "face=wall,facing=west,rotation=180": {
-      "model": "create_rns:block/drill_head",
-      "x": 90,
-      "y": 270
-    },
-    "face=wall,facing=west,rotation=clockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "x": 90,
-      "y": 270
-    },
-    "face=wall,facing=west,rotation=counterclockwise_90": {
-      "model": "create_rns:block/drill_head",
-      "x": 90,
-      "y": 270
-    },
-    "face=wall,facing=west,rotation=none": {
+    "face=wall,facing=west": {
       "model": "create_rns:block/drill_head",
       "x": 90,
       "y": 270
