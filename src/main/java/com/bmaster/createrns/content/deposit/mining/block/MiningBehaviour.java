@@ -1,7 +1,7 @@
 package com.bmaster.createrns.content.deposit.mining.block;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
@@ -28,8 +28,8 @@ import java.util.stream.Collectors;
 
 @ParametersAreNonnullByDefault
 public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlockClaimer {
-    public static final BehaviourType<MiningBehaviour> BEHAVIOUR_TYPE = new BehaviourType<>(CreateRNS.MOD_ID + ":mining");
-    public static final ClaimerType CLAIMER_TYPE = new ClaimerType(CreateRNS.MOD_ID + ":mining");
+    public static final BehaviourType<MiningBehaviour> BEHAVIOUR_TYPE = new BehaviourType<>(CreateRNS.ID + ":mining");
+    public static final ClaimerType CLAIMER_TYPE = new ClaimerType(CreateRNS.ID + ":mining");
 
     protected final KineticBlockEntity kBE;
     protected final Supplier<Direction> claimingDirection;
@@ -195,7 +195,7 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
 
         // Initialize deposit durabilities as needed
         for (var bp : claimedDepositBlocks) {
-            level.getData(RNSContent.LEVEL_DEPOSIT_DATA.get()).initDepositVeinDurability(bp);
+            level.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get()).initDepositVeinDurability(bp);
         }
 
         pendingSync.claimer = true;

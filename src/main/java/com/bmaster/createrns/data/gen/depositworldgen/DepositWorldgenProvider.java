@@ -45,7 +45,7 @@ public class DepositWorldgenProvider implements DataProvider {
     @Override
     public CompletableFuture<?> run(CachedOutput cache) {
         var futures = new java.util.ArrayList<CompletableFuture<?>>();
-        var dataRoot = output.getOutputFolder(PackOutput.Target.DATA_PACK).resolve(CreateRNS.MOD_ID);
+        var dataRoot = output.getOutputFolder(PackOutput.Target.DATA_PACK).resolve(CreateRNS.ID);
 
         for (var dc : depConf) {
             Path processorPath = dataRoot.resolve("worldgen/processor_list/" + procName.apply(dc.depositBlock) + ".json");
@@ -69,7 +69,7 @@ public class DepositWorldgenProvider implements DataProvider {
 
     @Override
     public String getName() {
-        return CreateRNS.MOD_ID + "_deposit_worldgen";
+        return CreateRNS.ID + "_deposit_worldgen";
     }
 
     private static JsonObject generateProcessor(Deposit conf) {
@@ -110,7 +110,7 @@ public class DepositWorldgenProvider implements DataProvider {
             JsonObject element = new JsonObject();
             element.addProperty("element_type", "minecraft:single_pool_element");
             element.addProperty("location", nc.loc.toString());
-            element.addProperty("processors", CreateRNS.MOD_ID + ":" + procName.apply(conf.depositBlock));
+            element.addProperty("processors", CreateRNS.ID + ":" + procName.apply(conf.depositBlock));
             element.addProperty("projection", "rigid");
 
             JsonObject weighted = new JsonObject();
@@ -133,12 +133,12 @@ public class DepositWorldgenProvider implements DataProvider {
 
         JsonObject root = new JsonObject();
         root.addProperty("type", "minecraft:jigsaw");
-        root.addProperty("start_pool", CreateRNS.MOD_ID + ":" + structName.apply(conf.name) + "/start");
+        root.addProperty("start_pool", CreateRNS.ID + ":" + structName.apply(conf.name) + "/start");
         root.addProperty("size", 1);
         root.add("start_height", startHeight);
         root.addProperty("project_start_to_heightmap", "OCEAN_FLOOR_WG");
         root.addProperty("step", "underground_ores");
-        root.addProperty("biomes", "#" + CreateRNS.MOD_ID + ":" + ALLOWED_BIOMES_TAG_PATH);
+        root.addProperty("biomes", "#" + CreateRNS.ID + ":" + ALLOWED_BIOMES_TAG_PATH);
         root.addProperty("terrain_adaptation", "none");
         root.addProperty("max_distance_from_center", 80);
         root.addProperty("use_expansion_hack", false);
@@ -150,7 +150,7 @@ public class DepositWorldgenProvider implements DataProvider {
     private JsonObject generateStructureTag() {
         JsonArray values = new JsonArray();
         for (var dc : depConf) {
-            values.add(CreateRNS.MOD_ID + ":" + structName.apply(dc.name));
+            values.add(CreateRNS.ID + ":" + structName.apply(dc.name));
         }
         JsonObject root = new JsonObject();
         root.add("values", values);
@@ -162,7 +162,7 @@ public class DepositWorldgenProvider implements DataProvider {
         JsonArray entries = new JsonArray();
         for (var dc : depConf) {
             JsonObject e = new JsonObject();
-            e.addProperty("structure", CreateRNS.MOD_ID + ":" + structName.apply(dc.name));
+            e.addProperty("structure", CreateRNS.ID + ":" + structName.apply(dc.name));
             e.addProperty("weight", dc.weight);
             entries.add(e);
         }

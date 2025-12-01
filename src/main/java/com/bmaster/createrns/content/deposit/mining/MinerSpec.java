@@ -20,5 +20,5 @@ public record MinerSpec(Block minerBlock, int tier, float minesPerHour, Claiming
     ).apply(i, MinerSpec::new));
 
     public static final ResourceKey<Registry<MinerSpec>> REGISTRY_KEY =
-            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "miner_spec"));
+            ResourceKey.createRegistryKey(CreateRNS.asResource("miner_spec"));
 }

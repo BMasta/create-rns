@@ -25,7 +25,7 @@ public class DynamicDatapackContent {
         var root = new JsonObject();
         root.add("values", values);
 
-        return List.of(new DatapackFile(HAS_DEPOSIT_TAG_PATH.formatted(CreateRNS.MOD_ID), root));
+        return List.of(new DatapackFile(HAS_DEPOSIT_TAG_PATH.formatted(CreateRNS.ID), root));
     }
 
     /// Override the deposit biome tag to an empty tag that contains no biomes.
@@ -37,6 +37,6 @@ public class DynamicDatapackContent {
         root.addProperty("replace", true);
         root.add("values", values);
 
-        return List.of(new DatapackFile(HAS_DEPOSIT_TAG_PATH.formatted(CreateRNS.MOD_ID), root));
+        return List.of(new DatapackFile(HAS_DEPOSIT_TAG_PATH.formatted(CreateRNS.ID), root));
     }
 }

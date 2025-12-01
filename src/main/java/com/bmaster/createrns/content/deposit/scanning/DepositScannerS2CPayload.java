@@ -17,7 +17,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 public record DepositScannerS2CPayload(AntennaStatus antennaStatus, int interval, boolean found,
                                        RequestType rt) implements CustomPacketPayload {
     public static final Type<DepositScannerS2CPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "deposit_scanner_s2c"));
+            new Type<>(CreateRNS.asResource("deposit_scanner_s2c"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, DepositScannerS2CPayload> STREAM_CODEC =
             StreamCodec.composite(

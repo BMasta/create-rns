@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit;
 
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
 import com.bmaster.createrns.content.deposit.mining.block.MiningBehaviour;
@@ -98,7 +98,7 @@ public class DepositBlock extends Block {
         if (level.isClientSide) return;
         // Only non-depleted deposits have durability
         if (state.is(RNSTags.Block.DEPOSIT_BLOCKS)) {
-            level.getData(RNSContent.LEVEL_DEPOSIT_DATA.get()).removeDepositBlockDurability(pos);
+            level.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get()).removeDepositBlockDurability(pos);
         }
         for (var c : DepositClaimerInstanceHolder.getInstancesThatCanClaim(level, pos, MiningBehaviour.CLAIMER_TYPE)) {
             c.claimDepositBlocks();

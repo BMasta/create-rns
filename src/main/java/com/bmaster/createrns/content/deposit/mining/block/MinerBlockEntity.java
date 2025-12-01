@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.block;
 
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSBlockEntities;
 import com.bmaster.createrns.content.deposit.mining.IHaveAdaptiveGoggleInformation;
 import com.bmaster.createrns.content.deposit.mining.MiningEffectsGenerator;
 import com.bmaster.createrns.content.deposit.mining.MiningItemHandler;
@@ -28,7 +28,7 @@ public class MinerBlockEntity extends KineticBlockEntity implements IHaveAdaptiv
     protected MiningEffectsGenerator effects = null;
 
     public MinerBlockEntity(BlockPos pos, BlockState state) {
-        super(RNSContent.MINER_BE.get(), pos, state);
+        super(RNSBlockEntities.MINER_BE.get(), pos, state);
     }
 
     public MiningItemHandler getItemHandler(@Nullable Direction side) {

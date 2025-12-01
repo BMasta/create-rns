@@ -1,11 +1,19 @@
 package com.bmaster.createrns.data.gen.depositworldgen;
 
+import com.bmaster.createrns.CreateRNS;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DepositStructureConfigBuilder {
+    public static final ResourceLocation DEP_SMALL =
+            CreateRNS.asResource("ore_deposit_small");
+    public static final ResourceLocation DEP_MEDIUM =
+            CreateRNS.asResource("ore_deposit_medium");
+    public static final ResourceLocation DEP_LARGE =
+            CreateRNS.asResource("ore_deposit_large");
+
     private final String name;
     private ResourceLocation depositBlock = null;
     private List<DepositWorldgenProvider.NBT> nbts = new ArrayList<>();

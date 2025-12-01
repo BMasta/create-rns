@@ -1,6 +1,7 @@
 package com.bmaster.createrns.compat.ponder;
 
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSBlocks;
+import com.bmaster.createrns.RNSItems;
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
 import net.createmod.ponder.api.ParticleEmitter;
 import net.createmod.ponder.api.PonderPalette;
@@ -52,9 +53,9 @@ public class RNSPonderScenes {
         scene.idle(10);
         scene.world().showSection(miner1, Direction.DOWN);
         scene.idle(10);
-        var depItem = new ItemStack(RNSContent.IRON_DEPOSIT_BLOCK.get().asItem());
-        var impureIron = new ItemStack(RNSContent.IMPURE_IRON_ORE.get());
-        var impureCopper = new ItemStack(RNSContent.IMPURE_COPPER_ORE.get());
+        var depItem = new ItemStack(RNSBlocks.IRON_DEPOSIT_BLOCK.get().asItem());
+        var impureIron = new ItemStack(RNSItems.IMPURE_IRON_ORE.get());
+        var impureCopper = new ItemStack(RNSItems.IMPURE_COPPER_ORE.get());
         ParticleEmitter depositParticle = scene.effects().particleEmitterWithinBlockSpace(
                 new ItemParticleOption(ParticleTypes.ITEM, depItem), util.vector().of(0, 0, 0));
         scene.effects().emitParticles(miner1.getCenter().subtract(0, 0.5, 0),
@@ -123,7 +124,7 @@ public class RNSPonderScenes {
         scene.world().hideSection(miner2, Direction.WEST);
 
         scene.idle(40);
-        scene.world().replaceBlocks(deposit1Edge, RNSContent.REDSTONE_DEPOSIT_BLOCK.getDefaultState(), true);
+        scene.world().replaceBlocks(deposit1Edge, RNSBlocks.REDSTONE_DEPOSIT_BLOCK.getDefaultState(), true);
         scene.overlay().showOutline(PonderPalette.WHITE, new Object(), deposit1.substract(deposit1Edge), 90);
 
         scene.idle(20);
@@ -137,12 +138,12 @@ public class RNSPonderScenes {
         scene.world().moveSection(bpLink, new Vec3(0, -4, 0), 20);
 
         scene.idle(20);
-        scene.world().setBlocks(deposit3, RNSContent.IRON_DEPOSIT_BLOCK.getDefaultState(), false);
+        scene.world().setBlocks(deposit3, RNSBlocks.IRON_DEPOSIT_BLOCK.getDefaultState(), false);
         ElementLink<WorldSectionElement> deposit3Link = scene.world().showIndependentSection(deposit3, Direction.NORTH);
         scene.world().moveSection(deposit3Link, new Vec3(0, 1, 0), 0);
 
         scene.idle(10);
-        scene.world().replaceBlocks(miner1, RNSContent.MINER_MK2_BLOCK.get().defaultBlockState(), true);
+        scene.world().replaceBlocks(miner1, RNSBlocks.MINER_MK2_BLOCK.get().defaultBlockState(), true);
         scene.world().setKineticSpeed(miner1, -100);
         scene.overlay().showOutline(PonderPalette.WHITE, new Object(), deposit13Outline, Integer.MAX_VALUE);
         scene.idle(20);

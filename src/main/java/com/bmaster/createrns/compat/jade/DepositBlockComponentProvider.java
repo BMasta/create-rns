@@ -1,7 +1,7 @@
 package com.bmaster.createrns.compat.jade;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.LongTag;
@@ -35,12 +35,12 @@ public enum DepositBlockComponentProvider implements IBlockComponentProvider, IS
 
     @Override
     public ResourceLocation getUid() {
-        return ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "deposit_block_info");
+        return CreateRNS.asResource("deposit_block_info");
     }
 
     @Override
     public void appendServerData(CompoundTag nbt, BlockAccessor accessor) {
-        var depData = accessor.getLevel().getData(RNSContent.LEVEL_DEPOSIT_DATA.get());
+        var depData = accessor.getLevel().getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
         nbt.putLong("durability", depData.getDepositBlockDurability(accessor.getPosition(), false));
     }
 }

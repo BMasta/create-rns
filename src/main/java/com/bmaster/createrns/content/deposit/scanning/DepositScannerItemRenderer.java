@@ -29,15 +29,15 @@ import java.util.Random;
 /// A humble rip-off of Create's linked controller
 public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer {
     private static final PartialModel UNPOWERED = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
-            CreateRNS.MOD_ID, "item/deposit_scanner/unpowered"));
+            CreateRNS.ID, "item/deposit_scanner/unpowered"));
     private static final PartialModel POWERED = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
-            CreateRNS.MOD_ID, "item/deposit_scanner/powered"));
+            CreateRNS.ID, "item/deposit_scanner/powered"));
     private static final PartialModel ANTENNA_UNPOWERED = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
-            CreateRNS.MOD_ID, "item/deposit_scanner/antenna_unpowered"));
+            CreateRNS.ID, "item/deposit_scanner/antenna_unpowered"));
     private static final PartialModel ANTENNA_POWERED = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
-            CreateRNS.MOD_ID, "item/deposit_scanner/antenna_powered"));
+            CreateRNS.ID, "item/deposit_scanner/antenna_powered"));
     public static final PartialModel WHEEL = PartialModel.of(ResourceLocation.fromNamespaceAndPath(
-            CreateRNS.MOD_ID, "item/deposit_scanner/wheel"));
+            CreateRNS.ID, "item/deposit_scanner/wheel"));
 
     private static final int JITTER_TICKS_PER_SHAKE = 20;
     private static final float JITTER_SCALE = 0.002f;

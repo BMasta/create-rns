@@ -1,7 +1,7 @@
 package com.bmaster.createrns.event;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSItems;
 import com.bmaster.createrns.RNSParticleTypes;
 import com.bmaster.createrns.compat.ponder.RNSPonderPlugin;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
@@ -16,7 +16,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 
-@EventBusSubscriber(modid = CreateRNS.MOD_ID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = CreateRNS.ID, value = Dist.CLIENT)
 public class ClientEvents {
     @SubscribeEvent
     public static void clientTick(ClientTickEvent.Pre event) {
@@ -39,8 +39,8 @@ public class ClientEvents {
             var scrollDelta = e.getScrollDeltaY();
 
             // Scanner - sneaking
-            if (p.level().isClientSide() && p.isShiftKeyDown() && (mainItem.is(RNSContent.DEPOSIT_SCANNER_ITEM.get()) ||
-                    offItem.is(RNSContent.DEPOSIT_SCANNER_ITEM.get()))) {
+            if (p.level().isClientSide() && p.isShiftKeyDown() && (mainItem.is(RNSItems.DEPOSIT_SCANNER_ITEM.get()) ||
+                    offItem.is(RNSItems.DEPOSIT_SCANNER_ITEM.get()))) {
                 if (scrollDelta > 0) {
                     DepositScannerClientHandler.scrollUp();
                 } else if (scrollDelta < 0) {

@@ -20,21 +20,21 @@ public class RNSRecipes {
     static {
         CreateRNS.REGISTRATE.addDataGenerator(ProviderType.RECIPE, prov -> {
             ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, Items.REDSTONE)
-                    .requires(RNSContent.REDSTONE_SMALL_DUST.get(), 9)
-                    .unlockedBy("has_item", RegistrateRecipeProvider.has(RNSContent.REDSTONE_SMALL_DUST))
-                    .save(prov, ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "redstone_from_small_dust"));
+                    .requires(RNSItems.REDSTONE_SMALL_DUST.get(), 9)
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(RNSItems.REDSTONE_SMALL_DUST))
+                    .save(prov, CreateRNS.asResource("redstone_from_small_dust"));
         });
     }
 
     public static class Washing extends WashingRecipeGen {
-        GeneratedRecipe IMPURE_IRON_ORE = fromImpure("impure_iron_ore", RNSContent.IMPURE_IRON_ORE, Items.IRON_NUGGET);
-        GeneratedRecipe IMPURE_COPPER_ORE = fromImpure("impure_copper_ore", RNSContent.IMPURE_COPPER_ORE, AllItems.COPPER_NUGGET);
-        GeneratedRecipe IMPURE_ZINC_ORE = fromImpure("impure_zinc_ore", RNSContent.IMPURE_ZINC_ORE, AllItems.ZINC_NUGGET);
-        GeneratedRecipe IMPURE_GOLD_ORE = fromImpure("impure_gold_ore", RNSContent.IMPURE_GOLD_ORE, Items.GOLD_NUGGET);
-        GeneratedRecipe IMPURE_REDSTONE_DUST = fromImpure("impure_redstone_dust", RNSContent.IMPURE_REDSTONE_DUST, RNSContent.REDSTONE_SMALL_DUST);
+        GeneratedRecipe IMPURE_IRON_ORE = fromImpure("impure_iron_ore", RNSItems.IMPURE_IRON_ORE, Items.IRON_NUGGET);
+        GeneratedRecipe IMPURE_COPPER_ORE = fromImpure("impure_copper_ore", RNSItems.IMPURE_COPPER_ORE, AllItems.COPPER_NUGGET);
+        GeneratedRecipe IMPURE_ZINC_ORE = fromImpure("impure_zinc_ore", RNSItems.IMPURE_ZINC_ORE, AllItems.ZINC_NUGGET);
+        GeneratedRecipe IMPURE_GOLD_ORE = fromImpure("impure_gold_ore", RNSItems.IMPURE_GOLD_ORE, Items.GOLD_NUGGET);
+        GeneratedRecipe IMPURE_REDSTONE_DUST = fromImpure("impure_redstone_dust", RNSItems.IMPURE_REDSTONE_DUST, RNSItems.REDSTONE_SMALL_DUST);
 
         public Washing(PackOutput output, CompletableFuture<HolderLookup.Provider> provider) {
-            super(output, provider, CreateRNS.MOD_ID);
+            super(output, provider, CreateRNS.ID);
         }
 
         private GeneratedRecipe fromImpure(String name, ItemLike in, ItemLike out) {
@@ -45,12 +45,12 @@ public class RNSRecipes {
     }
 
     public static class MechanicalCrafting extends MechanicalCraftingRecipeGen {
-        GeneratedRecipe SHATTERING_RESONATOR = create(RNSContent.SHATTERING_RESONATOR_BLOCK::get).returns(1)
+        GeneratedRecipe SHATTERING_RESONATOR = create(RNSBlocks.SHATTERING_RESONATOR_BLOCK::get).returns(1)
                 .recipe(b -> b
                         .key('T', Blocks.REDSTONE_BLOCK)
-                        .key('A', RNSContent.RESONANT_AMETHYST)
+                        .key('A', RNSItems.RESONANT_AMETHYST)
                         .key('M', AllItems.PRECISION_MECHANISM)
-                        .key('R', RNSContent.RESONATOR_BLOCK)
+                        .key('R', RNSBlocks.RESONATOR_BLOCK)
                         .key('S', AllItems.STURDY_SHEET)
                         .patternLine(" T ")
                         .patternLine("SAS")
@@ -59,12 +59,12 @@ public class RNSRecipes {
                         .patternLine("SSS")
                         .disallowMirrored());
 
-        GeneratedRecipe STABILIZING_RESONATOR = create(RNSContent.STABILIZING_RESONATOR_BLOCK::get).returns(1)
+        GeneratedRecipe STABILIZING_RESONATOR = create(RNSBlocks.STABILIZING_RESONATOR_BLOCK::get).returns(1)
                 .recipe(b -> b
                         .key('T', Blocks.DIAMOND_BLOCK)
-                        .key('A', RNSContent.RESONANT_AMETHYST)
+                        .key('A', RNSItems.RESONANT_AMETHYST)
                         .key('M', AllItems.PRECISION_MECHANISM)
-                        .key('R', RNSContent.RESONATOR_BLOCK)
+                        .key('R', RNSBlocks.RESONATOR_BLOCK)
                         .key('S', AllItems.STURDY_SHEET)
                         .patternLine(" T ")
                         .patternLine("SAS")
@@ -74,7 +74,7 @@ public class RNSRecipes {
                         .disallowMirrored());
 
         public MechanicalCrafting(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
-            super(output, registries, CreateRNS.MOD_ID);
+            super(output, registries, CreateRNS.ID);
         }
     }
 

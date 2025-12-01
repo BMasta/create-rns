@@ -1,7 +1,8 @@
 package com.bmaster.createrns.infrastructure.gametest;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSBlocks;
+import com.bmaster.createrns.RNSItems;
 import com.bmaster.createrns.content.deposit.mining.block.MinerBlockEntity;
 import com.simibubi.create.content.kinetics.motor.CreativeMotorBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -16,7 +17,7 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.items.IItemHandler;
 
-@GameTestHolder(CreateRNS.MOD_ID)
+@GameTestHolder(CreateRNS.ID)
 public final class MinerTest {
 
     @GameTest(template = "double")
@@ -28,7 +29,7 @@ public final class MinerTest {
         var miner1AbovePos = new BlockPos(1, 7, 1);
 
         CreativeMotorBlockEntity motor = helper.getBlockEntity(motorPos);
-        helper.setBlock(miner1Pos, RNSContent.MINER_MK2_BLOCK.get());
+        helper.setBlock(miner1Pos, RNSBlocks.MINER_MK2_BLOCK.get());
 
         // Validate nbt
         helper.runAtTickTime(1, () -> {
@@ -74,9 +75,9 @@ public final class MinerTest {
             assert inv != null; // IDE complains otherwise
 
             var extractedItem = inv.extractFirstAvailableItem(true);
-            helper.assertTrue(extractedItem.is(RNSContent.IMPURE_IRON_ORE.get()),
+            helper.assertTrue(extractedItem.is(RNSItems.IMPURE_IRON_ORE.get()),
                     "Mining BE expected to mine %s, but mined %s instead"
-                            .formatted(RNSContent.IMPURE_IRON_ORE.get(), extractedItem));
+                            .formatted(RNSItems.IMPURE_IRON_ORE.get(), extractedItem));
             helper.assertTrue(extractedItem.getCount() == 1,
                     "Mining BE expected to mine 1 item, but mined %d instead".formatted(extractedItem.getCount()));
 
@@ -94,12 +95,12 @@ public final class MinerTest {
 
             helper.assertTrue(extractedItem.is(Items.AIR),
                     "Mining BE expected to eject item to barrel, but still has at least 1 %s"
-                            .formatted(RNSContent.IMPURE_IRON_ORE.get()));
+                            .formatted(RNSItems.IMPURE_IRON_ORE.get()));
 
             var barrelItem = barrelInv.getStackInSlot(0);
-            helper.assertTrue(barrelItem.is(RNSContent.IMPURE_IRON_ORE.get()),
+            helper.assertTrue(barrelItem.is(RNSItems.IMPURE_IRON_ORE.get()),
                     "Barrel expected to have %s in first slot, but has %s instead"
-                            .formatted(RNSContent.IMPURE_IRON_ORE.get(), barrelItem));
+                            .formatted(RNSItems.IMPURE_IRON_ORE.get(), barrelItem));
             helper.assertTrue(barrelItem.getCount() == 1,
                     "Barrel expected to have 1 item in first slot, but has %d instead".formatted(barrelItem.getCount()));
             helper.succeed();
