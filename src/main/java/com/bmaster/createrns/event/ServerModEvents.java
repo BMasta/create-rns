@@ -20,7 +20,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.DataPackRegistryEvent;
 
 @Mod.EventBusSubscriber(modid = CreateRNS.ID, bus = Mod.EventBusSubscriber.Bus.MOD)
-public class ModEvents {
+public class ServerModEvents {
     @SubscribeEvent
     public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
         event.register(IDepositIndex.class);
@@ -56,7 +56,6 @@ public class ModEvents {
     public static void gatherData(GatherDataEvent event) {
         DataGenerator generator = event.getGenerator();
         PackOutput output = generator.getPackOutput();
-        generator.addProvider(event.includeServer(), new RNSRecipes.Washing(output));
         generator.addProvider(event.includeServer(), new RNSRecipes.MechanicalCrafting(output));
         generator.addProvider(event.includeServer(), new DepositWorldgenProvider(output));
     }

@@ -2,14 +2,12 @@ package com.bmaster.createrns;
 
 import com.simibubi.create.AllItems;
 import com.simibubi.create.api.data.recipe.MechanicalCraftingRecipeGen;
-import com.simibubi.create.api.data.recipe.WashingRecipeGen;
 import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.providers.RegistrateRecipeProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Blocks;
 
 public class RNSRecipes {
@@ -20,24 +18,6 @@ public class RNSRecipes {
                     .unlockedBy("has_item", RegistrateRecipeProvider.has(RNSItems.REDSTONE_SMALL_DUST))
                     .save(prov, CreateRNS.asResource("redstone_from_small_dust"));
         });
-    }
-
-    public static class Washing extends WashingRecipeGen {
-        GeneratedRecipe IMPURE_IRON_ORE = fromImpure("impure_iron_ore", RNSItems.IMPURE_IRON_ORE, Items.IRON_NUGGET);
-        GeneratedRecipe IMPURE_COPPER_ORE = fromImpure("impure_copper_ore", RNSItems.IMPURE_COPPER_ORE, AllItems.COPPER_NUGGET);
-        GeneratedRecipe IMPURE_ZINC_ORE = fromImpure("impure_zinc_ore", RNSItems.IMPURE_ZINC_ORE, AllItems.ZINC_NUGGET);
-        GeneratedRecipe IMPURE_GOLD_ORE = fromImpure("impure_gold_ore", RNSItems.IMPURE_GOLD_ORE, Items.GOLD_NUGGET);
-        GeneratedRecipe IMPURE_REDSTONE_DUST = fromImpure("impure_redstone_dust", RNSItems.IMPURE_REDSTONE_DUST, RNSItems.REDSTONE_SMALL_DUST);
-
-        public Washing(PackOutput output) {
-            super(output, CreateRNS.ID);
-        }
-
-        private GeneratedRecipe fromImpure(String name, ItemLike in, ItemLike out) {
-            return create(name, b -> b.require(in)
-                    .output(Items.COBBLESTONE)
-                    .output(0.5f, out));
-        }
     }
 
     public static class MechanicalCrafting extends MechanicalCraftingRecipeGen {

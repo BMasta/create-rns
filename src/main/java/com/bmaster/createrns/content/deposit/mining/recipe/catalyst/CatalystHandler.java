@@ -15,7 +15,7 @@ public class CatalystHandler {
     protected final IntArrayList enabledYields = new IntArrayList();
     protected final Int2ObjectOpenHashMap<Set<Catalyst>> requiredCatalysts = new Int2ObjectOpenHashMap<>();
     protected final Int2ObjectOpenHashMap<Set<Catalyst>> optionalCatalysts = new Int2ObjectOpenHashMap<>();
-    protected final Object2FloatOpenHashMap<Catalyst> catalystToAddedChance = new Object2FloatOpenHashMap<>();
+    protected final Int2ObjectOpenHashMap<Object2FloatOpenHashMap<Catalyst>> catalystToAddedChance = new Int2ObjectOpenHashMap<>();
 
     public CatalystHandler(MiningRecipe recipe, Set<Catalyst> catalysts) {
         this.yields = recipe.getYields();
@@ -47,7 +47,7 @@ public class CatalystHandler {
                     } else {
                         requiredCatalysts.computeIfAbsent(i, ignored -> new ObjectOpenHashSet<>()).add(c);
                     }
-                    catalystToAddedChance.put(c, chance);
+                    catalystToAddedChance.computeIfAbsent(i, ignored -> new Object2FloatOpenHashMap<>()).addTo(c, chance);
                 }
                 // This requirement was necessary! Yield is disqualified.
                 if (!isCROptional && !satisfied) allRequiredSatisfied = false;
@@ -67,6 +67,8 @@ public class CatalystHandler {
     public float useCatalysts(int index) {
         // Yield must be enabled
         if (!enabledYields.contains(index)) return 0;
+
+        var catToChance = catalystToAddedChance.get(index);
         var yield = yields.get(index);
         float chance = yield.chance;
 
@@ -80,7 +82,7 @@ public class CatalystHandler {
 
             for (var c : requiredCatalysts.get(index)) {
                 if (c.use(false)) {
-                    chance += catalystToAddedChance.getFloat(c);
+                    chance += catToChance.getFloat(c);
                 }
             }
         }
@@ -88,7 +90,7 @@ public class CatalystHandler {
         if (optionalCatalysts.containsKey(index)) {
             for (var c : optionalCatalysts.get(index)) {
                 if (c.use(false)) {
-                    chance += catalystToAddedChance.getFloat(c);
+                    chance += catToChance.getFloat(c);
                 }
             }
         }
