@@ -22,7 +22,7 @@ public class RNSPonderPlugin implements PonderPlugin {
 
     @Override
     public String getModId() {
-        return CreateRNS.MOD_ID;
+        return CreateRNS.ID;
     }
 
     @Override

@@ -27,27 +27,32 @@ public class RNSItems {
                     .save(p))
             .register();
 
-    public static final ItemEntry<Item> RESONANT_AMETHYST = CreateRNS.REGISTRATE.item(
-                    "resonant_amethyst", Item::new)
-            .register();
-    public static final ItemEntry<Item> IMPURE_IRON_ORE = CreateRNS.REGISTRATE.item(
-            "impure_iron_ore", Item::new).tag(RNSTags.Item.IMPURE_ORES).register();
+    public static final ItemEntry<Item>
+            RESONANT_AMETHYST = CreateRNS.REGISTRATE.item("resonant_amethyst", Item::new).register(),
 
-    public static final ItemEntry<Item> IMPURE_COPPER_ORE = CreateRNS.REGISTRATE.item(
-            "impure_copper_ore", Item::new).tag(RNSTags.Item.IMPURE_ORES).register();
+    IMPURE_IRON_ORE = CreateRNS.REGISTRATE.item("impure_iron_ore", Item::new)
+            .tag(RNSTags.Item.IMPURE_ORES)
+            .register(),
 
-    public static final ItemEntry<Item> IMPURE_ZINC_ORE = CreateRNS.REGISTRATE.item(
-            "impure_zinc_ore", Item::new).tag(RNSTags.Item.IMPURE_ORES).register();
+    IMPURE_COPPER_ORE = CreateRNS.REGISTRATE.item("impure_copper_ore", Item::new)
+            .tag(RNSTags.Item.IMPURE_ORES)
+            .register(),
 
-    public static final ItemEntry<Item> IMPURE_GOLD_ORE = CreateRNS.REGISTRATE.item(
-            "impure_gold_ore", Item::new).tag(RNSTags.Item.IMPURE_ORES).register();
+    IMPURE_ZINC_ORE = CreateRNS.REGISTRATE.item("impure_zinc_ore", Item::new)
+            .tag(RNSTags.Item.IMPURE_ORES)
+            .register(),
 
-    public static final ItemEntry<Item> IMPURE_REDSTONE_DUST = CreateRNS.REGISTRATE.item(
-            "impure_redstone_dust", Item::new).tag(RNSTags.Item.IMPURE_ORES).register();
+    IMPURE_GOLD_ORE = CreateRNS.REGISTRATE.item("impure_gold_ore", Item::new)
+            .tag(RNSTags.Item.IMPURE_ORES)
+            .register(),
+
+    IMPURE_REDSTONE_DUST = CreateRNS.REGISTRATE.item("impure_redstone_dust", Item::new)
+            .tag(RNSTags.Item.IMPURE_ORES)
+            .register(),
 
     // Yoinked from tech reborn
-    public static final ItemEntry<Item> REDSTONE_SMALL_DUST = CreateRNS.REGISTRATE.item(
-            "redstone_small_dust", Item::new).register();
+    REDSTONE_SMALL_DUST = CreateRNS.REGISTRATE.item("redstone_small_dust", Item::new)
+            .register();
 
     public static void register() {
     }

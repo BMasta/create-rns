@@ -32,9 +32,9 @@ public class RNSMisc {
 
     // Creative tab
     public static final RegistryEntry<CreativeModeTab> MAIN_TAB = CreateRNS.REGISTRATE.defaultCreativeTab(
-                    CreateRNS.MOD_ID, c -> c
+                    CreateRNS.ID, c -> c
                             .icon(() -> new ItemStack(RNSBlocks.MINER_MK2_BLOCK.getDefaultState().getBlock()))
-                            .title(Component.translatable("creativetab.%s".formatted(CreateRNS.MOD_ID)))
+                            .title(Component.translatable("creativetab.%s".formatted(CreateRNS.ID)))
                             .displayItems((pParameters, pOutput) -> {
                                 pOutput.accept(RNSBlocks.MINER_MK1_BLOCK.get().asItem());
                                 pOutput.accept(RNSBlocks.MINER_MK2_BLOCK.get().asItem());

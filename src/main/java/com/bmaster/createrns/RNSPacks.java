@@ -7,11 +7,11 @@ import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
 
 public class RNSPacks {
-    // Dynamic packs
     public static Pack MAIN_PACK = DynamicDatapack.createDatapack("dynamic_data")
             .title(Component.literal("Dynamic mod data for Create: Rock & Stone"))
             .addContent(DynamicDatapackContent.standardDepositBiomeTag())
             .buildAndRegister();
+
     public static Pack NO_DEPOSIT_PACK = DynamicDatapack.createDatapack("no_deposit_worldgen")
             .title(Component.literal("Disable deposit generation"))
             .source(PackSource.FEATURE)

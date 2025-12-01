@@ -16,14 +16,14 @@ import net.minecraftforge.event.level.ChunkEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-@Mod.EventBusSubscriber(modid = CreateRNS.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@Mod.EventBusSubscriber(modid = CreateRNS.ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ServerForgeEvents {
     @SubscribeEvent
     public static void onAttachCaps(AttachCapabilitiesEvent<Level> event) {
         if (!(event.getObject() instanceof ServerLevel sl)) return;
 
         event.addCapability(
-                ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "deposit_index"),
+                ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, "deposit_index"),
                 new DepositIndexProvider()
         );
     }

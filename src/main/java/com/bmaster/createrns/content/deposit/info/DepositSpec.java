@@ -16,5 +16,5 @@ public record DepositSpec(Item scannerIconItem, ResourceLocation structure) {
     ).apply(i, DepositSpec::new));
 
     public static final ResourceKey<Registry<DepositSpec>> REGISTRY_KEY =
-            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "deposit_spec"));
+            ResourceKey.createRegistryKey(CreateRNS.asResource("deposit_spec"));
 }

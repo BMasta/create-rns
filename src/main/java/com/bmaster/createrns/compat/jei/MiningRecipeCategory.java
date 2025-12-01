@@ -1,6 +1,9 @@
 package com.bmaster.createrns.compat.jei;
 
-import com.bmaster.createrns.*;
+import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.RNSBlocks;
+import com.bmaster.createrns.RNSPartialModels;
+import com.bmaster.createrns.RNSRecipeTypes;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.util.FlexibleLayoutHelper;
 import com.simibubi.create.compat.jei.EmptyBackground;
@@ -33,9 +36,10 @@ import java.util.Objects;
 @MethodsReturnNonnullByDefault
 public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
     public static final RecipeType<MiningRecipe> JEI_RECIPE_TYPE = RecipeType.create(
-            CreateRNS.MOD_ID, "mining", MiningRecipe.class);
+            CreateRNS.ID, "mining", MiningRecipe.class);
+
     private static final Info<MiningRecipe> INFO = new Info<>(
-            JEI_RECIPE_TYPE, Component.translatable(CreateRNS.MOD_ID + ".recipe.mining"),
+            JEI_RECIPE_TYPE, Component.translatable(CreateRNS.ID + ".recipe.mining"),
             new EmptyBackground(177, 90),
             new ItemIcon(() -> new ItemStack(RNSBlocks.MINER_MK1_BLOCK)),
             (() -> {

@@ -24,12 +24,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -145,7 +141,8 @@ public class MiningProcess {
         protected Queue<ItemStack> uncollectedItems = new ArrayDeque<>();
 
         public InnerProcess(Level level, List<BlockPos> depositPositions, MiningRecipe recipe, int maxProgress,
-                            Set<Catalyst> catalysts) {
+                Set<Catalyst> catalysts
+        ) {
             this.level = level;
             this.depositPositions = depositPositions;
             this.recipe = recipe;

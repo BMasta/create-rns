@@ -8,7 +8,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 public class DepositScannerChannel {
     private static final String PROTOCOL = "1";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
-            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "deposit_scanner"),
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, "deposit_scanner"),
             () -> PROTOCOL, PROTOCOL::equals, PROTOCOL::equals);
 
     private static int id = 0;

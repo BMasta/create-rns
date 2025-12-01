@@ -19,7 +19,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @JeiPlugin
 public class RNSJEI implements IModPlugin {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(
-            CreateRNS.MOD_ID, "jei_plugin");
+            CreateRNS.ID, "jei_plugin");
 
 
     @Override

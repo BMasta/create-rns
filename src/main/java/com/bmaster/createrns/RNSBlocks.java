@@ -24,7 +24,6 @@ import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
@@ -40,13 +39,6 @@ import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
 import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
 
 public class RNSBlocks {
-    public static final ResourceLocation DEP_SMALL =
-            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_small");
-    public static final ResourceLocation DEP_MEDIUM =
-            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium");
-    public static final ResourceLocation DEP_LARGE =
-            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_large");
-
     public static final BlockEntry<MinerBlock> MINER_MK1_BLOCK = CreateRNS.REGISTRATE.block("miner_mk1",
                     MinerBlock::new)
             .transform(minerBlock())
@@ -164,8 +156,8 @@ public class RNSBlocks {
                     .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
                     .depth(8)
                     .weight(10)
-                    .nbt(DEP_MEDIUM, 70)
-                    .nbt(DEP_LARGE, 30)
+                    .nbt(DepositStructureConfigBuilder.DEP_MEDIUM, 70)
+                    .nbt(DepositStructureConfigBuilder.DEP_LARGE, 30)
                     .save())
             .register();
 
@@ -177,8 +169,8 @@ public class RNSBlocks {
                     .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
                     .depth(8)
                     .weight(5)
-                    .nbt(DEP_MEDIUM, 70)
-                    .nbt(DEP_LARGE, 30)
+                    .nbt(DepositStructureConfigBuilder.DEP_MEDIUM, 70)
+                    .nbt(DepositStructureConfigBuilder.DEP_LARGE, 30)
                     .save())
             .register();
 
@@ -190,9 +182,9 @@ public class RNSBlocks {
                     .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
                     .depth(8)
                     .weight(2)
-                    .nbt(DEP_SMALL, 70)
-                    .nbt(DEP_MEDIUM, 28)
-                    .nbt(DEP_LARGE, 2)
+                    .nbt(DepositStructureConfigBuilder.DEP_SMALL, 70)
+                    .nbt(DepositStructureConfigBuilder.DEP_MEDIUM, 28)
+                    .nbt(DepositStructureConfigBuilder.DEP_LARGE, 2)
                     .save())
             .register();
 
@@ -204,9 +196,9 @@ public class RNSBlocks {
                     .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
                     .depth(12)
                     .weight(2)
-                    .nbt(DEP_SMALL, 70)
-                    .nbt(DEP_MEDIUM, 28)
-                    .nbt(DEP_LARGE, 2)
+                    .nbt(DepositStructureConfigBuilder.DEP_SMALL, 70)
+                    .nbt(DepositStructureConfigBuilder.DEP_MEDIUM, 28)
+                    .nbt(DepositStructureConfigBuilder.DEP_LARGE, 2)
                     .save())
             .register();
 
@@ -218,9 +210,9 @@ public class RNSBlocks {
                     .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
                     .depth(12)
                     .weight(2)
-                    .nbt(DEP_SMALL, 70)
-                    .nbt(DEP_MEDIUM, 28)
-                    .nbt(DEP_LARGE, 2)
+                    .nbt(DepositStructureConfigBuilder.DEP_SMALL, 70)
+                    .nbt(DepositStructureConfigBuilder.DEP_MEDIUM, 28)
+                    .nbt(DepositStructureConfigBuilder.DEP_LARGE, 2)
                     .save())
             .register();
 

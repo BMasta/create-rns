@@ -18,7 +18,7 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.items.IItemHandler;
 
-@GameTestHolder(CreateRNS.MOD_ID)
+@GameTestHolder(CreateRNS.ID)
 public final class MinerTest {
 
     @GameTest(template = "double")

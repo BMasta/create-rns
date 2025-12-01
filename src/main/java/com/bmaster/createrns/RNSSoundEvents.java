@@ -61,7 +61,7 @@ public class RNSSoundEvents {
         private SoundSource category = SoundSource.MASTER;
 
         public RNSSoundEntryBuilder(String id, int n_sounds) {
-            this.id = ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, id);
+            this.id = CreateRNS.asResource(id);
             this.n_sounds = n_sounds;
         }
 

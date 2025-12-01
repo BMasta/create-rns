@@ -8,7 +8,6 @@ import com.tterrag.registrate.providers.RegistrateRecipeProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Blocks;
@@ -17,9 +16,9 @@ public class RNSRecipes {
     static {
         CreateRNS.REGISTRATE.addDataGenerator(ProviderType.RECIPE, prov -> {
             ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, Items.REDSTONE)
-                    .requires(RNSItems.REDSTONE_SMALL_DUST, 9)
+                    .requires(RNSItems.REDSTONE_SMALL_DUST.get(), 9)
                     .unlockedBy("has_item", RegistrateRecipeProvider.has(RNSItems.REDSTONE_SMALL_DUST))
-                    .save(prov, ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "redstone_from_small_dust"));
+                    .save(prov, CreateRNS.asResource("redstone_from_small_dust"));
         });
     }
 
@@ -31,7 +30,7 @@ public class RNSRecipes {
         GeneratedRecipe IMPURE_REDSTONE_DUST = fromImpure("impure_redstone_dust", RNSItems.IMPURE_REDSTONE_DUST, RNSItems.REDSTONE_SMALL_DUST);
 
         public Washing(PackOutput output) {
-            super(output, CreateRNS.MOD_ID);
+            super(output, CreateRNS.ID);
         }
 
         private GeneratedRecipe fromImpure(String name, ItemLike in, ItemLike out) {
@@ -71,7 +70,7 @@ public class RNSRecipes {
                         .disallowMirrored());
 
         public MechanicalCrafting(PackOutput output) {
-            super(output, CreateRNS.MOD_ID);
+            super(output, CreateRNS.ID);
         }
     }
 

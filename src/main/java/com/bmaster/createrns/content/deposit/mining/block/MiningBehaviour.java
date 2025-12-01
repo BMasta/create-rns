@@ -28,8 +28,8 @@ import java.util.stream.Collectors;
 
 @ParametersAreNonnullByDefault
 public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlockClaimer {
-    public static final BehaviourType<MiningBehaviour> BEHAVIOUR_TYPE = new BehaviourType<>(CreateRNS.MOD_ID + ":mining");
-    public static final ClaimerType CLAIMER_TYPE = new ClaimerType(CreateRNS.MOD_ID + ":mining");
+    public static final BehaviourType<MiningBehaviour> BEHAVIOUR_TYPE = new BehaviourType<>(CreateRNS.ID + ":mining");
+    public static final ClaimerType CLAIMER_TYPE = new ClaimerType(CreateRNS.ID + ":mining");
 
     protected final KineticBlockEntity kBE;
     protected final Supplier<Direction> claimingDirection;

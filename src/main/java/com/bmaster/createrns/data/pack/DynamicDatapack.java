@@ -16,7 +16,7 @@ public class DynamicDatapack {
     public static List<Pack> RESOURCE_PACKS = new ArrayList<>();
 
     public static DynamicDatapack createDatapack(String id) {
-        return new DynamicDatapack(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, id), PackType.SERVER_DATA);
+        return new DynamicDatapack(CreateRNS.asResource(id), PackType.SERVER_DATA);
     }
 
     public static DynamicDatapack createDatapack(ResourceLocation id) {
@@ -24,7 +24,7 @@ public class DynamicDatapack {
     }
 
     public static DynamicDatapack createResourcePack(String id) {
-        return new DynamicDatapack(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, id), PackType.CLIENT_RESOURCES);
+        return new DynamicDatapack(CreateRNS.asResource(id), PackType.CLIENT_RESOURCES);
     }
 
     public static DynamicDatapack createResourcePack(ResourceLocation id) {

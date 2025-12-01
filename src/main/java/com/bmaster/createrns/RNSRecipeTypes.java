@@ -16,7 +16,7 @@ public class RNSRecipeTypes {
             CreateRNS.REGISTRATE.simple("mining", ForgeRegistries.Keys.RECIPE_TYPES, () -> new RecipeType<>() {
                 @Override
                 public String toString() {
-                    return CreateRNS.MOD_ID + ":mining";
+                    return CreateRNS.ID + ":mining";
                 }
             });
 

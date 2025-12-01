@@ -14,7 +14,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 public class DepositClaimerOutlineRenderer {
-    private static final String OUTLINER_SLOT = "%s:miningAreaOutline".formatted(CreateRNS.MOD_ID);
+    private static final String OUTLINER_SLOT = "%s:miningAreaOutline".formatted(CreateRNS.ID);
     private static final int MAX_TTL = 30;
     private static final int OUTLINE_MAX_DIST = 64;
 

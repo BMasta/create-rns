@@ -41,16 +41,16 @@ public class GoggleTooltipModifiers {
         if (empty) return false;
 
         if (c.isFirstSection()) {
-            new LangBuilder(CreateRNS.MOD_ID).translate(c.langId() + ".contents").forGoggles(tooltip);
+            new LangBuilder(CreateRNS.ID).translate(c.langId() + ".contents").forGoggles(tooltip);
         } else {
             // Newline between sections
-            new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
+            new LangBuilder(CreateRNS.ID).space().forGoggles(tooltip);
         }
 
         for (int slot = 0; slot < inventory.getSlots(); ++slot) {
             var is = inventory.getStackInSlot(slot);
             if (is.equals(ItemStack.EMPTY)) continue;
-            new LangBuilder(CreateRNS.MOD_ID)
+            new LangBuilder(CreateRNS.ID)
                     .add(is.getHoverName().copy().withStyle(ChatFormatting.GRAY))
                     .add(Component.literal(" x" + is.getCount()).withStyle(ChatFormatting.GREEN))
                     .forGoggles(tooltip, 1);
@@ -69,9 +69,9 @@ public class GoggleTooltipModifiers {
         if (process == null || mb.getClaimedDepositBlocks().isEmpty()) return false;
 
         if (!c.isFirstSection()) {
-            new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
+            new LangBuilder(CreateRNS.ID).space().forGoggles(tooltip);
         }
-        new LangBuilder(CreateRNS.MOD_ID).translate("mining.remaining_deposit_uses").forGoggles(tooltip);
+        new LangBuilder(CreateRNS.ID).translate("mining.remaining_deposit_uses").forGoggles(tooltip);
 
         process.innerProcesses.stream().sorted((a, b) -> {
                     var au = (a.remainingUses == 0) ? Long.MAX_VALUE : a.remainingUses;
@@ -86,7 +86,7 @@ public class GoggleTooltipModifiers {
                     var usesComp = (p.remainingUses > 0)
                             ? Component.literal(Long.toString(p.remainingUses))
                             : Component.translatable("create_rns.mining.infinite");
-                    new LangBuilder(CreateRNS.MOD_ID)
+                    new LangBuilder(CreateRNS.ID)
                             .add(p.recipe.getDepositBlock().getName()
                                     .append(": ")
                                     .withStyle(ChatFormatting.GRAY))
@@ -106,10 +106,10 @@ public class GoggleTooltipModifiers {
         if (process == null || !mb.isMining()) return false;
 
         if (c.isFirstSection()) {
-            new LangBuilder(CreateRNS.MOD_ID).translate("mining.production_rates").forGoggles(tooltip);
+            new LangBuilder(CreateRNS.ID).translate("mining.production_rates").forGoggles(tooltip);
         } else {
             // Newline between sections
-            new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
+            new LangBuilder(CreateRNS.ID).space().forGoggles(tooltip);
         }
 
         var rates = process.getEstimatedRates(mb.getCurrentProgressIncrement());
@@ -126,12 +126,12 @@ public class GoggleTooltipModifiers {
                     return arl.toString().compareToIgnoreCase(brl.toString());
                 })
                 .forEachOrdered(e ->
-                        new LangBuilder(CreateRNS.MOD_ID)
+                        new LangBuilder(CreateRNS.ID)
                                 .add(e.getKey().getDescription().copy()
                                         .append(": ")
                                         .withStyle(ChatFormatting.GRAY))
                                 .add(Component.literal(String.format(java.util.Locale.ROOT, "%.1f", e.getFloatValue()))
-                                        .append(Component.translatable(CreateRNS.MOD_ID + ".mining.per_hour"))
+                                        .append(Component.translatable(CreateRNS.ID + ".mining.per_hour"))
                                         .withStyle(ChatFormatting.GREEN))
                                 .forGoggles(tooltip, 1)
                 );
@@ -150,12 +150,12 @@ public class GoggleTooltipModifiers {
         if (process == null) return false;
 
         if (c.isFirstSection()) {
-            new LangBuilder(CreateRNS.MOD_ID)
+            new LangBuilder(CreateRNS.ID)
                     .translate("contraption_mining.info")
                     .forGoggles(tooltip);
         } else {
             // Newline between sections
-            new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
+            new LangBuilder(CreateRNS.ID).space().forGoggles(tooltip);
         }
 
         int standard = 0;
@@ -170,19 +170,19 @@ public class GoggleTooltipModifiers {
         }
 
         if (standard > 0) {
-            new LangBuilder(CreateRNS.MOD_ID)
+            new LangBuilder(CreateRNS.ID)
                     .translate("contraption_mining.resonance.standard", Integer.toString(standard))
                     .style(ChatFormatting.LIGHT_PURPLE)
                     .forGoggles(tooltip);
         }
         if (shattering > 0) {
-            new LangBuilder(CreateRNS.MOD_ID)
+            new LangBuilder(CreateRNS.ID)
                     .translate("contraption_mining.resonance.shattering", Integer.toString(shattering))
                     .style(ChatFormatting.RED)
                     .forGoggles(tooltip);
         }
         if (stabilizing > 0) {
-            new LangBuilder(CreateRNS.MOD_ID)
+            new LangBuilder(CreateRNS.ID)
                     .translate("contraption_mining.resonance.stabilizing", Integer.toString(stabilizing))
                     .style(ChatFormatting.AQUA)
                     .forGoggles(tooltip);
@@ -202,7 +202,7 @@ public class GoggleTooltipModifiers {
             CreateLang.translate("gui.goggles.kinetic_stats").forGoggles(tooltip);
         } else {
             // Newline between sections
-            new LangBuilder(CreateRNS.MOD_ID).space().forGoggles(tooltip);
+            new LangBuilder(CreateRNS.ID).space().forGoggles(tooltip);
         }
 
         CreateLang.translate("tooltip.stressImpact")
