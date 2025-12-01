@@ -8,56 +8,34 @@
   },
   "replace_when_depleted": "create_rns:depleted_deposit_block",
   "yields": [
+    {"chance": 1.0, "items": [{"item": "minecraft:cobblestone"}]},
+    {"chance": 0.5, "items": [{"item": "create:zinc_nugget"}], "resonance": {"min_resonators": 4}},
+    {"chance": 0.05, "items": [{"item": "create:raw_zinc"}], "resonance": {"min_resonators": 4}},
+    {"chance": 0.005, "items": [{"item": "minecraft:raw_zinc_block"}], "resonance": {"min_resonators": 4}},
+    {"chance": 0.0005, "items": [{"item": "create_rns:resonant_amethyst"}], "resonance": {"min_resonators": 4}},
     {
-      "chance": 1.0,
       "items": [
-        {
-          "item": "create_rns:impure_zinc_ore",
-          "chance_weight": 1
-        }
+        {"item": "minecraft:tuff"},
+        {"item": "minecraft:calcite"},
+        {"item": "create:limestone"},
+        {"item": "create:crimsite"},
+        {"item": "create:veridium"},
+        {"item": "create:asurine"},
+        {"item": "create:ochrum"}
       ],
-      "resonance": {
-        "min_resonators": 4
-      }
+      "resonance": {"min_resonators": 4},
+      "shattering_resonance": {"chance_per_resonator": 0.25, "min_resonators": 1}
     },
     {
       "items": [
-        {
-          "item": "minecraft:lapis_lazuli",
-          "chance_weight": 1
-        },
-        {
-          "item": "minecraft:amethyst_shard",
-          "chance_weight": 1
-        },
-        {
-          "item": "minecraft:emerald",
-          "chance_weight": 1
-        },
-        {
-          "item": "minecraft:diamond",
-          "chance_weight": 1
-        }
+        {"item": "create:raw_zinc", "weight": 4},
+        {"item": "minecraft:lapis_lazuli", "weight": 4},
+        {"item": "minecraft:amethyst_shard", "weight": 4},
+        {"item": "minecraft:emerald", "weight": 4},
+        {"item": "minecraft:diamond"}
       ],
-      "resonance": {
-        "min_resonators": 4
-      },
-      "stabilizing_resonance": {
-        "chance_per_resonator": 0.01,
-        "min_resonators": 1
-      }
-    },
-    {
-      "chance": 0.0005,
-      "items": [
-        {
-          "item": "create_rns:resonant_amethyst",
-          "chance_weight": 1
-        }
-      ],
-      "resonance": {
-        "min_resonators": 4
-      }
+      "resonance": {"min_resonators": 4},
+      "stabilizing_resonance": {"chance_per_resonator": 0.01, "min_resonators": 1}
     }
   ]
 }

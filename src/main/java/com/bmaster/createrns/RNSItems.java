@@ -30,26 +30,6 @@ public class RNSItems {
     public static final ItemEntry<Item>
             RESONANT_AMETHYST = CreateRNS.REGISTRATE.item("resonant_amethyst", Item::new).register(),
 
-    IMPURE_IRON_ORE = CreateRNS.REGISTRATE.item("impure_iron_ore", Item::new)
-            .tag(RNSTags.Item.IMPURE_ORES)
-            .register(),
-
-    IMPURE_COPPER_ORE = CreateRNS.REGISTRATE.item("impure_copper_ore", Item::new)
-            .tag(RNSTags.Item.IMPURE_ORES)
-            .register(),
-
-    IMPURE_ZINC_ORE = CreateRNS.REGISTRATE.item("impure_zinc_ore", Item::new)
-            .tag(RNSTags.Item.IMPURE_ORES)
-            .register(),
-
-    IMPURE_GOLD_ORE = CreateRNS.REGISTRATE.item("impure_gold_ore", Item::new)
-            .tag(RNSTags.Item.IMPURE_ORES)
-            .register(),
-
-    IMPURE_REDSTONE_DUST = CreateRNS.REGISTRATE.item("impure_redstone_dust", Item::new)
-            .tag(RNSTags.Item.IMPURE_ORES)
-            .register(),
-
     // Yoinked from tech reborn
     REDSTONE_SMALL_DUST = CreateRNS.REGISTRATE.item("redstone_small_dust", Item::new)
             .register();

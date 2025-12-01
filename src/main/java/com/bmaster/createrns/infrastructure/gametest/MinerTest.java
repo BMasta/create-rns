@@ -2,7 +2,6 @@ package com.bmaster.createrns.infrastructure.gametest;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSBlocks;
-import com.bmaster.createrns.RNSItems;
 import com.bmaster.createrns.content.deposit.mining.block.MinerBlockEntity;
 import com.simibubi.create.content.kinetics.motor.CreativeMotorBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -74,13 +73,6 @@ public final class MinerTest {
             helper.assertTrue(inv != null, "Could not get mining BE inventory without direction");
             assert inv != null; // IDE complains otherwise
 
-            var extractedItem = inv.extractFirstAvailableItem(true);
-            helper.assertTrue(extractedItem.is(RNSItems.IMPURE_IRON_ORE.get()),
-                    "Mining BE expected to mine %s, but mined %s instead"
-                            .formatted(RNSItems.IMPURE_IRON_ORE.get(), extractedItem));
-            helper.assertTrue(extractedItem.getCount() == 1,
-                    "Mining BE expected to mine 1 item, but mined %d instead".formatted(extractedItem.getCount()));
-
             helper.setBlock(miner1AbovePos, Blocks.BARREL.defaultBlockState());
         });
 
@@ -94,13 +86,9 @@ public final class MinerTest {
             var extractedItem = inv.extractFirstAvailableItem(true);
 
             helper.assertTrue(extractedItem.is(Items.AIR),
-                    "Mining BE expected to eject item to barrel, but still has at least 1 %s"
-                            .formatted(RNSItems.IMPURE_IRON_ORE.get()));
+                    "Mining BE expected to eject item to barrel, but still has at least 1 item");
 
             var barrelItem = barrelInv.getStackInSlot(0);
-            helper.assertTrue(barrelItem.is(RNSItems.IMPURE_IRON_ORE.get()),
-                    "Barrel expected to have %s in first slot, but has %s instead"
-                            .formatted(RNSItems.IMPURE_IRON_ORE.get(), barrelItem));
             helper.assertTrue(barrelItem.getCount() == 1,
                     "Barrel expected to have 1 item in first slot, but has %d instead".formatted(barrelItem.getCount()));
             helper.succeed();
