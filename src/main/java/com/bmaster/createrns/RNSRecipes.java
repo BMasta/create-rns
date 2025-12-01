@@ -45,12 +45,12 @@ public class RNSRecipes {
                 .recipe(b -> b
                         .key('T', Blocks.REDSTONE_BLOCK)
                         .key('A', RNSItems.RESONANT_AMETHYST)
-                        .key('M', AllItems.PRECISION_MECHANISM)
+                        .key('E', AllItems.ELECTRON_TUBE)
                         .key('R', RNSBlocks.RESONATOR_BLOCK)
                         .key('S', AllItems.STURDY_SHEET)
                         .patternLine(" T ")
                         .patternLine("SAS")
-                        .patternLine("SMS")
+                        .patternLine("SES")
                         .patternLine("SRS")
                         .patternLine("SSS")
                         .disallowMirrored());
