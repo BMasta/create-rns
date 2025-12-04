@@ -1,7 +1,6 @@
 package com.bmaster.createrns.compat.ponder;
 
 import com.bmaster.createrns.RNSBlocks;
-import com.bmaster.createrns.RNSItems;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
 import net.createmod.ponder.api.ParticleEmitter;

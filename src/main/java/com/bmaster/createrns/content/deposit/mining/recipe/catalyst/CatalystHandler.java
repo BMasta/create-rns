@@ -26,14 +26,8 @@ public class CatalystHandler {
             var y = yields.get(i);
             boolean allRequiredSatisfied = true;
 
-            // Collect the yield's requirements
-            Set<CatalystRequirement> requirements = new ObjectOpenHashSet<>();
-            requirements.add(y.resonanceRequirement);
-            requirements.add(y.shatteringResonanceRequirement);
-            requirements.add(y.stabilizingResonanceRequirement);
-
             // For each requirement, go over available catalysts and see if any of them match, as well as sum up the chances they add
-            for (var cr : requirements) {
+            for (var cr : y.getCatalystRequirements()) {
                 boolean isCROptional = cr.isOptional();
                 boolean satisfied = false;
                 for (var c : catalysts) {

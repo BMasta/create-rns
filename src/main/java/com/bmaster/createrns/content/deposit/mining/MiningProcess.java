@@ -86,7 +86,7 @@ public class MiningProcess {
             var ys = p.recipe.getYields();
             for (var y : ys) {
                 for (var i : y.items) {
-                    rates.addTo(i.item(), minesPerHour * i.chanceWeight() / y.getTotalWeight());
+                    rates.addTo(i.item(), minesPerHour * i.weight() / y.getTotalWeight());
                 }
             }
         }

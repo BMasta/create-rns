@@ -24,6 +24,7 @@ public class ResonatorMovementBehaviour extends MiningEquipmentMovementBehaviour
 
     @Override
     public void tick(MovementContext context) {
+        if (!context.world.isClientSide) return;
         if (!isActive(context) || !(context.contraption instanceof BearingContraption bc)) return;
         var bearing = getBearing(context);
         if (bearing == null) return;
@@ -47,6 +48,7 @@ public class ResonatorMovementBehaviour extends MiningEquipmentMovementBehaviour
         ResonatorRenderer.renderInContraption(context, renderWorld, matrices, buffer, isActive(context));
     }
 
+    @OnlyIn(value = Dist.CLIENT)
     public void spawnParticle(MovementContext context, float chance) {
         if (!(context.contraption instanceof BearingContraption bc)) return;
         if (!(context.state.getBlock() instanceof AbstractResonatorBlock rb)) return;

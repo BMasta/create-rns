@@ -10,7 +10,7 @@
   "yields": [
     {"chance": 1.0, "items": [{"item": "minecraft:cobblestone"}]},
     {"chance": 0.5, "items": [{"item": "minecraft:iron_nugget"}]},
-    {"chance": 0.05, "items": [{"item": "minecraft:raw_iron"}], "resonance": {"min_resonators": 4}},
+    {"chance": 0.05, "items": [{"item": "minecraft:raw_iron"}], "resonance": {"min_resonators": 2}},
     {"chance": 0.005, "items": [{"item": "minecraft:raw_iron_block"}], "resonance": {"min_resonators": 4}},
     {"chance": 0.0005, "items": [{"item": "create_rns:resonant_amethyst"}], "resonance": {"min_resonators": 4}},
     {
