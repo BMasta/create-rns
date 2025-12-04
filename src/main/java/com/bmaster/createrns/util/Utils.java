@@ -1,15 +1,20 @@
 package com.bmaster.createrns.util;
 
+import com.bmaster.createrns.CreateRNS;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import net.createmod.catnip.lang.LangBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.ChunkPos;
 
+import java.text.DecimalFormat;
 import java.util.function.Function;
 
 public class Utils {
+    protected static DecimalFormat df = new DecimalFormat("0.##");
+
     public static boolean isPosInChunk(BlockPos pos, ChunkPos chunkPos) {
         return (pos.getX() >> 4) == chunkPos.x && (pos.getZ() >> 4) == chunkPos.z;
     }
@@ -64,5 +69,13 @@ public class Utils {
         h *= 0xc4ceb9fe1a85ec53L;
         h ^= h >>> 33;
         return h;
+    }
+
+    public static LangBuilder fancyArg(Object arg) {
+        return CreateRNS.lang().text("" + arg);
+    }
+
+    public static LangBuilder fancyChanceArg(float c) {
+        return fancyArg(df.format(Math.min(c * 100, 100)) + "%");
     }
 }

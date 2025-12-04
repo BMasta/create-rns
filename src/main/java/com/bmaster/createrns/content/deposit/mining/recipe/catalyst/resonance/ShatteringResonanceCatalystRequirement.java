@@ -2,6 +2,7 @@ package com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance;
 
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.mojang.serialization.Codec;
+import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -12,8 +13,11 @@ public class ShatteringResonanceCatalystRequirement extends AbstractResonanceCat
     public static final Codec<ShatteringResonanceCatalystRequirement> CODEC =
             codec(ShatteringResonanceCatalystRequirement::new);
 
-    public ShatteringResonanceCatalystRequirement(boolean optional, float baseChance, float chancePerResonator, int minResonators) {
-        super(optional, baseChance, chancePerResonator, minResonators);
+    public static final Codec<ShatteringResonanceCatalystRequirement> STREAM_CODEC =
+            streamCodec(ShatteringResonanceCatalystRequirement::new);
+
+    public ShatteringResonanceCatalystRequirement(boolean optional, float chancePerResonator, int minResonators) {
+        super(optional, chancePerResonator, minResonators);
     }
 
     @Override
@@ -25,6 +29,16 @@ public class ShatteringResonanceCatalystRequirement extends AbstractResonanceCat
     @Override
     public float getChance(Catalyst catalyst) {
         if (!isSatisfiedBy(catalyst)) return 0f;
-        return baseChance + ((ShatteringResonanceCatalyst) catalyst).resonatorCount * chancePerResonator;
+        return ((ShatteringResonanceCatalyst) catalyst).resonatorCount * chancePerResonator;
+    }
+
+    @Override
+    protected String langKey() {
+        return "shattering";
+    }
+
+    @Override
+    protected ChatFormatting style() {
+        return ChatFormatting.RED;
     }
 }

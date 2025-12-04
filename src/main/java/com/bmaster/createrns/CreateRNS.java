@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.foundation.data.CreateRegistrate;
+import net.createmod.catnip.lang.LangBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
@@ -27,6 +28,18 @@ public class CreateRNS {
 
     public static ResourceLocation asResource(String path) {
         return ResourceLocation.fromNamespaceAndPath(ID, path);
+    }
+
+    public static LangBuilder lang() {
+        return new LangBuilder(CreateRNS.ID);
+    }
+
+    public static String asLangEntry(String path) {
+        return ID + "." + path;
+    }
+
+    public static String asLangEntry(String prefix, String path) {
+        return prefix + "." + ID + "." + path;
     }
 
     public CreateRNS(FMLJavaModLoadingContext context) {

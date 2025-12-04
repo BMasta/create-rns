@@ -1,35 +1,117 @@
 package com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance;
 
+import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirement;
-import com.mojang.datafixers.util.Function4;
+import com.bmaster.createrns.util.Utils;
+import com.mojang.datafixers.util.Function3;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.ChatFormatting;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public abstract class AbstractResonanceCatalystRequirement extends CatalystRequirement {
+    // One resonator per side directly adjacent to the drill head
+    public static final int MAX_RESONATORS = 4;
+
     public static <T extends AbstractResonanceCatalystRequirement> Codec<T> codec(
-            Function4<Boolean, Float, Float, Integer, T> factory) {
+            Function3<Boolean, Float, Integer, T> factory) {
         return RecordCodecBuilder.create(i -> i.group(
                         Codec.BOOL.fieldOf("optional").orElse(false).forGetter(c -> c.optional),
-                        Codec.floatRange(0, 1).fieldOf("base_chance").orElse(0f).forGetter(c -> c.baseChance),
                         Codec.floatRange(0, 1).fieldOf("chance_per_resonator").orElse(0f).forGetter(c -> c.chancePerResonator),
                         Codec.intRange(0, Integer.MAX_VALUE).fieldOf("min_resonators").orElse(Integer.MAX_VALUE).forGetter(c -> c.minResonators))
                 .apply(i, factory));
     }
 
+    public static <T extends AbstractResonanceCatalystRequirement> Codec<T> streamCodec(
+            Function3<Boolean, Float, Integer, T> factory) {
+        return RecordCodecBuilder.create(i -> i.group(
+                        Codec.BOOL.fieldOf("optional").orElse(false).forGetter(c -> c.optional),
+                        Codec.FLOAT.fieldOf("chance_per_resonator").orElse(0f).forGetter(c -> c.chancePerResonator),
+                        Codec.INT.fieldOf("min_resonators").orElse(Integer.MAX_VALUE).forGetter(c -> c.minResonators))
+                .apply(i, factory));
+    }
+
     public final boolean optional;
-    public final float baseChance;
     public final float chancePerResonator;
     public final int minResonators;
 
-    public AbstractResonanceCatalystRequirement(boolean optional, float baseChance, float chancePerResonator, int minResonators) {
+    public AbstractResonanceCatalystRequirement(boolean optional, float chancePerResonator, int minResonators) {
         this.optional = optional;
-        this.baseChance = baseChance;
         this.chancePerResonator = chancePerResonator;
         this.minResonators = minResonators;
     }
 
+    protected abstract String langKey();
+
+    protected abstract ChatFormatting style();
+
     @Override
     public boolean isOptional() {
         return optional;
+    }
+
+    @Override
+    public float getMaxChance() {
+        return chancePerResonator * MAX_RESONATORS;
+    }
+
+    @Override
+    public List<MutableComponent> JEIRequirementDescriptions() {
+        List<MutableComponent> res = new ArrayList<>();
+        // If the chance per resonator is already shown, at least 1 resonator is already implied
+        // and doesn't have to be explained in the tooltip.
+        if (!isOptional()) {
+            var required = CreateRNS.lang()
+                    .translate("jei.catalyst.required").space()
+                    .add(Component.translatable(CreateRNS.ID + ".jei.catalyst.resonance." + langKey() + ".requirement")
+                            .withStyle(style()))
+                    .style(ChatFormatting.WHITE);
+            if (minResonators > 1) {
+                required.space().translate("jei.catalyst.resonance.count", minResonators);
+            }
+            res.add(required.component());
+        }
+        return res;
+    }
+
+    @Override
+    public List<MutableComponent> JEIChanceDescriptions(float weightRatio) {
+        List<MutableComponent> res = new ArrayList<>();
+        if (chancePerResonator > 0) {
+            res.add(CreateRNS.lang().translate("jei.catalyst.resonance." + langKey() + ".chance",
+                    Utils.fancyChanceArg(chancePerResonator * weightRatio).style(style())).style(ChatFormatting.GRAY).component());
+        }
+        return res;
+    }
+
+    @Override
+    public boolean equalsSameType(CatalystRequirement obj) {
+        var o = (AbstractResonanceCatalystRequirement) obj;
+        // Chances are not part of the requirement and are not considered
+        return optional == o.optional && minResonators == o.minResonators;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(optional, minResonators);
+    }
+
+    @Override
+    public int compareToSameType(CatalystRequirement obj) {
+        var o = (AbstractResonanceCatalystRequirement) obj;
+
+        if (isOptional() != o.isOptional()) return isOptional() ? -1 : 1;
+        if (minResonators != o.minResonators) return Integer.compare(minResonators, o.minResonators);
+
+        // Chances are not part of the requirement and are not considered
+        return 0;
     }
 }
