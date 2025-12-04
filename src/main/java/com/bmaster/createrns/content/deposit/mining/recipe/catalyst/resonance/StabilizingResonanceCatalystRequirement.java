@@ -2,6 +2,7 @@ package com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance;
 
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.mojang.serialization.Codec;
+import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -17,8 +18,8 @@ public class StabilizingResonanceCatalystRequirement extends AbstractResonanceCa
     public static final StreamCodec<RegistryFriendlyByteBuf, StabilizingResonanceCatalystRequirement> STREAM_CODEC =
             streamCodec(StabilizingResonanceCatalystRequirement::new);
 
-    public StabilizingResonanceCatalystRequirement(boolean optional, float baseChance, float chancePerResonator, int minResonators) {
-        super(optional, baseChance, chancePerResonator, minResonators);
+    public StabilizingResonanceCatalystRequirement(boolean optional, float chancePerResonator, int minResonators) {
+        super(optional, chancePerResonator, minResonators);
     }
 
     @Override
@@ -30,6 +31,16 @@ public class StabilizingResonanceCatalystRequirement extends AbstractResonanceCa
     @Override
     public float getChance(Catalyst catalyst) {
         if (!isSatisfiedBy(catalyst)) return 0f;
-        return baseChance + ((StabilizingResonanceCatalyst) catalyst).resonatorCount * chancePerResonator;
+        return ((StabilizingResonanceCatalyst) catalyst).resonatorCount * chancePerResonator;
+    }
+
+    @Override
+    protected String langKey() {
+        return "stabilizing";
+    }
+
+    @Override
+    protected ChatFormatting style() {
+        return ChatFormatting.AQUA;
     }
 }

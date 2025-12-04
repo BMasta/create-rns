@@ -12,7 +12,6 @@ import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.bus.api.IEventBus;
 
 public class RNSBlockEntities {
     public static final BlockEntityEntry<MinerBlockEntity> MINER_BE = CreateRNS.REGISTRATE

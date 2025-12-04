@@ -9,7 +9,7 @@
   "replace_when_depleted": "create_rns:depleted_deposit_block",
   "yields": [
     {"chance": 1.0, "items": [{"item": "minecraft:cobblestone"}]},
-    {"chance": 0.5, "items": [{"item": "minecraft:gold_nugget"}], "resonance": {"min_resonators": 4}},
+    {"chance": 0.5, "items": [{"item": "minecraft:gold_nugget"}], "resonance": {"min_resonators": 2}},
     {"chance": 0.05, "items": [{"item": "minecraft:raw_gold"}], "resonance": {"min_resonators": 4}},
     {"chance": 0.005, "items": [{"item": "minecraft:raw_gold_block"}], "resonance": {"min_resonators": 4}},
     {"chance": 0.0005, "items": [{"item": "create_rns:resonant_amethyst"}], "resonance": {"min_resonators": 4}},
