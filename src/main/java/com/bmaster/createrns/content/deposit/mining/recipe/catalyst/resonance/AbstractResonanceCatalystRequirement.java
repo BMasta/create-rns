@@ -28,9 +28,15 @@ public abstract class AbstractResonanceCatalystRequirement extends CatalystRequi
     public static <T extends AbstractResonanceCatalystRequirement> Codec<T> codec(
             Function3<Float, Float, Integer, T> factory) {
         return RecordCodecBuilder.create(i -> i.group(
-                        Codec.floatRange(0, Float.MAX_VALUE).fieldOf("base_chance").orElse(1f).forGetter(c -> c.baseChance),
-                        Codec.floatRange(0, Float.MAX_VALUE).fieldOf("chance_per_resonator").orElse(0f).forGetter(c -> c.chancePerResonator),
-                        Codec.intRange(0, Integer.MAX_VALUE).fieldOf("min_resonators").orElse(Integer.MAX_VALUE).forGetter(c -> c.minResonators))
+                        Codec.floatRange(0, Float.MAX_VALUE).fieldOf("base_chance")
+                                .orElse(0f)
+                                .forGetter(c -> c.baseChance),
+                        Codec.floatRange(0, Float.MAX_VALUE).fieldOf("chance_per_resonator")
+                                .orElse(0f)
+                                .forGetter(c -> c.chancePerResonator),
+                        Codec.intRange(0, Integer.MAX_VALUE).fieldOf("min_resonators")
+                                .orElse(Integer.MAX_VALUE)
+                                .forGetter(c -> c.minResonators))
                 .apply(i, factory));
     }
 

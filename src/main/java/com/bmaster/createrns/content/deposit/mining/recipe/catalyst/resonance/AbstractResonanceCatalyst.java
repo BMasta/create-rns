@@ -17,7 +17,7 @@ public abstract class AbstractResonanceCatalyst extends Catalyst {
 
     @Override
     public boolean use(CatalystRequirement requirement, boolean simulate) {
-        if (!(requirement instanceof AbstractResonanceCatalystRequirement resCR)) return false;
-        return resonatorCount >= resCR.minResonators;
+        if (!requirement.isSatisfiedBy(this)) return false;
+        return resonatorCount >= ((AbstractResonanceCatalystRequirement) requirement).minResonators;
     }
 }

@@ -14,6 +14,7 @@
     {"chance": 0.005, "items": [{"item": "minecraft:raw_copper_block"}], "catalysts": ["full_resonance"]},
     {"chance": 0.0005, "items": [{"item": "create_rns:resonant_amethyst"}], "catalysts": ["full_resonance"]},
     {
+      "chance": 0.5,
       "items": [
         {"item": "minecraft:tuff"},
         {"item": "minecraft:calcite"},
@@ -26,6 +27,7 @@
       "catalysts": ["shattering_resonance"]
     },
     {
+      "chance": 0.02,
       "items": [
         {"item": "minecraft:raw_copper"},
         {"item": "minecraft:lapis_lazuli"},

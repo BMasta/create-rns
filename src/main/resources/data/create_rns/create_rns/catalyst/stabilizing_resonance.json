@@ -1,6 +1,7 @@
 {
   "name": "stabilizing_resonance",
   "resonance": {
+    "base_chance": 1,
     "min_resonators": 4
   },
   "stabilizing_resonance": {

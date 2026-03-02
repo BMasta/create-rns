@@ -32,7 +32,7 @@ public class CatalystHandler {
                         n -> n,
                         n -> {
                             var crs = CatalystRequirementSetLookup.get(access, n);
-                            return crs.satisfiedBy(catalysts);
+                            return crs.getRelevantCatalysts(catalysts);
                         },
                         (cats1, cats2) -> {
                             cats1.addAll(cats2);
@@ -46,9 +46,8 @@ public class CatalystHandler {
         for (int i = 0; i < yields.size(); ++i) {
             var y = yields.get(i);
             boolean satisfiable = y.crsNames.stream()
-                    .filter(crs -> crsToCatalystsAll.get(crs).isEmpty())
-                    .findAny()
-                    .isEmpty();
+                    .allMatch(crsName -> CatalystRequirementSetLookup.get(access, crsName)
+                            .isSatisfiedBy(crsToCatalystsAll.get(crsName)));
             if (satisfiable) enabledYields.add(i);
         }
 

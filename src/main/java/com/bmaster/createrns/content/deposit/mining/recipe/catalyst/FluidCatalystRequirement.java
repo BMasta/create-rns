@@ -16,7 +16,7 @@ import java.util.List;
 @MethodsReturnNonnullByDefault
 public class FluidCatalystRequirement extends CatalystRequirement {
     public static final Codec<FluidCatalystRequirement> CODEC = RecordCodecBuilder.create(i -> i.group(
-                    FluidStack.CODEC.fieldOf("fluid_per_operation")
+                    FluidStack.CODEC.fieldOf("consume")
                             .forGetter(c -> c.fluidStack),
                     Codec.floatRange(0, Float.MAX_VALUE).fieldOf("chance_multiplier")
                             .orElse(1f)
