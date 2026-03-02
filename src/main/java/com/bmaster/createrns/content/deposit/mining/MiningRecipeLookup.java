@@ -32,7 +32,7 @@ public class MiningRecipeLookup {
         var recipe = depBlockToRecipe.get(depositBlock);
         if (recipe == null) return false;
 
-        return new CatalystHandler(recipe, catalysts).isMiningPossible();
+        return new CatalystHandler(l.registryAccess(), recipe, catalysts).isMiningPossible();
     }
 
     public static void build(Level l) {

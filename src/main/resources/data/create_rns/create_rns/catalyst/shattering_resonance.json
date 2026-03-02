@@ -1,0 +1,10 @@
+{
+  "name": "shattering_resonance",
+  "resonance": {
+    "min_resonators": 4
+  },
+  "shattering_resonance": {
+    "chance_per_resonator": 0.25,
+    "min_resonators": 1
+  }
+}

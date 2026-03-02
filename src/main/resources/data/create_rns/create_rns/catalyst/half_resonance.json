@@ -1,0 +1,6 @@
+{
+  "name": "half_resonance",
+  "resonance": {
+    "min_resonators": 2
+  }
+}

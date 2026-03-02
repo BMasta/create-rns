@@ -11,7 +11,7 @@ public class RNSAssemblyException extends AssemblyException {
     }
 
     public RNSAssemblyException(String langKey, Object... objects) {
-        super(new LangBuilder(CreateRNS.ID).translate("gui.assembly.exception." + langKey,
+        super(CreateRNS.lang().translate("gui.assembly.exception." + langKey,
                 LangBuilder.resolveBuilders(objects)).component());
     }
 }

@@ -34,12 +34,16 @@ public class MiningRecipe implements Recipe<Container> {
             .apply(i, MiningRecipeHelper.SerializedRecipe::new));
 
     public static final MapCodec<MiningRecipeHelper.SerializedRecipe> STREAM_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
-                    ForgeRegistries.BLOCKS.getCodec().fieldOf("deposit_block").forGetter(MiningRecipeHelper.SerializedRecipe::depositBlock),
-                    ForgeRegistries.BLOCKS.getCodec().fieldOf("replace_when_depleted").orElse(Blocks.AIR).forGetter(MiningRecipeHelper.SerializedRecipe::replacementBlock),
+                    ForgeRegistries.BLOCKS.getCodec().fieldOf("deposit_block")
+                            .forGetter(MiningRecipeHelper.SerializedRecipe::depositBlock),
+                    ForgeRegistries.BLOCKS.getCodec().fieldOf("replace_when_depleted")
+                            .orElse(Blocks.AIR)
+                            .forGetter(MiningRecipeHelper.SerializedRecipe::replacementBlock),
                     DepositDurability.STREAM_CODEC.fieldOf("durability")
                             .orElse(new DepositDurability(0, 0, 0))
                             .forGetter(MiningRecipeHelper.SerializedRecipe::dur),
-                    Yield.STREAM_CODEC.listOf().fieldOf("yields").forGetter(MiningRecipeHelper.SerializedRecipe::yields))
+                    Yield.STREAM_CODEC.listOf().fieldOf("yields")
+                            .forGetter(MiningRecipeHelper.SerializedRecipe::yields))
             .apply(i, MiningRecipeHelper.SerializedRecipe::new));
 
     private final ResourceLocation id;

@@ -6,6 +6,7 @@ import com.bmaster.createrns.content.deposit.info.IDepositIndex;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystHandler;
+import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -75,16 +76,25 @@ public class MiningProcess {
                 .collect(Collectors.toSet());
     }
 
+    public boolean isRatesEstimated() {
+        var anyProcess = innerProcesses.stream().findAny().orElse(null);
+              return anyProcess == null ||  anyProcess.recentChances != null;
+    }
+
     public Object2FloatOpenHashMap<Item> getEstimatedRates(int progressPerTick) {
         var rates = new Object2FloatOpenHashMap<Item>();
         var progressPerHour = 60 * SharedConstants.TICKS_PER_MINUTE * progressPerTick;
 
         for (var p : innerProcesses) {
-            var minesPerHour = (float) progressPerHour / p.maxProgress;
+            if (p.recentChances == null) continue;
             var ys = p.recipe.getYields();
-            for (var y : ys) {
-                for (var i : y.items) {
-                    rates.addTo(i.item(), minesPerHour * i.weight() / y.getTotalWeight());
+            float minesPerHour = (float) progressPerHour / p.maxProgress;
+            for (int i = 0; i < ys.size(); ++i) {
+                float chance = p.recentChances.get(i);
+                if (chance <= 0f) continue;
+                var y = ys.get(i);
+                for (var wi : ys.get(i).items) {
+                    rates.addTo(wi.item(), minesPerHour * wi.weight() / y.getTotalWeight() * chance);
                 }
             }
         }
@@ -135,8 +145,9 @@ public class MiningProcess {
         public final MiningRecipe recipe;
         public int maxProgress;
         public int progress;
-        public long remainingUses;
         public final CatalystHandler catalystHandler;
+        public long remainingUses;
+        protected Int2FloatOpenHashMap recentChances = null;
 
         protected Queue<ItemStack> uncollectedItems = new ArrayDeque<>();
 
@@ -149,7 +160,7 @@ public class MiningProcess {
             this.maxProgress = maxProgress;
             this.progress = 0;
             if (!level.isClientSide) computeRemainingUses(); // Server computes/syncs, client uses
-            this.catalystHandler = new CatalystHandler(recipe, catalysts);
+            this.catalystHandler = new CatalystHandler(level.registryAccess(), recipe, catalysts);
         }
 
         public void advance(int by) {
@@ -175,12 +186,14 @@ public class MiningProcess {
 
             // For each yield: use all of its catalysts, then roll for success and add to collection queue if successful
             var yields = recipe.getYields();
-            for (int i = 0; i < yields.size(); ++i) {
-                var chance = catalystHandler.useCatalysts(i);
+            recentChances = catalystHandler.useCatalysts();
+            for (var e : recentChances.int2FloatEntrySet()) {
+                int yieldIdx = e.getIntKey();
+                float chance = e.getFloatValue();
                 if (chance > 0) {
                     var chanceRoll = level.random.nextFloat();
                     if (chance > chanceRoll) {
-                        var myPrecious = new ItemStack(yields.get(i).roll(level.random));
+                        var myPrecious = new ItemStack(yields.get(yieldIdx).roll(level.random));
                         uncollectedItems.offer(myPrecious);
                         if (chance != 1) {
                             CreateRNS.LOGGER.trace("Successfully rolled for {} ({}% chance)", myPrecious, (int) (chance * 100));
@@ -201,6 +214,14 @@ public class MiningProcess {
             computeRemainingUses();
             root.putLong("remaining_uses", remainingUses);
 
+            if (clientPacket && recentChances != null) {
+                var chTag = new CompoundTag();
+                for (var e : recentChances.int2FloatEntrySet()) {
+                    chTag.putFloat(e.getIntKey() + "", e.getFloatValue());
+                }
+                root.put("recent_chances", chTag);
+            }
+
             if (!clientPacket) root.putInt("progress", progress);
 
             return root;
@@ -209,6 +230,16 @@ public class MiningProcess {
 
         public void read(CompoundTag nbt, boolean clientPacket) {
             this.remainingUses = nbt.getLong("remaining_uses");
+
+            if (clientPacket && nbt.contains("recent_chances")) {
+                var chTag = nbt.getCompound("recent_chances");
+                if (recentChances == null) recentChances = new Int2FloatOpenHashMap();
+                else recentChances.clear();
+                for (var is : chTag.getAllKeys()) {
+                    recentChances.put(Integer.parseInt(is), chTag.getFloat(is));
+                }
+            }
+
             if (!clientPacket) this.progress = nbt.getInt("progress");
 
         }
