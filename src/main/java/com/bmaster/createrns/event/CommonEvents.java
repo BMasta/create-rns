@@ -5,6 +5,7 @@ import com.bmaster.createrns.content.deposit.info.DepositSpec;
 import com.bmaster.createrns.content.deposit.info.DepositSpecLookup;
 import com.bmaster.createrns.content.deposit.mining.MinerSpec;
 import com.bmaster.createrns.content.deposit.mining.block.MinerBlockEntity;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerC2SPayload;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerS2CPayload;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositWorldgenProvider;
@@ -47,6 +48,7 @@ public class CommonEvents {
     public static void onNewRegistry(DataPackRegistryEvent.NewRegistry e) {
         e.dataPackRegistry(DepositSpec.REGISTRY_KEY, DepositSpec.CODEC, DepositSpec.CODEC);
         e.dataPackRegistry(MinerSpec.REGISTRY_KEY, MinerSpec.CODEC, MinerSpec.CODEC);
+        e.dataPackRegistry(CatalystRequirementSet.REGISTRY_KEY, CatalystRequirementSet.CODEC, CatalystRequirementSet.CODEC);
     }
 
     @SubscribeEvent

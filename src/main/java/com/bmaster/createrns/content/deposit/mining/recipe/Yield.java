@@ -1,11 +1,14 @@
 package com.bmaster.createrns.content.deposit.mining.recipe;
 
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirement;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSetLookup;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ResonanceCatalystRequirement;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ShatteringResonanceCatalystRequirement;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.StabilizingResonanceCatalystRequirement;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -13,6 +16,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
+import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -21,44 +25,31 @@ import java.util.Optional;
 
 public class Yield {
     public static final Codec<Yield> CODEC = RecordCodecBuilder.create(i -> i.group(
-                    Codec.floatRange(0, 1)
-                            .fieldOf("chance")
-                            .orElse(0f)
+                    Codec.floatRange(0, 1).fieldOf("chance")
+                            .orElse(1f)
                             .forGetter(y -> y.chance),
-                    WeightedItem.CODEC.listOf()
-                            .fieldOf("items")
+                    WeightedItem.CODEC.listOf().fieldOf("items")
                             .forGetter(y -> y.items),
-                    ResonanceCatalystRequirement.CODEC
-                            .optionalFieldOf("resonance")
-                            .forGetter(y -> Optional.ofNullable(y.resonanceRequirement)),
-                    ShatteringResonanceCatalystRequirement.CODEC
-                            .optionalFieldOf("shattering_resonance")
-                            .forGetter(y -> Optional.ofNullable(y.shatteringResonanceRequirement)),
-                    StabilizingResonanceCatalystRequirement.CODEC
-                            .optionalFieldOf("stabilizing_resonance")
-                            .forGetter(y -> Optional.ofNullable(y.stabilizingResonanceRequirement)))
+                    Codec.STRING.listOf().optionalFieldOf("catalysts")
+                            .forGetter(y -> (!y.crsNames.isEmpty()) ? Optional.of(y.crsNames) : Optional.empty()))
             .apply(i, Yield::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, Yield> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.FLOAT, y -> y.chance,
             ByteBufCodecs.collection(ArrayList::new, WeightedItem.STREAM_CODEC), y -> new ArrayList<>(y.items),
-            ByteBufCodecs.optional(ResonanceCatalystRequirement.STREAM_CODEC), y -> Optional.ofNullable(y.resonanceRequirement),
-            ByteBufCodecs.optional(ShatteringResonanceCatalystRequirement.STREAM_CODEC), y -> Optional.ofNullable(y.shatteringResonanceRequirement),
-            ByteBufCodecs.optional(StabilizingResonanceCatalystRequirement.STREAM_CODEC), y -> Optional.ofNullable(y.stabilizingResonanceRequirement),
+            ByteBufCodecs.optional(ByteBufCodecs.collection(ArrayList::new, ByteBufCodecs.STRING_UTF8)),y ->
+                    (!y.crsNames.isEmpty()) ? Optional.of(new ArrayList<>(y.crsNames)) : Optional.empty(),
             Yield::new
     );
 
     public final float chance;
     public final List<WeightedItem> items;
-    public final @Nullable ResonanceCatalystRequirement resonanceRequirement;
-    public final @Nullable ShatteringResonanceCatalystRequirement shatteringResonanceRequirement;
-    public final @Nullable StabilizingResonanceCatalystRequirement stabilizingResonanceRequirement;
+    public final List<String> crsNames;
 
-    protected final List<CatalystRequirement> allCatalystRequirements = new ArrayList<>();
     private int totalWeight = 0;
 
-    public List<CatalystRequirement> getCatalystRequirements() {
-        return allCatalystRequirements;
+    public List<CatalystRequirementSet> getCatalystRequirements(RegistryAccess access) {
+        return crsNames.stream().map(crsName -> CatalystRequirementSetLookup.get(access, crsName)).toList();
     }
 
     public int getTotalWeight() {
@@ -109,20 +100,10 @@ public class Yield {
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     protected Yield(float chance, List<WeightedItem> items,
-                    Optional<ResonanceCatalystRequirement> resonanceRequirement,
-                    Optional<ShatteringResonanceCatalystRequirement> shatteringResonanceRequirement,
-                    Optional<StabilizingResonanceCatalystRequirement> stabilizingResonanceRequirement) {
+                    Optional<List<String>> crsNames) {
         this.chance = chance;
         this.items = items;
-        this.resonanceRequirement = unpackAndAddRequirement(resonanceRequirement);
-        this.shatteringResonanceRequirement = unpackAndAddRequirement(shatteringResonanceRequirement);
-        this.stabilizingResonanceRequirement = unpackAndAddRequirement(stabilizingResonanceRequirement);
+        this.crsNames = crsNames.orElse(new ArrayList<>());
 
-    }
-
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    protected <CR extends CatalystRequirement> CR unpackAndAddRequirement(Optional<CR> req) {
-        req.ifPresent(allCatalystRequirements::add);
-        return req.orElse(null);
     }
 }

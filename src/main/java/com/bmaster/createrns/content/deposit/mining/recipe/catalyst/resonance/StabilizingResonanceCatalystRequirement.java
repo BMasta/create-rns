@@ -18,8 +18,8 @@ public class StabilizingResonanceCatalystRequirement extends AbstractResonanceCa
     public static final StreamCodec<RegistryFriendlyByteBuf, StabilizingResonanceCatalystRequirement> STREAM_CODEC =
             streamCodec(StabilizingResonanceCatalystRequirement::new);
 
-    public StabilizingResonanceCatalystRequirement(boolean optional, float chancePerResonator, int minResonators) {
-        super(optional, chancePerResonator, minResonators);
+    public StabilizingResonanceCatalystRequirement(float baseChance, float chancePerResonator, int minResonators) {
+        super(baseChance, chancePerResonator, minResonators);
     }
 
     @Override
@@ -29,9 +29,9 @@ public class StabilizingResonanceCatalystRequirement extends AbstractResonanceCa
     }
 
     @Override
-    public float getChance(Catalyst catalyst) {
+    public float getChanceMult(Catalyst catalyst) {
         if (!isSatisfiedBy(catalyst)) return 0f;
-        return ((StabilizingResonanceCatalyst) catalyst).resonatorCount * chancePerResonator;
+        return baseChance + ((StabilizingResonanceCatalyst) catalyst).resonatorCount * chancePerResonator;
     }
 
     @Override

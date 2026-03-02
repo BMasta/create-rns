@@ -1,0 +1,6 @@
+{
+  "name": "full_resonance",
+  "resonance": {
+    "min_resonators": 4
+  }
+}
