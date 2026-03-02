@@ -4,12 +4,8 @@ import com.bmaster.createrns.*;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.content.deposit.mining.recipe.Yield;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirement;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.AbstractResonanceCatalystRequirement;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ResonanceCatalystRequirement;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ShatteringResonanceCatalystRequirement;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.StabilizingResonanceCatalystRequirement;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSetLookup;
 import com.bmaster.createrns.util.FlexibleLayoutHelper;
-import com.bmaster.createrns.util.HOFs;
 import com.bmaster.createrns.util.Utils;
 import com.simibubi.create.compat.jei.EmptyBackground;
 import com.simibubi.create.compat.jei.ItemIcon;
@@ -28,6 +24,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
@@ -39,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
@@ -62,6 +58,13 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
     private static final SlotBg RESONANCE_SLOT = new SlotBg(asDrawable(RNSGuiTextures.JEI_RESONANCE_SLOT), asDrawable(RNSGuiTextures.JEI_RESONANCE_CHANCE_SLOT));
     private static final SlotBg SHATTERING_SLOT = new SlotBg(asDrawable(RNSGuiTextures.JEI_SHATTERING_RESONANCE_SLOT), asDrawable(RNSGuiTextures.JEI_SHATTERING_RESONANCE_CHANCE_SLOT));
     private static final SlotBg STABILIZING_SLOT = new SlotBg(asDrawable(RNSGuiTextures.JEI_STABILIZING_RESONANCE_SLOT), asDrawable(RNSGuiTextures.JEI_STABILIZING_RESONANCE_CHANCE_SLOT));
+
+    private static final Map<String, SlotBg> crsToBg = Map.of(
+            "half_resonance", RESONANCE_SLOT,
+            "full_resonance", RESONANCE_SLOT,
+            "shattering_resonance", SHATTERING_SLOT,
+            "stabilizing_resonance", STABILIZING_SLOT
+    );
 
     private static final AnimatedMiner MINER = new AnimatedMiner(RNSBlocks.MINER_MK1_BLOCK.get(), RNSPartialModels.MINER_MK1_DRILL);
 
@@ -90,59 +93,67 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
 
     protected static IRecipeSlotRichTooltipCallback addStochasticTooltip(MinerOutput output) {
         return (view, tooltip) -> {
-            // If yield contains more than one item, print how many items are in the same pool
-            if (output.itemsInPool > 1) {
-                tooltip.add(CreateRNS.lang().translate("jei.item_in_pool", output.itemsInPool).component());
+            var conn = Minecraft.getInstance().getConnection();
+            var access = (conn != null) ? conn.registryAccess() : RegistryAccess.EMPTY;
+
+            // If yield contains more than one item, print how many items are in the same group
+            if (output.itemsInGroup > 1) {
+                tooltip.add(CreateRNS.lang().translate("jei.item_in_group", output.itemsInGroup).component());
             }
 
             // Add requirement descriptions
-            for (var r : output.requirements) {
-                for (var c : r.JEIRequirementDescriptions()) {
-                    tooltip.add(c);
+            for (var crsName : output.requirements) {
+                for (var cr : CatalystRequirementSetLookup.get(access, crsName).requirements) {
+                    for (var c : cr.JEIRequirementDescriptions()) {
+                        tooltip.add(c);
+                    }
                 }
             }
 
             // No tooltips needed. Item is always mined.
             if (output.chance * output.weightRatio == 1) return;
 
-            Function<LangBuilder, LangBuilder> forPool = l -> output.weightRatio == 1 ? l :
-                    l.space().translate("jei.for_pool");
+            Function<LangBuilder, LangBuilder> forGroup = l -> output.weightRatio == 1 ? l :
+                    l.space().translate("jei.for_group");
             Function<LangBuilder, LangBuilder> forItem = l ->
                     l.space().translate("jei.for_item");
 
             float maxChance = output.chance + output.requirements.stream()
+                    .flatMap(crsName -> CatalystRequirementSetLookup.get(access, crsName).requirements.stream())
                     .map(CatalystRequirement::getMaxChance)
                     .reduce(Float::sum)
                     .orElse(0f);
 
-            var minChancePool = Utils.fancyChanceArg(output.chance).style(ChatFormatting.GOLD);
-            var maxChancePool = Utils.fancyChanceArg(maxChance).style(ChatFormatting.YELLOW).style(ChatFormatting.UNDERLINE);
+            var minChanceGroup = Utils.fancyChanceArg(output.chance).style(ChatFormatting.GOLD);
+            var maxChanceGroup = Utils.fancyChanceArg(maxChance).style(ChatFormatting.YELLOW).style(ChatFormatting.UNDERLINE);
             var minChanceItem = Utils.fancyChanceArg(output.chance * output.weightRatio).style(ChatFormatting.GOLD);
             var maxChanceItem = Utils.fancyChanceArg(maxChance * output.weightRatio).style(ChatFormatting.YELLOW).style(ChatFormatting.UNDERLINE);
 
             // Min chance for pool
-            tooltip.add(forPool.apply(CreateRNS.lang()
-                    .translate("jei.chance", minChancePool)
+            tooltip.add(forGroup.apply(CreateRNS.lang()
+                    .translate("jei.chance", minChanceGroup)
                     .style(ChatFormatting.GRAY)).component());
 
             // Added chances from catalysts
             int descriptionsAdded = 0;
-            for (var r : output.requirements) {
-                for (var c : r.JEIChanceDescriptions(1)) {
-                    descriptionsAdded++;
-                    tooltip.add(Component.literal("  ").append(c));
+            for (var crsName : output.requirements) {
+                for (var cr : CatalystRequirementSetLookup.get(access, crsName).requirements) {
+                    for (var c : cr.JEIChanceDescriptions(1)) {
+                        descriptionsAdded++;
+                        tooltip.add(Component.literal("  ").append(c));
+                    }
                 }
             }
 
-            // Max chance for pool
+            // Max chance for group
             if (descriptionsAdded > 0 && output.chance != maxChance) {
                 tooltip.add(CreateRNS.lang()
                         .text("  ")
-                        .translate("jei.max_chance", maxChancePool)
+                        .translate("jei.max_chance", maxChanceGroup)
                         .style(ChatFormatting.GRAY).component());
             }
 
-            // Pool/item chances are equivalent
+            // Group/item chances are equivalent
             if (output.weightRatio == 1) return;
 
             // Min chance for item
@@ -152,10 +163,12 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
 
             // Added chances from catalysts
             descriptionsAdded = 0;
-            for (var r : output.requirements) {
-                for (var c : r.JEIChanceDescriptions(output.weightRatio)) {
-                    descriptionsAdded++;
-                    tooltip.add(Component.literal("  ").append(c));
+            for (var crsName : output.requirements) {
+                for (var cr : CatalystRequirementSetLookup.get(access, crsName).requirements) {
+                    for (var c : cr.JEIChanceDescriptions(output.weightRatio)) {
+                        descriptionsAdded++;
+                        tooltip.add(Component.literal("  ").append(c));
+                    }
                 }
             }
 
@@ -210,48 +223,26 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
 
     protected IDrawable slotBg(MinerOutput output) {
         SlotBg slot = SLOT;
-        loop:
-        for (var r : output.requirements) {
-            if (r instanceof AbstractResonanceCatalystRequirement rcr) {
-                switch (rcr) {
-                    case StabilizingResonanceCatalystRequirement ignored:
-                        slot = STABILIZING_SLOT;
-                        break loop;
-                    case ShatteringResonanceCatalystRequirement ignored:
-                        slot = SHATTERING_SLOT;
-                        break loop;
-                    case ResonanceCatalystRequirement ignored:
-                        slot = RESONANCE_SLOT;
-                        break;
-                    default:
-                        break;
-                }
-            }
+        if (!output.requirements.isEmpty() && crsToBg.containsKey(output.requirements.getFirst())) {
+            slot = crsToBg.get(output.requirements.getFirst());
         }
         return output.chance >= 1 ? slot.basic : slot.chance;
     }
 
     protected List<LayoutEntry> outputLayout(MiningRecipe recipe) {
-        // Reshuffle recipe outputs so they are grouped based on their catalyst requirements as opposed to their yield.
-        // While we're at it, also sort them based on their desired appearance in the layout (top to bottom)
+        // Collect output slots
         var slots = recipe.getYields().stream()
                 .flatMap(y -> y.items.stream().map(i -> new LayoutEntry(new MinerOutput(y, i, 1))))
-                // Group output slots with equivalent requirements
-                .collect(Collectors.groupingBy(e -> e.output.requirements))
-                .entrySet()
-                .stream()
-                // Sort each section according to its requirements
-                .sorted(HOFs.comparingLists(Map.Entry::getKey, true))
-                // Flatten into a single list while preserving section order
-                .flatMap(e -> e.getValue().stream())
                 .toList();
 
+        // Remove slots that don't fit in the layout, however cruel and unjust it may be
         int size = slots.size();
-        // Remove elements that don't fit in the layout, however cruel and unjust it may be
         if (size > MAX_SLOTS) {
             slots.subList(MAX_SLOTS, size).clear();
             size = MAX_SLOTS;
         }
+
+        // Compute positions for slots
         var nRows = Mth.clamp((size - 1) / SLOTS_PER_ROW + 1, 1, MAX_ROWS);
         var layout = new FlexibleLayoutHelper(size, nRows, 18, 18, 1, true, false);
         for (var e : slots) {
@@ -276,18 +267,18 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
     protected static class MinerOutput {
         public final Item item;
         public int count;
-        public final int itemsInPool;
+        public final int itemsInGroup;
         public final float weightRatio;
         public final float chance;
-        public final List<CatalystRequirement> requirements;
+        public final List<String> requirements;
 
         public MinerOutput(Yield yield, Yield.WeightedItem wItem, int count) {
             this.item = wItem.item();
             this.count = count;
-            this.itemsInPool = yield.items.size();
+            this.itemsInGroup = yield.items.size();
             this.weightRatio = (float) wItem.weight() / yield.getTotalWeight();
             this.chance = yield.chance;
-            this.requirements = yield.getCatalystRequirements();
+            this.requirements = yield.crsNames;
         }
     }
 

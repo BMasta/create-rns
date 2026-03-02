@@ -11,44 +11,41 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.Fluid;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class MiningRecipe implements Recipe<SingleRecipeInput> {
     public static final MapCodec<MiningRecipe> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
-                    BuiltInRegistries.BLOCK.byNameCodec().fieldOf("deposit_block").forGetter(MiningRecipe::getDepositBlock),
-                    BuiltInRegistries.BLOCK.byNameCodec().fieldOf("replace_when_depleted").orElse(Blocks.AIR).forGetter(MiningRecipe::getReplacementBlock),
-                    DepositDurability.CODEC.fieldOf("durability").orElse(new DepositDurability(0, 0, 0)).forGetter(MiningRecipe::getDurability),
-                    Yield.CODEC.listOf().fieldOf("yields").forGetter((r) -> r.yields))
+                    BuiltInRegistries.BLOCK.byNameCodec().fieldOf("deposit_block")
+                            .forGetter(MiningRecipe::getDepositBlock),
+                    BuiltInRegistries.BLOCK.byNameCodec().fieldOf("replace_when_depleted")
+                            .orElse(Blocks.AIR)
+                            .forGetter(MiningRecipe::getReplacementBlock),
+                    DepositDurability.CODEC.fieldOf("durability")
+                            .orElse(new DepositDurability(0, 0, 0))
+                            .forGetter(MiningRecipe::getDurability),
+                    Yield.CODEC.listOf().fieldOf("yields")
+                            .forGetter((r) -> r.yields))
             .apply(i, MiningRecipe::new));
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, MiningRecipe> STREAM_CODEC = StreamCodec.of(
-            MiningRecipe::toNetwork, MiningRecipe::fromNetwork);
-
-    public static void toNetwork(RegistryFriendlyByteBuf buffer, MiningRecipe recipe) {
-        ByteBufCodecs.registry(Registries.BLOCK).encode(buffer, recipe.depositBlock);
-        ByteBufCodecs.registry(Registries.BLOCK).encode(buffer, recipe.replacementBlock);
-        DepositDurability.STREAM_CODEC.encode(buffer, recipe.dur);
-        ByteBufCodecs.collection(ArrayList::new, Yield.STREAM_CODEC).encode(buffer, new ArrayList<>(recipe.yields));
-    }
-
-    public static MiningRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
-        return new MiningRecipe(
-                ByteBufCodecs.registry(Registries.BLOCK).decode(buffer),
-                ByteBufCodecs.registry(Registries.BLOCK).decode(buffer),
-                DepositDurability.STREAM_CODEC.decode(buffer),
-                ByteBufCodecs.collection(ArrayList::new, Yield.STREAM_CODEC).decode(buffer)
-        );
-    }
+    public static final StreamCodec<RegistryFriendlyByteBuf, MiningRecipe> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.registry(Registries.BLOCK), r -> r.depositBlock,
+            ByteBufCodecs.registry(Registries.BLOCK), r -> r.replacementBlock,
+            DepositDurability.STREAM_CODEC, r -> r.dur,
+            ByteBufCodecs.collection(ArrayList::new, Yield.STREAM_CODEC), r -> new ArrayList<>(r.yields),
+            MiningRecipe::new);
 
     private final Block depositBlock;
     private final Block replacementBlock;

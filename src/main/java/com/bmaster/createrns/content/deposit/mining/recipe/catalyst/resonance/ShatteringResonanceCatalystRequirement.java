@@ -18,8 +18,8 @@ public class ShatteringResonanceCatalystRequirement extends AbstractResonanceCat
     public static final StreamCodec<RegistryFriendlyByteBuf, ShatteringResonanceCatalystRequirement> STREAM_CODEC =
             streamCodec(ShatteringResonanceCatalystRequirement::new);
 
-    public ShatteringResonanceCatalystRequirement(boolean optional, float chancePerResonator, int minResonators) {
-        super(optional, chancePerResonator, minResonators);
+    public ShatteringResonanceCatalystRequirement(float baseChance, float chancePerResonator, int minResonators) {
+        super(baseChance, chancePerResonator, minResonators);
     }
 
     @Override
@@ -29,9 +29,9 @@ public class ShatteringResonanceCatalystRequirement extends AbstractResonanceCat
     }
 
     @Override
-    public float getChance(Catalyst catalyst) {
+    public float getChanceMult(Catalyst catalyst) {
         if (!isSatisfiedBy(catalyst)) return 0f;
-        return ((ShatteringResonanceCatalyst) catalyst).resonatorCount * chancePerResonator;
+        return baseChance + ((ShatteringResonanceCatalyst) catalyst).resonatorCount * chancePerResonator;
     }
 
     @Override

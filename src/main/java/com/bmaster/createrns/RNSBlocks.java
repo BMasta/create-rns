@@ -5,6 +5,7 @@ import com.bmaster.createrns.content.deposit.mining.block.MinerBlock;
 import com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlock;
 import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.MiningEquipmentMovementBehaviour;
 import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.drillhead.DrillHeadBlock;
+import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.drillhead.DrillHeadMovementBehaviour;
 import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator.ResonatorBlock;
 import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator.ResonatorMovementBehaviour;
 import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator.ShatteringResonatorBlock;
@@ -113,7 +114,7 @@ public class RNSBlocks {
             .transform(pickaxeOnly())
             .blockstate((c, p) ->
                     p.horizontalFaceBlock(c.get(), AssetLookup.standardModel(c, p)))
-            .onRegister(movementBehaviour(new MiningEquipmentMovementBehaviour()))
+            .onRegister(movementBehaviour(new DrillHeadMovementBehaviour()))
             .simpleItem()
             .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
                     .define('I', Items.IRON_INGOT)
