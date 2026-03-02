@@ -34,6 +34,10 @@ import java.util.stream.Collectors;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class MiningProcess {
+    public enum RateEstimationStatus {
+        NONE, SOME, ALL
+    }
+
     // 1 mine per block per hour at 256 points per tick
     public static final int BASE_PROGRESS = 256 * 60 * SharedConstants.TICKS_PER_MINUTE;
     public final Set<InnerProcess> innerProcesses = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -76,9 +80,15 @@ public class MiningProcess {
                 .collect(Collectors.toSet());
     }
 
-    public boolean isRatesEstimated() {
-        var anyProcess = innerProcesses.stream().findAny().orElse(null);
-              return anyProcess == null ||  anyProcess.recentChances != null;
+    public RateEstimationStatus getRateEstimationStatus() {
+        boolean anyEstimated = false;
+        boolean allEstimated = true;
+        for (var p : innerProcesses) {
+            if (p.recentChances == null) allEstimated = false;
+            else anyEstimated = true;
+            if (anyEstimated && !allEstimated) return RateEstimationStatus.SOME;
+        }
+        return (allEstimated) ? RateEstimationStatus.ALL : RateEstimationStatus.NONE;
     }
 
     public Object2FloatOpenHashMap<Item> getEstimatedRates(int progressPerTick) {

@@ -31,10 +31,15 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
         this.bearing = bearing;
     }
 
+    public boolean isMiningOrStalled() {
+        var mc = bearing.getMovedContraption();
+        return mc != null && bearing.isRunning() && super.isMining();
+    }
+
     @Override
     public boolean isMining() {
         var mc = bearing.getMovedContraption();
-        return mc != null && bearing.isRunning() && !mc.isStalled() && super.isMining();
+        return isMiningOrStalled() && !mc.isStalled();
     }
 
     @Override

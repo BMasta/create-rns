@@ -2,6 +2,7 @@ package com.bmaster.createrns.util;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.mining.IHaveAdaptiveGoggleInformation.Context;
+import com.bmaster.createrns.content.deposit.mining.MiningProcess;
 import com.bmaster.createrns.content.deposit.mining.block.MiningBehaviour;
 import com.bmaster.createrns.content.deposit.mining.multiblock.ContraptionMiningBehaviour;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ResonanceCatalyst;
@@ -102,7 +103,10 @@ public class GoggleTooltipModifiers {
         var mb = sbe.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
         if (mb == null) return false;
         var process = mb.getProcess();
-        if (process == null || !mb.isMining()) return false;
+        if (process == null) return false;
+        if (mb instanceof ContraptionMiningBehaviour cmb) {
+            if (!cmb.isMiningOrStalled()) return false;
+        } else if (!mb.isMining()) return false;
 
         if (c.isFirstSection()) {
             CreateRNS.lang().translate("mining.production_rates").forGoggles(tooltip);
@@ -111,9 +115,11 @@ public class GoggleTooltipModifiers {
             CreateRNS.lang().space().forGoggles(tooltip);
         }
 
-        if (!process.isRatesEstimated()) {
+        var estimationStatus = process.getRateEstimationStatus();
+        if (estimationStatus == MiningProcess.RateEstimationStatus.NONE) {
             CreateRNS.lang()
-                    .add(Component.translatable(CreateRNS.ID + ".mining.estimating").withStyle(ChatFormatting.GRAY))
+                    .add(Component.translatable(CreateRNS.ID + ".mining.none_estimated")
+                            .withStyle(ChatFormatting.DARK_GRAY))
                     .forGoggles(tooltip, 1);
         }
 
@@ -140,6 +146,14 @@ public class GoggleTooltipModifiers {
                                         .withStyle(ChatFormatting.GREEN))
                                 .forGoggles(tooltip, 1)
                 );
+
+        if (estimationStatus == MiningProcess.RateEstimationStatus.SOME) {
+            CreateRNS.lang()
+                    .add(Component.translatable(CreateRNS.ID + ".mining.some_estimated")
+                            .withStyle(ChatFormatting.DARK_GRAY))
+                    .forGoggles(tooltip, 1);
+        }
+
         return true;
     }
 
