@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class CatalystRequirementSet {
     public static final Codec<CatalystRequirementSet> CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.STRING.fieldOf("name").forGetter(crs -> crs.name),
-            FluidCatalystRequirement.CODEC.optionalFieldOf("fluid_consumption")
+            FluidCatalystRequirement.CODEC.optionalFieldOf("fluid")
                     .forGetter(crs -> crs.fluidCR),
             ResonanceCatalystRequirement.CODEC.optionalFieldOf("resonance")
                     .forGetter(crs -> crs.resCR),
@@ -57,7 +57,7 @@ public class CatalystRequirementSet {
     }
 
     /* Returns a list of catalysts that satisfy any requirement in this set */
-    public Set<Catalyst> satisfiedBy(Set<Catalyst> catalysts) {
+    public Set<Catalyst> getRelevantCatalysts(Set<Catalyst> catalysts) {
         return catalysts.stream()
                 .filter(c -> {
                     for (var cr : requirements) {
@@ -67,20 +67,44 @@ public class CatalystRequirementSet {
                 }).collect(Collectors.toCollection(ObjectOpenHashSet::new));
     }
 
-    public float useCatalysts(List<Catalyst> catalysts, boolean simulate) {
-        // Check that all catalysts can be used
-        if (!this.useCatalystsNonAtomic(catalysts, true)) return -1f;
-
-        // Use all catalysts
-        if (!simulate) {
-            assert this.useCatalystsNonAtomic(catalysts, false);
+    public boolean isSatisfiedBy(Set<Catalyst> catalysts) {
+        for (var cr : requirements) {
+            boolean satisfied = false;
+            for (var c : catalysts) {
+                if (cr.isSatisfiedBy(c)) {
+                    satisfied = true;
+                    break;
+                }
+            }
+            if (!satisfied) return false;
         }
+        return true;
+    }
+
+    public float useCatalysts(List<Catalyst> catalysts, boolean simulate) {
+        // Check that all requirements can be satisfied
+        boolean allSatisfied = true;
+        for (var cr : requirements) {
+            boolean satisifed = false;
+            for (var c : catalysts) {
+                if (c.use(cr, simulate)) {
+                    satisifed = true;
+                    break;
+                }
+            }
+            if (!satisifed) allSatisfied = false;
+        }
+        if (!allSatisfied) return -1f;
 
         // Calculate chances
         float chance = 1f;
-        for (var c : catalysts) {
-            for (var cr : requirements) {
-                chance *= cr.getChanceMult(c);
+        for (var cr : requirements) {
+            for (var c : catalysts) {
+                if (c.use(cr, true)) {
+                    if (simulate) c.use(cr, false);
+                    chance *= cr.getChanceMult(c);
+                    break;
+                }
             }
         }
         return chance;
@@ -89,8 +113,8 @@ public class CatalystRequirementSet {
     private boolean useCatalystsNonAtomic(List<Catalyst> catalysts, boolean simulate) {
         var doneArr = new Boolean[requirements.size()];
         Arrays.fill(doneArr, false);
-        for (var c : catalysts) {
-            for (int i = 0; i < requirements.size(); ++i) {
+        for (int i = 0; i < requirements.size(); ++i) {
+            for (var c : catalysts) {
                 var cr = requirements.get(i);
                 if (!doneArr[i]) doneArr[i] = (requirements.get(i) == null || c.use(cr, simulate));
             }
