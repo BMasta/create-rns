@@ -200,7 +200,7 @@ public class MiningProcess {
                 int yieldIdx = e.getIntKey();
                 float chance = e.getFloatValue();
                 if (chance > 0) {
-                    var chanceRoll = level.random.nextFloat();
+                    var chanceRoll = (chance < 1f) ? level.random.nextFloat() : 0;
                     if (chance > chanceRoll) {
                         var myPrecious = new ItemStack(yields.get(yieldIdx).roll(level.random));
                         uncollectedItems.offer(myPrecious);

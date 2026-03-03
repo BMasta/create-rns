@@ -3,6 +3,7 @@ package com.bmaster.createrns.content.deposit.mining.multiblock.attachment;
 import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.FluidCatalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ResonanceCatalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ShatteringResonanceCatalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.StabilizingResonanceCatalyst;
@@ -80,5 +81,8 @@ public class EquipmentManager {
 
         var sbc = StabilizingResonanceCatalyst.fromContraption(contraption);
         if (sbc != null) catalysts.add(sbc);
+
+        var fluid = FluidCatalyst.fromContraption(contraption);
+        if (fluid != null) catalysts.add(fluid);
     }
 }

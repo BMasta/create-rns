@@ -11,11 +11,13 @@ import java.util.List;
 public abstract class CatalystRequirement {
     public abstract boolean isSatisfiedBy(Catalyst catalyst);
 
+    public abstract boolean useCatalyst(Catalyst catalyst, boolean simulate);
+
     public abstract float getChanceMult(Catalyst catalyst);
 
     public abstract float getMaxChance();
 
-    public abstract List<MutableComponent> JEIRequirementDescriptions();
+    public abstract List<MutableComponent> jeiRequirementDescriptions();
 
-    public abstract List<MutableComponent> JEIChanceDescriptions(float weightRatio);
+    public abstract List<MutableComponent> jeiChanceDescriptions(float weightRatio);
 }
