@@ -9,16 +9,21 @@
   "replace_when_depleted": "create_rns:depleted_deposit_block",
   "yields": [
     {"items": [{"item": "minecraft:cobblestone"}]},
-    {"chance": 0.5, "items": [{"item": "create_rns:redstone_small_dust"}], "catalysts": ["half_resonance", "overclock"]},
-    {"chance": 0.05, "items": [{"item": "minecraft:redstone"}], "catalysts": ["full_resonance", "overclock"]},
-    {"chance": 0.005, "items": [{"item": "minecraft:redstone_block"}], "catalysts": ["full_resonance", "overclock"]},
-    {"chance": 0.0005, "items": [{"item": "create_rns:resonant_amethyst"}], "catalysts": ["full_resonance", "overclock"]},
+    {"chance": 0.5, "items": [{"item": "create_rns:redstone_small_dust"}], "catalysts": ["faint_resonance", "overclock"]},
+    {"chance": 0.05, "items": [{"item": "minecraft:redstone"}], "catalysts": ["resonance", "overclock"]},
+    {"chance": 0.005, "items": [{"item": "minecraft:redstone_block"}], "catalysts": ["resonance", "overclock"]},
+    {"chance": 0.0005, "items": [{"item": "create_rns:resonant_amethyst"}], "catalysts": ["resonance", "overclock"]},
     {
-      "chance": 0.5,
       "items": [
         {"item": "minecraft:tuff"},
         {"item": "minecraft:calcite"},
-        {"item": "create:limestone"},
+        {"item": "create:limestone"}
+      ],
+      "catalysts": ["faint_shattering_resonance", "overclock"]
+    },
+    {
+      "chance": 0.5,
+      "items": [
         {"item": "create:crimsite"},
         {"item": "create:veridium"},
         {"item": "create:asurine"},
@@ -27,12 +32,17 @@
       "catalysts": ["shattering_resonance", "overclock"]
     },
     {
-      "chance": 0.02,
+      "chance": 0.1,
       "items": [
-        {"item": "minecraft:redstone", "weight": 4},
-        {"item": "minecraft:lapis_lazuli", "weight": 4},
-        {"item": "minecraft:amethyst_shard", "weight": 4},
-        {"item": "minecraft:emerald", "weight": 4},
+        {"item": "minecraft:lapis_lazuli"},
+        {"item": "minecraft:amethyst_shard"},
+        {"item": "minecraft:emerald"}
+      ],
+      "catalysts": ["faint_stabilizing_resonance", "overclock"]
+    },
+    {
+      "chance": 0.01,
+      "items": [
         {"item": "minecraft:diamond"}
       ],
       "catalysts": ["stabilizing_resonance", "overclock"]

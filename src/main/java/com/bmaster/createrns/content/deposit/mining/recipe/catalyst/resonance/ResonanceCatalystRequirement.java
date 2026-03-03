@@ -1,7 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance;
 
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirement;
 import com.mojang.serialization.Codec;
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;

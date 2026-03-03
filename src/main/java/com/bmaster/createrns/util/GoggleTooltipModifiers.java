@@ -2,13 +2,10 @@ package com.bmaster.createrns.util;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.mining.IHaveAdaptiveGoggleInformation.Context;
-import com.bmaster.createrns.content.deposit.mining.MiningProcess;
+import com.bmaster.createrns.content.deposit.mining.MiningProcess.RateEstimationStatus;
 import com.bmaster.createrns.content.deposit.mining.block.MiningBehaviour;
 import com.bmaster.createrns.content.deposit.mining.multiblock.ContraptionMiningBehaviour;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.FluidCatalyst;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ResonanceCatalyst;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ShatteringResonanceCatalyst;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.StabilizingResonanceCatalyst;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystUsageStats;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
@@ -18,11 +15,12 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 public class GoggleTooltipModifiers {
     @SuppressWarnings("SameParameterValue")
@@ -116,13 +114,7 @@ public class GoggleTooltipModifiers {
             CreateRNS.lang().space().forGoggles(tooltip);
         }
 
-        var estimationStatus = process.getRateEstimationStatus();
-        if (estimationStatus == MiningProcess.RateEstimationStatus.NONE) {
-            CreateRNS.lang()
-                    .add(Component.translatable(CreateRNS.ID + ".mining.none_estimated")
-                            .withStyle(ChatFormatting.DARK_GRAY))
-                    .forGoggles(tooltip, 1);
-        }
+
 
         var rates = process.getEstimatedRates(mb.getCurrentProgressIncrement());
         rates.object2FloatEntrySet().stream().sorted((a, b) -> {
@@ -142,18 +134,13 @@ public class GoggleTooltipModifiers {
                                 .add(e.getKey().getDescription().copy()
                                         .append(": ")
                                         .withStyle(ChatFormatting.GRAY))
-                                .add(Component.literal(String.format(java.util.Locale.ROOT, "%.1f", e.getFloatValue()))
+                                .add(Component.literal(String.format(Locale.ROOT, "%.1f", e.getFloatValue()))
                                         .append(Component.translatable(CreateRNS.ID + ".mining.per_hour"))
                                         .withStyle(ChatFormatting.GREEN))
                                 .forGoggles(tooltip, 1)
                 );
 
-        if (estimationStatus == MiningProcess.RateEstimationStatus.SOME) {
-            CreateRNS.lang()
-                    .add(Component.translatable(CreateRNS.ID + ".mining.some_estimated")
-                            .withStyle(ChatFormatting.DARK_GRAY))
-                    .forGoggles(tooltip, 1);
-        }
+        addEstimationComponent(process.getRateEstimationStatus(), tooltip);
 
         return true;
     }
@@ -178,52 +165,16 @@ public class GoggleTooltipModifiers {
             CreateRNS.lang().space().forGoggles(tooltip);
         }
 
-        // TODO: What follows is an ugly hack. Catalysts themselves should provide description components.
-        int resonance = 0;
-        int shattering = 0;
-        int stabilizing = 0;
-        boolean overclocked = false;
-        for (var cat : cmb.equipment.catalysts) {
-            if (cat instanceof ResonanceCatalyst) {
-                resonance += ((ResonanceCatalyst) cat).resonatorCount;
-            } else if (cat instanceof ShatteringResonanceCatalyst) {
-                shattering += ((ShatteringResonanceCatalyst) cat).resonatorCount;
-            } else if (cat instanceof StabilizingResonanceCatalyst) {
-                stabilizing += ((StabilizingResonanceCatalyst) cat).resonatorCount;
-            } else if (cat instanceof FluidCatalyst) {
-                for (int i = 0; i < ((FluidCatalyst) cat).tank.getTanks(); ++i) {
-                    if (((FluidCatalyst) cat).tank.getFluidInTank(i).getFluid().equals(Fluids.LAVA)) {
-                        overclocked = true;
-                        break;
-                    }
-                }
+        // Add descriptions contributed by active CRSes
+        var aggStats = process.innerProcesses.stream().map(p -> p.catStats).collect(Collectors.toSet());
+        var activeCRSes = CatalystUsageStats.getLastSatisfiedCRSes(aggStats);
+        for (var crs : activeCRSes) {
+            for (var d : crs.activeTooltipDescriptions(activeCRSes)) {
+                CreateRNS.lang().add(d).forGoggles(tooltip);
             }
         }
 
-        if (resonance > 0) {
-            CreateRNS.lang()
-                    .translate("contraption_mining.resonance.standard", Integer.toString(resonance))
-                    .style(ChatFormatting.LIGHT_PURPLE)
-                    .forGoggles(tooltip);
-        }
-        if (shattering > 0) {
-            CreateRNS.lang()
-                    .translate("contraption_mining.resonance.shattering", Integer.toString(shattering))
-                    .style(ChatFormatting.RED)
-                    .forGoggles(tooltip);
-        }
-        if (stabilizing > 0) {
-            CreateRNS.lang()
-                    .translate("contraption_mining.resonance.stabilizing", Integer.toString(stabilizing))
-                    .style(ChatFormatting.AQUA)
-                    .forGoggles(tooltip);
-        }
-        if (overclocked) {
-            CreateRNS.lang()
-                    .translate("contraption_mining.overclock", Integer.toString(stabilizing))
-                    .style(ChatFormatting.GOLD)
-                    .forGoggles(tooltip);
-        }
+        addEstimationComponent(process.getRateEstimationStatus(), tooltip);
 
         return true;
     }
@@ -257,5 +208,18 @@ public class GoggleTooltipModifiers {
                 .forGoggles(tooltip, 1);
 
         return true;
+    }
+
+    protected static void addEstimationComponent(RateEstimationStatus status, List<Component> tooltip) {
+        if (status == RateEstimationStatus.ALL) return;
+        var statusTag = switch (status) {
+            case NONE -> "none_estimated";
+            case SOME -> "some_estimated";
+            default -> throw new IllegalStateException("Unexpected value: " + status);
+        };
+        CreateRNS.lang()
+                .add(Component.translatable(CreateRNS.ID + ".mining." + statusTag)
+                        .withStyle(ChatFormatting.DARK_GRAY))
+                .forGoggles(tooltip, 1);
     }
 }
