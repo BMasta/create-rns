@@ -45,9 +45,9 @@ public class CatalystHandler {
         enabledYields = new IntArrayList();
         for (int i = 0; i < yields.size(); ++i) {
             var y = yields.get(i);
-            boolean satisfiable = y.crsNames.stream()
-                    .allMatch(crsName -> CatalystRequirementSetLookup.get(access, crsName)
-                            .isSatisfiedBy(crsToCatalystsAll.get(crsName)));
+            boolean satisfiable = y.crsNames.stream().allMatch(crsName ->
+                    CatalystRequirementSetLookup.get(access, crsName)
+                            .isSatisfiableOrOptional(crsToCatalystsAll.get(crsName)));
             if (satisfiable) enabledYields.add(i);
         }
 

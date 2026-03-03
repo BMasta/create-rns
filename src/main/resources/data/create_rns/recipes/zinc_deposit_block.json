@@ -9,10 +9,10 @@
   "replace_when_depleted": "create_rns:depleted_deposit_block",
   "yields": [
     {"items": [{"item": "minecraft:cobblestone"}]},
-    {"chance": 0.5, "items": [{"item": "create:zinc_nugget"}], "catalysts": ["half_resonance"]},
-    {"chance": 0.05, "items": [{"item": "create:raw_zinc"}], "catalysts": ["full_resonance"]},
-    {"chance": 0.005, "items": [{"item": "create:raw_zinc_block"}], "catalysts": ["full_resonance"]},
-    {"chance": 0.0005, "items": [{"item": "create_rns:resonant_amethyst"}], "catalysts": ["full_resonance"]},
+    {"chance": 0.5, "items": [{"item": "create:zinc_nugget"}], "catalysts": ["half_resonance", "overclock"]},
+    {"chance": 0.05, "items": [{"item": "create:raw_zinc"}], "catalysts": ["full_resonance", "overclock"]},
+    {"chance": 0.005, "items": [{"item": "create:raw_zinc_block"}], "catalysts": ["full_resonance", "overclock"]},
+    {"chance": 0.0005, "items": [{"item": "create_rns:resonant_amethyst"}], "catalysts": ["full_resonance", "overclock"]},
     {
       "chance": 0.5,
       "items": [
@@ -24,7 +24,7 @@
         {"item": "create:asurine"},
         {"item": "create:ochrum"}
       ],
-      "catalysts": ["shattering_resonance"]
+      "catalysts": ["shattering_resonance", "overclock"]
     },
     {
       "chance": 0.02,
@@ -35,7 +35,7 @@
         {"item": "minecraft:emerald", "weight": 4},
         {"item": "minecraft:diamond"}
       ],
-      "catalysts": ["stabilizing_resonance"]
+      "catalysts": ["stabilizing_resonance", "overclock"]
     }
   ]
 }

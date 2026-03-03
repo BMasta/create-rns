@@ -5,6 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
@@ -15,7 +16,7 @@ public class FluidCatalystRequirement extends CatalystRequirement {
     public static final Codec<FluidCatalystRequirement> CODEC = RecordCodecBuilder.create(i -> i.group(
                     FluidStack.CODEC.fieldOf("consume")
                             .forGetter(c -> c.fluidStack),
-                    Codec.floatRange(0, Float.MAX_VALUE).fieldOf("chance_multiplier")
+                    Codec.floatRange(0, Float.MAX_VALUE).fieldOf("chance")
                             .orElse(1f)
                             .forGetter(c -> c.chanceMultiplier))
             .apply(i, FluidCatalystRequirement::new));
@@ -42,6 +43,17 @@ public class FluidCatalystRequirement extends CatalystRequirement {
     }
 
     @Override
+    public boolean useCatalyst(Catalyst catalyst, boolean simulate) {
+        if (!(catalyst instanceof FluidCatalyst fluidCat)) return false;
+        var fluidToDrain = fluidStack.copy();
+        if (fluidCat.tank.drain(fluidToDrain, IFluidHandler.FluidAction.SIMULATE).getAmount() == fluidToDrain.getAmount()) {
+            if (!simulate) fluidCat.tank.drain(fluidToDrain, IFluidHandler.FluidAction.EXECUTE);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public float getChanceMult(Catalyst catalyst) {
         return chanceMultiplier;
     }
@@ -52,12 +64,12 @@ public class FluidCatalystRequirement extends CatalystRequirement {
     }
 
     @Override
-    public List<MutableComponent> JEIRequirementDescriptions() {
+    public List<MutableComponent> jeiRequirementDescriptions() {
         return List.of();
     }
 
     @Override
-    public List<MutableComponent> JEIChanceDescriptions(float weightRatio) {
+    public List<MutableComponent> jeiChanceDescriptions(float weightRatio) {
         return List.of();
     }
 }

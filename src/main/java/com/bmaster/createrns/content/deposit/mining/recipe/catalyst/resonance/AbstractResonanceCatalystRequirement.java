@@ -1,6 +1,7 @@
 package com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirement;
 import com.bmaster.createrns.util.Utils;
 import com.mojang.datafixers.util.Function3;
@@ -55,6 +56,11 @@ public abstract class AbstractResonanceCatalystRequirement extends CatalystRequi
         this.minResonators = minResonators;
     }
 
+    @Override
+    public boolean useCatalyst(Catalyst catalyst, boolean simulate) {
+        return isSatisfiedBy(catalyst);
+    }
+
     protected abstract String langKey();
 
     protected abstract ChatFormatting style();
@@ -65,7 +71,7 @@ public abstract class AbstractResonanceCatalystRequirement extends CatalystRequi
     }
 
     @Override
-    public List<MutableComponent> JEIRequirementDescriptions() {
+    public List<MutableComponent> jeiRequirementDescriptions() {
         List<MutableComponent> res = new ArrayList<>();
         // If the chance per resonator is already shown, at least 1 resonator is already implied
         // and doesn't have to be explained in the tooltip.
@@ -82,7 +88,7 @@ public abstract class AbstractResonanceCatalystRequirement extends CatalystRequi
     }
 
     @Override
-    public List<MutableComponent> JEIChanceDescriptions(float weightRatio) {
+    public List<MutableComponent> jeiChanceDescriptions(float weightRatio) {
         List<MutableComponent> res = new ArrayList<>();
         if (chancePerResonator > 0) {
             res.add(CreateRNS.lang().translate("jei.catalyst.resonance." + langKey() + ".chance",

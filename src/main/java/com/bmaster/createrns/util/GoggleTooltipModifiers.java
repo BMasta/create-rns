@@ -5,6 +5,7 @@ import com.bmaster.createrns.content.deposit.mining.IHaveAdaptiveGoggleInformati
 import com.bmaster.createrns.content.deposit.mining.MiningProcess;
 import com.bmaster.createrns.content.deposit.mining.block.MiningBehaviour;
 import com.bmaster.createrns.content.deposit.mining.multiblock.ContraptionMiningBehaviour;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.FluidCatalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ResonanceCatalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ShatteringResonanceCatalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.StabilizingResonanceCatalyst;
@@ -17,11 +18,11 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
-
 
 public class GoggleTooltipModifiers {
     @SuppressWarnings("SameParameterValue")
@@ -177,20 +178,31 @@ public class GoggleTooltipModifiers {
             CreateRNS.lang().space().forGoggles(tooltip);
         }
 
-        int standard = 0;
+        // TODO: What follows is an ugly hack. Catalysts themselves should provide description components.
+        int resonance = 0;
         int shattering = 0;
         int stabilizing = 0;
+        boolean overclocked = false;
         for (var cat : cmb.equipment.catalysts) {
-            if (cat instanceof ResonanceCatalyst) standard += ((ResonanceCatalyst) cat).resonatorCount;
-            if (cat instanceof ShatteringResonanceCatalyst)
+            if (cat instanceof ResonanceCatalyst) {
+                resonance += ((ResonanceCatalyst) cat).resonatorCount;
+            } else if (cat instanceof ShatteringResonanceCatalyst) {
                 shattering += ((ShatteringResonanceCatalyst) cat).resonatorCount;
-            else if (cat instanceof StabilizingResonanceCatalyst)
+            } else if (cat instanceof StabilizingResonanceCatalyst) {
                 stabilizing += ((StabilizingResonanceCatalyst) cat).resonatorCount;
+            } else if (cat instanceof FluidCatalyst) {
+                for (int i = 0; i < ((FluidCatalyst) cat).tank.getTanks(); ++i) {
+                    if (((FluidCatalyst) cat).tank.getFluidInTank(i).getFluid().equals(Fluids.LAVA)) {
+                        overclocked = true;
+                        break;
+                    }
+                }
+            }
         }
 
-        if (standard > 0) {
+        if (resonance > 0) {
             CreateRNS.lang()
-                    .translate("contraption_mining.resonance.standard", Integer.toString(standard))
+                    .translate("contraption_mining.resonance.standard", Integer.toString(resonance))
                     .style(ChatFormatting.LIGHT_PURPLE)
                     .forGoggles(tooltip);
         }
@@ -204,6 +216,12 @@ public class GoggleTooltipModifiers {
             CreateRNS.lang()
                     .translate("contraption_mining.resonance.stabilizing", Integer.toString(stabilizing))
                     .style(ChatFormatting.AQUA)
+                    .forGoggles(tooltip);
+        }
+        if (overclocked) {
+            CreateRNS.lang()
+                    .translate("contraption_mining.overclock", Integer.toString(stabilizing))
+                    .style(ChatFormatting.GOLD)
                     .forGoggles(tooltip);
         }
 

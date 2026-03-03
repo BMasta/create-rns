@@ -1,0 +1,11 @@
+{
+  "name": "overclock",
+  "optional": true,
+  "fluid": {
+    "chance": 2.0,
+    "consume": {
+      "id": "minecraft:lava",
+      "amount": 20
+    }
+  }
+}
