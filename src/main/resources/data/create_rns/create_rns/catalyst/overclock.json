@@ -1,5 +1,6 @@
 {
   "name": "overclock",
+  "display_priority": 1004,
   "optional": true,
   "fluid": {
     "chance": 2.0,

@@ -25,6 +25,9 @@ public class CatalystRequirementSetLookup {
 
     public static CatalystRequirementSet get(RegistryAccess access, String name) {
         if (nameToSet == null) build(access);
+        if (!nameToSet.containsKey(name)) {
+            throw new RuntimeException("Catalyst \"" + name + "\" does not exist");
+        }
         return nameToSet.get(name);
     }
 }

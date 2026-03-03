@@ -1,11 +1,7 @@
 package com.bmaster.createrns.content.deposit.mining.recipe;
 
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirement;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSetLookup;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ResonanceCatalystRequirement;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ShatteringResonanceCatalystRequirement;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.StabilizingResonanceCatalystRequirement;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.RegistryAccess;
@@ -16,9 +12,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
-import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -37,7 +31,7 @@ public class Yield {
     public static final StreamCodec<RegistryFriendlyByteBuf, Yield> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.FLOAT, y -> y.chance,
             ByteBufCodecs.collection(ArrayList::new, WeightedItem.STREAM_CODEC), y -> new ArrayList<>(y.items),
-            ByteBufCodecs.optional(ByteBufCodecs.collection(ArrayList::new, ByteBufCodecs.STRING_UTF8)),y ->
+            ByteBufCodecs.optional(ByteBufCodecs.collection(ArrayList::new, ByteBufCodecs.STRING_UTF8)), y ->
                     (!y.crsNames.isEmpty()) ? Optional.of(new ArrayList<>(y.crsNames)) : Optional.empty(),
             Yield::new
     );
