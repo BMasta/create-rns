@@ -10,15 +10,20 @@
   "yields": [
     {"items": [{"item": "minecraft:cobblestone"}]},
     {"chance": 0.5, "items": [{"item": "create:copper_nugget"}], "catalysts": ["overclock"]},
-    {"chance": 0.05, "items": [{"item": "minecraft:raw_copper"}], "catalysts": ["half_resonance", "overclock"]},
-    {"chance": 0.005, "items": [{"item": "minecraft:raw_copper_block"}], "catalysts": ["full_resonance", "overclock"]},
-    {"chance": 0.0005, "items": [{"item": "create_rns:resonant_amethyst"}], "catalysts": ["full_resonance", "overclock"]},
+    {"chance": 0.05, "items": [{"item": "minecraft:raw_copper"}], "catalysts": ["faint_resonance", "overclock"]},
+    {"chance": 0.005, "items": [{"item": "minecraft:raw_copper_block"}], "catalysts": ["resonance", "overclock"]},
+    {"chance": 0.0005, "items": [{"item": "create_rns:resonant_amethyst"}], "catalysts": ["resonance", "overclock"]},
     {
-      "chance": 0.5,
       "items": [
         {"item": "minecraft:tuff"},
         {"item": "minecraft:calcite"},
-        {"item": "create:limestone"},
+        {"item": "create:limestone"}
+      ],
+      "catalysts": ["faint_shattering_resonance", "overclock"]
+    },
+    {
+      "chance": 0.5,
+      "items": [
         {"item": "create:crimsite"},
         {"item": "create:veridium"},
         {"item": "create:asurine"},
@@ -27,12 +32,18 @@
       "catalysts": ["shattering_resonance", "overclock"]
     },
     {
-      "chance": 0.02,
+      "chance": 0.1,
       "items": [
-        {"item": "minecraft:raw_copper"},
         {"item": "minecraft:lapis_lazuli"},
         {"item": "minecraft:amethyst_shard"},
         {"item": "minecraft:emerald"}
+      ],
+      "catalysts": ["faint_stabilizing_resonance", "overclock"]
+    },
+    {
+      "chance": 0.01,
+      "items": [
+        {"item": "minecraft:diamond"}
       ],
       "catalysts": ["stabilizing_resonance", "overclock"]
     }

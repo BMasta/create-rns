@@ -3,7 +3,6 @@ package com.bmaster.createrns;
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.content.deposit.mining.block.MinerBlock;
 import com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlock;
-import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.MiningEquipmentMovementBehaviour;
 import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.drillhead.DrillHeadBlock;
 import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.drillhead.DrillHeadMovementBehaviour;
 import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator.ResonatorBlock;

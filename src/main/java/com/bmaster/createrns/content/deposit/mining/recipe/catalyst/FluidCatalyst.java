@@ -2,12 +2,10 @@ package com.bmaster.createrns.content.deposit.mining.recipe.catalyst;
 
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.network.chat.MutableComponent;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.List;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault

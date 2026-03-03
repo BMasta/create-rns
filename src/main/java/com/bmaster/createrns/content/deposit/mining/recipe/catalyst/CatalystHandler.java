@@ -6,22 +6,43 @@ import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.RegistryAccess;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.*;
 import java.util.stream.Collectors;
 
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class CatalystHandler {
+    /// Returns true if at least one yield can be mined with the provided catalysts
+    public static boolean isMiningPossible(RegistryAccess access, MiningRecipe recipe, Set<Catalyst> catalysts) {
+        for (var y : recipe.getYields()) {
+            boolean satisfied = true;
+            for (var crsName : y.crsNames) {
+                if (!CatalystRequirementSetLookup.get(access, crsName).isSatisfiableOrOptional(catalysts))  {
+                    satisfied = false;
+                }
+            }
+            if (satisfied) return true;
+        }
+        return false;
+    }
+
+    protected final CatalystUsageStats stats;
     protected final RegistryAccess access;
     protected final List<Yield> yields;
     protected final IntArrayList enabledYields;
     protected final Object2ObjectOpenHashMap<String, List<Catalyst>> crsToCatalysts;
 
-    public CatalystHandler(RegistryAccess access, MiningRecipe recipe, Set<Catalyst> catalysts) {
+    public CatalystHandler(
+            RegistryAccess access, MiningRecipe recipe, Set<Catalyst> catalysts, CatalystUsageStats stats
+    ) {
         this.access = access;
+        this.stats = stats;
+        this.stats.setRegistryAccess(access);
         this.yields = recipe.getYields();
 
         // Map each unique CRS to all catalysts that can satisfy it
@@ -29,10 +50,15 @@ public class CatalystHandler {
                 .map(y -> y.crsNames)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toMap(
-                        n -> n,
-                        n -> {
-                            var crs = CatalystRequirementSetLookup.get(access, n);
-                            return crs.getRelevantCatalysts(catalysts);
+                        crsName -> crsName,
+                        crsName -> {
+                            var crs = CatalystRequirementSetLookup.get(access, crsName);
+                            var cats = crs.getRelevantCatalysts(catalysts);
+                            // Meanwhile, also assign CRS'es to catalysts
+                            for (var c : cats) {
+                                c.assignCRS(crsName);
+                            }
+                            return cats;
                         },
                         (cats1, cats2) -> {
                             cats1.addAll(cats2);
@@ -66,52 +92,59 @@ public class CatalystHandler {
                         Object2ObjectOpenHashMap::new));
     }
 
-    /// Returns true if at least one yield can be mined with the registered catalysts
-    public boolean isMiningPossible() {
-        return !enabledYields.isEmpty();
-    }
-
     /// Uses necessary catalysts and returns the chance value of a mining operation succeeding for each yield
-    public Int2FloatOpenHashMap useCatalysts() {
-        var satisfiedYields = new Int2FloatOpenHashMap();
-        var tickedCRSes = new Object2FloatOpenHashMap<String>();
+    public Int2FloatOpenHashMap useCatalysts(boolean simulate) {
+        if (stats.lastChances == null) stats.lastChances = new Int2FloatOpenHashMap();
+        else stats.lastChances.clear();
+
+        if (stats.lastTickedCRSes == null) stats.lastTickedCRSes = new Object2FloatOpenHashMap<>();
+        else stats.lastTickedCRSes.clear();
+
+        var yieldChances = stats.lastChances;
+        var tickedCRSes = stats.lastTickedCRSes;
 
         // Simulate catalyst usage and determine:
         //   1. Which yields can satisfy all requirements
         //   2. Which CRS'es need to be ticked
         for (int i : enabledYields) {
             var y = yields.get(i);
-
-            boolean satisfied = true;
+            var unsatisfiedOptional = new ObjectOpenHashSet<String>();
+            boolean satisfiable = true;
             for (var crsName : y.crsNames) {
-                satisfied &= (CatalystRequirementSetLookup.get(access, crsName)
-                        .useCatalysts(crsToCatalysts.get(crsName), true) >= 0f);
-            }
-            if (satisfied) {
-                satisfiedYields.put(i, 0);
-                for (var crsName : y.crsNames) {
-                    tickedCRSes.put(crsName, 0);
+                var crs = CatalystRequirementSetLookup.get(access, crsName);
+                if (crs.useCatalysts(crsToCatalysts.get(crsName), true) < 0f) {
+                    // Required catalysts make yield unsatisfiable.
+                    // Optionals don't, but should still be excluded from ticking.
+                    if (crs.optional) unsatisfiedOptional.add(crsName);
+                    else satisfiable = false;
                 }
+            }
+            if (satisfiable) {
+                yieldChances.put(i, 0);
+            }
+            for (var crsName : y.crsNames) {
+                if (unsatisfiedOptional.contains(crsName)) continue;
+                tickedCRSes.put(crsName, 0);
             }
         }
 
         // Use catalysts and calculate chance multipliers of all ticked CRS'es
         for (var crsName : tickedCRSes.keySet()) {
-            float chanceMult = CatalystRequirementSetLookup.get(access, crsName)
-                    .useCatalysts(crsToCatalysts.get(crsName), false);
-            tickedCRSes.put(crsName, chanceMult);
+            var crs = CatalystRequirementSetLookup.get(access, crsName);
+            float chanceMult = crs.useCatalysts(crsToCatalysts.get(crsName), simulate);
+            if (chanceMult >= 0f) tickedCRSes.put(crsName, chanceMult);
         }
 
         // Calculate chance for each satisfied yield
-        satisfiedYields.replaceAll((i, u) -> {
+        yieldChances.replaceAll((i, u) -> {
             var y = yields.get(i);
             var chance = y.chance;
             for (var crsName : y.crsNames) {
-                chance *= tickedCRSes.getFloat(crsName);
+                if (tickedCRSes.containsKey(crsName)) chance *= tickedCRSes.getFloat(crsName);
             }
             return chance;
         });
 
-        return satisfiedYields;
+        return yieldChances;
     }
 }

@@ -6,7 +6,7 @@ import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystHandler;
-import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystUsageStats;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -86,7 +86,7 @@ public class MiningProcess {
         boolean anyEstimated = false;
         boolean allEstimated = true;
         for (var p : innerProcesses) {
-            if (p.recentChances == null) allEstimated = false;
+            if (!p.catStats.isChancesComputed()) allEstimated = false;
             else anyEstimated = true;
             if (anyEstimated && !allEstimated) return RateEstimationStatus.SOME;
         }
@@ -98,11 +98,11 @@ public class MiningProcess {
         var progressPerHour = 60 * SharedConstants.TICKS_PER_MINUTE * progressPerTick;
 
         for (var p : innerProcesses) {
-            if (p.recentChances == null) continue;
+            if (!p.catStats.isChancesComputed()) continue;
             var ys = p.recipe.getYields();
             float minesPerHour = (float) progressPerHour / p.maxProgress;
             for (int i = 0; i < ys.size(); ++i) {
-                float chance = p.recentChances.get(i);
+                float chance = p.catStats.getLastComputedChance(i);
                 if (chance <= 0f) continue;
                 var y = ys.get(i);
                 for (var wi : ys.get(i).items) {
@@ -113,6 +113,13 @@ public class MiningProcess {
 
         return rates;
     }
+
+    public void uninitialize() {
+        for (var p : innerProcesses) {
+            p.catStats.clear();
+        }
+    }
+
 
     public @Nullable CompoundTag write(Provider provider, boolean clientPacket) {
 
@@ -157,9 +164,9 @@ public class MiningProcess {
         public final MiningRecipe recipe;
         public int maxProgress;
         public int progress;
+        public final CatalystUsageStats catStats;
         public final CatalystHandler catalystHandler;
         public long remainingUses;
-        protected Int2FloatOpenHashMap recentChances = null;
 
         protected Queue<ItemStack> uncollectedItems = new ArrayDeque<>();
 
@@ -171,7 +178,8 @@ public class MiningProcess {
             this.maxProgress = maxProgress;
             this.progress = 0;
             if (!level.isClientSide) computeRemainingUses(); // Server computes/syncs, client uses
-            this.catalystHandler = new CatalystHandler(level.registryAccess(), recipe, catalysts);
+            this.catStats = new CatalystUsageStats();
+            this.catalystHandler = new CatalystHandler(level.registryAccess(), recipe, catalysts, catStats);
         }
 
         public void advance(int by) {
@@ -195,8 +203,8 @@ public class MiningProcess {
 
             // For each yield: use all of its catalysts, then roll for success and add to collection queue if successful
             var yields = recipe.getYields();
-            recentChances = catalystHandler.useCatalysts();
-            for (var e : recentChances.int2FloatEntrySet()) {
+            var chances = catalystHandler.useCatalysts(false);
+            for (var e : chances.int2FloatEntrySet()) {
                 int yieldIdx = e.getIntKey();
                 float chance = e.getFloatValue();
                 if (chance > 0) {
@@ -222,14 +230,13 @@ public class MiningProcess {
             computeRemainingUses();
             root.putLong("remaining_uses", remainingUses);
 
-            if (clientPacket && recentChances != null) {
-                var chTag = new CompoundTag();
-                for (var e : recentChances.int2FloatEntrySet()) {
-                    chTag.putFloat(e.getIntKey() + "", e.getFloatValue());
+            if (clientPacket){
+                if (!catStats.isChancesComputed()) {
+                    // Simulate catalyst usage to collect initial stats
+                    catalystHandler.useCatalysts(true);
                 }
-                root.put("recent_chances", chTag);
+                root.put("catalyst_stats", catStats.serializeNBT(provider));
             }
-
             if (!clientPacket) root.putInt("progress", progress);
 
             return root;
@@ -239,15 +246,9 @@ public class MiningProcess {
         public void read(CompoundTag nbt, Provider provider, boolean clientPacket) {
             this.remainingUses = nbt.getLong("remaining_uses");
 
-            if (clientPacket && nbt.contains("recent_chances")) {
-                var chTag = nbt.getCompound("recent_chances");
-                if (recentChances == null) recentChances = new Int2FloatOpenHashMap();
-                else recentChances.clear();
-                for (var is : chTag.getAllKeys()) {
-                    recentChances.put(Integer.parseInt(is), chTag.getFloat(is));
-                }
+            if (clientPacket && nbt.contains("catalyst_stats")) {
+                this.catStats.deserializeNBT(provider, nbt.getCompound("catalyst_stats"));
             }
-
             if (!clientPacket) this.progress = nbt.getInt("progress");
 
         }

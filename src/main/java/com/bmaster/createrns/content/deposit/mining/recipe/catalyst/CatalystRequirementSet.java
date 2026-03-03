@@ -9,13 +9,11 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Registry;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @ParametersAreNonnullByDefault
@@ -28,6 +26,12 @@ public class CatalystRequirementSet {
             Codec.BOOL.fieldOf("optional")
                     .orElse(false)
                     .forGetter(crs -> crs.optional),
+            Codec.INT.fieldOf("display_priority")
+                    .orElse(Integer.MAX_VALUE)
+                    .forGetter(crs -> crs.displayPriority),
+            Codec.STRING.listOf().fieldOf("hide_if_present")
+                    .orElse(List.of())
+                    .forGetter(crs -> crs.hideIfPresent),
             FluidCatalystRequirement.CODEC.optionalFieldOf("fluid")
                     .forGetter(crs -> crs.fluidCR),
             ResonanceCatalystRequirement.CODEC.optionalFieldOf("resonance")
@@ -43,6 +47,8 @@ public class CatalystRequirementSet {
 
     public final String name;
     public final boolean optional;
+    public final int displayPriority;
+    public List<String> hideIfPresent;
     public final List<CatalystRequirement> requirements = new ArrayList<>();
     protected final Optional<FluidCatalystRequirement> fluidCR;
     protected final Optional<ResonanceCatalystRequirement> resCR;
@@ -50,12 +56,14 @@ public class CatalystRequirementSet {
     protected final Optional<StabilizingResonanceCatalystRequirement> stResCR;
 
     public CatalystRequirementSet(
-            String name, boolean optional,
+            String name, boolean optional, int displayPriority, List<String> hideIfPresent,
             Optional<FluidCatalystRequirement> fluidCR, Optional<ResonanceCatalystRequirement> resCR,
             Optional<ShatteringResonanceCatalystRequirement> shResCR, Optional<StabilizingResonanceCatalystRequirement> stResCR
     ) {
         this.name = name;
         this.optional = optional;
+        this.displayPriority = displayPriority;
+        this.hideIfPresent = hideIfPresent;
         this.fluidCR = fluidCR;
         fluidCR.ifPresent(requirements::add);
         this.resCR = resCR;
@@ -77,7 +85,7 @@ public class CatalystRequirementSet {
                 }).collect(Collectors.toCollection(ObjectOpenHashSet::new));
     }
 
-    /// True if it's possible for a yield that has this CSR to succeed (at all).
+    /// True if it's possible for a yield that has this CRS to succeed (at all).
     /// This is the case if it can be feasibly satisfied with the provided catalysts or is optional.
     public boolean isSatisfiableOrOptional(Set<Catalyst> catalysts) {
         if (optional) return true;
@@ -100,27 +108,34 @@ public class CatalystRequirementSet {
         for (var cr : requirements) {
             boolean satisifed = false;
             for (var c : catalysts) {
-                if (cr.useCatalyst(c, simulate)) {
+                if (cr.useCatalyst(c, true)) {
                     satisifed = true;
                     break;
                 }
             }
             if (!satisifed) allSatisfied = false;
         }
-        // Optional catalysts do not complain when not satisfied and don't affect the chance
-        if (!allSatisfied) return (optional) ? 1f : -1f;
+
+        if (!allSatisfied) return -1f;
 
         // Calculate chances
         float chance = 1f;
         for (var cr : requirements) {
             for (var c : catalysts) {
                 if (cr.useCatalyst(c, true)) {
-                    if (simulate) cr.useCatalyst(c, false);
+                    if (!simulate) cr.useCatalyst(c, false);
                     chance *= cr.getChanceMult(c);
                     break;
                 }
             }
         }
         return chance;
+    }
+
+    public List<Component> activeTooltipDescriptions(Collection<CatalystRequirementSet> activeCRSes) {
+        for (var crs : activeCRSes) {
+            if (hideIfPresent.contains(crs.name)) return List.of();
+        }
+        return List.of(Component.translatable(CreateRNS.ID + ".catalyst." + name + ".tooltip"));
     }
 }
