@@ -9,10 +9,10 @@
   "replace_when_depleted": "create_rns:depleted_deposit_block",
   "yields": [
     {"items": [{"item": "minecraft:cobblestone"}]},
-    {"chance": 0.5, "items": [{"item": "minecraft:iron_nugget"}]},
-    {"chance": 0.05, "items": [{"item": "minecraft:raw_iron"}], "catalysts": ["half_resonance"]},
-    {"chance": 0.005, "items": [{"item": "minecraft:raw_iron_block"}], "catalysts": ["full_resonance"]},
-    {"chance": 0.0005, "items": [{"item": "create_rns:resonant_amethyst"}], "catalysts": ["full_resonance"]},
+    {"chance": 0.5, "items": [{"item": "minecraft:iron_nugget"}], "catalysts": ["overclock"]},
+    {"chance": 0.05, "items": [{"item": "minecraft:raw_iron"}], "catalysts": ["half_resonance", "overclock"]},
+    {"chance": 0.005, "items": [{"item": "minecraft:raw_iron_block"}], "catalysts": ["full_resonance", "overclock"]},
+    {"chance": 0.0005, "items": [{"item": "create_rns:resonant_amethyst"}], "catalysts": ["full_resonance", "overclock"]},
     {
       "chance": 0.5,
       "items": [
@@ -24,7 +24,7 @@
         {"item": "create:asurine"},
         {"item": "create:ochrum"}
       ],
-      "catalysts": ["shattering_resonance"]
+      "catalysts": ["shattering_resonance", "overclock"]
     },
     {
       "chance": 0.02,
@@ -34,7 +34,7 @@
         {"item": "minecraft:amethyst_shard"},
         {"item": "minecraft:emerald"}
       ],
-      "catalysts": ["stabilizing_resonance"]
+      "catalysts": ["stabilizing_resonance", "overclock"]
     }
   ]
 }

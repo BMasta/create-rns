@@ -104,7 +104,7 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
             // Add requirement descriptions
             for (var crsName : output.requirements) {
                 for (var cr : CatalystRequirementSetLookup.get(access, crsName).requirements) {
-                    for (var c : cr.JEIRequirementDescriptions()) {
+                    for (var c : cr.jeiRequirementDescriptions()) {
                         tooltip.add(c);
                     }
                 }
@@ -138,7 +138,7 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
             int descriptionsAdded = 0;
             for (var crsName : output.requirements) {
                 for (var cr : CatalystRequirementSetLookup.get(access, crsName).requirements) {
-                    for (var c : cr.JEIChanceDescriptions(1)) {
+                    for (var c : cr.jeiChanceDescriptions(1)) {
                         descriptionsAdded++;
                         tooltip.add(Component.literal("  ").append(c));
                     }
@@ -165,7 +165,7 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
             descriptionsAdded = 0;
             for (var crsName : output.requirements) {
                 for (var cr : CatalystRequirementSetLookup.get(access, crsName).requirements) {
-                    for (var c : cr.JEIChanceDescriptions(output.weightRatio)) {
+                    for (var c : cr.jeiChanceDescriptions(output.weightRatio)) {
                         descriptionsAdded++;
                         tooltip.add(Component.literal("  ").append(c));
                     }
