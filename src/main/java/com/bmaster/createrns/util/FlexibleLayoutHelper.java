@@ -3,6 +3,9 @@ package com.bmaster.createrns.util;
 import net.createmod.catnip.layout.LayoutHelper;
 
 public class FlexibleLayoutHelper implements LayoutHelper {
+    public enum Anchor {
+        START, CENTER, END
+    }
 
     int itemCount;
     int rows;
@@ -15,17 +18,18 @@ public class FlexibleLayoutHelper implements LayoutHelper {
     int[] rowCounts;
     int x = 0, y = 0;
 
-    boolean centerX;
-    boolean centerY;
+    Anchor xAnchor;
+    Anchor yAnchor;
 
-    public FlexibleLayoutHelper(int itemCount, int rows, int width, int height, int spacing, boolean centerX, boolean centerY) {
+    public FlexibleLayoutHelper(int itemCount, int rows, int width, int height, int spacing,
+                                Anchor xAnchor, Anchor yAnchor) {
         this.itemCount = itemCount;
         this.rows = rows;
         this.width = width;
         this.height = height;
         this.spacing = spacing;
-        this.centerX = centerX;
-        this.centerY = centerY;
+        this.xAnchor = xAnchor;
+        this.yAnchor = yAnchor;
 
         rowCounts = new int[rows];
         int itemsPerRow = itemCount / rows;
@@ -77,21 +81,21 @@ public class FlexibleLayoutHelper implements LayoutHelper {
     }
 
     private void prepareX() {
-        if (!centerX) {
-            x = 0;
-        } else {
-            int rowWidth = rowCounts[currentRow] * width + (rowCounts[currentRow] - 1) * spacing;
-            x = -(rowWidth / 2);
-        }
+        int rowWidth = rowCounts[currentRow] * width + (rowCounts[currentRow] - 1) * spacing;
+        x = switch (xAnchor) {
+            case START -> 0;
+            case CENTER -> -(rowWidth / 2);
+            case END -> -rowWidth;
+        };
     }
 
     private void prepareY() {
-        if (!centerY) {
-            y = 0;
-        } else {
-            int totalHeight = rows * height + (rows > 1 ? ((rows - 1) * spacing) : 0);
-            y = -(totalHeight / 2);
-        }
+        int totalHeight = rows * height + (rows > 1 ? ((rows - 1) * spacing) : 0);
+        y = switch (yAnchor) {
+            case START -> 0;
+            case CENTER -> -(totalHeight / 2);
+            case END -> -totalHeight;
+        };
     }
 
     @Override

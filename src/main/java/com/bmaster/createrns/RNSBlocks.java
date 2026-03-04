@@ -1,7 +1,6 @@
 package com.bmaster.createrns;
 
 import com.bmaster.createrns.content.deposit.DepositBlock;
-import com.bmaster.createrns.content.deposit.mining.block.MinerBlock;
 import com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlock;
 import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.drillhead.DrillHeadBlock;
 import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.drillhead.DrillHeadMovementBehaviour;
@@ -40,8 +39,8 @@ import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
 
 public class RNSBlocks {
     // Blocks
-    public static final BlockEntry<MinerBlock> MINER_MK1_BLOCK = CreateRNS.REGISTRATE.block("miner_mk1",
-                    MinerBlock::new)
+    public static final BlockEntry<MinerBearingBlock> MINER_MK1_BLOCK = CreateRNS.REGISTRATE.block("miner_mk1",
+                    MinerBearingBlock::new)
             .transform(minerBlock())
             .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
             .item()
@@ -58,8 +57,8 @@ public class RNSBlocks {
             .build()
             .register();
 
-    public static final BlockEntry<MinerBlock> MINER_MK2_BLOCK = CreateRNS.REGISTRATE.block("miner_mk2",
-                    MinerBlock::new)
+    public static final BlockEntry<MinerBearingBlock> MINER_MK2_BLOCK = CreateRNS.REGISTRATE.block("miner_mk2",
+                    MinerBearingBlock::new)
             .transform(minerBlock())
             .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
             .item()
@@ -77,8 +76,8 @@ public class RNSBlocks {
             .build()
             .register();
 
-    public static final BlockEntry<MinerBearingBlock> MINER_BEARING_BLOCK = CreateRNS.REGISTRATE.block(
-                    "miner_bearing", MinerBearingBlock::new)
+    public static final BlockEntry<com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlock> MINER_BEARING_BLOCK = CreateRNS.REGISTRATE.block(
+                    "miner_bearing", com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlock::new)
             .initialProperties(SharedProperties::stone)
             .properties(p -> p
                     .mapColor(MapColor.PODZOL)

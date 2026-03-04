@@ -10,6 +10,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 
@@ -25,7 +26,10 @@ public class Yield {
                     WeightedItem.CODEC.listOf().fieldOf("items")
                             .forGetter(y -> y.items),
                     Codec.STRING.listOf().optionalFieldOf("catalysts")
-                            .forGetter(y -> (!y.crsNames.isEmpty()) ? Optional.of(y.crsNames) : Optional.empty()))
+                            .forGetter(y -> (!y.crsNames.isEmpty()) ? Optional.of(y.crsNames) : Optional.empty()),
+                    ExtraCodecs.ARGB_COLOR_CODEC.fieldOf("jei_slot_color")
+                            .orElse(0)
+                            .forGetter(y -> y.slotColor))
             .apply(i, Yield::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, Yield> STREAM_CODEC = StreamCodec.composite(
@@ -33,12 +37,14 @@ public class Yield {
             ByteBufCodecs.collection(ArrayList::new, WeightedItem.STREAM_CODEC), y -> new ArrayList<>(y.items),
             ByteBufCodecs.optional(ByteBufCodecs.collection(ArrayList::new, ByteBufCodecs.STRING_UTF8)), y ->
                     (!y.crsNames.isEmpty()) ? Optional.of(new ArrayList<>(y.crsNames)) : Optional.empty(),
+            ByteBufCodecs.INT, y -> y.slotColor,
             Yield::new
     );
 
     public final float chance;
     public final List<WeightedItem> items;
     public final List<String> crsNames;
+    public final int slotColor;
 
     private int totalWeight = 0;
 
@@ -93,11 +99,11 @@ public class Yield {
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    protected Yield(float chance, List<WeightedItem> items,
-                    Optional<List<String>> crsNames) {
+    protected Yield(float chance, List<WeightedItem> items, Optional<List<String>> crsNames, int slotColor) {
         this.chance = chance;
         this.items = items;
         this.crsNames = crsNames.orElse(new ArrayList<>());
+        this.slotColor = slotColor;
 
     }
 }

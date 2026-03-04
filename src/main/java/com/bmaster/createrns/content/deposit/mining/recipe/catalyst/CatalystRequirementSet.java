@@ -113,11 +113,15 @@ public class CatalystRequirementSet {
         return true;
     }
 
-    public List<Component> activeTooltipDescriptions(Collection<CatalystRequirementSet> activeCRSes) {
+    public Component getNameComponent() {
+        return Component.translatable(CreateRNS.ID + ".catalyst." + name + ".name");
+    }
+
+    public Component getNameComponent(Collection<CatalystRequirementSet> activeCRSes) {
         for (var crs : activeCRSes) {
-            if (hideIfPresent.contains(crs.name)) return List.of();
+            if (hideIfPresent.contains(crs.name)) return Component.empty();
         }
-        return List.of(Component.translatable(CreateRNS.ID + ".catalyst." + name + ".tooltip"));
+        return getNameComponent();
     }
 
     protected boolean useCatalystsNonAtomic(List<Catalyst> catalysts, boolean simulate) {
