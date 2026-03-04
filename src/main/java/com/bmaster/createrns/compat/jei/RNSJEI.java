@@ -2,6 +2,7 @@ package com.bmaster.createrns.compat.jei;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSRecipeTypes;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
@@ -10,6 +11,8 @@ import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Comparator;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -26,6 +29,7 @@ public class RNSJEI implements IModPlugin {
     @Override
     public void registerCategories(IRecipeCategoryRegistration reg) {
         reg.addRecipeCategories(new MiningRecipeCategory(reg.getJeiHelpers().getGuiHelper()));
+        reg.addRecipeCategories(new CatalystInfoCategory());
     }
 
     @Override
@@ -35,12 +39,22 @@ public class RNSJEI implements IModPlugin {
 
         var recipes = level.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.MINING_RECIPE_TYPE.get());
         reg.addRecipes(MiningRecipeCategory.JEI_RECIPE_TYPE, recipes);
+
+        var crsRegistry = level.registryAccess().registryOrThrow(CatalystRequirementSet.REGISTRY_KEY);
+        var catalystInfoRecipes = crsRegistry.stream()
+                .sorted(Comparator.comparingInt(crs -> crs.displayPriority))
+                .toList();
+        reg.addRecipes(CatalystInfoCategory.JEI_RECIPE_TYPE, catalystInfoRecipes);
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration reg) {
         for (var cs : MiningRecipeCategory.CATALYSTS) {
             reg.addRecipeCatalyst(cs.get(), MiningRecipeCategory.JEI_RECIPE_TYPE);
+        }
+
+        for (var cs : CatalystInfoCategory.CATALYSTS) {
+            reg.addRecipeCatalyst(cs.get(), CatalystInfoCategory.JEI_RECIPE_TYPE);
         }
     }
 }
