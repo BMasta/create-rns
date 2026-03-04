@@ -1,18 +1,24 @@
 package com.bmaster.createrns.compat.jei;
 
-import com.bmaster.createrns.*;
+import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.RNSBlocks;
+import com.bmaster.createrns.RNSRecipeTypes;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.content.deposit.mining.recipe.Yield;
-import com.bmaster.createrns.util.FlexibleLayoutHelper;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSetLookup;
 import com.bmaster.createrns.util.Utils;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.simibubi.create.compat.jei.EmptyBackground;
 import com.simibubi.create.compat.jei.ItemIcon;
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
-import com.simibubi.create.foundation.gui.AllGuiTextures;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
+import mezz.jei.api.gui.ingredient.IRecipeSlotDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotRichTooltipCallback;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
+import mezz.jei.api.gui.widgets.IRecipeExtrasBuilder;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
@@ -24,75 +30,57 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
     public static final RecipeType<RecipeHolder<MiningRecipe>> JEI_RECIPE_TYPE = RecipeType.createRecipeHolderType(
             CreateRNS.asResource("mining"));
+    public static final List<Supplier<? extends ItemStack>> CATALYSTS = List.of(
+            () -> new ItemStack(RNSBlocks.MINER_BEARING_BLOCK.get()),
+            () -> new ItemStack(RNSBlocks.DRILL_HEAD_BLOCK.get()),
+            () -> new ItemStack(RNSBlocks.RESONATOR_BLOCK.get()),
+            () -> new ItemStack(RNSBlocks.SHATTERING_RESONATOR_BLOCK.get()),
+            () -> new ItemStack(RNSBlocks.STABILIZING_RESONATOR_BLOCK.get())
+    );
+
     private static final Info<MiningRecipe> INFO = new Info<>(
             JEI_RECIPE_TYPE, Component.translatable(CreateRNS.ID + ".recipe.mining"),
-            new EmptyBackground(177, 140),
-            new ItemIcon(() -> new ItemStack(RNSBlocks.MINER_MK1_BLOCK)),
+            new EmptyBackground(177, 115),
+            new ItemIcon(() -> new ItemStack(RNSBlocks.MINER_BEARING_BLOCK)),
             (() -> {
                 var level = Minecraft.getInstance().level;
                 if (level == null) return List.of();
                 return level.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.MINING_RECIPE_TYPE.get());
             }),
-            List.of(() -> new ItemStack(RNSBlocks.MINER_MK1_BLOCK.get().asItem()))
+            CATALYSTS
     );
 
-    private static final SlotBg SLOT = new SlotBg(asDrawable(RNSGuiTextures.JEI_SLOT), asDrawable(RNSGuiTextures.JEI_CHANCE_SLOT));
-    private static final SlotBg RESONANCE_SLOT = new SlotBg(asDrawable(RNSGuiTextures.JEI_RESONANCE_SLOT), asDrawable(RNSGuiTextures.JEI_RESONANCE_CHANCE_SLOT));
-    private static final SlotBg SHATTERING_SLOT = new SlotBg(asDrawable(RNSGuiTextures.JEI_SHATTERING_RESONANCE_SLOT), asDrawable(RNSGuiTextures.JEI_SHATTERING_RESONANCE_CHANCE_SLOT));
-    private static final SlotBg STABILIZING_SLOT = new SlotBg(asDrawable(RNSGuiTextures.JEI_STABILIZING_RESONANCE_SLOT), asDrawable(RNSGuiTextures.JEI_STABILIZING_RESONANCE_CHANCE_SLOT));
+    private static final AnimatedMiner MINER = new AnimatedMiner();
 
-    private static final Map<String, SlotBg> crsToBg = Map.of(
-            "half_resonance", RESONANCE_SLOT,
-            "full_resonance", RESONANCE_SLOT,
-            "shattering_resonance", SHATTERING_SLOT,
-            "stabilizing_resonance", STABILIZING_SLOT
-    );
-
-    private static final AnimatedMiner MINER = new AnimatedMiner(RNSBlocks.MINER_MK1_BLOCK.get(), RNSPartialModels.MINER_MK1_DRILL);
-
-    private static final int SLOTS_PER_ROW = 9;
-    private static final int MAX_ROWS = 3;
-    private static final int MAX_SLOTS = SLOTS_PER_ROW * MAX_ROWS;
-
-    protected static IDrawable asDrawable(RNSGuiTextures texture) {
-        return new IDrawable() {
-            @Override
-            public int getWidth() {
-                return texture.getWidth();
-            }
-
-            @Override
-            public int getHeight() {
-                return texture.getHeight();
-            }
-
-            @Override
-            public void draw(GuiGraphics graphics, int xOffset, int yOffset) {
-                texture.render(graphics, xOffset, yOffset);
-            }
-        };
-    }
+    private static final String SCROLL_GROUP = "miner_yields";
+    private static final int YIELD_COLS = 3;
+    private static final int YIELD_ROWS = 6;
 
     protected static IRecipeSlotRichTooltipCallback addStochasticTooltip(MinerOutput output) {
         return (view, tooltip) -> {
-            var conn = Minecraft.getInstance().getConnection();
-            var access = (conn != null) ? conn.registryAccess() : RegistryAccess.EMPTY;
+            for (var crs : output.crsList) {
+                tooltip.add(CreateRNS.lang()
+                        .translate("jei.required")
+                        .space()
+                        .add(crs.getNameComponent())
+                        .component());
+            }
 
             // If yield contains more than one item, print how many items are in the same group
             if (output.itemsInGroup > 1) {
@@ -125,85 +113,98 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
         };
     }
 
+    IDrawable SLOT;
+
     public MiningRecipeCategory(IGuiHelper gui) {
         super(INFO);
+        SLOT = gui.getSlotDrawable();
     }
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, MiningRecipe recipe, IFocusGroup focuses) {
+        var slotBGs = new Int2ObjectOpenHashMap<TintedDrawable>();
+
         // Mined deposit block
-        builder.addSlot(RecipeIngredientRole.INPUT, 80, 50) //60
+        builder.addSlot(RecipeIngredientRole.INPUT, 43, 5) //40
+                .setStandardSlotBackground()
                 .addItemStack(new ItemStack(recipe.getDepositBlock().asItem()));
 
-        // Guarantees non-empty sections
-        var slots = outputLayout(recipe);
-        int yOffset = slots.getLast().y;
+        var slots = recipe.getYields().stream()
+                .flatMap(y -> y.items.stream().map(i -> new MinerOutput(y, i, 1)))
+                .collect(Collectors.toCollection(ArrayList::new));
 
         for (var slot : slots) {
-            var bg = slotBg(slot.output);
-            builder.addSlot(RecipeIngredientRole.OUTPUT, 89 + slot.x, 120 - yOffset + slot.y)
-                    .setBackground(bg, -1, -1)
-                    .addRichTooltipCallback(addStochasticTooltip(slot.output))
-                    .addItemStack(new ItemStack(slot.output.item, slot.output.count));
+            builder.addSlot(RecipeIngredientRole.OUTPUT)
+                    .setBackground(slotBGs.computeIfAbsent(slot.bgColor, c -> new TintedDrawable(SLOT, c)), -1, -1)
+                    .setSlotName(SCROLL_GROUP)
+                    .addRichTooltipCallback(addStochasticTooltip(slot))
+                    .addItemStack(new ItemStack(slot.item, slot.count));
         }
     }
 
     @Override
-    public void draw(MiningRecipe r, IRecipeSlotsView rsv, GuiGraphics gui, double mX, double mY) {
-        MINER.draw(gui, 71, 35); //45
-        AllGuiTextures.JEI_SHADOW.render(gui, 61, 57); //67
-
-//        AllGuiTextures.JEI_DOWN_ARROW.render(gui, 106, 5 + 9 * (MAX_ROWS_PER_SECTION - rows));
-
-        gui.pose().pushPose();
-        gui.pose().translate(35, 2.7, 0);
-        gui.pose().scale(0.6f, 0.6f, 1f);
-        int ic = Objects.requireNonNull(ChatFormatting.GRAY.getColor());
-        gui.setColor(((ic >>> 16) & 0xff) / 255f, ((ic >>> 8) & 0xff) / 255f, (ic & 0xff) / 255f, 1);
-        gui.setColor(1, 1, 1, 1);
-        gui.pose().popPose();
-    }
-
-    protected IDrawable slotBg(MinerOutput output) {
-        SlotBg slot = SLOT;
-        if (!output.requirements.isEmpty() && crsToBg.containsKey(output.requirements.getFirst())) {
-            slot = crsToBg.get(output.requirements.getFirst());
-        }
-        return output.chance >= 1 ? slot.basic : slot.chance;
-    }
-
-    protected List<LayoutEntry> outputLayout(MiningRecipe recipe) {
-        // Collect output slots
-        var slots = recipe.getYields().stream()
-                .flatMap(y -> y.items.stream().map(i -> new LayoutEntry(new MinerOutput(y, i, 1))))
+    public void createRecipeExtras(IRecipeExtrasBuilder builder, RecipeHolder<MiningRecipe> recipe, IFocusGroup focuses) {
+        List<IRecipeSlotDrawable> scrollSlots = builder.getRecipeSlots().getSlots().stream()
+                .filter(s -> s.getSlotName().filter(SCROLL_GROUP::equals).isPresent())
                 .toList();
-
-        // Remove slots that don't fit in the layout, however cruel and unjust it may be
-        int size = slots.size();
-        if (size > MAX_SLOTS) {
-            slots.subList(MAX_SLOTS, size).clear();
-            size = MAX_SLOTS;
-        }
-
-        // Compute positions for slots
-        var nRows = Mth.clamp((size - 1) / SLOTS_PER_ROW + 1, 1, MAX_ROWS);
-        var layout = new FlexibleLayoutHelper(size, nRows, 18, 18, 1, true, false);
-        for (var e : slots) {
-            e.x = layout.getX();
-            e.y = layout.getY();
-            layout.next();
-        }
-
-        return slots;
+        builder.addScrollGridWidget(scrollSlots, YIELD_COLS, YIELD_ROWS).setPosition(104, 4);
     }
 
-    protected static class LayoutEntry {
-        public final MinerOutput output;
-        public int x;
-        public int y;
+    @Override
+    public void draw(MiningRecipe r, IRecipeSlotsView rsv, GuiGraphics gui, double mX, double mY) {
+        MINER.draw(gui, 5, 50, r.getDepositBlock()); // 38 X diff between miner and input slot
+    }
 
-        public LayoutEntry(MinerOutput output) {
-            this.output = output;
+    public static class TintedDrawable implements IDrawable {
+        protected static int BASE_COLOR = 0x8B8B8B;
+
+        private final IDrawable delegate;
+        private final float r, g, b;
+
+        public TintedDrawable(IDrawable delegate, int targetColor) {
+            this.delegate = delegate;
+
+            float br = ((BASE_COLOR >>> 16) & 0xFF) / 255f;
+            float bg = ((BASE_COLOR >>> 8) & 0xFF) / 255f;
+            float bb = ((BASE_COLOR) & 0xFF) / 255f;
+
+            if (targetColor == 0) {
+                r = 1;
+                g = 1;
+                b = 1;
+                return;
+            }
+
+            float cr = ((targetColor >>> 16) & 0xFF) / 255f;
+            float cg = ((targetColor >>> 8) & 0xFF) / 255f;
+            float cb = ((targetColor) & 0xFF) / 255f;
+
+            float eps = 1e-6f;
+
+            float tr = cr / Math.max(br, eps);
+            float tg = cg / Math.max(bg, eps);
+            float tb = cb / Math.max(bb, eps);
+
+            r = tr;
+            g = tg;
+            b = tb;
+        }
+
+        @Override
+        public int getWidth() {
+            return delegate.getWidth();
+        }
+
+        @Override
+        public int getHeight() {
+            return delegate.getHeight();
+        }
+
+        @Override
+        public void draw(GuiGraphics gui, int xOffset, int yOffset) {
+            RenderSystem.setShaderColor(r, g, b, 1);
+            delegate.draw(gui, xOffset, yOffset);
+            RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         }
     }
 
@@ -213,17 +214,22 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
         public final int itemsInGroup;
         public final float weightRatio;
         public final float chance;
-        public final List<String> requirements;
+        public final int bgColor;
+        public final List<CatalystRequirementSet> crsList;
 
         public MinerOutput(Yield yield, Yield.WeightedItem wItem, int count) {
+            var conn = Minecraft.getInstance().getConnection();
+            var access = (conn != null) ? conn.registryAccess() : RegistryAccess.EMPTY;
+
             this.item = wItem.item();
             this.count = count;
             this.itemsInGroup = yield.items.size();
             this.weightRatio = (float) wItem.weight() / yield.getTotalWeight();
             this.chance = yield.chance;
-            this.requirements = yield.crsNames;
+            this.bgColor = yield.slotColor;
+            this.crsList = yield.crsNames.stream()
+                    .map(crsName -> CatalystRequirementSetLookup.get(access, crsName))
+                    .toList();
         }
     }
-
-    protected record SlotBg(IDrawable basic, IDrawable chance) {}
 }

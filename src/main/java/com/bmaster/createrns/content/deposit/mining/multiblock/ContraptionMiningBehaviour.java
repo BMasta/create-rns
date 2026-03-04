@@ -79,7 +79,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
         pendingSync.claimer = true;
         equipment = null;
         spec = null;
-        process.uninitialize();
+        if (process != null) process.uninitialize();
         process = null;
 
         var ce = bearing.getMovedContraption();
