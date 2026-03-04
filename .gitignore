@@ -26,3 +26,5 @@ run-data
 
 repo
 src/generated/resources/.cache
+CLAUDE.md
+.claude

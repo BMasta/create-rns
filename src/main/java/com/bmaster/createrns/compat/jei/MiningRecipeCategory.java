@@ -55,7 +55,7 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
     );
 
     private static final Info<MiningRecipe> INFO = new Info<>(
-            JEI_RECIPE_TYPE, Component.translatable(CreateRNS.ID + ".recipe.mining"),
+            JEI_RECIPE_TYPE, CreateRNS.translatable("recipe.mining"),
             new EmptyBackground(177, 115),
             new ItemIcon(() -> new ItemStack(RNSBlocks.MINER_BEARING_BLOCK)),
             (() -> {
@@ -125,7 +125,7 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
         var slotBGs = new Int2ObjectOpenHashMap<TintedDrawable>();
 
         // Mined deposit block
-        builder.addSlot(RecipeIngredientRole.INPUT, 43, 5) //40
+        builder.addSlot(RecipeIngredientRole.INPUT, 43, 7) // Y=5 is level with the top of the yield grid
                 .setStandardSlotBackground()
                 .addItemStack(new ItemStack(recipe.getDepositBlock().asItem()));
 
@@ -152,7 +152,7 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
 
     @Override
     public void draw(MiningRecipe r, IRecipeSlotsView rsv, GuiGraphics gui, double mX, double mY) {
-        MINER.draw(gui, 5, 50, r.getDepositBlock()); // 38 X diff between miner and input slot
+        MINER.draw(gui, 5, 55, r.getDepositBlock()); // 38 X diff between miner and input slot
     }
 
     public static class TintedDrawable implements IDrawable {
