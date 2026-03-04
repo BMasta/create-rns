@@ -1,13 +1,11 @@
 {
   "name": "faint_stabilizing_resonance",
-  "display_priority": 1003,
-  "hide_if_present": ["stabilizing_resonance"],
   "resonance": {
-    "base_chance": 1,
     "min_resonators": 4
   },
   "stabilizing_resonance": {
-    "base_chance": 1,
     "min_resonators": 2
-  }
+  },
+  "display_priority": 1003,
+  "hide_if_present": ["stabilizing_resonance"]
 }

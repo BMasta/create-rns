@@ -1,12 +1,10 @@
 {
   "name": "stabilizing_resonance",
-  "display_priority": 1003,
   "resonance": {
-    "base_chance": 1,
     "min_resonators": 4
   },
   "stabilizing_resonance": {
-    "base_chance": 1,
     "min_resonators": 4
-  }
+  },
+  "display_priority": 1003
 }

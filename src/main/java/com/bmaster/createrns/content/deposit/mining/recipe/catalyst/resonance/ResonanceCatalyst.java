@@ -1,15 +1,11 @@
 package com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance;
 
-import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator.AbstractResonatorBlock;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
-import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.network.chat.Component;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.List;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
