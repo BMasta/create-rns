@@ -1,26 +1,22 @@
 package com.bmaster.createrns.event;
 
-import com.bmaster.createrns.*;
+import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.RNSMisc;
+import com.bmaster.createrns.RNSRecipes;
 import com.bmaster.createrns.content.deposit.info.DepositSpec;
 import com.bmaster.createrns.content.deposit.info.DepositSpecLookup;
 import com.bmaster.createrns.content.deposit.mining.MinerSpec;
-import com.bmaster.createrns.content.deposit.mining.block.MinerBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerC2SPayload;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerS2CPayload;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositWorldgenProvider;
 import com.bmaster.createrns.data.pack.DynamicDatapack;
-import net.minecraft.client.resources.model.ModelResourceLocation;
-import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -29,21 +25,9 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
-import javax.annotation.Nullable;
-
 @EventBusSubscriber(modid = CreateRNS.ID)
 public class CommonEvents {
     // MOD BUS
-    @SubscribeEvent
-    public static void onRegisterCapabilities(RegisterCapabilitiesEvent e) {
-        // Miners
-        e.registerBlockEntity(
-                Capabilities.ItemHandler.BLOCK,
-                RNSBlockEntities.MINER_BE.get(),
-                (MinerBlockEntity be, @Nullable Direction side) -> be.getItemHandler(side)
-        );
-    }
-
     @SubscribeEvent
     public static void onNewRegistry(DataPackRegistryEvent.NewRegistry e) {
         e.dataPackRegistry(DepositSpec.REGISTRY_KEY, DepositSpec.CODEC, DepositSpec.CODEC);
@@ -63,12 +47,6 @@ public class CommonEvents {
                 e.addRepositorySource(consumer -> consumer.accept(pack));
             }
         }
-    }
-
-    @SubscribeEvent
-    public static void onRegisterAdditionalModels(ModelEvent.RegisterAdditional event) {
-        event.register(ModelResourceLocation.standalone(RNSPartialModels.MINER_MK1_DRILL.modelLocation()));
-        event.register(ModelResourceLocation.standalone(RNSPartialModels.MINER_MK2_DRILL.modelLocation()));
     }
 
     @SubscribeEvent

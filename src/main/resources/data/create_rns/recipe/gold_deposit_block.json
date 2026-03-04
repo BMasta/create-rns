@@ -15,36 +15,44 @@
       "chance": 0.5,
       "items": [{"item": "minecraft:gold_nugget"}],
       "catalysts": ["faint_resonance", "overclock"],
-      "jei_slot_color": -6910797},
+      "jei_slot_color": -6910797
+    },
     {
       "chance": 0.05,
       "items": [{"item": "minecraft:raw_gold"}],
       "catalysts": ["resonance", "overclock"],
-      "jei_slot_color": -8031553},
+      "jei_slot_color": -8031553
+    },
     {
       "chance": 0.005,
       "items": [{"item": "minecraft:raw_gold_block"}],
       "catalysts": ["resonance", "overclock"],
-      "jei_slot_color": -8031553},
+      "jei_slot_color": -8031553
+    },
     {
       "chance": 0.0005,
       "items": [{"item": "create_rns:resonant_amethyst"}],
       "catalysts": ["resonance", "overclock"],
-      "jei_slot_color": -8031553},
+      "jei_slot_color": -8031553
+    },
     {
-      "items": [{"item": "minecraft:tuff"},{"item": "minecraft:calcite"},{"item": "create:limestone"}],
+      "items": [{"item": "minecraft:tuff"}, {"item": "minecraft:calcite"}, {"item": "create:limestone"}],
       "catalysts": ["faint_shattering_resonance"],
       "jei_slot_color": -5075058
     },
     {
       "chance": 0.5,
-      "items": [{"item": "create:crimsite"},{"item": "create:veridium"},{"item": "create:asurine"},{"item": "create:ochrum"}],
+      "items": [
+        {"item": "create:crimsite"}, {"item": "create:veridium"}, {"item": "create:asurine"}, {"item": "create:ochrum"}
+      ],
       "catalysts": ["shattering_resonance", "overclock"],
       "jei_slot_color": -4229518
     },
     {
       "chance": 0.1,
-      "items": [{"item": "minecraft:lapis_lazuli"},{"item": "minecraft:amethyst_shard"},{"item": "minecraft:emerald"}],
+      "items": [
+        {"item": "minecraft:lapis_lazuli"}, {"item": "minecraft:amethyst_shard"}, {"item": "minecraft:emerald"}
+      ],
       "catalysts": ["faint_stabilizing_resonance", "overclock"],
       "jei_slot_color": -7427662
     },
