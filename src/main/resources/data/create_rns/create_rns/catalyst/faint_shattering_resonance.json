@@ -1,13 +1,11 @@
 {
   "name": "faint_shattering_resonance",
-  "display_priority": 1002,
-  "hide_if_present": ["shattering_resonance"],
   "resonance": {
-    "base_chance": 1,
     "min_resonators": 4
   },
   "shattering_resonance": {
-    "base_chance": 1,
     "min_resonators": 2
-  }
+  },
+  "display_priority": 1002,
+  "hide_if_present": ["shattering_resonance"]
 }

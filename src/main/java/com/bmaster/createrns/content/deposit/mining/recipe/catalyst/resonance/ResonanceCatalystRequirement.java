@@ -2,7 +2,6 @@ package com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance;
 
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.mojang.serialization.Codec;
-import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -16,8 +15,8 @@ public class ResonanceCatalystRequirement extends AbstractResonanceCatalystRequi
     public static final Codec<ResonanceCatalystRequirement> STREAM_CODEC =
             AbstractResonanceCatalystRequirement.streamCodec(ResonanceCatalystRequirement::new);
 
-    public ResonanceCatalystRequirement(float baseChance, float chancePerResonator, int minResonators) {
-        super(baseChance, chancePerResonator, minResonators);
+    public ResonanceCatalystRequirement(int minResonators) {
+        super(minResonators);
     }
 
     @Override
@@ -25,21 +24,5 @@ public class ResonanceCatalystRequirement extends AbstractResonanceCatalystRequi
         // Any resonance catalyst will do
         if (!(catalyst instanceof AbstractResonanceCatalyst rc)) return false;
         return rc.resonatorCount >= minResonators;
-    }
-
-    @Override
-    public float getChanceMult(Catalyst catalyst) {
-        if (!isSatisfiedBy(catalyst)) return 0f;
-        return baseChance + ((AbstractResonanceCatalyst) catalyst).resonatorCount * chancePerResonator;
-    }
-
-    @Override
-    protected String langKey() {
-        return "standard";
-    }
-
-    @Override
-    protected ChatFormatting style() {
-        return ChatFormatting.LIGHT_PURPLE;
     }
 }

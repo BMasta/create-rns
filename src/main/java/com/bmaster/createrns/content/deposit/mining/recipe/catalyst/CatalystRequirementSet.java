@@ -23,6 +23,9 @@ public class CatalystRequirementSet {
     public static final Codec<CatalystRequirementSet> CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.STRING.fieldOf("name")
                     .forGetter(crs -> crs.name),
+            Codec.floatRange(0f, Float.MAX_VALUE).fieldOf("chance_multiplier")
+                    .orElse(1f)
+                    .forGetter(crs -> crs.chanceMult),
             Codec.BOOL.fieldOf("optional")
                     .orElse(false)
                     .forGetter(crs -> crs.optional),
@@ -46,6 +49,7 @@ public class CatalystRequirementSet {
             ResourceKey.createRegistryKey(CreateRNS.asResource("catalyst"));
 
     public final String name;
+    public final float chanceMult;
     public final boolean optional;
     public final int displayPriority;
     public List<String> hideIfPresent;
@@ -56,11 +60,12 @@ public class CatalystRequirementSet {
     protected final Optional<StabilizingResonanceCatalystRequirement> stResCR;
 
     public CatalystRequirementSet(
-            String name, boolean optional, int displayPriority, List<String> hideIfPresent,
+            String name, float chanceMult, boolean optional, int displayPriority, List<String> hideIfPresent,
             Optional<FluidCatalystRequirement> fluidCR, Optional<ResonanceCatalystRequirement> resCR,
             Optional<ShatteringResonanceCatalystRequirement> shResCR, Optional<StabilizingResonanceCatalystRequirement> stResCR
     ) {
         this.name = name;
+        this.chanceMult = chanceMult;
         this.optional = optional;
         this.displayPriority = displayPriority;
         this.hideIfPresent = hideIfPresent;
@@ -102,34 +107,10 @@ public class CatalystRequirementSet {
         return true;
     }
 
-    public float useCatalysts(List<Catalyst> catalysts, boolean simulate) {
-        // Check that all requirements can be satisfied
-        boolean allSatisfied = true;
-        for (var cr : requirements) {
-            boolean satisifed = false;
-            for (var c : catalysts) {
-                if (cr.useCatalyst(c, true)) {
-                    satisifed = true;
-                    break;
-                }
-            }
-            if (!satisifed) allSatisfied = false;
-        }
-
-        if (!allSatisfied) return -1f;
-
-        // Calculate chances
-        float chance = 1f;
-        for (var cr : requirements) {
-            for (var c : catalysts) {
-                if (cr.useCatalyst(c, true)) {
-                    if (!simulate) cr.useCatalyst(c, false);
-                    chance *= cr.getChanceMult(c);
-                    break;
-                }
-            }
-        }
-        return chance;
+    public boolean useCatalysts(List<Catalyst> catalysts, boolean simulate) {
+        if (!useCatalystsNonAtomic(catalysts, true)) return false;
+        if (!simulate) useCatalystsNonAtomic(catalysts, false);
+        return true;
     }
 
     public List<Component> activeTooltipDescriptions(Collection<CatalystRequirementSet> activeCRSes) {
@@ -137,5 +118,20 @@ public class CatalystRequirementSet {
             if (hideIfPresent.contains(crs.name)) return List.of();
         }
         return List.of(Component.translatable(CreateRNS.ID + ".catalyst." + name + ".tooltip"));
+    }
+
+    protected boolean useCatalystsNonAtomic(List<Catalyst> catalysts, boolean simulate) {
+        boolean allSatisfied = true;
+        for (var cr : requirements) {
+            boolean satisifed = false;
+            for (var c : catalysts) {
+                if (cr.useCatalyst(c, simulate)) {
+                    satisifed = true;
+                    break;
+                }
+            }
+            if (!satisifed) allSatisfied = false;
+        }
+        return allSatisfied;
     }
 }

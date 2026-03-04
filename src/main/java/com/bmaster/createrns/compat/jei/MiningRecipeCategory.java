@@ -3,8 +3,6 @@ package com.bmaster.createrns.compat.jei;
 import com.bmaster.createrns.*;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.content.deposit.mining.recipe.Yield;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirement;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSetLookup;
 import com.bmaster.createrns.util.FlexibleLayoutHelper;
 import com.bmaster.createrns.util.Utils;
 import com.simibubi.create.compat.jei.EmptyBackground;
@@ -101,15 +99,6 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
                 tooltip.add(CreateRNS.lang().translate("jei.item_in_group", output.itemsInGroup).component());
             }
 
-            // Add requirement descriptions
-            for (var crsName : output.requirements) {
-                for (var cr : CatalystRequirementSetLookup.get(access, crsName).requirements) {
-                    for (var c : cr.jeiRequirementDescriptions()) {
-                        tooltip.add(c);
-                    }
-                }
-            }
-
             // No tooltips needed. Item is always mined.
             if (output.chance * output.weightRatio == 1) return;
 
@@ -118,40 +107,13 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
             Function<LangBuilder, LangBuilder> forItem = l ->
                     l.space().translate("jei.for_item");
 
-            float maxChance = output.chance + output.requirements.stream()
-                    .flatMap(crsName -> CatalystRequirementSetLookup.get(access, crsName).requirements.stream())
-                    .map(CatalystRequirement::getMaxChance)
-                    .reduce(Float::sum)
-                    .orElse(0f);
-
             var minChanceGroup = Utils.fancyChanceArg(output.chance).style(ChatFormatting.GOLD);
-            var maxChanceGroup = Utils.fancyChanceArg(maxChance).style(ChatFormatting.YELLOW).style(ChatFormatting.UNDERLINE);
             var minChanceItem = Utils.fancyChanceArg(output.chance * output.weightRatio).style(ChatFormatting.GOLD);
-            var maxChanceItem = Utils.fancyChanceArg(maxChance * output.weightRatio).style(ChatFormatting.YELLOW).style(ChatFormatting.UNDERLINE);
 
-            // Min chance for pool
+            // Min chance for group
             tooltip.add(forGroup.apply(CreateRNS.lang()
                     .translate("jei.chance", minChanceGroup)
                     .style(ChatFormatting.GRAY)).component());
-
-            // Added chances from catalysts
-            int descriptionsAdded = 0;
-            for (var crsName : output.requirements) {
-                for (var cr : CatalystRequirementSetLookup.get(access, crsName).requirements) {
-                    for (var c : cr.jeiChanceDescriptions(1)) {
-                        descriptionsAdded++;
-                        tooltip.add(Component.literal("  ").append(c));
-                    }
-                }
-            }
-
-            // Max chance for group
-            if (descriptionsAdded > 0 && output.chance != maxChance) {
-                tooltip.add(CreateRNS.lang()
-                        .text("  ")
-                        .translate("jei.max_chance", maxChanceGroup)
-                        .style(ChatFormatting.GRAY).component());
-            }
 
             // Group/item chances are equivalent
             if (output.weightRatio == 1) return;
@@ -160,25 +122,6 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
             tooltip.add(forItem.apply(CreateRNS.lang()
                     .translate("jei.chance", minChanceItem)
                     .style(ChatFormatting.GRAY)).component());
-
-            // Added chances from catalysts
-            descriptionsAdded = 0;
-            for (var crsName : output.requirements) {
-                for (var cr : CatalystRequirementSetLookup.get(access, crsName).requirements) {
-                    for (var c : cr.jeiChanceDescriptions(output.weightRatio)) {
-                        descriptionsAdded++;
-                        tooltip.add(Component.literal("  ").append(c));
-                    }
-                }
-            }
-
-            // Max chance for item
-            if (descriptionsAdded > 0 && output.chance != maxChance) {
-                tooltip.add(CreateRNS.lang()
-                        .text("  ")
-                        .translate("jei.max_chance", maxChanceItem)
-                        .style(ChatFormatting.GRAY).component());
-            }
         };
     }
 

@@ -1,7 +1,7 @@
 package com.bmaster.createrns.content.deposit.mining.recipe.catalyst;
 
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
@@ -24,7 +24,7 @@ public class CatalystUsageStats implements INBTSerializable<CompoundTag> {
         if (aggStats.isEmpty()) return List.of();
         return aggStats.stream()
                 .flatMap(s ->
-                        (s.lastTickedCRSes != null) ? s.lastTickedCRSes.keySet().stream() : Stream.of())
+                        (s.lastTickedCRSes != null) ? s.lastTickedCRSes.stream() : Stream.of())
                 .distinct()
                 .map(crsName -> CatalystRequirementSetLookup
                         .get(aggStats.stream().findAny().orElseThrow().access, crsName))
@@ -34,7 +34,7 @@ public class CatalystUsageStats implements INBTSerializable<CompoundTag> {
 
     protected RegistryAccess access = RegistryAccess.EMPTY;
     protected Int2FloatOpenHashMap lastChances = null;
-    protected Object2FloatOpenHashMap<String> lastTickedCRSes = null;
+    protected ObjectOpenHashSet<String> lastTickedCRSes = null;
 
     public boolean isChancesComputed() {
         return lastChances != null;
@@ -63,7 +63,7 @@ public class CatalystUsageStats implements INBTSerializable<CompoundTag> {
         if (lastTickedCRSes != null) {
             var ltcTag = new ListTag();
             // Values (CRS chance multipliers) are currently unused, and are thus not serialized
-            for (var crsName : lastTickedCRSes.keySet()) {
+            for (var crsName : lastTickedCRSes) {
                 ltcTag.add(StringTag.valueOf(crsName));
             }
             root.put("last_satisfied_crses", ltcTag);
@@ -79,7 +79,7 @@ public class CatalystUsageStats implements INBTSerializable<CompoundTag> {
 
             if (lastChances == null) lastChances = new Int2FloatOpenHashMap();
             else lastChances.clear();
-            if (lastTickedCRSes == null) lastTickedCRSes = new Object2FloatOpenHashMap<>();
+            if (lastTickedCRSes == null) lastTickedCRSes = new ObjectOpenHashSet<>();
             else lastTickedCRSes.clear();
 
             for (var is : lccTag.getAllKeys()) {
@@ -87,7 +87,7 @@ public class CatalystUsageStats implements INBTSerializable<CompoundTag> {
             }
             // Values (CRS chance multipliers) are currently unused, and are thus not deserialized
             for (int i = 0; i < ltcTag.size(); ++i) {
-                lastTickedCRSes.put(ltcTag.getString(i), 0f);
+                lastTickedCRSes.add(ltcTag.getString(i));
             }
         }
     }

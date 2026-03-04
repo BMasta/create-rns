@@ -16,8 +16,8 @@ public class ShatteringResonanceCatalystRequirement extends AbstractResonanceCat
     public static final Codec<ShatteringResonanceCatalystRequirement> STREAM_CODEC =
             streamCodec(ShatteringResonanceCatalystRequirement::new);
 
-    public ShatteringResonanceCatalystRequirement(float baseChance, float chancePerResonator, int minResonators) {
-        super(baseChance, chancePerResonator, minResonators);
+    public ShatteringResonanceCatalystRequirement(int minResonators) {
+        super(minResonators);
     }
 
     @Override
@@ -26,19 +26,4 @@ public class ShatteringResonanceCatalystRequirement extends AbstractResonanceCat
         return rc.resonatorCount >= minResonators;
     }
 
-    @Override
-    public float getChanceMult(Catalyst catalyst) {
-        if (!isSatisfiedBy(catalyst)) return 0f;
-        return baseChance + ((ShatteringResonanceCatalyst) catalyst).resonatorCount * chancePerResonator;
-    }
-
-    @Override
-    protected String langKey() {
-        return "shattering";
-    }
-
-    @Override
-    protected ChatFormatting style() {
-        return ChatFormatting.RED;
-    }
 }
