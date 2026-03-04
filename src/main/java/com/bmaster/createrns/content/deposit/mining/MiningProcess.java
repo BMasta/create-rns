@@ -230,7 +230,7 @@ public class MiningProcess {
             computeRemainingUses();
             root.putLong("remaining_uses", remainingUses);
 
-            if (clientPacket){
+            if (clientPacket) {
                 if (!catStats.isChancesComputed()) {
                     // Simulate catalyst usage to collect initial stats
                     catalystHandler.useCatalysts(true);

@@ -1,13 +1,13 @@
 package com.bmaster.createrns;
 
 import com.bmaster.createrns.content.deposit.DepositBlock;
-import com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlock;
-import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.drillhead.DrillHeadBlock;
-import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.drillhead.DrillHeadMovementBehaviour;
-import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator.ResonatorBlock;
-import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator.ResonatorMovementBehaviour;
-import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator.ShatteringResonatorBlock;
-import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator.StabilizingResonatorBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadMovementBehaviour;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator.ResonatorBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator.ResonatorMovementBehaviour;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator.ShatteringResonatorBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator.StabilizingResonatorBlock;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositStructureConfigBuilder;
 import com.simibubi.create.AllBlocks;
@@ -38,46 +38,8 @@ import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
 import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
 
 public class RNSBlocks {
-    // Blocks
-    public static final BlockEntry<MinerBearingBlock> MINER_MK1_BLOCK = CreateRNS.REGISTRATE.block("miner_mk1",
-                    MinerBearingBlock::new)
-            .transform(minerBlock())
-            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
-            .item()
-            .model(AssetLookup::customItemModel)
-            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
-                    .define('F', AllBlocks.ANDESITE_FUNNEL)
-                    .define('C', AllBlocks.COGWHEEL)
-                    .define('D', AllBlocks.MECHANICAL_DRILL)
-                    .pattern("F")
-                    .pattern("C")
-                    .pattern("D")
-                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllBlocks.MECHANICAL_DRILL))
-                    .save(p))
-            .build()
-            .register();
-
-    public static final BlockEntry<MinerBearingBlock> MINER_MK2_BLOCK = CreateRNS.REGISTRATE.block("miner_mk2",
-                    MinerBearingBlock::new)
-            .transform(minerBlock())
-            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
-            .item()
-            .model(AssetLookup::customItemModel)
-            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
-                    .define('F', AllBlocks.BRASS_FUNNEL)
-                    .define('R', AllItems.PRECISION_MECHANISM)
-                    .define('A', Items.AMETHYST_SHARD)
-                    .define('M', MINER_MK1_BLOCK)
-                    .pattern(" F ")
-                    .pattern("ARA")
-                    .pattern(" M ")
-                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.PRECISION_MECHANISM))
-                    .save(p))
-            .build()
-            .register();
-
-    public static final BlockEntry<com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlock> MINER_BEARING_BLOCK = CreateRNS.REGISTRATE.block(
-                    "miner_bearing", com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlock::new)
+    public static final BlockEntry<MinerBearingBlock> MINER_BEARING_BLOCK = CreateRNS.REGISTRATE.block(
+                    "miner_bearing", MinerBearingBlock::new)
             .initialProperties(SharedProperties::stone)
             .properties(p -> p
                     .mapColor(MapColor.PODZOL)
@@ -241,18 +203,6 @@ public class RNSBlocks {
                 .tag(RNSTags.Block.DEPOSIT_BLOCKS)
                 .item()
                 .build();
-    }
-
-    public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> minerBlock() {
-        return builder -> builder
-                .initialProperties(SharedProperties::stone)
-                .properties(p -> p
-                        .noOcclusion()
-                        .mapColor(MapColor.PODZOL)
-                        .pushReaction(PushReaction.BLOCK))
-                .transform(axeOrPickaxe())
-                .blockstate((c, p) ->
-                        p.simpleBlock(c.get(), AssetLookup.partialBaseModel(c, p)));
     }
 
     public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> resonatorBlock(MapColor mapColor) {

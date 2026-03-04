@@ -10,7 +10,6 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 @ParametersAreNonnullByDefault

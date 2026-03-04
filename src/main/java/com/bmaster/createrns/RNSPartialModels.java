@@ -5,13 +5,7 @@ import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 public class RNSPartialModels {
     public static final PartialModel
 
-            MINER_MK1_DRILL = PartialModel.of(
-            CreateRNS.asResource("block/miner_mk1/drill_head")),
-
-    MINER_MK2_DRILL = PartialModel.of(
-            CreateRNS.asResource("block/miner_mk2/drill_head")),
-
-    RESONATOR_SHARD = PartialModel.of(
+            RESONATOR_SHARD = PartialModel.of(
             CreateRNS.asResource("block/resonator/shard")),
 
     RESONATOR_SHARD_ACTIVE = PartialModel.of(
