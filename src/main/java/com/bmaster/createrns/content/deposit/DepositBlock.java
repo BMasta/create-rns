@@ -3,7 +3,7 @@ package com.bmaster.createrns.content.deposit;
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
 import com.bmaster.createrns.content.deposit.info.IDepositIndex;
-import com.bmaster.createrns.content.deposit.mining.block.MiningBehaviour;
+import com.bmaster.createrns.content.deposit.mining.MiningBehaviour;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

@@ -143,15 +143,7 @@ public class RNSPonderScenes {
         ElementLink<WorldSectionElement> deposit3Link = scene.world().showIndependentSection(deposit3, Direction.NORTH);
         scene.world().moveSection(deposit3Link, new Vec3(0, 1, 0), 0);
 
-        scene.idle(10);
-        scene.world().replaceBlocks(miner1, RNSBlocks.MINER_MK2_BLOCK.get().defaultBlockState(), true);
-        scene.world().setKineticSpeed(miner1, -100);
-        scene.overlay().showOutline(PonderPalette.WHITE, new Object(), deposit13Outline, Integer.MAX_VALUE);
         scene.idle(20);
-        scene.overlay().showText(70)
-                .attachKeyFrame()
-                .text("Miner Mk.2 can mine all types of deposits in a 3x3x5 area")
-                .pointAt(miner1.getCenter())
-                .placeNearTarget();
+
     }
 }

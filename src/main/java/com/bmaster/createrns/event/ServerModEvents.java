@@ -1,7 +1,6 @@
 package com.bmaster.createrns.event;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSPartialModels;
 import com.bmaster.createrns.RNSRecipes;
 import com.bmaster.createrns.content.deposit.info.DepositSpec;
 import com.bmaster.createrns.content.deposit.info.IDepositIndex;
@@ -12,7 +11,6 @@ import com.bmaster.createrns.data.pack.DynamicDatapack;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraft.server.packs.PackType;
-import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.event.AddPackFindersEvent;
@@ -46,12 +44,6 @@ public class ServerModEvents {
                 e.addRepositorySource(consumer -> consumer.accept(pack));
             }
         }
-    }
-
-    @SubscribeEvent
-    public static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
-        event.register(RNSPartialModels.MINER_MK1_DRILL.modelLocation());
-        event.register(RNSPartialModels.MINER_MK2_DRILL.modelLocation());
     }
 
     @SubscribeEvent

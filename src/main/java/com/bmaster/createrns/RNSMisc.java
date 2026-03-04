@@ -13,7 +13,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
@@ -33,11 +32,9 @@ public class RNSMisc {
     // Creative tab
     public static final RegistryEntry<CreativeModeTab> MAIN_TAB = CreateRNS.REGISTRATE.defaultCreativeTab(
                     CreateRNS.ID, c -> c
-                            .icon(() -> new ItemStack(RNSBlocks.MINER_MK2_BLOCK.getDefaultState().getBlock()))
+                            .icon(RNSItems.DEPOSIT_SCANNER_ITEM::asStack)
                             .title(Component.translatable("creativetab.%s".formatted(CreateRNS.ID)))
                             .displayItems((pParameters, pOutput) -> {
-                                pOutput.accept(RNSBlocks.MINER_MK1_BLOCK.get().asItem());
-                                pOutput.accept(RNSBlocks.MINER_MK2_BLOCK.get().asItem());
                                 pOutput.accept(RNSBlocks.MINER_BEARING_BLOCK.get().asItem());
                                 pOutput.accept(RNSBlocks.DRILL_HEAD_BLOCK.get().asItem());
                                 pOutput.accept(RNSBlocks.RESONATOR_BLOCK.get().asItem());
