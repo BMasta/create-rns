@@ -21,7 +21,10 @@ public class Yield {
                     WeightedItem.CODEC.listOf().fieldOf("items")
                             .forGetter(y -> y.items),
                     Codec.STRING.listOf().optionalFieldOf("catalysts")
-                            .forGetter(y -> (!y.crsNames.isEmpty()) ? Optional.of(y.crsNames) : Optional.empty()))
+                            .forGetter(y -> (!y.crsNames.isEmpty()) ? Optional.of(y.crsNames) : Optional.empty()),
+                    Codec.INT.fieldOf("jei_slot_color")
+                            .orElse(0)
+                            .forGetter(y -> y.slotColor))
             .apply(i, Yield::new));
 
     public static final Codec<Yield> STREAM_CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -31,12 +34,16 @@ public class Yield {
                     WeightedItem.CODEC.listOf().fieldOf("items")
                             .forGetter(y -> y.items),
                     Codec.STRING.listOf().optionalFieldOf("catalysts")
-                            .forGetter(y -> (!y.crsNames.isEmpty()) ? Optional.of(y.crsNames) : Optional.empty()))
+                            .forGetter(y -> (!y.crsNames.isEmpty()) ? Optional.of(y.crsNames) : Optional.empty()),
+                    Codec.INT.fieldOf("jei_slot_color")
+                            .orElse(0)
+                            .forGetter(y -> y.slotColor))
             .apply(i, Yield::new));
 
     public final float chance;
     public final List<WeightedItem> items;
     public final List<String> crsNames;
+    public final int slotColor;
 
     private int totalWeight = 0;
 
@@ -80,12 +87,11 @@ public class Yield {
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    protected Yield(float chance, List<WeightedItem> items,
-            Optional<List<String>> crsNames
-    ) {
+    protected Yield(float chance, List<WeightedItem> items, Optional<List<String>> crsNames, int slotColor) {
         this.chance = chance;
         this.items = items;
         this.crsNames = crsNames.orElse(new ArrayList<>());
+        this.slotColor = slotColor;
 
     }
 }

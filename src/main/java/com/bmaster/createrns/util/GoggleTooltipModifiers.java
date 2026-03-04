@@ -115,7 +115,6 @@ public class GoggleTooltipModifiers {
         }
 
 
-
         var rates = process.getEstimatedRates(mb.getCurrentProgressIncrement());
         rates.object2FloatEntrySet().stream().sorted((a, b) -> {
                     float av = a.getFloatValue();
@@ -169,9 +168,7 @@ public class GoggleTooltipModifiers {
         var aggStats = process.innerProcesses.stream().map(p -> p.catStats).collect(Collectors.toSet());
         var activeCRSes = CatalystUsageStats.getLastSatisfiedCRSes(aggStats);
         for (var crs : activeCRSes) {
-            for (var d : crs.activeTooltipDescriptions(activeCRSes)) {
-                CreateRNS.lang().add(d).forGoggles(tooltip);
-            }
+            CreateRNS.lang().add(crs.getNameComponent(activeCRSes)).forGoggles(tooltip);
         }
 
         addEstimationComponent(process.getRateEstimationStatus(), tooltip);

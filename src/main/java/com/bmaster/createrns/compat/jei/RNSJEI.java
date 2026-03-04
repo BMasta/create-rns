@@ -14,13 +14,12 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.List;
 
 @ParametersAreNonnullByDefault
 @JeiPlugin
 public class RNSJEI implements IModPlugin {
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(
-            CreateRNS.ID, "jei_plugin");
-
+    public static final ResourceLocation ID = CreateRNS.asResource("jei_plugin");
 
     @Override
     public @NotNull ResourceLocation getPluginUid() {
@@ -43,7 +42,8 @@ public class RNSJEI implements IModPlugin {
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration reg) {
-        reg.addRecipeCatalyst(new ItemStack(RNSBlocks.MINER_MK1_BLOCK.get().asItem()), MiningRecipeCategory.JEI_RECIPE_TYPE);
-        reg.addRecipeCatalyst(new ItemStack(RNSBlocks.MINER_MK2_BLOCK.get().asItem()), MiningRecipeCategory.JEI_RECIPE_TYPE);
+        for (var cs : MiningRecipeCategory.CATALYSTS) {
+            reg.addRecipeCatalyst(cs.get(), MiningRecipeCategory.JEI_RECIPE_TYPE);
+        }
     }
 }
