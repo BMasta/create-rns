@@ -1,9 +1,8 @@
 {
   "name": "faint_resonance",
-  "display_priority": 1000,
-  "hide_if_present": ["resonance"],
   "resonance": {
-    "base_chance": 1,
     "min_resonators": 2
-  }
+  },
+  "display_priority": 1000,
+  "hide_if_present": ["resonance"]
 }

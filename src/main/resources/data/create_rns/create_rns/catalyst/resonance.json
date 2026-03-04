@@ -1,8 +1,7 @@
 {
   "name": "resonance",
-  "display_priority": 1001,
   "resonance": {
-    "base_chance": 1,
     "min_resonators": 4
-  }
+  },
+  "display_priority": 1001
 }
