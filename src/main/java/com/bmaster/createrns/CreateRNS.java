@@ -8,6 +8,7 @@ import com.google.gson.GsonBuilder;
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import net.createmod.catnip.lang.LangBuilder;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
@@ -34,8 +35,12 @@ public class CreateRNS {
         return new LangBuilder(CreateRNS.ID);
     }
 
-    public static String asLangEntry(String path) {
-        return ID + "." + path;
+    public static String asLangEntry(String langSuffix) {
+        return ID + "." + langSuffix;
+    }
+
+    public static Component translatable(String langSuffix) {
+        return Component.translatable(asLangEntry(langSuffix));
     }
 
     public static String asLangEntry(String prefix, String path) {

@@ -2,6 +2,7 @@ package com.bmaster.createrns.content.deposit.mining.contraption;
 
 import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.MiningEquipmentBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadBlock;
 import com.bmaster.createrns.util.Utils;
 import com.simibubi.create.content.contraptions.AssemblyException;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
@@ -18,7 +19,6 @@ import java.util.Set;
 
 public class MinerContraption extends BearingContraption {
     public BlockPos drillHeadPos;
-    protected Set<BlockPos> equipmentPositions = new ObjectOpenHashSet<>();
 
     public MinerContraption(boolean isWindmill, Direction facing) {
         super(isWindmill, facing);
@@ -39,33 +39,29 @@ public class MinerContraption extends BearingContraption {
             return true;
         }
         boolean result = super.searchMovedStructure(world, pos, forcedDirection);
-        if (drillHeadPos == null) throw new RNSAssemblyException("not_one_drill_head");
-
-//        for (var bp : equipmentPositions) {
-//            if (bp.distManhattan(drillHeadPos) > 1) throw new RNSAssemblyException("wrong_equipment_position");
-//        }
-
+        // No drill heads found
+        if (drillHeadPos == null) throw new RNSAssemblyException("not_one_drill");
         return result;
     }
 
     @Override
-    protected boolean moveBlock(Level world, @Nullable Direction forcedDirection, Queue<BlockPos> frontier, Set<BlockPos> visited) throws AssemblyException {
+    protected boolean moveBlock(
+            Level world, @Nullable Direction forcedDirection, Queue<BlockPos> frontier, Set<BlockPos> visited
+    ) throws AssemblyException {
         var pos = frontier.peek();
         if (pos != null) {
             var bs = world.getBlockState(pos);
-            if (bs.getBlock() instanceof MiningEquipmentBlock) {
-//                if (MiningEquipmentBlock.getConnectedDirection(bs) != facing) {
-//                    throw new RNSAssemblyException("wrong_equipment_direction");
-//                }
-                equipmentPositions.add(pos);
+            if (bs.getBlock() instanceof DrillHeadBlock && MiningEquipmentBlock.getConnectedDirection(bs) != facing) {
+                // Drill is not facing forward
+                throw new RNSAssemblyException("wrong_drill_direction");
             }
 
             if (bs.is(RNSBlocks.DRILL_HEAD_BLOCK.get())) {
-                if (drillHeadPos != null) throw new RNSAssemblyException("not_one_drill_head");
-                // Local position of the drill head must not differ from origin
-                // on any axis other than the one the contraption is facing.
+                // Multiple drill heads found
+                if (drillHeadPos != null) throw new RNSAssemblyException("not_one_drill");
+                // Local position of the drill differs from origin on an axis the contraption is not facing
                 if (Utils.dot(Utils.normalVecFlip(facing, true), toLocalPos(pos)) != 0) {
-                    throw new RNSAssemblyException("drill_head_not_aligned_with_bearing");
+                    throw new RNSAssemblyException("drill_not_aligned");
                 }
                 drillHeadPos = pos;
             }
