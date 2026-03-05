@@ -10,8 +10,10 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -113,13 +115,13 @@ public class CatalystRequirementSet {
         return true;
     }
 
-    public Component getNameComponent() {
-        return Component.translatable(CreateRNS.ID + ".catalyst." + name + ".name");
+    public MutableComponent getNameComponent() {
+        return CreateRNS.translatable("catalyst." + name + ".name");
     }
 
-    public Component getNameComponent(Collection<CatalystRequirementSet> activeCRSes) {
+    public @Nullable MutableComponent getNameComponent(Collection<CatalystRequirementSet> activeCRSes) {
         for (var crs : activeCRSes) {
-            if (hideIfPresent.contains(crs.name)) return Component.empty();
+            if (hideIfPresent.contains(crs.name)) return null;
         }
         return getNameComponent();
     }

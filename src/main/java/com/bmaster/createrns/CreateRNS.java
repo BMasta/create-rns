@@ -7,6 +7,7 @@ import com.mojang.logging.LogUtils;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import net.createmod.catnip.lang.LangBuilder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -33,7 +34,7 @@ public class CreateRNS {
         return ID + "." + langSuffix;
     }
 
-    public static Component translatable(String langSuffix) {
+    public static MutableComponent translatable(String langSuffix) {
         return Component.translatable(asLangEntry(langSuffix));
     }
 

@@ -3,7 +3,7 @@ package com.bmaster.createrns;
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadBlock;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadMovementBehaviour;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonancebuffer.ResonanceBufferBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator.ResonatorBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator.ResonatorMovementBehaviour;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator.ShatteringResonatorBlock;
@@ -74,7 +74,6 @@ public class RNSBlocks {
             .transform(pickaxeOnly())
             .blockstate((c, p) ->
                     p.horizontalFaceBlock(c.get(), AssetLookup.standardModel(c, p)))
-            .onRegister(movementBehaviour(new DrillHeadMovementBehaviour()))
             .simpleItem()
             .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
                     .define('I', Items.IRON_INGOT)
@@ -108,6 +107,13 @@ public class RNSBlocks {
     public static final BlockEntry<ShatteringResonatorBlock> SHATTERING_RESONATOR_BLOCK = CreateRNS.REGISTRATE.block(
                     "shattering_resonator", ShatteringResonatorBlock::new)
             .transform(resonatorBlock(MapColor.COLOR_RED))
+            .register();
+
+    public static final BlockEntry<ResonanceBufferBlock> RESONANCE_BUFFER = CreateRNS.REGISTRATE.block(
+                    "resonance_buffer", ResonanceBufferBlock::new)
+            .initialProperties(SharedProperties::softMetal)
+            .transform(pickaxeOnly())
+            .simpleItem()
             .register();
 
     public static final BlockEntry<DepositBlock> IRON_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
@@ -211,9 +217,9 @@ public class RNSBlocks {
                 .properties(p -> p
                         .mapColor(mapColor)
                         .noOcclusion())
-                .transform(axeOrPickaxe())
+                .transform(pickaxeOnly())
                 .blockstate((c, p) ->
-                        p.horizontalFaceBlock(c.get(), AssetLookup.partialBaseModel(c, p)))
+                        p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
                 .onRegister(movementBehaviour(new ResonatorMovementBehaviour()))
                 .item()
                 .model(AssetLookup::customItemModel)
