@@ -1,12 +1,10 @@
 package com.bmaster.createrns.content.deposit.mining.contraption;
 
 import com.bmaster.createrns.RNSBlocks;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.MiningEquipmentBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadBlock;
 import com.bmaster.createrns.util.Utils;
 import com.simibubi.create.content.contraptions.AssemblyException;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -51,7 +49,7 @@ public class MinerContraption extends BearingContraption {
         var pos = frontier.peek();
         if (pos != null) {
             var bs = world.getBlockState(pos);
-            if (bs.getBlock() instanceof DrillHeadBlock && MiningEquipmentBlock.getConnectedDirection(bs) != facing) {
+            if (bs.getBlock() instanceof DrillHeadBlock && DrillHeadBlock.getConnectedDirection(bs) != facing) {
                 // Drill is not facing forward
                 throw new RNSAssemblyException("wrong_drill_direction");
             }

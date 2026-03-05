@@ -1,7 +1,8 @@
 package com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator;
 
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlockEntity;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.MiningEquipmentMovementBehaviour;
+import com.bmaster.createrns.util.Utils;
+import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.content.contraptions.render.ContraptionMatrices;
@@ -15,7 +16,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
-public class ResonatorMovementBehaviour extends MiningEquipmentMovementBehaviour {
+public class ResonatorMovementBehaviour implements MovementBehaviour {
 
     @Override
     public boolean disableBlockEntityRendering() {
@@ -37,11 +38,6 @@ public class ResonatorMovementBehaviour extends MiningEquipmentMovementBehaviour
     }
 
     @Override
-    public boolean isActive(MovementContext context) {
-        return super.isActive(context);
-    }
-
-    @Override
     @OnlyIn(value = Dist.CLIENT)
     public void renderInContraption(MovementContext context, VirtualRenderWorld renderWorld,
                                     ContraptionMatrices matrices, MultiBufferSource buffer) {
@@ -53,14 +49,21 @@ public class ResonatorMovementBehaviour extends MiningEquipmentMovementBehaviour
         if (!(context.contraption instanceof BearingContraption bc)) return;
         if (!(context.state.getBlock() instanceof AbstractResonatorBlock rb)) return;
         if (context.world.random.nextFloat() < chance) {
-            Vec3 local = Vec3.atCenterOf(context.localPos);
-            Vec3 worldPos = bc.entity.toGlobalVector(local, AnimationTickHolder.getPartialTicks());
-            Direction facing = AbstractResonatorBlock.getConnectedDirection(context.state);
+            int displaceX = context.world.random.nextIntBetweenInclusive(-1, 1);
+            int displaceY = context.world.random.nextIntBetweenInclusive(-1, 1);
+            int displaceZ = context.world.random.nextIntBetweenInclusive(-1, 1);
+            var randomDisplacement = new Vec3(
+                    0.5f * displaceX,
+                    0.1f * displaceY,
+                    0.5f * displaceZ
+            );
+            var local = Vec3.atCenterOf(context.localPos).add(randomDisplacement);
+            var worldPos = bc.entity.toGlobalVector(local, AnimationTickHolder.getPartialTicks());
 
             context.world.addParticle(rb.getParticle(),
-                    worldPos.x + facing.getStepX() * 0.40,
-                    worldPos.y - 1 + facing.getStepY() * 0.40,
-                    worldPos.z + facing.getStepZ() * 0.40,
+                    worldPos.x,
+                    worldPos.y - 1,
+                    worldPos.z,
                     0, 0, 0);
         }
     }
