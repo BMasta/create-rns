@@ -5,9 +5,6 @@ import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.simibubi.create.compat.jei.ItemIcon;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Supplier;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.widgets.IRecipeExtrasBuilder;
 import mezz.jei.api.recipe.IFocusGroup;
@@ -21,6 +18,9 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Supplier;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault

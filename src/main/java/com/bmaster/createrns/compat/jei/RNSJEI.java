@@ -12,9 +12,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Comparator;
-
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Comparator;
 
 @ParametersAreNonnullByDefault
 @JeiPlugin

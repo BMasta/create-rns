@@ -84,7 +84,7 @@ public class GoggleTooltipModifiers {
                 .forEachOrdered(p -> {
                     var usesComp = (p.remainingUses > 0)
                             ? Component.literal(Long.toString(p.remainingUses))
-                            : Component.translatable("create_rns.mining.infinite");
+                            : CreateRNS.translatable("mining.infinite");
                     CreateRNS.lang()
                             .add(p.recipe.getDepositBlock().getName()
                                     .append(": ")
@@ -134,7 +134,7 @@ public class GoggleTooltipModifiers {
                                         .append(": ")
                                         .withStyle(ChatFormatting.GRAY))
                                 .add(Component.literal(String.format(Locale.ROOT, "%.1f", e.getFloatValue()))
-                                        .append(Component.translatable(CreateRNS.ID + ".mining.per_hour"))
+                                        .append(CreateRNS.translatable("mining.per_hour"))
                                         .withStyle(ChatFormatting.GREEN))
                                 .forGoggles(tooltip, 1)
                 );
@@ -168,7 +168,10 @@ public class GoggleTooltipModifiers {
         var aggStats = process.innerProcesses.stream().map(p -> p.catStats).collect(Collectors.toSet());
         var activeCRSes = CatalystUsageStats.getLastSatisfiedCRSes(aggStats);
         for (var crs : activeCRSes) {
-            CreateRNS.lang().add(crs.getNameComponent(activeCRSes)).forGoggles(tooltip);
+            var comp = crs.getNameComponent(activeCRSes);
+            if (comp != null) {
+                CreateRNS.lang().add(comp).forGoggles(tooltip);
+            }
         }
 
         addEstimationComponent(process.getRateEstimationStatus(), tooltip);
@@ -215,7 +218,7 @@ public class GoggleTooltipModifiers {
             default -> throw new IllegalStateException("Unexpected value: " + status);
         };
         CreateRNS.lang()
-                .add(Component.translatable(CreateRNS.ID + ".mining." + statusTag)
+                .add(CreateRNS.translatable("mining." + statusTag)
                         .withStyle(ChatFormatting.DARK_GRAY))
                 .forGoggles(tooltip, 1);
     }

@@ -25,11 +25,11 @@ public enum DepositBlockComponentProvider implements IBlockComponentProvider, IS
         var dur = sd.getLong("durability");
 
         MutableComponent durComp;
-        if (dur == -1) durComp = Component.translatable("create_rns.jade.deposit_not_generated");
-        else if (dur == 0) durComp = Component.translatable("create_rns.mining.infinite");
+        if (dur == -1) durComp = CreateRNS.translatable("jade.deposit_not_generated");
+        else if (dur == 0) durComp = CreateRNS.translatable("mining.infinite");
         else durComp = Component.literal(Long.toString(dur));
 
-        tooltip.add(Component.translatable("create_rns.mining.remaining_deposit_uses").append(" "));
+        tooltip.add(CreateRNS.translatable("mining.remaining_deposit_uses").append(" "));
         tooltip.append(durComp);
     }
 

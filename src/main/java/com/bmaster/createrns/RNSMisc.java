@@ -11,7 +11,6 @@ import com.tterrag.registrate.util.entry.RegistryEntry;
 import net.createmod.catnip.lang.FontHelper;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.IEventBus;
@@ -45,7 +44,7 @@ public class RNSMisc {
     public static final RegistryEntry<CreativeModeTab, CreativeModeTab> MAIN_TAB = CreateRNS.REGISTRATE.defaultCreativeTab(
                     CreateRNS.ID, c -> c
                             .icon(RNSItems.DEPOSIT_SCANNER_ITEM::asStack)
-                            .title(Component.translatable("creativetab.%s".formatted(CreateRNS.ID)))
+                            .title(CreateRNS.translatable("creativetab"))
                             .build())
             .register();
 

@@ -22,21 +22,7 @@ public class ResonatorRenderer extends SmartBlockEntityRenderer<ResonatorBlockEn
     protected void renderSafe(ResonatorBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buf, int light, int overlay) {
         var bs = be.getBlockState();
         var superBuffer = CachedBuffers.partial(((AbstractResonatorBlock) bs.getBlock()).getShard(false), bs);
-        var face = bs.getValue(AbstractResonatorBlock.FACE);
-        var facing = bs.getValue(AbstractResonatorBlock.FACING);
-
-        int xRot = 0;
-        if (face == AttachFace.CEILING) {
-            xRot = 180;
-        } else if (face == AttachFace.WALL) {
-            xRot = 90;
-        }
-
         superBuffer
-                .center()
-                .rotateYDegrees(AngleHelper.horizontalAngle(facing))
-                .rotateXDegrees(xRot)
-                .uncenter()
                 .light(light)
                 .renderInto(ms, buf.getBuffer(RenderType.solid()));
     }
@@ -45,24 +31,9 @@ public class ResonatorRenderer extends SmartBlockEntityRenderer<ResonatorBlockEn
                                            ContraptionMatrices matrices, MultiBufferSource buf, boolean active) {
         var bs = context.state;
         var superBuffer = CachedBuffers.partial(((AbstractResonatorBlock) bs.getBlock()).getShard(active), bs);
-        var face = bs.getValue(AbstractResonatorBlock.FACE);
-        var facing = bs.getValue(AbstractResonatorBlock.FACING);
-
-        int xRot;
-        if (face == AttachFace.FLOOR) {
-            xRot = 0;
-        } else if (face == AttachFace.CEILING) {
-            xRot = 180;
-        } else {
-            xRot = 90;
-        }
 
         superBuffer
                 .transform(matrices.getModel())
-                .center()
-                .rotateYDegrees(AngleHelper.horizontalAngle(facing))
-                .rotateXDegrees(xRot)
-                .uncenter()
                 .light(LightTexture.FULL_BRIGHT)
                 .useLevelLight(context.world, matrices.getWorld())
                 .renderInto(matrices.getViewProjection(), buf.getBuffer(RenderType.cutout()));
