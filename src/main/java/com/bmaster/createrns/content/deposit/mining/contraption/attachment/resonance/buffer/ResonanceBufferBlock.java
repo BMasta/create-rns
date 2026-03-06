@@ -1,6 +1,7 @@
-package com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonancebuffer;
+package com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer;
 
 import com.simibubi.create.AllShapes;
+import com.simibubi.create.content.contraptions.bearing.BearingContraption;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
@@ -14,6 +15,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class ResonanceBufferBlock extends Block {
+    public static int countInContraption(BearingContraption contraption) {
+        var count = 0;
+        for (var info : contraption.getBlocks().values()) {
+            if (info.state().getBlock() instanceof ResonanceBufferBlock) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     public static final VoxelShape SHAPE = new AllShapes.Builder(
             // Top frame
             Block.box(0, 13, 0, 16, 16, 3))

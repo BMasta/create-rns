@@ -1,4 +1,4 @@
-package com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator;
+package com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator;
 
 import com.bmaster.createrns.RNSBlockEntities;
 import com.simibubi.create.AllShapes;
