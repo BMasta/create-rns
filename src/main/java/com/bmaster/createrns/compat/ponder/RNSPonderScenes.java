@@ -1,12 +1,13 @@
 package com.bmaster.createrns.compat.ponder;
 
 import com.bmaster.createrns.RNSBlocks;
-import com.simibubi.create.AllItems;
+import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlock;
+import com.bmaster.createrns.infrastructure.ServerConfig;
+import com.simibubi.create.foundation.gui.AllIcons;
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
+import net.createmod.catnip.math.Pointing;
 import net.createmod.ponder.api.ParticleEmitter;
 import net.createmod.ponder.api.PonderPalette;
-import net.createmod.ponder.api.element.ElementLink;
-import net.createmod.ponder.api.element.WorldSectionElement;
 import net.createmod.ponder.api.scene.SceneBuilder;
 import net.createmod.ponder.api.scene.SceneBuildingUtil;
 import net.createmod.ponder.api.scene.Selection;
@@ -19,131 +20,173 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 
 public class RNSPonderScenes {
+    protected static float calcAngle(float rpm, float dur) {
+        return Math.round(rpm * dur / 60 / 20) * 360;
+    }
+
     public static void mining(SceneBuilder builder, SceneBuildingUtil util) {
         CreateSceneBuilder scene = new CreateSceneBuilder(builder);
         scene.title("mining", "Mining Deposits");
-        scene.setSceneOffsetY(-4f);
         scene.scaleSceneView(0.9f);
 
-        Selection basePlate = util.select().fromTo(0, 4, 0, 6, 4, 6);
-        Selection deposit1 = util.select().fromTo(3, 5, 2, 5, 5, 4);
-        Selection deposit1Edge = util.select().position(3, 5, 2);
-        Selection deposit2 = util.select().fromTo(1, 5, 2, 2, 5, 4);
-        Selection deposit3 = util.select().fromTo(3, 0, 2, 5, 3, 4);
-        Selection deposit13Outline = util.select().fromTo(3, 1, 2, 5, 5, 4);
-        Selection miner1 = util.select().position(4, 6, 3);
-        BlockPos miner1Above = new BlockPos(4, 7, 3);
-        Selection miner2 = util.select().position(2, 6, 3);
-        Selection belt = util.select().fromTo(0, 7, 3, 6, 7, 3);
-        Selection kineticsTop = util.select().fromTo(3, 7, 4, 3, 7, 5);
-        Selection kineticsBottom = util.select().fromTo(3, 5, 5, 3, 5, 7);
-        Selection nearMinersCog = util.select().position(3, 6, 4);
-        Selection originCog = util.select().position(2, 4, 7);
-        ElementLink<WorldSectionElement> bpLink = scene.world().showIndependentSection(basePlate, Direction.DOWN);
+        BlockPos bearing = util.grid().at(2, 3, 2);
+        BlockPos bearingNewPos = util.grid().at(2, 5, 2);
+        BlockPos drill = util.grid().at(2, 2, 2);
+        Vec3 underDrill = drill.getCenter().subtract(0, 0.5, 0);
+        Selection kinetics = util.select().position(2, 4, 2);
+        Selection resonators = util.select().fromTo(2, 3, 2, 2, 4, 2);
+        BlockPos depositUnderBearing = util.grid().at(2, 1, 2);
 
-        scene.world().setKineticSpeed(miner1, -100);
-        scene.world().setKineticSpeed(miner2, -100);
-        scene.world().setKineticSpeed(nearMinersCog, 50);
-        scene.world().setKineticSpeed(belt, 50);
-        scene.world().setKineticSpeed(kineticsTop, 50);
-        scene.world().setKineticSpeed(kineticsBottom, -50);
-        scene.world().setKineticSpeed(originCog, 25);
+        BlockPos bearing2 = util.grid().at(1, 3, 2);
+        BlockPos drill2 = util.grid().at(1, 2, 2);
+        Selection minerTop2 = util.select().fromTo(1, 3, 2, 1, 4, 2);
+        BlockPos depositTopRight = util.grid().at(0, 1, 4);
+        BlockPos depositBottomRight = util.grid().at(0, 1, 0);
 
-        scene.idle(10);
-        scene.world().showSection(deposit1, Direction.DOWN);
-        scene.idle(10);
-        scene.world().showSection(miner1, Direction.DOWN);
-        scene.idle(10);
-        var depItem = new ItemStack(RNSBlocks.IRON_DEPOSIT_BLOCK.get().asItem());
-        var ironNugget = new ItemStack(Items.IRON_NUGGET);
-        var copperNugget = new ItemStack(AllItems.COPPER_NUGGET.get());
+        Selection deposits = util.select().fromTo(0, 1, 0, 4, 1, 4);
+        Selection depositsClaimableByMiner2 = util.select().fromTo(0, 1, 0, 3, 1, 4);
+
+        var depStack = new ItemStack(RNSBlocks.IRON_DEPOSIT_BLOCK.get().asItem());
         ParticleEmitter depositParticle = scene.effects().particleEmitterWithinBlockSpace(
-                new ItemParticleOption(ParticleTypes.ITEM, depItem), util.vector().of(0, 0, 0));
-        scene.effects().emitParticles(miner1.getCenter().subtract(0, 0.5, 0),
-                depositParticle, 2, Integer.MAX_VALUE);
+                new ItemParticleOption(ParticleTypes.ITEM, depStack), Vec3.ZERO);
 
-        scene.world().showSection(nearMinersCog, Direction.NORTH);
-        scene.idle(5);
-        scene.world().showSection(belt, Direction.DOWN);
-        scene.idle(5);
-        scene.world().showSection(kineticsTop, Direction.NORTH);
-        scene.world().showSection(kineticsBottom, Direction.NORTH);
-        scene.idle(5);
-        scene.world().showSection(originCog, Direction.NORTH);
+        int rpm, dur;
 
-        scene.idle(20);
-        scene.overlay().showText(50)
-                .attachKeyFrame()
-                .text("Miners can extract materials from deposits scattered around the world")
-                .pointAt(miner1.getCenter())
-                .placeNearTarget();
-
-        scene.idle(70);
-        scene.overlay().showOutline(PonderPalette.WHITE, new Object(), deposit1, 390);
-
-        scene.idle(20);
-        scene.overlay().showText(50)
-                .attachKeyFrame()
-                .text("Miner Mk.1 can claim deposit blocks in a 3x3x1 area below it")
-                .pointAt(deposit1Edge.getCenter())
-                .placeNearTarget();
-
-        scene.idle(70);
-        scene.overlay().showText(90)
-                .attachKeyFrame()
-                .text("Its throughput and yield types depend on which deposit blocks it claimed")
-                .pointAt(util.select().position(miner1Above).getCenter())
-                .placeNearTarget();
-
-        scene.idle(90);
-        scene.world().createItemOnBelt(miner1Above, Direction.UP, ironNugget);
-
-        scene.idle(20);
-        scene.world().createItemOnBelt(miner1Above, Direction.UP, ironNugget);
-
-        scene.idle(20);
-        scene.world().createItemOnBelt(miner1Above, Direction.UP, copperNugget);
-
+        scene.configureBasePlate(0, 0, 5);
+        scene.showBasePlate();
         scene.idle(10);
-        scene.world().showSection(deposit2, Direction.EAST);
-        scene.world().showSection(miner2, Direction.EAST);
-        scene.idle(5);
-        scene.effects().emitParticles(miner2.getCenter().subtract(0, 0.5, 0),
-                depositParticle, 2, 115);
 
+        scene.world().showSection(deposits, Direction.NORTH);
         scene.idle(15);
-        scene.overlay().showOutline(PonderPalette.WHITE, new Object(), deposit2, 100);
+
+        scene.overlay().showText(100)
+                .pointAt(util.vector().topOf(depositUnderBearing))
+                .attachKeyFrame()
+                .placeNearTarget()
+                .sharedText(ServerConfig.infiniteDeposits ? "mining_infinite" : "mining_finite");
+        scene.idle(100);
+
+        scene.world().showSection(util.select().position(bearing), Direction.NORTH);
         scene.idle(10);
-        scene.overlay().showText(70)
-                .attachKeyFrame()
-                .text("A deposit block cannot be claimed by more than one miner at a time")
-                .pointAt(deposit1Edge.getCenter())
-                .placeNearTarget();
 
-        scene.idle(90);
-        scene.world().hideSection(deposit2, Direction.WEST);
-        scene.world().hideSection(miner2, Direction.WEST);
-
-        scene.idle(40);
-        scene.world().replaceBlocks(deposit1Edge, RNSBlocks.REDSTONE_DEPOSIT_BLOCK.getDefaultState(), true);
-        scene.overlay().showOutline(PonderPalette.WHITE, new Object(), deposit1.substract(deposit1Edge), 90);
-
-        scene.idle(20);
         scene.overlay().showText(50)
+                .pointAt(util.vector().blockSurface(bearing, Direction.WEST))
                 .attachKeyFrame()
-                .text("Miner Mk.1 can only mine basic deposits")
-                .pointAt(deposit1Edge.getCenter())
-                .placeNearTarget();
+                .placeNearTarget()
+                .text("Miner bearings create contraptions used for mining");
+        scene.idle(60);
 
+        var drillLink = scene.world().showIndependentSection(util.select().position(drill), Direction.NORTH);
+        scene.idle(20);
+        scene.overlay().showText(100)
+                .pointAt(util.vector().blockSurface(drill, Direction.WEST))
+                .attachKeyFrame()
+                .placeNearTarget()
+                .text("Each miner contraption must have exactly one drill head directly underneath in order to function");
+        scene.idle(120);
+
+        scene.overlay().showText(60)
+                .pointAt(util.vector().blockSurface(drill, Direction.WEST))
+                .attachKeyFrame()
+                .placeNearTarget()
+                .text("When assembled, the miner claims deposit blocks below in a certain area");
         scene.idle(70);
-        scene.world().moveSection(bpLink, new Vec3(0, -4, 0), 20);
 
+        scene.overlay().showControls(util.vector().topOf(bearing).subtract(.5, 0, 0), Pointing.DOWN, 10)
+                .rightClick();
+        scene.idle(10);
+
+        scene.overlay().showOutline(PonderPalette.GREEN, new Object(), deposits, 60);
+        rpm = 100;
+        dur = 300;
+        scene.world().rotateBearing(bearing, calcAngle(rpm, dur), dur);
+        scene.world().rotateSection(drillLink, 0, calcAngle(rpm, dur), 0, dur);
+        scene.world().setKineticSpeed(util.select().position(bearing), rpm);
+        scene.effects().emitParticles(underDrill, depositParticle, 2, dur);
+        scene.idle(60);
+
+        scene.world().setKineticSpeed(kinetics, rpm);
+        scene.world().setKineticSpeed(minerTop2, -rpm);
+        scene.world().showSection(kinetics, Direction.EAST);
+        scene.world().showSection(minerTop2, Direction.EAST);
+        var drillLink2 = scene.world().showIndependentSection(util.select().position(drill2), Direction.EAST);
+        scene.idle(10);
+
+        scene.overlay().showText(110)
+                .pointAt(util.vector().blockSurface(depositTopRight, Direction.WEST))
+                .attachKeyFrame()
+                .placeNearTarget()
+                .text("Each deposit block can only be claimed by a single miner");
+        scene.idle(40);
+
+        scene.overlay().showControls(util.vector().topOf(bearing2).subtract(.5, 0, 0), Pointing.DOWN, 10)
+                .rightClick();
+        scene.idle(5);
+
+        scene.overlay().showOutline(PonderPalette.RED, new Object(), depositsClaimableByMiner2, 75);
+        rpm = -100;
+        dur = 190;
+        scene.world().rotateBearing(bearing2, calcAngle(rpm, dur), dur);
+        scene.world().rotateSection(drillLink2, 0, calcAngle(rpm, dur), 0, dur);
+        scene.world().setKineticSpeed(minerTop2, rpm);
         scene.idle(20);
-        scene.world().setBlocks(deposit3, RNSBlocks.IRON_DEPOSIT_BLOCK.getDefaultState(), false);
-        ElementLink<WorldSectionElement> deposit3Link = scene.world().showIndependentSection(deposit3, Direction.NORTH);
-        scene.world().moveSection(deposit3Link, new Vec3(0, 1, 0), 0);
 
+        scene.overlay().showControls(util.vector().centerOf(depositBottomRight).subtract(1, 0, 0), Pointing.LEFT, 50)
+                .showing(AllIcons.I_MTD_CLOSE);
+        scene.idle(60);
+        scene.world().hideIndependentSection(drillLink2, Direction.WEST);
+        scene.world().hideSection(minerTop2, Direction.WEST);
+        scene.idle(30);
+
+        var cobblestone = new ItemStack(Items.COBBLESTONE);
+        var cobblePos = drill.getCenter().add(new Vec3(-1.2, -0.2, 1.5));
+        var nugget = new ItemStack(Items.IRON_NUGGET);
+        var nuggetPos = drill.getCenter().add(new Vec3(-1.5, -0.2, 1.5));
+        scene.world().createItemEntity(cobblePos, Vec3.ZERO, cobblestone);
+        scene.idle(3);
+        scene.world().createItemEntity(nuggetPos, Vec3.ZERO, nugget);
+        scene.idle(10);
+
+        scene.overlay().showText(375)
+                .pointAt(nuggetPos)
+                .attachKeyFrame()
+                .placeNearTarget()
+                .text("While some items can be mined without additional attachments...")
+                .colored(PonderPalette.BLUE);
+        scene.idle(70);
+
+        scene.world().hideSection(resonators.add(util.select().position(bearingNewPos)), Direction.SOUTH);
+        scene.idle(15);
+
+        scene.world().setBlocks(resonators, RNSBlocks.RESONATOR_BLOCK.getDefaultState(), false);
+        scene.world().setBlock(bearingNewPos, RNSBlocks.MINER_BEARING_BLOCK.getDefaultState().setValue(MinerBearingBlock.FACING, Direction.DOWN), false);
+        scene.world().showSection(util.select().position(bearingNewPos), Direction.NORTH);
+        var resonatorsLink = scene.world().showIndependentSection(resonators, Direction.NORTH);
+        scene.idle(15);
+
+        scene.overlay().showOutline(PonderPalette.GREEN, new Object(), resonators, 175);
         scene.idle(20);
 
+        rpm = 100;
+        dur = 1200;
+        scene.world().setKineticSpeed(util.select().position(bearingNewPos), rpm);
+        scene.world().rotateBearing(bearingNewPos, calcAngle(rpm, dur), dur);
+        scene.world().rotateSection(resonatorsLink, 0, calcAngle(rpm, dur), 0, dur);
+        scene.world().rotateSection(drillLink, 0, calcAngle(rpm, dur), 0, dur);
+        scene.effects().emitParticles(underDrill, depositParticle, 2, dur);
+        scene.idle(45);
+
+        var rawIron = new ItemStack(Items.RAW_IRON);
+        var rawIronPos = drill.getCenter().add(new Vec3(-1.5, -0.2, -1.5));
+        scene.world().createItemEntity(rawIronPos, Vec3.ZERO, rawIron);
+        scene.idle(10);
+
+        scene.overlay().showText(200)
+                .pointAt(rawIronPos)
+                .attachKeyFrame()
+                .placeNearTarget()
+                .text("Others require an active catalyst")
+                .colored(PonderPalette.GREEN);
+        scene.idle(200);
     }
 }
