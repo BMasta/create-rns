@@ -2,7 +2,9 @@ package com.bmaster.createrns.content.deposit.mining.contraption.attachment.reso
 
 import com.bmaster.createrns.RNSBlockEntities;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.FaceAttachedMinerComponentBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferBlock;
 import com.simibubi.create.AllShapes;
+import com.simibubi.create.content.contraptions.bearing.BearingContraption;
 import com.simibubi.create.foundation.block.IBE;
 import net.createmod.catnip.math.VoxelShaper;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -20,6 +22,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class ResonancePropagatorBlock extends FaceAttachedMinerComponentBlock implements IBE<ResonancePropagatorBlockEntity> {
     public static final VoxelShaper SHAPE = new AllShapes.Builder(Block.box(6, 0, 6, 10, 14, 10)).forDirectional();
+
+    public static int countInContraption(BearingContraption contraption) {
+        var count = 0;
+        for (var info : contraption.getBlocks().values()) {
+            if (info.state().getBlock() instanceof ResonancePropagatorBlock) {
+                count++;
+            }
+        }
+        return count;
+    }
 
     public ResonancePropagatorBlock(Properties properties) {
         super(properties);

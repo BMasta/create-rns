@@ -3,6 +3,7 @@ package com.bmaster.createrns.content.deposit.mining.contraption.attachment;
 import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.propagator.ResonancePropagatorBlock;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.FluidCatalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ResonanceCatalyst;
@@ -30,6 +31,7 @@ public class EquipmentManager {
     public final BlockPos drillHeadPos;
     public final ObjectOpenHashSet<Catalyst> catalysts = new ObjectOpenHashSet<>();
     public final int bufferCount;
+    public final int propagatorCount;
 
     protected final MinerBearingBlockEntity bearing;
     protected final BearingContraption contraption;
@@ -76,6 +78,7 @@ public class EquipmentManager {
         this.drillHeadPos = drillHeadPos;
 
         this.bufferCount = ResonanceBufferBlock.countInContraption(contraption);
+        this.propagatorCount = ResonancePropagatorBlock.countInContraption(contraption);
 
         var rc = ResonanceCatalyst.fromContraption(contraption);
         if (rc != null) catalysts.add(rc);

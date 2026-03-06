@@ -164,6 +164,11 @@ public class GoggleTooltipModifiers {
             CreateRNS.lang().space().forGoggles(tooltip);
         }
 
+        CreateRNS.lang()
+                .translate("mining.area", spec.miningArea().radius() * 2 + 1, spec.miningArea().length())
+                .style(ChatFormatting.GRAY)
+                .forGoggles(tooltip);
+
         // Add descriptions contributed by active CRSes
         var aggStats = process.innerProcesses.stream().map(p -> p.catStats).collect(Collectors.toSet());
         var activeCRSes = CatalystUsageStats.getLastSatisfiedCRSes(aggStats);

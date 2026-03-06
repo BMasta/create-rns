@@ -4,7 +4,6 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSRecipes;
 import com.bmaster.createrns.content.deposit.info.DepositSpec;
 import com.bmaster.createrns.content.deposit.info.IDepositIndex;
-import com.bmaster.createrns.content.deposit.mining.MinerSpec;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositWorldgenProvider;
 import com.bmaster.createrns.data.pack.DynamicDatapack;
@@ -28,7 +27,6 @@ public class ServerModEvents {
     @SubscribeEvent
     public static void onNewRegistry(DataPackRegistryEvent.NewRegistry e) {
         e.dataPackRegistry(DepositSpec.REGISTRY_KEY, DepositSpec.CODEC, DepositSpec.CODEC);
-        e.dataPackRegistry(MinerSpec.REGISTRY_KEY, MinerSpec.CODEC, MinerSpec.CODEC);
         e.dataPackRegistry(CatalystRequirementSet.REGISTRY_KEY, CatalystRequirementSet.CODEC, CatalystRequirementSet.CODEC);
     }
 

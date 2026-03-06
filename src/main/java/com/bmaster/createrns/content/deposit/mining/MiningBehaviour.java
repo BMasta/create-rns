@@ -6,6 +6,7 @@ import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRende
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.bmaster.createrns.content.deposit.info.IDepositIndex;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
+import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
@@ -26,7 +27,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @ParametersAreNonnullByDefault
-public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlockClaimer {
+public abstract class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlockClaimer {
     public static final BehaviourType<MiningBehaviour> BEHAVIOUR_TYPE = new BehaviourType<>(CreateRNS.ID + ":mining");
     public static final ClaimerType CLAIMER_TYPE = new ClaimerType(CreateRNS.ID + ":mining");
 
@@ -47,6 +48,8 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
         kBE = be;
         this.claimingDirection = claimingDirection;
     }
+
+    protected abstract boolean tryInitSpec();
 
     @Override
     public void initialize() {
@@ -118,7 +121,7 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
     }
 
     public @Nullable MinerSpec getSpec() {
-        if (spec == null && !refreshSpec()) return null;
+        if (spec == null && !tryInitSpec()) return null;
         return spec;
     }
 
@@ -143,7 +146,7 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
     }
 
     @Override
-    public @Nullable ClaimingAreaSpec getClaimingAreaSpec() {
+    public @Nullable ClaimingArea getClaimingArea() {
         var spec = getSpec();
         if (spec == null) return null;
         return spec.miningArea();
@@ -182,7 +185,7 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
     @Override
     public void claimDepositBlocks() {
         var level = getLevel();
-        if (level == null || level.isClientSide || (spec == null & !refreshSpec())) return;
+        if (level == null || level.isClientSide || (spec == null & !tryInitSpec())) return;
         var catalysts = getCatalysts();
         if (catalysts == null) return;
 
@@ -208,8 +211,8 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
     }
 
     public int getCurrentProgressIncrement() {
-        if (spec == null || !refreshSpec()) return 0;
-        return (int) (spec.minesPerHour() * Math.abs(kBE.getSpeed()));
+        if (spec == null || !tryInitSpec()) return 0;
+        return (int) (spec.miningSpeed * Math.abs(kBE.getSpeed()));
     }
 
     public void collect() {
@@ -223,17 +226,10 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
         return new ObjectOpenHashSet<>();
     }
 
-    protected boolean refreshSpec() {
-        var level = getLevel();
-        if (level == null) return false;
-        spec = MinerSpecLookup.get(level.registryAccess(), kBE.getBlockState().getBlock());
-        return true;
-    }
-
     protected boolean tryInitProcess(boolean refresh) {
         if (process != null && !refresh) return true;
         var level = getLevel();
-        if (level == null || (spec == null && !refreshSpec())) return false;
+        if (level == null || (spec == null && !tryInitSpec())) return false;
         for (var bp : claimedDepositBlocks) {
             if (!level.isLoaded(bp)) return false;
         }
@@ -254,4 +250,6 @@ public class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlo
     protected static class PendingClientSync {
         public boolean claimer = false;
     }
+
+    public record MinerSpec(ClaimingArea miningArea, float miningSpeed) {}
 }
