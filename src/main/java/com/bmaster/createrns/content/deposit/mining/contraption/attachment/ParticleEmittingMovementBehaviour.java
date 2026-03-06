@@ -1,22 +1,22 @@
-package com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator;
+package com.bmaster.createrns.content.deposit.mining.contraption.attachment;
 
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlockEntity;
-import com.bmaster.createrns.util.Utils;
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
-import com.simibubi.create.content.contraptions.render.ContraptionMatrices;
-import com.simibubi.create.foundation.virtualWorld.VirtualRenderWorld;
 import com.simibubi.create.infrastructure.config.AllConfigs;
 import net.createmod.catnip.animation.AnimationTickHolder;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
-public class ResonatorMovementBehaviour implements MovementBehaviour {
+public abstract class ParticleEmittingMovementBehaviour implements MovementBehaviour {
+
+    public abstract @Nullable ParticleOptions getParticle(MovementContext context);
+
+    public abstract Vec3 getDisplacement(MovementContext context);
 
     @Override
     public boolean disableBlockEntityRendering() {
@@ -37,30 +37,16 @@ public class ResonatorMovementBehaviour implements MovementBehaviour {
         spawnParticle(context, particleChance);
     }
 
-    @Override
-    @OnlyIn(value = Dist.CLIENT)
-    public void renderInContraption(MovementContext context, VirtualRenderWorld renderWorld,
-                                    ContraptionMatrices matrices, MultiBufferSource buffer) {
-        ResonatorRenderer.renderInContraption(context, renderWorld, matrices, buffer, isActive(context));
-    }
-
     @OnlyIn(value = Dist.CLIENT)
     public void spawnParticle(MovementContext context, float chance) {
+        var particle = getParticle(context);
+        if (particle == null) return;
         if (!(context.contraption instanceof BearingContraption bc)) return;
-        if (!(context.state.getBlock() instanceof AbstractResonatorBlock rb)) return;
         if (context.world.random.nextFloat() < chance) {
-            int displaceX = context.world.random.nextIntBetweenInclusive(-1, 1);
-            int displaceY = context.world.random.nextIntBetweenInclusive(-1, 1);
-            int displaceZ = context.world.random.nextIntBetweenInclusive(-1, 1);
-            var randomDisplacement = new Vec3(
-                    0.5f * displaceX,
-                    0.1f * displaceY,
-                    0.5f * displaceZ
-            );
-            var local = Vec3.atCenterOf(context.localPos).add(randomDisplacement);
+            var displacement = getDisplacement(context);
+            var local = Vec3.atCenterOf(context.localPos).add(displacement);
             var worldPos = bc.entity.toGlobalVector(local, AnimationTickHolder.getPartialTicks());
-
-            context.world.addParticle(rb.getParticle(),
+            context.world.addParticle(particle,
                     worldPos.x,
                     worldPos.y - 1,
                     worldPos.z,

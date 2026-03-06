@@ -136,11 +136,13 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
             baseSpec = MinerSpecLookup.get(level.registryAccess(), bearing.getBlockState().getBlock());
         }
 
+        // TODO: remove miner spec and move these parameters to server config
         int tier = baseSpec.tier();
         int offset = baseSpec.miningArea().offset() + headOffset;
+        int radius = (equipment.bufferCount == 0) ? baseSpec.miningArea().radius() : 2;
 
         spec = new MinerSpec(RNSBlocks.MINER_BEARING_BLOCK.get(), tier, baseSpec.minesPerHour(),
-                new ClaimingAreaSpec(baseSpec.miningArea().radius(), baseSpec.miningArea().length(), offset));
+                new ClaimingAreaSpec(radius, baseSpec.miningArea().length(), offset));
         return true;
     }
 }

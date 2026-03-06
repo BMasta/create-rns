@@ -1,6 +1,6 @@
 package com.bmaster.createrns;
 
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator.ResonanceParticle;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.ResonanceParticle;
 import com.simibubi.create.content.equipment.bell.BasicParticleData;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.Registries;

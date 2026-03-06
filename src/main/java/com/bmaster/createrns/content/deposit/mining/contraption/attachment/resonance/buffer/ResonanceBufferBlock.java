@@ -1,15 +1,11 @@
-package com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator;
+package com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer;
 
-import com.bmaster.createrns.RNSBlockEntities;
 import com.simibubi.create.AllShapes;
-import com.simibubi.create.foundation.block.IBE;
-import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import com.simibubi.create.content.contraptions.bearing.BearingContraption;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -18,33 +14,39 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class AbstractResonatorBlock extends Block implements IBE<ResonatorBlockEntity> {
+public class ResonanceBufferBlock extends Block {
+    public static int countInContraption(BearingContraption contraption) {
+        var count = 0;
+        for (var info : contraption.getBlocks().values()) {
+            if (info.state().getBlock() instanceof ResonanceBufferBlock) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     public static final VoxelShape SHAPE = new AllShapes.Builder(
-            Block.box(0, 0, 0, 16, 4, 16))
-            .add(Block.box(0, 12, 0, 16, 16, 16))
-            .add(Block.box(0, 4, 0, 4, 12, 4))
-            .add(Block.box(0, 4, 12, 4, 12, 16))
-            .add(Block.box(12, 4, 0, 16, 12, 4))
-            .add(Block.box(12, 4, 12, 16, 12, 16))
-            .add(Block.box(5, 4, 5, 11, 12, 11))
+            // Top frame
+            Block.box(0, 13, 0, 16, 16, 3))
+            .add(Block.box(0, 13, 13, 16, 16, 16))
+            .add(Block.box(0, 13, 3, 3, 16, 13))
+            .add(Block.box(13, 13, 3, 16, 16, 13))
+            // Bottom frame
+            .add(Block.box(0, 0, 0, 16, 3, 3))
+            .add(Block.box(0, 0, 13, 16, 3, 16))
+            .add(Block.box(0, 0, 3, 3, 3, 13))
+            .add(Block.box(13, 0, 3, 16, 3, 13))
+            // Vertical bars
+            .add(Block.box(0, 3, 0, 3, 13, 3))
+            .add(Block.box(0, 3, 13, 3, 13, 16))
+            .add(Block.box(13, 3, 0, 16, 13, 3))
+            .add(Block.box(13, 3, 13, 16, 13, 16))
+            // Core
+            .add(Block.box(3, 3, 3, 13, 13, 13))
             .build();
 
-    public abstract PartialModel getShard(boolean active);
-
-    public abstract ParticleOptions getParticle();
-
-    public AbstractResonatorBlock(Properties properties) {
+    public ResonanceBufferBlock(Properties properties) {
         super(properties);
-    }
-
-    @Override
-    public Class<ResonatorBlockEntity> getBlockEntityClass() {
-        return ResonatorBlockEntity.class;
-    }
-
-    @Override
-    public BlockEntityType<? extends ResonatorBlockEntity> getBlockEntityType() {
-        return RNSBlockEntities.RESONATOR_BE.get();
     }
 
     @Override

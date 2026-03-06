@@ -33,22 +33,6 @@ public class RNSMisc {
                     CreateRNS.ID, c -> c
                             .icon(RNSItems.DEPOSIT_SCANNER_ITEM::asStack)
                             .title(CreateRNS.translatable("creativetab"))
-                            .displayItems((pParameters, pOutput) -> {
-                                pOutput.accept(RNSBlocks.MINER_BEARING_BLOCK.get().asItem());
-                                pOutput.accept(RNSBlocks.DRILL_HEAD_BLOCK.get().asItem());
-                                pOutput.accept(RNSBlocks.RESONATOR_BLOCK.get().asItem());
-                                pOutput.accept(RNSBlocks.STABILIZING_RESONATOR_BLOCK.get().asItem());
-                                pOutput.accept(RNSBlocks.SHATTERING_RESONATOR_BLOCK.get().asItem());
-                                pOutput.accept(RNSItems.DEPOSIT_SCANNER_ITEM.get());
-                                pOutput.accept(RNSBlocks.IRON_DEPOSIT_BLOCK.get().asItem());
-                                pOutput.accept(RNSBlocks.COPPER_DEPOSIT_BLOCK.get().asItem());
-                                pOutput.accept(RNSBlocks.ZINC_DEPOSIT_BLOCK.get().asItem());
-                                pOutput.accept(RNSBlocks.GOLD_DEPOSIT_BLOCK.get().asItem());
-                                pOutput.accept(RNSBlocks.REDSTONE_DEPOSIT_BLOCK.get().asItem());
-                                pOutput.accept(RNSBlocks.DEPLETED_DEPOSIT_BLOCK.get().asItem());
-                                pOutput.accept(RNSItems.REDSTONE_SMALL_DUST.get());
-                                pOutput.accept(RNSItems.RESONANT_AMETHYST.get());
-                            })
                             .build())
             .register();
 

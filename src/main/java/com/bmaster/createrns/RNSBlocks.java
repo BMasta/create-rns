@@ -3,11 +3,13 @@ package com.bmaster.createrns;
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadBlock;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonancebuffer.ResonanceBufferBlock;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator.ResonatorBlock;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator.ResonatorMovementBehaviour;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator.ShatteringResonatorBlock;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator.StabilizingResonatorBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.propagator.ResonancePropagatorBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.propagator.ResonancePropagatorMovementBehaviour;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ResonatorBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ResonatorMovementBehaviour;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ShatteringResonatorBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.StabilizingResonatorBlock;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositStructureConfigBuilder;
 import com.simibubi.create.AllBlocks;
@@ -112,8 +114,24 @@ public class RNSBlocks {
     public static final BlockEntry<ResonanceBufferBlock> RESONANCE_BUFFER = CreateRNS.REGISTRATE.block(
                     "resonance_buffer", ResonanceBufferBlock::new)
             .initialProperties(SharedProperties::softMetal)
+            .properties(p -> p.mapColor(MapColor.COLOR_PURPLE))
             .transform(pickaxeOnly())
             .simpleItem()
+            .register();
+
+    public static final BlockEntry<ResonancePropagatorBlock> RESONANCE_PROPAGATOR = CreateRNS.REGISTRATE.block(
+                    "resonance_propagator", ResonancePropagatorBlock::new)
+            .initialProperties(SharedProperties::softMetal)
+            .properties(p -> p
+                    .mapColor(MapColor.COLOR_PURPLE)
+                    .noOcclusion())
+            .transform(pickaxeOnly())
+            .blockstate((c, p) ->
+                    p.horizontalFaceBlock(c.get(), AssetLookup.partialBaseModel(c, p)))
+            .onRegister(movementBehaviour(new ResonancePropagatorMovementBehaviour()))
+            .item()
+            .model(AssetLookup::customItemModel)
+            .build()
             .register();
 
     public static final BlockEntry<DepositBlock> IRON_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(

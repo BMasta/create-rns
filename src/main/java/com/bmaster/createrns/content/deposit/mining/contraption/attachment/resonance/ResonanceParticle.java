@@ -1,4 +1,4 @@
-package com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator;
+package com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance;
 
 import com.simibubi.create.content.equipment.bell.BasicParticleData;
 import com.simibubi.create.content.equipment.bell.CustomRotationParticle;
