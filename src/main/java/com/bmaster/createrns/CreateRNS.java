@@ -44,6 +44,10 @@ public class CreateRNS {
         return Component.translatable(asLangEntry(langSuffix));
     }
 
+    public static MutableComponent translatable(String langPrefix, String langSuffix) {
+        return Component.translatable(asLangEntry(langPrefix, langSuffix));
+    }
+
     public static String asLangEntry(String prefix, String path) {
         return prefix + "." + ID + "." + path;
     }
