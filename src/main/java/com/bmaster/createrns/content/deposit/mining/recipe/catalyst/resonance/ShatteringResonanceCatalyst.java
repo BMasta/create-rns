@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance;
 
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator.ShatteringResonatorBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ShatteringResonatorBlock;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
 import net.minecraft.MethodsReturnNonnullByDefault;
 

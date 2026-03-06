@@ -3,8 +3,8 @@
   "tier": 1,
   "mines_per_hour": 60.0,
   "mining_area": {
-    "radius": 3,
-    "length": 9,
+    "radius": 20,
+    "length": 20,
     "offset": 1
   }
 }

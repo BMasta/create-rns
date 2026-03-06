@@ -1,8 +1,11 @@
 package com.bmaster.createrns;
 
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlockEntity;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator.ResonatorBlockEntity;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonator.ResonatorRenderer;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.propagator.ResonancePropagatorBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.propagator.ResonancePropagatorBlockEntity;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.propagator.ResonancePropagatorRenderer;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ResonatorRenderer;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ResonatorBlockEntity;
 import com.simibubi.create.content.contraptions.bearing.BearingRenderer;
 import com.simibubi.create.content.contraptions.bearing.BearingVisual;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
@@ -21,6 +24,12 @@ public class RNSBlockEntities {
             .validBlocks(RNSBlocks.SHATTERING_RESONATOR_BLOCK)
             .validBlocks(RNSBlocks.STABILIZING_RESONATOR_BLOCK)
             .renderer(() -> ResonatorRenderer::new)
+            .register();
+
+    public static final BlockEntityEntry<ResonancePropagatorBlockEntity> RESONANCE_PROPAGATOR_BE = CreateRNS.REGISTRATE
+            .blockEntity("resonance_propagator", ResonancePropagatorBlockEntity::new)
+            .validBlocks(RNSBlocks.RESONANCE_PROPAGATOR)
+            .renderer(() -> ResonancePropagatorRenderer::new)
             .register();
 
     public static void register() {
