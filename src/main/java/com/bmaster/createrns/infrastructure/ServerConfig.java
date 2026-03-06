@@ -11,21 +11,25 @@ public class ServerConfig {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     // ------------------------------------------------ Config values ----------------------------------------------- //
-    private static final ModConfigSpec.ConfigValue<Float> MINER_MK1_SPEED_CV = BUILDER
+    private static final ModConfigSpec.ConfigValue<Float> MINING_SPEED_CV = BUILDER
             .comment("""
-                     How many mining operations a miner mk1 can complete in one hour
-                     at 256 RPM, with one deposit block claimed, and no deposit multipliers.
-                     Set to 0 to use the value defined in miner spec.\
+                     How many mining operations a miner with no attachments can complete in one hour
+                     at 256 RPM, with one deposit block claimed, and no deposit multipliers.\
                     """)
-            .define("minerMk1Speed", 45f);
+            .define("miningSpeed", 45f);
 
-    private static final ModConfigSpec.ConfigValue<Float> MINER_MK2_SPEED_CV = BUILDER
+    private static final ModConfigSpec.ConfigValue<Integer> MINING_RADIUS_CV = BUILDER
             .comment("""
-                     How many mining operations a miner mk2 can complete in one hour
-                     at 256 RPM, with one deposit block claimed, and no deposit multipliers
-                     Set to 0 to use the value defined in miner spec.\
+                     Radius in which a miner can claim deposit blocks for mining. Radius of 2 results
+                     in a 5x5 square mining area with the drill head in the middle.\
                     """)
-            .define("minerMk2Speed", 45f);
+            .define("miningRadius", 2);
+
+    private static final ModConfigSpec.ConfigValue<Integer> MINING_DEPTH_CV = BUILDER
+            .comment("""
+                     How many blocks deep can a miner claim deposit blocks.\
+                    """)
+            .define("miningDepth", 10);
 
     private static final ModConfigSpec.ConfigValue<Boolean> INFINITE_DEPOSITS_CV = BUILDER
             .define("infiniteDeposits", true);
@@ -33,8 +37,9 @@ public class ServerConfig {
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     // ------------------------------------------------ Baked values ------------------------------------------------ //
-    public static float minerMk1Speed = 0;
-    public static float minerMk2Speed = 0;
+    public static int miningRadius = 0;
+    public static int miningDepth = 0;
+    public static float miningSpeed = 0;
     public static boolean infiniteDeposits = true;
 
     // -------------------------------------------------------------------------------------------------------------- //
@@ -42,8 +47,9 @@ public class ServerConfig {
     static void onLoadReload(ModConfigEvent event) {
         if (event instanceof ModConfigEvent.Unloading) return;
         if (event.getConfig().getSpec() != ServerConfig.SPEC) return;
-        minerMk1Speed = MINER_MK1_SPEED_CV.get();
-        minerMk2Speed = MINER_MK2_SPEED_CV.get();
+        miningSpeed = MINING_SPEED_CV.get();
+        miningRadius = MINING_RADIUS_CV.get();
+        miningDepth = MINING_DEPTH_CV.get();
         infiniteDeposits = INFINITE_DEPOSITS_CV.get();
     }
 }

@@ -2,8 +2,6 @@ package com.bmaster.createrns.content.deposit.claiming;
 
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.util.Utils;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -31,7 +29,7 @@ public interface IDepositBlockClaimer {
 
     Level getLevel();
 
-    @Nullable ClaimingAreaSpec getClaimingAreaSpec();
+    @Nullable IDepositBlockClaimer.ClaimingArea getClaimingArea();
 
     BlockPos getAnchor();
 
@@ -45,7 +43,7 @@ public interface IDepositBlockClaimer {
 
     default @Nullable BoundingBox getClaimingBoundingBox() {
         var level = getLevel();
-        var spec = getClaimingAreaSpec();
+        var spec = getClaimingArea();
         if (spec == null) return null;
         var anchor = getAnchor();
         var dir = getClaimingDirection();
@@ -67,7 +65,7 @@ public interface IDepositBlockClaimer {
 
     default Set<BlockPos> getConfinedDepositVein() {
         var level = getLevel();
-        var spec = getClaimingAreaSpec();
+        var spec = getClaimingArea();
         if (spec == null) return Set.of();
         var anchor = getAnchor();
         var ma = getClaimingBoundingBox();
@@ -137,13 +135,7 @@ public interface IDepositBlockClaimer {
         }
     }
 
-    record ClaimingAreaSpec(int radius, int length, int offset) {
-        public static final Codec<ClaimingAreaSpec> CODEC = RecordCodecBuilder.create(i -> i.group(
-                Codec.intRange(0, Integer.MAX_VALUE).fieldOf("radius").forGetter(ClaimingAreaSpec::radius),
-                Codec.intRange(1, Integer.MAX_VALUE).fieldOf("length").forGetter(ClaimingAreaSpec::length),
-                Codec.INT.fieldOf("offset").forGetter(ClaimingAreaSpec::offset)
-        ).apply(i, ClaimingAreaSpec::new));
-    }
+    record ClaimingArea(int radius, int length, int offset) {}
 
     record ClaimerType(String name) {
         @Override
