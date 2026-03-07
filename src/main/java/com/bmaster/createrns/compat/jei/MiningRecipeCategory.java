@@ -46,17 +46,17 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
     public static final RecipeType<RecipeHolder<MiningRecipe>> JEI_RECIPE_TYPE = RecipeType.createRecipeHolderType(
             CreateRNS.asResource("mining"));
     public static final List<Supplier<? extends ItemStack>> CATALYSTS = List.of(
-            () -> new ItemStack(RNSBlocks.MINER_BEARING_BLOCK.get()),
-            () -> new ItemStack(RNSBlocks.DRILL_HEAD_BLOCK.get()),
-            () -> new ItemStack(RNSBlocks.RESONATOR_BLOCK.get()),
-            () -> new ItemStack(RNSBlocks.SHATTERING_RESONATOR_BLOCK.get()),
-            () -> new ItemStack(RNSBlocks.STABILIZING_RESONATOR_BLOCK.get())
+            () -> new ItemStack(RNSBlocks.MINER_BEARING.get()),
+            () -> new ItemStack(RNSBlocks.DRILL_HEAD.get()),
+            () -> new ItemStack(RNSBlocks.RESONATOR.get()),
+            () -> new ItemStack(RNSBlocks.SHATTERING_RESONATOR.get()),
+            () -> new ItemStack(RNSBlocks.STABILIZING_RESONATOR.get())
     );
 
     private static final Info<MiningRecipe> INFO = new Info<>(
             JEI_RECIPE_TYPE, CreateRNS.translatable("recipe.mining"),
             new EmptyBackground(177, 115),
-            new ItemIcon(() -> new ItemStack(RNSBlocks.MINER_BEARING_BLOCK)),
+            new ItemIcon(() -> new ItemStack(RNSBlocks.MINER_BEARING)),
             (() -> {
                 var level = Minecraft.getInstance().level;
                 if (level == null) return List.of();
