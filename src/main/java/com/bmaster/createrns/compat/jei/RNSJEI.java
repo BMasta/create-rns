@@ -1,8 +1,10 @@
 package com.bmaster.createrns.compat.jei;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.RNSRecipeTypes;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
+import com.bmaster.createrns.infrastructure.ServerConfig;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
@@ -37,6 +39,12 @@ public class RNSJEI implements IModPlugin {
         if (level == null) return;
 
         var recipes = level.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.MINING_RECIPE_TYPE.get());
+        // Hide depleted deposit recipe when infinite deposits are configured
+        if (ServerConfig.infiniteDeposits) {
+            recipes = recipes.stream()
+                    .filter(r -> r.getDepositBlock() != RNSBlocks.DEPLETED_DEPOSIT.get())
+                    .toList();
+        }
         reg.addRecipes(MiningRecipeCategory.JEI_RECIPE_TYPE, recipes);
 
         var crsRegistry = level.registryAccess().registryOrThrow(CatalystRequirementSet.REGISTRY_KEY);

@@ -26,10 +26,11 @@ public class AnimatedMiner extends AnimatedKinetics {
         matrixStack.mulPose(Axis.XP.rotationDegrees(-22.5f));
         matrixStack.mulPose(Axis.YP.rotationDegrees(45f));
         int scale = 16;
+        float angle = getCurrentAngle() * 8;
 
         blockElement(AllPartialModels.SHAFT_HALF)
                 .scale(scale)
-                .rotateBlock(-getCurrentAngle(), 90, 90) //getCurrentAngle()
+                .rotateBlock(-angle, 90, 90)
                 .atLocal(0, -1, 3)
                 .render(graphics);
 
@@ -41,19 +42,19 @@ public class AnimatedMiner extends AnimatedKinetics {
 
         blockElement(AllPartialModels.BEARING_TOP)
                 .scale(scale)
-                .rotateBlock(0, getCurrentAngle(), 180)
+                .rotateBlock(0, angle, 180)
                 .atLocal(0, -1, 3)
                 .render(graphics);
 
         blockElement(AllBlocks.ANDESITE_CASING.getDefaultState())
                 .scale(scale)
-                .rotateBlock(0, getCurrentAngle(), 180)
+                .rotateBlock(0, angle, 180)
                 .atLocal(0, 0, 3)
                 .render(graphics);
 
         blockElement(RNSBlocks.DRILL_HEAD.getDefaultState())
                 .scale(scale)
-                .rotateBlock(0, getCurrentAngle(), 180)
+                .rotateBlock(0, angle, 180)
                 .atLocal(0, 1, 3)
                 .render(graphics);
 

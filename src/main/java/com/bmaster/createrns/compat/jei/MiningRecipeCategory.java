@@ -74,7 +74,7 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
         return (view, tooltip) -> {
             for (var crs : output.crsList) {
                 tooltip.add(CreateRNS.lang()
-                        .translate("jei.required")
+                        .translate("jei.catalyst." + ((crs.optional) ? "optional" : "required"))
                         .space()
                         .add(crs.getNameComponent())
                         .component());
