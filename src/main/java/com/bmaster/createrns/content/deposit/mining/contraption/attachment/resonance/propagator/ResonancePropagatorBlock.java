@@ -2,7 +2,6 @@ package com.bmaster.createrns.content.deposit.mining.contraption.attachment.reso
 
 import com.bmaster.createrns.RNSBlockEntities;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.FaceAttachedMinerComponentBlock;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferBlock;
 import com.simibubi.create.AllShapes;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
 import com.simibubi.create.foundation.block.IBE;

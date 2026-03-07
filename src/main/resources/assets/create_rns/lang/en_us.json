@@ -85,5 +85,9 @@
   "create_rns.ponder.mining.text_3": "When assembled, the miner claims deposit blocks below in a certain area",
   "create_rns.ponder.mining.text_4": "Each deposit block can only be claimed by a single miner",
   "create_rns.ponder.mining.text_5": "While some items can be mined without additional attachments...",
-  "create_rns.ponder.mining.text_6": "Others require an active catalyst"
+  "create_rns.ponder.mining.text_6": "Others require an active catalyst",
+  "create_rns.ponder.extracting.header": "Extracting resources",
+  "create_rns.ponder.extracting.text_1": "Miners work best when running continuously without interruptions",
+  "create_rns.ponder.extracting.text_2": "Adding a portable interface can significantly slow them down",
+  "create_rns.ponder.extracting.text_3": "Controlling interfaces with redstone is key to maximize efficiency"
 }

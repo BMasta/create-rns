@@ -6,7 +6,6 @@ import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRende
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.bmaster.createrns.content.deposit.info.IDepositIndex;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
-import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
