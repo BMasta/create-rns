@@ -27,12 +27,15 @@ public class RNSItems {
                     .save(p))
             .register();
 
-    public static final ItemEntry<Item>
-            RESONANT_AMETHYST = CreateRNS.REGISTRATE.item("resonant_amethyst", Item::new).register(),
+    public static final ItemEntry<Item> RESONANT_AMETHYST = CreateRNS.REGISTRATE.item(
+            "resonant_amethyst", Item::new).register(),
+
+    POLISHED_RESONANT_AMETHYST = CreateRNS.REGISTRATE.item(
+            "polished_resonant_amethyst", Item::new).register(),
 
     // Yoinked from tech reborn
-    REDSTONE_SMALL_DUST = CreateRNS.REGISTRATE.item("redstone_small_dust", Item::new)
-            .register();
+    REDSTONE_SMALL_DUST = CreateRNS.REGISTRATE.item(
+            "redstone_small_dust", Item::new).register();
 
     public static void register() {
     }

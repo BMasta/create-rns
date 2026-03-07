@@ -40,7 +40,7 @@ public class MinerContraption extends BearingContraption {
     @Override
     public boolean searchMovedStructure(Level world, BlockPos pos, @Nullable Direction forcedDirection) throws AssemblyException {
         drillHeadPos = null;
-        if (world.getBlockState(pos).is(RNSBlocks.DRILL_HEAD_BLOCK.get())) {
+        if (world.getBlockState(pos).is(RNSBlocks.DRILL_HEAD.get())) {
             anchor = pos;
             if (bounds == null) bounds = new AABB(BlockPos.ZERO);
             addBlock(world, pos, capture(world, pos));
@@ -74,7 +74,7 @@ public class MinerContraption extends BearingContraption {
                 throw new RNSAssemblyException("wrong_drill_direction");
             }
 
-            if (bs.is(RNSBlocks.DRILL_HEAD_BLOCK.get())) {
+            if (bs.is(RNSBlocks.DRILL_HEAD.get())) {
                 // Multiple drill heads found
                 if (drillHeadPos != null) throw new RNSAssemblyException("not_one_drill");
                 // Local position of the drill differs from origin on an axis the contraption is not facing

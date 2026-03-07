@@ -1,0 +1,23 @@
+{
+  "type": "create:mechanical_crafting",
+  "acceptMirrored": false,
+  "key": {
+    "A": {
+      "item": "create_rns:polished_resonant_amethyst"
+    },
+    "S": {
+      "item": "create:sturdy_sheet"
+    }
+  },
+  "pattern": [
+    " SSS ",
+    "SAAAS",
+    "SAAAS",
+    "SAAAS",
+    " SSS "
+  ],
+  "result": {
+    "count": 2,
+    "item": "create_rns:resonance_buffer"
+  }
+}

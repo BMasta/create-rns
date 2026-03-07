@@ -63,7 +63,7 @@ public class EquipmentManager {
         for (var e : contraption.getBlocks().entrySet()) {
             var pos = e.getKey();
             var bs = e.getValue().state();
-            if (bs.is(RNSBlocks.DRILL_HEAD_BLOCK.get())) {
+            if (bs.is(RNSBlocks.DRILL_HEAD.get())) {
                 drillHeadPos = pos.offset(contraption.anchor);
             }
         }

@@ -40,7 +40,7 @@ import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
 import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
 
 public class RNSBlocks {
-    public static final BlockEntry<MinerBearingBlock> MINER_BEARING_BLOCK = CreateRNS.REGISTRATE.block(
+    public static final BlockEntry<MinerBearingBlock> MINER_BEARING = CreateRNS.REGISTRATE.block(
                     "miner_bearing", MinerBearingBlock::new)
             .initialProperties(SharedProperties::stone)
             .properties(p -> p
@@ -67,7 +67,7 @@ public class RNSBlocks {
             .build()
             .register();
 
-    public static final BlockEntry<DrillHeadBlock> DRILL_HEAD_BLOCK = CreateRNS.REGISTRATE.block(
+    public static final BlockEntry<DrillHeadBlock> DRILL_HEAD = CreateRNS.REGISTRATE.block(
                     "drill_head", DrillHeadBlock::new)
             .initialProperties(() -> Blocks.IRON_BLOCK)
             .properties(p -> p
@@ -87,36 +87,48 @@ public class RNSBlocks {
                     .save(p))
             .register();
 
-    public static final BlockEntry<ResonatorBlock> RESONATOR_BLOCK = CreateRNS.REGISTRATE.block(
+    public static final BlockEntry<ResonatorBlock> RESONATOR = CreateRNS.REGISTRATE.block(
                     "resonator", ResonatorBlock::new)
             .transform(resonatorBlock(MapColor.COLOR_PURPLE))
             .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
-                    .define('A', Items.AMETHYST_SHARD)
-                    .define('R', AllItems.PRECISION_MECHANISM)
-                    .define('C', AllBlocks.BRASS_CASING)
-                    .pattern("A")
-                    .pattern("R")
-                    .pattern("C")
-                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.PRECISION_MECHANISM))
+                    .define('R', RNSItems.POLISHED_RESONANT_AMETHYST)
+                    .define('A', AllItems.ANDESITE_ALLOY)
+                    .define('I', AllItems.IRON_SHEET)
+                    .pattern("AIA")
+                    .pattern("IRI")
+                    .pattern("AIA")
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(RNSItems.POLISHED_RESONANT_AMETHYST))
                     .save(p))
             .register();
 
-    public static final BlockEntry<StabilizingResonatorBlock> STABILIZING_RESONATOR_BLOCK = CreateRNS.REGISTRATE.block(
+    public static final BlockEntry<StabilizingResonatorBlock> STABILIZING_RESONATOR = CreateRNS.REGISTRATE.block(
                     "stabilizing_resonator", StabilizingResonatorBlock::new)
             .transform(resonatorBlock(MapColor.COLOR_CYAN))
+            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
+                    .define('R', RNSBlocks.RESONATOR)
+                    .define('S', AllItems.STURDY_SHEET)
+                    .define('B', AllItems.BRASS_SHEET)
+                    .define('D', Items.DIAMOND)
+                    .pattern("SBS")
+                    .pattern("DRD")
+                    .pattern("SBS")
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(RNSBlocks.RESONATOR))
+                    .save(p))
             .register();
 
-    public static final BlockEntry<ShatteringResonatorBlock> SHATTERING_RESONATOR_BLOCK = CreateRNS.REGISTRATE.block(
+    public static final BlockEntry<ShatteringResonatorBlock> SHATTERING_RESONATOR = CreateRNS.REGISTRATE.block(
                     "shattering_resonator", ShatteringResonatorBlock::new)
             .transform(resonatorBlock(MapColor.COLOR_RED))
-            .register();
-
-    public static final BlockEntry<ResonanceBufferBlock> RESONANCE_BUFFER = CreateRNS.REGISTRATE.block(
-                    "resonance_buffer", ResonanceBufferBlock::new)
-            .initialProperties(SharedProperties::softMetal)
-            .properties(p -> p.mapColor(MapColor.COLOR_PURPLE))
-            .transform(pickaxeOnly())
-            .simpleItem()
+            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
+                    .define('R', RNSBlocks.RESONATOR)
+                    .define('S', AllItems.STURDY_SHEET)
+                    .define('B', AllItems.BRASS_SHEET)
+                    .define('Q', AllItems.POLISHED_ROSE_QUARTZ)
+                    .pattern("SBS")
+                    .pattern("QRQ")
+                    .pattern("SBS")
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(RNSBlocks.RESONATOR))
+                    .save(p))
             .register();
 
     public static final BlockEntry<ResonancePropagatorBlock> RESONANCE_PROPAGATOR = CreateRNS.REGISTRATE.block(
@@ -129,12 +141,29 @@ public class RNSBlocks {
             .blockstate((c, p) ->
                     p.horizontalFaceBlock(c.get(), AssetLookup.partialBaseModel(c, p)))
             .onRegister(movementBehaviour(new ResonancePropagatorMovementBehaviour()))
+            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
+                    .define('A', RNSItems.POLISHED_RESONANT_AMETHYST)
+                    .define('E', AllItems.ELECTRON_TUBE)
+                    .define('C', AllBlocks.BRASS_CASING)
+                    .pattern("A")
+                    .pattern("E")
+                    .pattern("C")
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(RNSBlocks.RESONATOR))
+                    .save(p))
             .item()
             .model(AssetLookup::customItemModel)
             .build()
             .register();
 
-    public static final BlockEntry<DepositBlock> IRON_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
+    public static final BlockEntry<ResonanceBufferBlock> RESONANCE_BUFFER = CreateRNS.REGISTRATE.block(
+                    "resonance_buffer", ResonanceBufferBlock::new)
+            .initialProperties(SharedProperties::softMetal)
+            .properties(p -> p.mapColor(MapColor.COLOR_PURPLE))
+            .transform(pickaxeOnly())
+            .simpleItem()
+            .register();
+
+    public static final BlockEntry<DepositBlock> IRON_DEPOSIT = CreateRNS.REGISTRATE.block(
                     "iron_deposit_block", DepositBlock::new)
             .transform(depositBlock(MapColor.RAW_IRON))
             .onRegister(d -> DepositStructureConfigBuilder
@@ -147,7 +176,7 @@ public class RNSBlocks {
                     .save())
             .register();
 
-    public static final BlockEntry<DepositBlock> COPPER_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
+    public static final BlockEntry<DepositBlock> COPPER_DEPOSIT = CreateRNS.REGISTRATE.block(
                     "copper_deposit_block", DepositBlock::new)
             .transform(depositBlock(MapColor.COLOR_ORANGE))
             .onRegister(d -> DepositStructureConfigBuilder
@@ -160,7 +189,7 @@ public class RNSBlocks {
                     .save())
             .register();
 
-    public static final BlockEntry<DepositBlock> ZINC_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
+    public static final BlockEntry<DepositBlock> ZINC_DEPOSIT = CreateRNS.REGISTRATE.block(
                     "zinc_deposit_block", DepositBlock::new)
             .transform(depositBlock(MapColor.GLOW_LICHEN))
             .onRegister(d -> DepositStructureConfigBuilder
@@ -174,7 +203,7 @@ public class RNSBlocks {
                     .save())
             .register();
 
-    public static final BlockEntry<DepositBlock> GOLD_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
+    public static final BlockEntry<DepositBlock> GOLD_DEPOSIT = CreateRNS.REGISTRATE.block(
                     "gold_deposit_block", DepositBlock::new)
             .transform(depositBlock(MapColor.GOLD))
             .onRegister(d -> DepositStructureConfigBuilder
@@ -188,7 +217,7 @@ public class RNSBlocks {
                     .save())
             .register();
 
-    public static final BlockEntry<DepositBlock> REDSTONE_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
+    public static final BlockEntry<DepositBlock> REDSTONE_DEPOSIT = CreateRNS.REGISTRATE.block(
                     "redstone_deposit_block", DepositBlock::new)
             .transform(depositBlock(MapColor.FIRE))
             .onRegister(d -> DepositStructureConfigBuilder
@@ -202,7 +231,7 @@ public class RNSBlocks {
                     .save())
             .register();
 
-    public static final BlockEntry<DepositBlock> DEPLETED_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
+    public static final BlockEntry<DepositBlock> DEPLETED_DEPOSIT = CreateRNS.REGISTRATE.block(
                     "depleted_deposit_block", DepositBlock::new)
             .transform(depositBlock(MapColor.COLOR_BLACK))
             .register();

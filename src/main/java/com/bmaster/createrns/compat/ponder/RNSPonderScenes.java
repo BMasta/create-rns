@@ -81,15 +81,15 @@ public class RNSPonderScenes {
         var cobblePos = drill.getCenter().add(new Vec3(-1.2, -0.2, 1.5));
         var nuggetPos = drill.getCenter().add(new Vec3(-1.5, -0.2, 1.5));
         var rawIronPos = drill.getCenter().add(new Vec3(-1.5, -0.2, -1.5));
-        var bearingFacingDown = RNSBlocks.MINER_BEARING_BLOCK.getDefaultState().setValue(MinerBearingBlock.FACING, Direction.DOWN);
-        var miner = new MinerContraption(s, util, bearing, drill, sel.position(drill), RNSBlocks.IRON_DEPOSIT_BLOCK.get())
+        var bearingFacingDown = RNSBlocks.MINER_BEARING.getDefaultState().setValue(MinerBearingBlock.FACING, Direction.DOWN);
+        var miner = new MinerContraption(s, util, bearing, drill, sel.position(drill), RNSBlocks.IRON_DEPOSIT.get())
                 .syncKinetics(nearBearingKinetics, false)
                 .syncKinetics(chainDriveKinetics, false)
                 .syncKinetics(verticalShaftKinetics, false)
                 .syncKinetics(sourceCog, true);
-        var miner2 = new MinerContraption(s, util, bearing2, drill2, sel.position(drill2), RNSBlocks.IRON_DEPOSIT_BLOCK.get())
+        var miner2 = new MinerContraption(s, util, bearing2, drill2, sel.position(drill2), RNSBlocks.IRON_DEPOSIT.get())
                 .syncKinetics(miner2Cog, false);
-        var minerAfter = new MinerContraption(s, util, bearingNewPos, drill, resonators.add(sel.position(drill)), RNSBlocks.IRON_DEPOSIT_BLOCK.get())
+        var minerAfter = new MinerContraption(s, util, bearingNewPos, drill, resonators.add(sel.position(drill)), RNSBlocks.IRON_DEPOSIT.get())
                 .syncKinetics(chainDriveKinetics, false)
                 .syncKinetics(verticalShaftKinetics, false)
                 .syncKinetics(sourceCog, true);
@@ -212,7 +212,7 @@ public class RNSPonderScenes {
         w.hideSection(nearBearingKinetics, Direction.SOUTH);
         s.idle(15);
 
-        w.setBlocks(resonators, RNSBlocks.RESONATOR_BLOCK.getDefaultState(), false);
+        w.setBlocks(resonators, RNSBlocks.RESONATOR.getDefaultState(), false);
         w.setBlock(bearingNewPos, bearingFacingDown, false);
         minerAfter.setBearingKinetics(rpm);
         minerAfter.showBearing(Direction.NORTH);
@@ -283,7 +283,7 @@ public class RNSPonderScenes {
             nbt.putFloat("Timer", 4);
         };
         Consumer<CompoundTag> psiOff = nbt -> nbt.putFloat("Timer", 1);
-        MinerContraption miner = new MinerContraption(s, util, bearing, drill, contraption, RNSBlocks.IRON_DEPOSIT_BLOCK.get())
+        MinerContraption miner = new MinerContraption(s, util, bearing, drill, contraption, RNSBlocks.IRON_DEPOSIT.get())
                 .syncKinetics(kineticsTop, false)
                 .syncKinetics(kineticsSide, false)
                 .syncKinetics(sourceCog, false);

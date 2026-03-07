@@ -6,7 +6,7 @@
         "items": [
           {
             "items": [
-              "create_rns:polished_resonant_amethyst"
+              "create_rns:resonator"
             ]
           }
         ]
@@ -15,7 +15,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "create_rns:resonator"
+        "recipe": "create_rns:stabilizing_resonator"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -28,7 +28,7 @@
   ],
   "rewards": {
     "recipes": [
-      "create_rns:resonator"
+      "create_rns:stabilizing_resonator"
     ]
   },
   "sends_telemetry_event": false

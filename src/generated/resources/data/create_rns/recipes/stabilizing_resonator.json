@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "create:brass_sheet"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "R": {
+      "item": "create_rns:resonator"
+    },
+    "S": {
+      "item": "create:sturdy_sheet"
+    }
+  },
+  "pattern": [
+    "SBS",
+    "DRD",
+    "SBS"
+  ],
+  "result": {
+    "item": "create_rns:stabilizing_resonator"
+  },
+  "show_notification": true
+}

@@ -3,19 +3,19 @@
   "category": "misc",
   "key": {
     "A": {
-      "item": "minecraft:amethyst_shard"
+      "item": "create:andesite_alloy"
     },
-    "C": {
-      "item": "create:brass_casing"
+    "I": {
+      "item": "create:iron_sheet"
     },
     "R": {
-      "item": "create:precision_mechanism"
+      "item": "create_rns:polished_resonant_amethyst"
     }
   },
   "pattern": [
-    "A",
-    "R",
-    "C"
+    "AIA",
+    "IRI",
+    "AIA"
   ],
   "result": {
     "item": "create_rns:resonator"
