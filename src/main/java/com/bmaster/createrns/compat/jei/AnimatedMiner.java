@@ -33,7 +33,7 @@ public class AnimatedMiner extends AnimatedKinetics {
                 .atLocal(0, -1, 3)
                 .render(graphics);
 
-        blockElement(RNSBlocks.MINER_BEARING_BLOCK.getDefaultState())
+        blockElement(RNSBlocks.MINER_BEARING.getDefaultState())
                 .scale(scale)
                 .rotateBlock(-90, 0, 0)
                 .atLocal(0, -1, 3)
@@ -51,7 +51,7 @@ public class AnimatedMiner extends AnimatedKinetics {
                 .atLocal(0, 0, 3)
                 .render(graphics);
 
-        blockElement(RNSBlocks.DRILL_HEAD_BLOCK.getDefaultState())
+        blockElement(RNSBlocks.DRILL_HEAD.getDefaultState())
                 .scale(scale)
                 .rotateBlock(0, getCurrentAngle(), 180)
                 .atLocal(0, 1, 3)

@@ -13,15 +13,15 @@ public class RNSBlockEntities {
     public static final BlockEntityEntry<MinerBearingBlockEntity> MINER_BEARING_BE = CreateRNS.REGISTRATE
             .blockEntity("miner_bearing", MinerBearingBlockEntity::new)
             .visual(() -> BearingVisual::new)
-            .validBlocks(RNSBlocks.MINER_BEARING_BLOCK)
+            .validBlocks(RNSBlocks.MINER_BEARING)
             .renderer(() -> BearingRenderer::new)
             .register();
 
     public static final BlockEntityEntry<ResonatorBlockEntity> RESONATOR_BE = CreateRNS.REGISTRATE
             .blockEntity("resonator", ResonatorBlockEntity::new)
-            .validBlocks(RNSBlocks.RESONATOR_BLOCK)
-            .validBlocks(RNSBlocks.SHATTERING_RESONATOR_BLOCK)
-            .validBlocks(RNSBlocks.STABILIZING_RESONATOR_BLOCK)
+            .validBlocks(RNSBlocks.RESONATOR)
+            .validBlocks(RNSBlocks.SHATTERING_RESONATOR)
+            .validBlocks(RNSBlocks.STABILIZING_RESONATOR)
             .renderer(() -> ResonatorRenderer::new)
             .register();
 

@@ -28,9 +28,9 @@ public class CatalystInfoCategory implements IRecipeCategory<CatalystRequirement
     public static final RecipeType<CatalystRequirementSet> JEI_RECIPE_TYPE =
             new RecipeType<>(CreateRNS.asResource("catalyst_info"), CatalystRequirementSet.class);
     public static final List<Supplier<? extends ItemStack>> CATALYSTS = List.of(
-            () -> new ItemStack(RNSBlocks.RESONATOR_BLOCK.get()),
-            () -> new ItemStack(RNSBlocks.SHATTERING_RESONATOR_BLOCK.get()),
-            () -> new ItemStack(RNSBlocks.STABILIZING_RESONATOR_BLOCK.get())
+            () -> new ItemStack(RNSBlocks.RESONATOR.get()),
+            () -> new ItemStack(RNSBlocks.SHATTERING_RESONATOR.get()),
+            () -> new ItemStack(RNSBlocks.STABILIZING_RESONATOR.get())
     );
 
     private static final int WIDTH = 160;
@@ -39,7 +39,7 @@ public class CatalystInfoCategory implements IRecipeCategory<CatalystRequirement
     private final IDrawable icon;
 
     public CatalystInfoCategory() {
-        this.icon = new ItemIcon(() -> new ItemStack(RNSBlocks.RESONATOR_BLOCK));
+        this.icon = new ItemIcon(() -> new ItemStack(RNSBlocks.RESONATOR));
     }
 
     @Override

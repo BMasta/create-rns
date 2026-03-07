@@ -1,0 +1,13 @@
+{
+  "type": "create:sandpaper_polishing",
+  "ingredients": [
+    {
+      "item": "create_rns:resonant_amethyst"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_rns:polished_resonant_amethyst"
+    }
+  ]
+}

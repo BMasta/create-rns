@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "create:brass_sheet"
+    },
+    "Q": {
+      "item": "create:polished_rose_quartz"
+    },
+    "R": {
+      "item": "create_rns:resonator"
+    },
+    "S": {
+      "item": "create:sturdy_sheet"
+    }
+  },
+  "pattern": [
+    "SBS",
+    "QRQ",
+    "SBS"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_rns:shattering_resonator"
+  }
+}
