@@ -12,6 +12,11 @@
       "items": [{"item": "minecraft:cobblestone"}]
     },
     {
+      "chance": 0.0005,
+      "items": [{"item": "create_rns:resonant_amethyst"}],
+      "catalysts": ["overclock"]
+    },
+    {
       "chance": 0.5,
       "items": [{"item": "minecraft:gold_nugget"}],
       "catalysts": ["faint_resonance", "overclock"],
@@ -26,12 +31,6 @@
     {
       "chance": 0.005,
       "items": [{"item": "minecraft:raw_gold_block"}],
-      "catalysts": ["resonance", "overclock"],
-      "jei_slot_color": -8031553
-    },
-    {
-      "chance": 0.0005,
-      "items": [{"item": "create_rns:resonant_amethyst"}],
       "catalysts": ["resonance", "overclock"],
       "jei_slot_color": -8031553
     },
