@@ -12,6 +12,11 @@
       "items": [{"item": "minecraft:cobblestone"}]
     },
     {
+      "chance": 0.0005,
+      "items": [{"item": "create_rns:resonant_amethyst"}],
+      "catalysts": ["overclock"]
+    },
+    {
       "chance": 0.5,
       "items": [{"item": "create_rns:redstone_small_dust"}],
       "catalysts": ["faint_resonance", "overclock"],
