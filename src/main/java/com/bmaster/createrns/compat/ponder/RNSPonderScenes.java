@@ -9,14 +9,15 @@ import com.simibubi.create.content.redstone.diodes.BrassDiodeBlock;
 import com.simibubi.create.content.redstone.diodes.BrassDiodeBlockEntity;
 import com.simibubi.create.foundation.gui.AllIcons;
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
-import com.simibubi.create.foundation.ponder.CreateSceneBuilder.WorldInstructions;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.createmod.catnip.math.Pointing;
 import net.createmod.ponder.api.ParticleEmitter;
 import net.createmod.ponder.api.PonderPalette;
 import net.createmod.ponder.api.element.ElementLink;
 import net.createmod.ponder.api.element.WorldSectionElement;
-import net.createmod.ponder.api.scene.*;
+import net.createmod.ponder.api.scene.SceneBuilder;
+import net.createmod.ponder.api.scene.SceneBuildingUtil;
+import net.createmod.ponder.api.scene.Selection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ItemParticleOption;
@@ -41,223 +42,253 @@ public class RNSPonderScenes {
     }
 
     public static void mining(SceneBuilder builder, SceneBuildingUtil util) {
-        CreateSceneBuilder scene = new CreateSceneBuilder(builder);
-        scene.title("mining", "Mining Deposits");
-        scene.scaleSceneView(0.9f);
+        var sel = util.select();
+        var pos = util.grid();
+        var vec = util.vector();
 
-        BlockPos bearing = util.grid().at(2, 2, 2);
-        BlockPos bearingNewPos = util.grid().at(2, 4, 2);
-        BlockPos drill = util.grid().at(2, 1, 2);
-        Vec3 underDrill = drill.getCenter().subtract(0, 0.5, 0);
-        Selection kinetics = util.select().fromTo(2, 3, 2, 2, 4, 2)
-                .add(util.select().fromTo(2, 5, 2, 4, 5, 2))
-                .add(util.select().fromTo(4, 1, 2, 4, 4, 2));
-        Selection sourceCog = util.select().position(5, 0, 2);
-        Selection resonators = util.select().fromTo(2, 2, 2, 2, 3, 2);
-        BlockPos depositUnderBearing = util.grid().at(2, 0, 2);
+        var s = new CreateSceneBuilder(builder);
+        var w = s.world();
+        var o = s.overlay();
 
-        BlockPos bearing2 = util.grid().at(1, 2, 2);
-        BlockPos drill2 = util.grid().at(1, 1, 2);
-        Selection minerTop2 = util.select().fromTo(1, 2, 2, 1, 3, 2);
-        BlockPos depositTopRight = util.grid().at(0, 0, 4);
-        BlockPos depositBottomRight = util.grid().at(0, 0, 0);
+        s.title("mining", "Mining Deposits");
+        s.scaleSceneView(0.9f);
 
-        Selection deposits = util.select().fromTo(0, 0, 0, 4, 0, 4);
-        Selection depositsClaimableByMiner2 = util.select().fromTo(0, 0, 0, 3, 0, 4);
+        // Positions
+        var bearing = pos.at(2, 2, 2);
+        var bearingNewPos = pos.at(2, 4, 2);
+        var drill = pos.at(2, 1, 2);
+        var bearing2 = pos.at(1, 2, 2);
+        var drill2 = pos.at(1, 1, 2);
+        var depositUnderBearing = pos.at(2, 0, 2);
+        var depositTopRight = pos.at(0, 0, 4);
+        var depositBottomRight = pos.at(0, 0, 0);
 
-        var depStack = new ItemStack(RNSBlocks.IRON_DEPOSIT_BLOCK.get().asItem());
-        ParticleEmitter depositParticle = scene.effects().particleEmitterWithinBlockSpace(
-                new ItemParticleOption(ParticleTypes.ITEM, depStack), Vec3.ZERO);
+        // Selections
+        var sourceCog = sel.position(5, 0, 2);
+        var nearBearingKinetics = sel.fromTo(2, 3, 2, 2, 4, 2);
+        var chainDriveKinetics = sel.fromTo(2, 5, 2, 4, 5, 2);
+        var verticalShaftKinetics = sel.fromTo(4, 1, 2, 4, 4, 2);
+        var resonators = sel.fromTo(2, 2, 2, 2, 3, 2);
+        var miner2Cog = sel.fromTo(1, 3, 2, 1, 3, 2);
+        var deposits = sel.fromTo(0, 0, 0, 4, 0, 4);
+        var depositsClaimableByMiner2 = sel.fromTo(0, 0, 0, 3, 0, 4);
 
-        int rpm, dur;
+        // Other
+        float rpm = 100;
+        var cobblestone = new ItemStack(Items.COBBLESTONE);
+        var nugget = new ItemStack(Items.IRON_NUGGET);
+        var rawIron = new ItemStack(Items.RAW_IRON);
+        var cobblePos = drill.getCenter().add(new Vec3(-1.2, -0.2, 1.5));
+        var nuggetPos = drill.getCenter().add(new Vec3(-1.5, -0.2, 1.5));
+        var rawIronPos = drill.getCenter().add(new Vec3(-1.5, -0.2, -1.5));
+        var bearingFacingDown = RNSBlocks.MINER_BEARING_BLOCK.getDefaultState().setValue(MinerBearingBlock.FACING, Direction.DOWN);
+        var miner = new MinerContraption(s, util, bearing, drill, sel.position(drill), RNSBlocks.IRON_DEPOSIT_BLOCK.get())
+                .syncKinetics(nearBearingKinetics, false)
+                .syncKinetics(chainDriveKinetics, false)
+                .syncKinetics(verticalShaftKinetics, false)
+                .syncKinetics(sourceCog, true);
+        var miner2 = new MinerContraption(s, util, bearing2, drill2, sel.position(drill2), RNSBlocks.IRON_DEPOSIT_BLOCK.get())
+                .syncKinetics(miner2Cog, false);
+        var minerAfter = new MinerContraption(s, util, bearingNewPos, drill, resonators.add(sel.position(drill)), RNSBlocks.IRON_DEPOSIT_BLOCK.get())
+                .syncKinetics(chainDriveKinetics, false)
+                .syncKinetics(verticalShaftKinetics, false)
+                .syncKinetics(sourceCog, true);
 
-        scene.configureBasePlate(0, 0, 5);
-        scene.showBasePlate();
-        scene.idle(15);
+        // Initial kinetics setup
+        w.setKineticSpeed(sourceCog, -rpm);
+        w.setKineticSpeed(nearBearingKinetics, rpm);
+        w.setKineticSpeed(chainDriveKinetics, rpm);
+        w.setKineticSpeed(verticalShaftKinetics, rpm);
+        w.setKineticSpeed(miner2Cog, -rpm);
 
-        scene.overlay().showText(100)
-                .pointAt(util.vector().topOf(depositUnderBearing))
+        s.configureBasePlate(0, 0, 5);
+        s.showBasePlate();
+        w.showSection(sourceCog, Direction.UP);
+        s.idle(15);
+
+        o.showText(100)
+                .pointAt(vec.topOf(depositUnderBearing))
                 .attachKeyFrame()
                 .placeNearTarget()
                 .sharedText(ServerConfig.infiniteDeposits ? "mining_infinite" : "mining_finite");
-        scene.idle(100);
+        s.idle(100);
 
-        scene.world().showSection(util.select().position(bearing), Direction.NORTH);
-        scene.idle(10);
+        miner.showBearing(Direction.NORTH);
+        s.idle(10);
 
-        scene.overlay().showText(50)
-                .pointAt(util.vector().blockSurface(bearing, Direction.WEST))
+        o.showText(50)
+                .pointAt(vec.blockSurface(bearing, Direction.WEST))
                 .attachKeyFrame()
                 .placeNearTarget()
                 .text("Miner bearings create contraptions used for mining");
-        scene.idle(60);
+        s.idle(60);
 
-        var drillLink = scene.world().showIndependentSection(util.select().position(drill), Direction.NORTH);
-        scene.idle(20);
-        scene.overlay().showText(100)
-                .pointAt(util.vector().blockSurface(drill, Direction.WEST))
+        miner.showContraption(Direction.NORTH);
+        s.idle(20);
+
+        o.showText(100)
+                .pointAt(vec.blockSurface(drill, Direction.WEST))
                 .attachKeyFrame()
                 .placeNearTarget()
                 .text("Each miner contraption must have exactly one drill head directly underneath in order to function");
-        scene.idle(80);
-        scene.world().showSection(kinetics, Direction.WEST);
-        scene.world().showSection(sourceCog, Direction.WEST);
-        scene.idle(40);
+        s.idle(80);
 
-        scene.overlay().showText(60)
-                .pointAt(util.vector().blockSurface(drill, Direction.WEST))
+        w.showSection(verticalShaftKinetics, Direction.WEST);
+        s.idle(2);
+
+        w.showSection(chainDriveKinetics, Direction.UP);
+        s.idle(2);
+
+        w.showSection(nearBearingKinetics, Direction.NORTH);
+        s.idle(10);
+
+        miner.setBearingKinetics(rpm);
+        s.idle(20);
+
+        o.showText(60)
+                .pointAt(vec.blockSurface(drill, Direction.WEST))
                 .attachKeyFrame()
                 .placeNearTarget()
                 .text("When assembled, the miner claims deposit blocks below in a certain area");
-        scene.idle(70);
+        s.idle(70);
 
-        scene.overlay().showControls(util.vector().topOf(bearing).subtract(.5, 0, 0), Pointing.DOWN, 10)
+        o.showControls(vec.topOf(bearing).subtract(.5, 0, 0), Pointing.DOWN, 10)
                 .rightClick();
-        scene.idle(10);
+        s.idle(10);
 
-        scene.overlay().showOutline(PonderPalette.GREEN, new Object(), deposits, 60);
-        rpm = 100;
-        dur = 300;
-        scene.world().setKineticSpeed(kinetics, rpm);
-        scene.world().setKineticSpeed(sourceCog, -rpm);
-        scene.world().setKineticSpeed(minerTop2, -rpm);
-        scene.world().rotateBearing(bearing, calcAngle(rpm, dur), dur);
-        scene.world().rotateSection(drillLink, 0, calcAngle(rpm, dur), 0, dur);
-        scene.world().setKineticSpeed(util.select().position(bearing), rpm);
-        scene.effects().emitParticles(underDrill, depositParticle, 2, dur);
-        scene.idle(60);
+        o.showOutline(PonderPalette.GREEN, new Object(), deposits, 60);
+        miner.mine(rpm, 300);
+        s.idle(60);
 
-        scene.world().showSection(minerTop2, Direction.EAST);
-        var drillLink2 = scene.world().showIndependentSection(util.select().position(drill2), Direction.EAST);
-        scene.idle(10);
+        w.showSection(miner2Cog, Direction.EAST);
+        miner2.setBearingKinetics(-rpm);
+        miner2.showBearing(Direction.EAST);
+        miner2.showContraption(Direction.EAST);
+        s.idle(10);
 
-        scene.overlay().showText(110)
-                .pointAt(util.vector().blockSurface(depositTopRight, Direction.WEST))
+        o.showText(110)
+                .pointAt(vec.blockSurface(depositTopRight, Direction.WEST))
                 .attachKeyFrame()
                 .placeNearTarget()
                 .text("Each deposit block can only be claimed by a single miner");
-        scene.idle(40);
+        s.idle(40);
 
-        scene.overlay().showControls(util.vector().topOf(bearing2).subtract(.5, 0, 0), Pointing.DOWN, 10)
+        o.showControls(vec.topOf(bearing2).subtract(.5, 0, 0), Pointing.DOWN, 10)
                 .rightClick();
-        scene.idle(5);
+        s.idle(5);
 
-        scene.overlay().showOutline(PonderPalette.RED, new Object(), depositsClaimableByMiner2, 75);
-        rpm = -100;
-        dur = 190;
-        scene.world().rotateBearing(bearing2, calcAngle(rpm, dur), dur);
-        scene.world().rotateSection(drillLink2, 0, calcAngle(rpm, dur), 0, dur);
-        scene.world().setKineticSpeed(minerTop2, rpm);
-        scene.idle(20);
+        o.showOutline(PonderPalette.RED, new Object(), depositsClaimableByMiner2, 75);
+        miner2.rotate(-rpm, 190);
+        s.idle(20);
 
-        scene.overlay().showControls(util.vector().centerOf(depositBottomRight).subtract(1, 0, 0), Pointing.LEFT, 40)
+        o.showControls(vec.centerOf(depositBottomRight).subtract(1, 0, 0), Pointing.LEFT, 40)
                 .showing(AllIcons.I_MTD_CLOSE);
-        scene.idle(60);
-        scene.world().hideIndependentSection(drillLink2, Direction.WEST);
-        scene.world().hideSection(minerTop2, Direction.WEST);
-        scene.idle(30);
+        s.idle(60);
 
-        var cobblestone = new ItemStack(Items.COBBLESTONE);
-        var cobblePos = drill.getCenter().add(new Vec3(-1.2, -0.2, 1.5));
-        var nugget = new ItemStack(Items.IRON_NUGGET);
-        var nuggetPos = drill.getCenter().add(new Vec3(-1.5, -0.2, 1.5));
-        scene.world().createItemEntity(cobblePos, Vec3.ZERO, cobblestone);
-        scene.idle(3);
-        scene.world().createItemEntity(nuggetPos, Vec3.ZERO, nugget);
-        scene.idle(10);
+        miner2.hideBearing(Direction.WEST);
+        miner2.hideContraption(Direction.WEST);
+        w.hideSection(miner2Cog, Direction.WEST);
+        s.idle(30);
 
-        scene.overlay().showText(365)
+        w.createItemEntity(cobblePos, Vec3.ZERO, cobblestone);
+        s.idle(3);
+        w.createItemEntity(nuggetPos, Vec3.ZERO, nugget);
+        s.idle(10);
+
+        o.showText(365)
                 .pointAt(nuggetPos)
                 .attachKeyFrame()
                 .placeNearTarget()
                 .text("While some items can be mined without additional attachments...")
                 .colored(PonderPalette.BLUE);
-        scene.idle(55);
+        s.idle(55);
 
-        scene.overlay().showControls(util.vector().topOf(bearing).subtract(.5, 0, 0), Pointing.DOWN, 10)
+        o.showControls(vec.topOf(bearing).subtract(.5, 0, 0), Pointing.DOWN, 10)
                 .rightClick();
-        scene.idle(15);
+        s.idle(15);
 
-        scene.world().hideSection(resonators.add(util.select().position(bearingNewPos)), Direction.SOUTH);
-        scene.idle(15);
+        miner.hideBearing(Direction.SOUTH);
+        miner.hideContraption(Direction.SOUTH);
+        w.hideSection(nearBearingKinetics, Direction.SOUTH);
+        s.idle(15);
 
-        scene.world().setBlocks(resonators, RNSBlocks.RESONATOR_BLOCK.getDefaultState(), false);
-        scene.world().setBlock(bearingNewPos, RNSBlocks.MINER_BEARING_BLOCK.getDefaultState().setValue(MinerBearingBlock.FACING, Direction.DOWN), false);
-        scene.world().showSection(util.select().position(bearingNewPos), Direction.NORTH);
-        var resonatorsLink = scene.world().showIndependentSection(resonators, Direction.NORTH);
-        scene.idle(15);
+        w.setBlocks(resonators, RNSBlocks.RESONATOR_BLOCK.getDefaultState(), false);
+        w.setBlock(bearingNewPos, bearingFacingDown, false);
+        minerAfter.setBearingKinetics(rpm);
+        minerAfter.showBearing(Direction.NORTH);
+        minerAfter.showContraption(Direction.NORTH);
+        s.idle(15);
 
-        scene.overlay().showOutline(PonderPalette.GREEN, new Object(), resonators, 270);
-        scene.idle(15);
+        o.showOutline(PonderPalette.GREEN, new Object(), resonators, 270);
+        s.idle(15);
 
-        scene.overlay().showControls(util.vector().blockSurface(bearingNewPos, Direction.WEST), Pointing.LEFT, 10)
-                .rightClick();
-        scene.idle(5);
+        o.showControls(vec.blockSurface(bearingNewPos, Direction.WEST), Pointing.LEFT, 10).rightClick();
+        s.idle(5);
 
-        rpm = 100;
-        dur = Short.MAX_VALUE - 1;
-        scene.world().setKineticSpeed(util.select().position(bearingNewPos), rpm);
-        scene.world().rotateBearing(bearingNewPos, calcAngle(rpm, dur), dur);
-        scene.world().rotateSection(resonatorsLink, 0, calcAngle(rpm, dur), 0, dur);
-        scene.world().rotateSection(drillLink, 0, calcAngle(rpm, dur), 0, dur);
-        scene.effects().emitParticles(underDrill, depositParticle, 2, dur);
-        scene.idle(35);
+        minerAfter.mine(rpm, Short.MAX_VALUE - 1);
+        s.idle(35);
 
-        var rawIron = new ItemStack(Items.RAW_IRON);
-        var rawIronPos = drill.getCenter().add(new Vec3(-1.5, -0.2, -1.5));
-        scene.world().createItemEntity(rawIronPos, Vec3.ZERO, rawIron);
-        scene.idle(10);
+        w.createItemEntity(rawIronPos, Vec3.ZERO, rawIron);
+        s.idle(10);
 
-        scene.overlay().showText(200)
+        o.showText(200)
                 .pointAt(rawIronPos)
                 .attachKeyFrame()
                 .placeNearTarget()
                 .text("Others require an active catalyst")
                 .colored(PonderPalette.GREEN);
-        scene.idle(200);
+        s.idle(200);
     }
 
     public static void extracting(SceneBuilder builder, SceneBuildingUtil util) {
-        SelectionUtil sel = util.select();
-        PositionUtil pos = util.grid();
-        VectorUtil vec = util.vector();
+        var sel = util.select();
+        var pos = util.grid();
+        var vec = util.vector();
 
-        Selection contraption = sel.fromTo(3, 1, 2, 5, 5, 4);
-        BlockPos bearing = pos.at(4, 6, 3);
-        BlockPos drill = pos.at(4, 1, 3);
-        BlockPos outerInterface = pos.at(7, 5, 3);
-        BlockPos contInterface = pos.at(5, 5, 3);
-        Selection outerInterfaceSystem = sel.fromTo(7, 1, 3, 7, 5, 3);
-        Selection interfacePair = sel.position(outerInterface).add(sel.position(contInterface));
+        var s = new CreateSceneBuilder(builder);
+        var w = s.world();
+        var o = s.overlay();
+        s.title("extracting", "Extracting mined resources");
+        s.scaleSceneView(0.65f);
+        s.setSceneOffsetY(-0.8f);
+
+        // Positions
+        var bearing = pos.at(4, 6, 3);
+        var drill = pos.at(4, 1, 3);
+        var outerInterface = pos.at(7, 5, 3);
+        var contInterface = pos.at(5, 5, 3);
+        var timer = pos.at(7, 5, 1);
+        var extender = pos.at(7, 5, 2);
+
+        // Selections
+        var contraption = sel.fromTo(3, 1, 2, 5, 5, 4);
+        var outerInterfaceSystem = sel.fromTo(7, 1, 3, 7, 5, 3);
+        var interfacePair = sel.position(outerInterface).add(sel.position(contInterface));
+        var kineticsTop = sel.fromTo(1, 7, 3, 4, 7, 3);
+        var kineticsSide = sel.fromTo(1, 1, 3, 1, 6, 3);
+        var sourceCog = sel.position(0, 0, 3);
+        var timerSel = sel.position(timer);
+        var extenderSel = sel.position(extender);
+        var redstoneStructure = sel.fromTo(7, 1, 1, 7, 5, 2);
+
+        // Other
+        float rpm = 100;
+        UnaryOperator<BlockState> setPoweringOff = bs -> bs.setValue(BrassDiodeBlock.POWERING, false);
+        UnaryOperator<BlockState> setPoweringOn = bs -> bs.setValue(BrassDiodeBlock.POWERING, true);
+        UnaryOperator<BlockState> setPoweredOff = bs -> bs.setValue(BrassDiodeBlock.POWERED, false);
+        UnaryOperator<BlockState> setPoweredOn = bs -> bs.setValue(BrassDiodeBlock.POWERED, true);
         var psiClass = PortableItemInterfaceBlockEntity.class;
-        Selection kineticsTop = sel.fromTo(1, 7, 3, 4, 7, 3);
-        Selection kineticsSide = sel.fromTo(1, 1, 3, 1, 6, 3);
-        Selection sourceCog = sel.position(0, 0, 3);
-        BlockPos timer = pos.at(7, 5, 1);
-        Selection timerSel = sel.position(timer);
-        BlockPos extender = pos.at(7, 5, 2);
-        Selection extenderSel = sel.position(extender);
-        Selection redstoneStructure = sel.fromTo(7, 1, 1, 7, 5, 2);
-
         Consumer<CompoundTag> psiOn = nbt -> {
             nbt.putFloat("Distance", 1);
             nbt.putFloat("Timer", 4);
         };
         Consumer<CompoundTag> psiOff = nbt -> nbt.putFloat("Timer", 1);
-
-        float rpm = 100;
-
-        CreateSceneBuilder s = new CreateSceneBuilder(builder);
-        WorldInstructions w = s.world();
-        OverlayInstructions o = s.overlay();
-        s.title("exchanging", "Extracting mined resources");
-        s.scaleSceneView(0.65f);
-        s.setSceneOffsetY(-0.8f);
         MinerContraption miner = new MinerContraption(s, util, bearing, drill, contraption, RNSBlocks.IRON_DEPOSIT_BLOCK.get())
                 .syncKinetics(kineticsTop, false)
                 .syncKinetics(kineticsSide, false)
                 .syncKinetics(sourceCog, false);
 
+        // Initial kinetics setup
         w.setKineticSpeed(sourceCog, rpm);
         w.setKineticSpeed(kineticsTop.add(kineticsSide), rpm);
         miner.setBearingKinetics(rpm);
@@ -323,55 +354,49 @@ public class RNSPonderScenes {
         w.modifyBlockEntityNBT(extenderSel, BrassDiodeBlockEntity.class, nbt -> nbt.putInt("ScrollValue", 40));
         w.modifyBlock(extender, bs -> bs.setValue(BrassDiodeBlock.INVERTED, true), false);
 
-        UnaryOperator<BlockState> setPoweringOff = bs -> bs.setValue(BrassDiodeBlock.POWERING, false);
-        UnaryOperator<BlockState> setPoweringOn = bs -> bs.setValue(BrassDiodeBlock.POWERING, true);
-        UnaryOperator<BlockState> setPoweredOff = bs -> bs.setValue(BrassDiodeBlock.POWERED, false);
-        UnaryOperator<BlockState> setPoweredOn = bs -> bs.setValue(BrassDiodeBlock.POWERED, true);
+        // First pass of redstone-assisted miner loop
+        w.showSection(redstoneStructure, Direction.SOUTH);
+        s.idle(10);
 
+        o.showText(56)
+                .pointAt(timer.getCenter().subtract(0, 0.3, 0))
+                .attachKeyFrame()
+                .placeNearTarget()
+                .text("Controlling interfaces with redstone is key to maximize efficiency");
+        s.idle(66);
+
+        s.addKeyframe();
+        o.showControls(vec.blockSurface(bearing, Direction.NORTH).add(0, 0.2, 0), Pointing.RIGHT, 10)
+                .rightClick();
+        s.idle(4);
+
+        miner.mine(rpm, 85);
+        s.idle(80);
+
+        // Loop the same thing, but without decorations
         for (int i = 0; i < 50; ++i) {
-            if (i == 0) {
-                w.showSection(redstoneStructure, Direction.SOUTH);
-                s.idle(10);
+            w.cycleBlockProperty(timer, BrassDiodeBlock.POWERING);          // Timer pulse on
+            s.idle(1);
 
-                o.showText(56)
-                        .pointAt(timer.getCenter().subtract(0, 0.3, 0))
-                        .attachKeyFrame()
-                        .placeNearTarget()
-                        .text("Controlling interfaces with redstone is key to maximize efficiency");
-                s.idle(66);
+            w.cycleBlockProperty(timer, BrassDiodeBlock.POWERING);          // Timer pulse off
+            w.modifyBlock(extender, setPoweredOn, false);      // Extender input on
+            s.idle(1);
 
-                s.addKeyframe();
-                o.showControls(vec.blockSurface(bearing, Direction.NORTH).add(0, 0.2, 0), Pointing.RIGHT, 10)
-                        .rightClick();
-                s.idle(4);
-            } else {
-                w.cycleBlockProperty(timer, BrassDiodeBlock.POWERING);          // Timer pulse on
-                s.idle(1);
+            w.modifyBlock(extender, setPoweredOff, false);     // Extender input off
+            w.modifyBlock(extender, setPoweringOn, false);     // Extender output on
+            s.idle(3);
 
-                w.cycleBlockProperty(timer, BrassDiodeBlock.POWERING);          // Timer pulse off
-                w.modifyBlock(extender, setPoweredOn, false);      // Extender input on
-                s.idle(1);
+            w.modifyBlockEntityNBT(interfacePair, psiClass, psiOn);         // Extend interfaces | Mining off
+            s.idle(37);
 
-                w.modifyBlock(extender, setPoweredOff, false);     // Extender input off
-                w.modifyBlock(extender, setPoweringOn, false);     // Extender output on
-                s.idle(3);
+            w.modifyBlock(extender, setPoweringOff, false);    // Extender output off
+            s.idle(2);
 
-                w.modifyBlockEntityNBT(interfacePair, psiClass, psiOn);         // Extend interfaces
-                s.idle(37);
+            w.modifyBlockEntityNBT(interfacePair, psiClass, psiOff);        // Retract interfaces | Mining on
+            miner.mine(rpm, 121);
+            s.idle(116);
 
-                w.modifyBlock(extender, setPoweringOff, false);    // Extender output off
-                s.idle(2);
-
-                w.modifyBlockEntityNBT(interfacePair, psiClass, psiOff);        // Retract interfaces
-                miner.mine(rpm, 36);
-                s.idle(13);
-
-                if (i == 1) s.markAsFinished();
-                s.idle(23);
-            }
-
-            miner.mine(rpm, 85);
-            s.idle(80);
+            if (i == 0) s.markAsFinished();
         }
     }
 
@@ -423,8 +448,8 @@ public class RNSPonderScenes {
             scene.world().setKineticSpeed(util.select().position(bearing), rpm);
         }
 
-        public float rotate(int angle, int dur) {
-            if (contraptionLink == null) return 0f;
+        public void rotate(int angle, int dur) {
+            if (contraptionLink == null) return;
             float rpm = calcRpm(angle, dur);
             setBearingKinetics(rpm);
             scene.world().rotateBearing(bearing, angle, dur);
@@ -432,34 +457,23 @@ public class RNSPonderScenes {
             for (var k : syncedKinetics.entrySet()) {
                 scene.world().setKineticSpeed(k.getKey(), k.getValue() ? -rpm : rpm);
             }
-            return rpm;
         }
 
-        public float rotate(float rpm, int dur) {
-            if (contraptionLink == null) return 0f;
-            int angle = calcAngle(rpm, dur);
-            float newRpm = calcRpm(angle, dur);
-            scene.world().rotateBearing(bearing, angle, dur);
-            scene.world().rotateSection(contraptionLink, 0, angle, 0, dur);
-            setBearingKinetics(newRpm);
-            for (var k : syncedKinetics.entrySet()) {
-                scene.world().setKineticSpeed(k.getKey(), k.getValue() ? -newRpm : newRpm);
-            }
-            return newRpm;
+        public void rotate(float rpm, int dur) {
+            if (contraptionLink == null) return;
+            rotate(calcAngle(rpm, dur), dur);
         }
 
-        public float mine(int angle, int dur) {
-            if (contraptionLink == null) return 0f;
-            float newRpm = rotate(angle, dur);
+        public void mine(int angle, int dur) {
+            if (contraptionLink == null) return;
+            rotate(angle, dur);
             scene.effects().emitParticles(drill.getCenter().subtract(0, 0.5, 0), particle, 2, dur);
-            return newRpm;
         }
 
-        public float mine(float rpm, int dur) {
-            if (contraptionLink == null) return 0f;
-            float newRpm = rotate(rpm, dur);
+        public void mine(float rpm, int dur) {
+            if (contraptionLink == null) return;
+            rotate(rpm, dur);
             scene.effects().emitParticles(drill.getCenter().subtract(0, 0.5, 0), particle, 2, dur);
-            return newRpm;
         }
     }
 }
