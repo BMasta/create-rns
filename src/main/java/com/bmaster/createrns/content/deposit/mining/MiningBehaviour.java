@@ -5,6 +5,7 @@ import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
+import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
@@ -20,7 +21,6 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -32,12 +32,9 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
 
     protected final KineticBlockEntity kBE;
     protected final Supplier<Direction> claimingDirection;
-    protected Set<BlockPos> claimedDepositBlocks = new HashSet<>();
+    protected @Nullable Set<BlockPos> claimedDepositBlocks = null;
     protected MinerSpec spec = null;
     protected MiningProcess process = null;
-
-    // Used by server to keep track of what needs to be synced on next client packet
-    protected PendingClientSync pendingSync = new PendingClientSync();
 
     // Used by client to defer process sync until it is initialized
     protected Tuple<CompoundTag, Boolean> pendingProcessTag = null;
@@ -82,10 +79,7 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
     @Override
     public void write(CompoundTag nbt, HolderLookup.Provider provider, boolean clientPacket) {
         super.write(nbt, provider, clientPacket);
-        if (!clientPacket || pendingSync.claimer) {
-            nbt.put("claimer", serializeDepositBlockClaimer(provider));
-            if (clientPacket) pendingSync.claimer = false;
-        }
+        if (claimedDepositBlocks != null) nbt.put("claimer", serializeDepositBlockClaimer(provider));
         if (process != null || tryInitProcess(false)) {
             var processNBT = process.write(provider, clientPacket);
             if (processNBT != null) nbt.put("process", processNBT);
@@ -97,13 +91,7 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
         super.read(nbt, provider, clientPacket);
 
         if (nbt.get("claimer") instanceof CompoundTag claimerTag) {
-            // Clients wouldn't have the claimed blocks in their nbt a sync packet is needed.
-            if (!clientPacket) pendingSync.claimer = true;
             deserializeDepositBlockClaimer(provider, claimerTag);
-            // When claimer changes, mining process is no longer accurate. Re-initialization is needed.
-            tryInitProcess(true);
-            var pos = getPos();
-            CreateRNS.LOGGER.trace("Synced area of miner at {}, {}, {}", pos.getX(), pos.getY(), pos.getZ());
         }
 
         if (nbt.contains("process")) {
@@ -162,12 +150,11 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
 
     @Override
     public Set<BlockPos> getClaimedDepositBlocks() {
-        return claimedDepositBlocks;
+        return (claimedDepositBlocks != null) ? claimedDepositBlocks : Set.of();
     }
 
     @Override
     public void setClaimedDepositBlocks(Set<BlockPos> claimedBlocks) {
-        if (claimedDepositBlocks.equals(claimedBlocks)) return;
         claimedDepositBlocks = claimedBlocks;
 
         // Recompute mining process based on claimed mining area
@@ -175,9 +162,11 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
 
         var level = getLevel();
         if (level != null && !level.isClientSide) {
-            pendingSync.claimer = true;
             kBE.notifyUpdate();
         }
+
+        var pos = getPos();
+        CreateRNS.LOGGER.trace("Synced area of miner at {}, {}, {}", pos.getX(), pos.getY(), pos.getZ());
     }
 
     @Override
@@ -199,7 +188,6 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
             level.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get()).initDepositVeinDurability(bp);
         }
 
-        pendingSync.claimer = true;
         kBE.notifyUpdate();
     }
 
@@ -222,7 +210,7 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
     protected boolean tryInitProcess(boolean refresh) {
         if (process != null && !refresh) return true;
         var level = getLevel();
-        if (level == null || (spec == null && !tryInitSpec())) return false;
+        if (level == null || (spec == null && !tryInitSpec()) || claimedDepositBlocks == null) return false;
         for (var bp : claimedDepositBlocks) {
             if (!level.isLoaded(bp)) return false;
         }
@@ -238,10 +226,6 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
         }
 
         return true;
-    }
-
-    protected static class PendingClientSync {
-        public boolean claimer = false;
     }
 
     public record MinerSpec(ClaimingArea miningArea, float miningSpeed) {}

@@ -34,7 +34,7 @@ public class DepositScannerClientHandler {
         if (p == null) return;
         state.depositFound = false;
         state.isTracking = false;
-        if (playSound) RNSSoundEvents.SCANNER_CLICK.playInHand(p.level(), p.blockPosition());
+        if (playSound) RNSSoundEvents.SCANNER_CLICK.playClient(p.level(), p.blockPosition());
     }
 
     public static void discoverDeposit() {
@@ -42,8 +42,8 @@ public class DepositScannerClientHandler {
         if (p == null) return;
         // Server limits how often it processes discover requests. It will be a no-op if called too soon.
         PacketDistributor.sendToServer(new DepositScannerC2SPayload(getSelectedItem(), RequestType.DISCOVER));
-        RNSSoundEvents.SCANNER_CLICK.playInHand(p.level(), p.blockPosition());
-        RNSSoundEvents.SCANNER_DISCOVERY_PING.playInHand(p.level(), p.blockPosition());
+        RNSSoundEvents.SCANNER_CLICK.playClient(p.level(), p.blockPosition());
+        RNSSoundEvents.SCANNER_DISCOVERY_PING.playClient(p.level(), p.blockPosition());
         DepositScannerItemRenderer.shakeItem();
     }
 
@@ -111,7 +111,7 @@ public class DepositScannerClientHandler {
         state.trackingStateUpdatePending = false;
 
         if (state.isTracking) {
-            RNSSoundEvents.SCANNER_DISCOVERY_SUCCESS.playInHand(p.level(), p.blockPosition());
+            RNSSoundEvents.SCANNER_DISCOVERY_SUCCESS.playClient(p.level(), p.blockPosition());
         }
     }
 
@@ -143,7 +143,7 @@ public class DepositScannerClientHandler {
 
         if (state.depositFound) {
             // FWOOMP!
-            RNSSoundEvents.DEPOSIT_FOUND.playInHand(p.level(), p.blockPosition());
+            RNSSoundEvents.DEPOSIT_FOUND.playClient(p.level(), p.blockPosition());
             DepositScannerItemRenderer.shakeItem();
             return;
         }
@@ -153,7 +153,7 @@ public class DepositScannerClientHandler {
         // Play ding
         int max = DepositScannerServerHandler.MAX_PING_INTERVAL - DepositScannerServerHandler.MIN_PING_INTERVAL;
         float pitchMultiplier = 1 - ((float) (state.pingInterval - DepositScannerServerHandler.MIN_PING_INTERVAL) / max);
-        RNSSoundEvents.SCANNER_TRACKING_PING.playInHand(p.level(), p.blockPosition(), 1f,
+        RNSSoundEvents.SCANNER_TRACKING_PING.playClient(p.level(), p.blockPosition(), 1f,
                 0.8f + 0.4f * pitchMultiplier, true);
     }
 
@@ -163,7 +163,7 @@ public class DepositScannerClientHandler {
 
         cancelTracking(false);
 
-        RNSSoundEvents.SCANNER_SCROLL.playInHand(player.level(), player.blockPosition());
+        RNSSoundEvents.SCANNER_SCROLL.playClient(player.level(), player.blockPosition());
 
         var dRL = DepositSpecLookup.getStructureKey(player.level().registryAccess(), getSelectedItem().getItem()).location();
         var dName = Component.translatable(dRL.getNamespace() + ".structure." + dRL.getPath());

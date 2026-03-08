@@ -5,6 +5,7 @@ import com.bmaster.createrns.RNSItems;
 import com.bmaster.createrns.RNSParticleTypes;
 import com.bmaster.createrns.compat.ponder.RNSPonderPlugin;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
+import com.bmaster.createrns.content.deposit.mining.MinerEffectsGenerator;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
@@ -26,6 +27,7 @@ public class ClientEvents {
     public static void clientTick(ClientTickEvent.Pre event) {
         DepositScannerClientHandler.tick();
         DepositClaimerOutlineRenderer.tick();
+        MinerEffectsGenerator.globalTick();
     }
 
     @SubscribeEvent
@@ -59,6 +61,7 @@ public class ClientEvents {
     public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut e) {
         DepositScannerClientHandler.clearState();
         DepositClaimerOutlineRenderer.clearOutline();
+        MinerEffectsGenerator.clearState();
     }
 
     @SubscribeEvent
