@@ -29,7 +29,7 @@ public abstract class ParticleEmittingMovementBehaviour implements MovementBehav
         if (!isActive(context) || !(context.contraption instanceof BearingContraption bc)) return;
         var bearing = getBearing(context);
         if (bearing == null) return;
-        var equipment = bearing.getEquipmentManager();
+        var equipment = bearing.miningBehaviour.equipment;
         if (equipment == null) return;
 
         float rotationRatio = Math.abs(bearing.getSpeed() / AllConfigs.server().kinetics.maxRotationSpeed.get());
@@ -38,20 +38,21 @@ public abstract class ParticleEmittingMovementBehaviour implements MovementBehav
     }
 
     @OnlyIn(value = Dist.CLIENT)
-    public void spawnParticle(MovementContext context, float chance) {
+    public boolean spawnParticle(MovementContext context, float chance) {
         var particle = getParticle(context);
-        if (particle == null) return;
-        if (!(context.contraption instanceof BearingContraption bc)) return;
-        if (context.world.random.nextFloat() < chance) {
-            var displacement = getDisplacement(context);
-            var local = Vec3.atCenterOf(context.localPos).add(displacement);
-            var worldPos = bc.entity.toGlobalVector(local, AnimationTickHolder.getPartialTicks());
-            context.world.addParticle(particle,
-                    worldPos.x,
-                    worldPos.y - 1,
-                    worldPos.z,
-                    0, 0, 0);
-        }
+        if (particle == null) return false;
+        if (!(context.contraption instanceof BearingContraption bc)) return false;
+        if (context.world.random.nextFloat() >= chance) return false;
+
+        var displacement = getDisplacement(context);
+        var local = Vec3.atCenterOf(context.localPos).add(displacement);
+        var worldPos = bc.entity.toGlobalVector(local, AnimationTickHolder.getPartialTicks());
+        context.world.addParticle(particle,
+                worldPos.x,
+                worldPos.y - 1,
+                worldPos.z,
+                0, 0, 0);
+        return true;
     }
 
     protected @Nullable MinerBearingBlockEntity getBearing(MovementContext context) {

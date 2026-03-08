@@ -1,7 +1,6 @@
 package com.bmaster.createrns;
 
 import com.simibubi.create.AllItems;
-import com.simibubi.create.api.data.recipe.CuttingRecipeGen;
 import com.simibubi.create.api.data.recipe.MechanicalCraftingRecipeGen;
 import com.simibubi.create.api.data.recipe.PolishingRecipeGen;
 import com.tterrag.registrate.providers.ProviderType;
@@ -11,7 +10,6 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Blocks;
 
 import java.util.concurrent.CompletableFuture;
 
