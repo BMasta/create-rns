@@ -2,8 +2,8 @@ package com.bmaster.createrns.content.deposit.info;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.DepositBlock;
-import com.bmaster.createrns.content.deposit.mining.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.mining.recipe.DepositDurability;
+import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.bmaster.createrns.util.Utils;

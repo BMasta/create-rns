@@ -1,11 +1,12 @@
 package com.bmaster.createrns;
 
-import net.minecraft.core.Vec3i;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.RegisterEvent;
 
 import java.util.ArrayList;
@@ -38,6 +39,17 @@ public class RNSSoundEvents {
             .category(SoundSource.PLAYERS)
             .build();
 
+    public static RNSSoundEntry MINING = create("mining", 3)
+            .category(SoundSource.AMBIENT)
+            .build();
+
+    public static RNSSoundEntry MINING_RESONANCE_ACCENT = create("mining_resonance_accent")
+            .category(SoundSource.AMBIENT)
+            .build();
+
+    public static RNSSoundEntry MINED = create("mined")
+            .category(SoundSource.AMBIENT)
+            .build();
 
     public static RNSSoundEntryBuilder create(String id) {
         return new RNSSoundEntryBuilder(id, 1);
@@ -100,16 +112,49 @@ public class RNSSoundEvents {
             }
         }
 
-        public void playInHand(Level level, Vec3i pos, float volume, float pitch, boolean fade) {
-            if (events == null) return;
+        public void playClient(Level level, BlockPos pos, float volume, float pitch, boolean fade) {
+            if (events == null || !level.isClientSide) return;
             for (var e : events) {
-                level.playLocalSound(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, e,
-                        category, volume, pitch, fade);
+                level.playLocalSound(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, e, category,
+                        volume, pitch, fade);
             }
         }
 
-        public void playInHand(Level level, Vec3i pos) {
-            playInHand(level, pos, 1, 1, true);
+        public void playClient(Level level, BlockPos pos) {
+            playClient(level, pos, 1, 1, true);
+        }
+
+        public void playClient(Level level, Vec3 pos, float volume, float pitch, boolean fade) {
+            if (events == null || !level.isClientSide) return;
+            for (var e : events) {
+                level.playLocalSound(pos.x, pos.y, pos.z, e, category, volume, pitch, fade);
+            }
+        }
+
+        public void playClient(Level level, Vec3 pos) {
+            playClient(level, pos, 1, 1, true);
+        }
+
+        public void playClient(Level level, float x, float y, float z, float volume, float pitch, boolean fade) {
+            if (events == null || !level.isClientSide) return;
+            for (var e : events) {
+                level.playLocalSound(x, y + 0.5f, z + 0.5f, e, category, volume, pitch, fade);
+            }
+        }
+
+        public void playClient(Level level, float x, float y, float z) {
+            playClient(level, x, y, z, 1, 1, true);
+        }
+
+        public void playServer(Level level, BlockPos pos, float volume, float pitch) {
+            if (events == null || level.isClientSide) return;
+            for (var e : events) {
+                level.playSound(null, pos, e, category, volume, pitch);
+            }
+        }
+
+        public void playServer(Level level, BlockPos pos) {
+            playServer(level, pos, 1, 1);
         }
 
         private ResourceLocation getIdOf(int i) {

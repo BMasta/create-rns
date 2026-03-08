@@ -4,9 +4,11 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.content.deposit.info.IDepositIndex;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
+import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystHandler;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystUsageStats;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.AbstractResonanceCatalystRequirement;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -110,6 +112,18 @@ public class MiningProcess {
         }
 
         return rates;
+    }
+
+    /// Returns true if any active CRSes for this process contain a resonance requirement
+    public boolean isResonanceActive() {
+        var aggStats = innerProcesses.stream().map(p -> p.catStats).collect(Collectors.toSet());
+        var activeCRSes = CatalystUsageStats.getLastSatisfiedCRSes(aggStats);
+        for (var crs : activeCRSes) {
+            for (var r : crs.requirements) {
+                if (r instanceof AbstractResonanceCatalystRequirement) return true;
+            }
+        }
+        return false;
     }
 
     public void uninitialize() {

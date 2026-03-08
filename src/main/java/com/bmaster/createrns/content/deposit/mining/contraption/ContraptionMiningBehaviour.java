@@ -1,6 +1,8 @@
 package com.bmaster.createrns.content.deposit.mining.contraption;
 
+import com.bmaster.createrns.RNSSoundEvents;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
+import com.bmaster.createrns.content.deposit.mining.MinerEffectsGenerator;
 import com.bmaster.createrns.content.deposit.mining.MiningBehaviour;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.EquipmentManager;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
@@ -18,7 +20,8 @@ import java.util.Set;
 @MethodsReturnNonnullByDefault
 public class ContraptionMiningBehaviour extends MiningBehaviour {
     public final MinerBearingBlockEntity bearing;
-    public EquipmentManager equipment;
+    public @Nullable EquipmentManager equipment;
+    protected MinerEffectsGenerator effects;
 
     // Used by client to determine when a refresh is needed
     protected boolean wasAssembled = false;
@@ -46,8 +49,23 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     }
 
     @Override
+    public void initialize() {
+        super.initialize();
+        if (getLevel().isClientSide) effects = new MinerEffectsGenerator(bearing);
+    }
+
+    @Override
+    public void unload() {
+        super.unload();
+        if (getLevel().isClientSide) effects.uninitialize();
+    }
+
+    @Override
     public void tick() {
         super.tick();
+        var level = bearing.getLevel();
+        assert level != null;
+        if (level.isClientSide && isMining()) effects.tick();
     }
 
     @Override
@@ -55,8 +73,16 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
         if ((process == null && !tryInitProcess(false)) ||
                 (equipment == null && !refreshEquipment())) return;
         var spoils = process.collect();
-        for (var s : spoils) {
-            equipment.dropItem(s);
+        boolean collected = false;
+        while (!spoils.isEmpty()) {
+            collected = true;
+            for (var s : spoils) {
+                equipment.dropItem(s);
+            }
+            spoils = process.collect();
+        }
+        if (collected) {
+            RNSSoundEvents.MINED.playServer(getLevel(), equipment.drillHeadPos);
         }
     }
 
@@ -71,8 +97,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
         collect();
 
         // Release claimed blocks and reset equipment, spec, and process
-        claimedDepositBlocks.clear();
-        pendingSync.claimer = true;
+        claimedDepositBlocks = null;
         equipment = null;
         spec = null;
         if (process != null) process.uninitialize();
@@ -92,6 +117,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     @Override
     public void read(CompoundTag nbt, boolean clientPacket) {
         if (clientPacket) {
+            if (getLevel().isClientSide && effects != null) effects.refresh();
             refreshEquipment();
             tryInitSpec();
         }
@@ -111,6 +137,15 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
             return true;
         }
         return equipment != null;
+    }
+
+    @Override
+    protected boolean tryInitProcess(boolean refresh) {
+        boolean needsInit = process == null || refresh;
+        boolean initialized = super.tryInitProcess(refresh);
+        var level = getLevel();
+        if (level != null && level.isClientSide && needsInit && initialized) effects.refresh();
+        return initialized;
     }
 
     @Override

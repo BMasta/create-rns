@@ -3,6 +3,7 @@ package com.bmaster.createrns.event;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSItems;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
+import com.bmaster.createrns.content.deposit.mining.MinerEffectsGenerator;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
@@ -23,6 +24,7 @@ public class ClientForgeEvents {
         if (event.phase == TickEvent.Phase.START) {
             DepositScannerClientHandler.tick();
             DepositClaimerOutlineRenderer.tick();
+            MinerEffectsGenerator.globalTick();
         }
     }
 
@@ -56,7 +58,7 @@ public class ClientForgeEvents {
         assert itemId != null;
         var alwaysTooltipKey = "item." + itemId.getNamespace() + "." + itemId.getPath() + ".tooltip.always";
         var descriptionBasedKey = stack.getDescriptionId() + ".tooltip.always";
-        for (int i = 1;;++i) {
+        for (int i = 1; ; ++i) {
             if (I18n.exists(alwaysTooltipKey + i)) {
                 tooltip.add(Component.translatable(alwaysTooltipKey + i));
             } else if (I18n.exists(descriptionBasedKey + i)) {
@@ -71,5 +73,6 @@ public class ClientForgeEvents {
     public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut e) {
         DepositScannerClientHandler.clearState();
         DepositClaimerOutlineRenderer.clearOutline();
+        MinerEffectsGenerator.clearState();
     }
 }

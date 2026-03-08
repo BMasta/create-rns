@@ -1,8 +1,7 @@
-package com.bmaster.createrns.content.deposit.mining;
+package com.bmaster.createrns.content.deposit.mining.recipe;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSRecipeTypes;
-import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystHandler;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;

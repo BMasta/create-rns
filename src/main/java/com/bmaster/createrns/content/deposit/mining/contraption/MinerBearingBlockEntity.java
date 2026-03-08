@@ -1,8 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.contraption;
 
 import com.bmaster.createrns.content.deposit.mining.IHaveAdaptiveGoggleInformation;
-import com.bmaster.createrns.content.deposit.mining.MiningEffectsGenerator;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.EquipmentManager;
 import com.bmaster.createrns.util.GoggleTooltipModifiers;
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.content.contraptions.AssemblyException;
@@ -18,44 +16,21 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.BiFunction;
 
 public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity implements IHaveAdaptiveGoggleInformation {
-    protected ContraptionMiningBehaviour miningBehaviour;
-    protected MiningEffectsGenerator effects;
+    public ContraptionMiningBehaviour miningBehaviour;
 
     public MinerBearingBlockEntity(BlockEntityType<MinerBearingBlockEntity> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
 
-    public @Nullable EquipmentManager getEquipmentManager() {
-        if (miningBehaviour == null) return null;
-        return miningBehaviour.equipment;
-    }
 
     @Override
-    public void onLoad() {
-        super.onLoad();
-        effects = new MiningEffectsGenerator(level,
-                () -> (miningBehaviour.equipment != null) ? miningBehaviour.equipment.drillHeadPos : null,
-                () -> getBlockState().getValue(MinerBearingBlock.FACING));
-    }
-
-    @Override
-    public void tick() {
-        super.tick();
-        assert level != null;
-        if (level.isClientSide && miningBehaviour.isMining()) effects.spawnParticles();
-    }
-
-    @Override
-    public void tickAudio() {
-        super.tickAudio();
-        assert level != null;
-        if (level.isClientSide && miningBehaviour.isMining()) effects.tickSoundScape(getSpeed());
+    public void invalidate() {
+        super.invalidate();
     }
 
     public void assembleNextTick() {
@@ -113,9 +88,6 @@ public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity implem
     @Override
     protected void read(CompoundTag compound, boolean clientPacket) {
         super.read(compound, clientPacket);
-        if (clientPacket && effects != null) {
-            effects.setParticles(miningBehaviour.getClaimedDepositBlocks());
-        }
     }
 
     @Override

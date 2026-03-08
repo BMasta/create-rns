@@ -118,6 +118,8 @@ public interface IDepositBlockClaimer {
             blocks.add(BlockPos.of(lt.getAsLong()));
         }
 
+        if (getClaimedDepositBlocks().equals(blocks)) return;
+
         var level = getLevel();
         boolean updateOutline = level != null && level.isClientSide && !getClaimedDepositBlocks().equals(blocks);
 
