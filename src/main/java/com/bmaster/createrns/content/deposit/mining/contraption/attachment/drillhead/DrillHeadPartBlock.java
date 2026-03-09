@@ -51,6 +51,21 @@ public class DrillHeadPartBlock extends Block {
     }
 
     @Override
+    protected boolean propagatesSkylightDown(BlockState state, BlockGetter level, BlockPos pos) {
+        return true;
+    }
+
+    @Override
+    protected int getLightBlock(BlockState state, BlockGetter level, BlockPos pos) {
+        return 0;
+    }
+
+    @Override
+    protected float getShadeBrightness(BlockState state, BlockGetter level, BlockPos pos) {
+        return 1.0f;
+    }
+
+    @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         if (state.getValue(POSITION) == DrillHeadPartPosition.CORE) return Shapes.block();
 
