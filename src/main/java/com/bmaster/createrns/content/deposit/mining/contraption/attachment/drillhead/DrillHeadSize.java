@@ -23,6 +23,13 @@ public enum DrillHeadSize implements StringRepresentable {
         return this != MEDIUM;
     }
 
+    public int getTipOffset() {
+        return switch (this) {
+            case SMALL -> 0;
+            case MEDIUM -> 1;
+        };
+    }
+
     public int getDrillHeadCost() {
         return switch (this) {
             case SMALL -> 1;

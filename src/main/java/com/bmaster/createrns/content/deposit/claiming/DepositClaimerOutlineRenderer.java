@@ -40,21 +40,22 @@ public class DepositClaimerOutlineRenderer {
     }
 
     public static void addClaimer(IDepositBlockClaimer claimer) {
-        Player p = Minecraft.getInstance().player;
-        if (p == null) return;
         if (!outlineActive) return;
-        if (Math.sqrt(claimer.getAnchor().distManhattan(p.blockPosition())) > OUTLINE_MAX_DIST) return;
+        var p = Minecraft.getInstance().player;
+        var anchor = claimer.getAnchor();
+        var claimedBlocks = claimer.getClaimedDepositBlocks();
+        if (p == null || anchor == null || claimedBlocks == null) return;
+        if (Math.sqrt(anchor.distManhattan(p.blockPosition())) > OUTLINE_MAX_DIST) return;
 
-        if (selectedCluster.addAll(claimer.getClaimedDepositBlocks())) outlineChanged = true;
+        if (selectedCluster.addAll(claimedBlocks)) outlineChanged = true;
     }
 
     public static void removeClaimer(IDepositBlockClaimer claimer) {
         if (!outlineActive) return;
-        Player p = Minecraft.getInstance().player;
-        if (p == null) return;
-        if (Math.sqrt(claimer.getAnchor().distManhattan(p.blockPosition())) > OUTLINE_MAX_DIST) return;
+        var claimedBlocks = claimer.getClaimedDepositBlocks();
+        if (claimedBlocks == null) return;
 
-        if (selectedCluster.removeAll(claimer.getClaimedDepositBlocks())) outlineChanged = true;
+        if (selectedCluster.removeAll(claimedBlocks)) outlineChanged = true;
     }
 
     public static void clearOutline() {

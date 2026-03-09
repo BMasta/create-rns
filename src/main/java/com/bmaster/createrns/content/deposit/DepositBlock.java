@@ -1,5 +1,6 @@
 package com.bmaster.createrns.content.deposit;
 
+import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
@@ -85,13 +86,7 @@ public class DepositBlock extends Block {
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
         if (level.isClientSide) return;
-        for (var c : DepositClaimerInstanceHolder.getInstancesThatCanClaim(level, pos, MiningBehaviour.CLAIMER_TYPE)) {
-            c.claimDepositBlocks();
-            var cAnchor = c.getAnchor();
-            var cState = level.getBlockState(cAnchor);
-            // onRemove is not called for client levels, so a sync is necessary
-            level.sendBlockUpdated(cAnchor, cState, cState, Block.UPDATE_CLIENTS);
-        }
+        updateNearbyClaimers(level, pos);
     }
 
     @ParametersAreNonnullByDefault
@@ -103,12 +98,20 @@ public class DepositBlock extends Block {
         if (state.is(RNSTags.Block.DEPOSIT_BLOCKS)) {
             level.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get()).removeDepositBlockDurability(pos);
         }
-        for (var c : DepositClaimerInstanceHolder.getInstancesThatCanClaim(level, pos, MiningBehaviour.CLAIMER_TYPE)) {
+        updateNearbyClaimers(level, pos);
+    }
+
+    private void updateNearbyClaimers(Level level, BlockPos pos) {
+        var nearbyClaimers = DepositClaimerInstanceHolder.getInstancesThatCanClaim(level, pos, MiningBehaviour.CLAIMER_TYPE);
+        for (var c : nearbyClaimers) {
             c.claimDepositBlocks();
             var cAnchor = c.getAnchor();
+            if (cAnchor == null) continue;
             var cState = level.getBlockState(cAnchor);
-            // onRemove is not called for client levels, so a sync is necessary
             level.sendBlockUpdated(cAnchor, cState, cState, Block.UPDATE_CLIENTS);
+        }
+        if (!nearbyClaimers.isEmpty()) {
+            CreateRNS.LOGGER.trace("Deposit blocks changed in mined area. Updated {} nearby claimers.", nearbyClaimers.size());
         }
     }
 }

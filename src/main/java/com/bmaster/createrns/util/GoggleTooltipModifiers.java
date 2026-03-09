@@ -69,7 +69,8 @@ public class GoggleTooltipModifiers {
         var mb = sbe.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
         if (mb == null) return false;
         var process = mb.getProcess();
-        if (process == null || mb.getClaimedDepositBlocks().isEmpty()) return false;
+        var claimedBlocks = mb.getClaimedDepositBlocks();
+        if (process == null || claimedBlocks == null || claimedBlocks.isEmpty()) return false;
 
         if (!c.isFirstSection()) {
             CreateRNS.lang().space().forGoggles(tooltip);
