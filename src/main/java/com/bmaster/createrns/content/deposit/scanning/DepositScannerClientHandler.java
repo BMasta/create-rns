@@ -4,6 +4,7 @@ import com.bmaster.createrns.RNSItems;
 import com.bmaster.createrns.RNSSoundEvents;
 import com.bmaster.createrns.content.deposit.info.DepositSpecLookup;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerServerHandler.RequestType;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
@@ -11,6 +12,10 @@ import net.minecraft.world.item.ItemStack;
 
 import static com.bmaster.createrns.content.deposit.scanning.DepositScannerServerHandler.MAX_PING_INTERVAL;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class DepositScannerClientHandler {
     public enum AntennaStatus {
         INACTIVE, LEFT_ACTIVE, RIGHT_ACTIVE, BOTH_ACTIVE

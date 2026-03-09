@@ -9,13 +9,20 @@ import com.simibubi.create.foundation.item.KineticStats;
 import com.simibubi.create.foundation.item.TooltipModifier;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import net.createmod.catnip.lang.FontHelper;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
+import net.minecraft.world.level.Level;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.function.Supplier;
+
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class RNSMisc {
     // Item tooltips
     static {

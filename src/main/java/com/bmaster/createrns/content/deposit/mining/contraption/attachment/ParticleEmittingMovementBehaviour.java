@@ -6,12 +6,17 @@ import com.simibubi.create.content.contraptions.bearing.BearingContraption;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.infrastructure.config.AllConfigs;
 import net.createmod.catnip.animation.AnimationTickHolder;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public abstract class ParticleEmittingMovementBehaviour implements MovementBehaviour {
 
     public abstract @Nullable ParticleOptions getParticle(MovementContext context);
@@ -38,11 +43,11 @@ public abstract class ParticleEmittingMovementBehaviour implements MovementBehav
     }
 
     @OnlyIn(value = Dist.CLIENT)
-    public boolean spawnParticle(MovementContext context, float chance) {
+    public void spawnParticle(MovementContext context, float chance) {
         var particle = getParticle(context);
-        if (particle == null) return false;
-        if (!(context.contraption instanceof BearingContraption bc)) return false;
-        if (context.world.random.nextFloat() >= chance) return false;
+        if (particle == null) return;
+        if (!(context.contraption instanceof BearingContraption bc)) return;
+        if (context.world.random.nextFloat() >= chance) return;
 
         var displacement = getDisplacement(context);
         var local = Vec3.atCenterOf(context.localPos).add(displacement);
@@ -52,7 +57,6 @@ public abstract class ParticleEmittingMovementBehaviour implements MovementBehav
                 worldPos.y - 1,
                 worldPos.z,
                 0, 0, 0);
-        return true;
     }
 
     protected @Nullable MinerBearingBlockEntity getBearing(MovementContext context) {

@@ -11,13 +11,13 @@ import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+@MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public abstract class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlockClaimer {
     public static final BehaviourType<MiningBehaviour> BEHAVIOUR_TYPE = new BehaviourType<>(CreateRNS.ID + ":mining");
@@ -45,11 +46,16 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
         this.claimingDirection = claimingDirection;
     }
 
+    public abstract void collect();
+
     protected abstract boolean tryInitSpec();
 
     @Override
     public void initialize() {
-        DepositClaimerInstanceHolder.addClaimer(this, getLevel());
+        var level = getLevel();
+        assert level != null;
+
+        DepositClaimerInstanceHolder.addClaimer(this, level);
     }
 
     @Override
@@ -65,6 +71,8 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
     @Override
     public void unload() {
         var level = getLevel();
+        assert level != null;
+
         DepositClaimerInstanceHolder.removeClaimer(this, level);
 
         kBE.invalidateCaps();
@@ -139,7 +147,7 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
     }
 
     @Override
-    public Level getLevel() {
+    public @Nullable Level getLevel() {
         return kBE.getLevel();
     }
 
@@ -199,13 +207,6 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
     public int getCurrentProgressIncrement() {
         if (spec == null || !tryInitSpec()) return 0;
         return (int) (spec.miningSpeed * Math.abs(kBE.getSpeed()));
-    }
-
-    public void collect() {
-        var inv = kBE.getCapability(ForgeCapabilities.ITEM_HANDLER, null).resolve().orElse(null);
-        if (!(inv instanceof MiningItemHandler mInv)) throw new IllegalStateException(
-                "BE with this mining behavior does not have a mining item handler");
-        mInv.collectMinedItems(process);
     }
 
     public @Nullable Set<Catalyst> getCatalysts() {

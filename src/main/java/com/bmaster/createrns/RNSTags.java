@@ -1,8 +1,13 @@
 package com.bmaster.createrns;
 
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.TagKey;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class RNSTags {
     public static class Item {
     }

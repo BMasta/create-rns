@@ -1,11 +1,15 @@
 package com.bmaster.createrns.data.gen.depositworldgen;
 
 import com.bmaster.createrns.CreateRNS;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
 
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class DepositStructureConfigBuilder {
     public static final ResourceLocation DEP_SMALL =
             CreateRNS.asResource("ore_deposit_small");
@@ -15,8 +19,8 @@ public class DepositStructureConfigBuilder {
             CreateRNS.asResource("ore_deposit_large");
 
     private final String name;
+    private final List<DepositWorldgenProvider.NBT> nbts = new ArrayList<>();
     private ResourceLocation depositBlock = null;
-    private List<DepositWorldgenProvider.NBT> nbts = new ArrayList<>();
     int depth = 8;
     int weight = 2;
 
@@ -47,7 +51,6 @@ public class DepositStructureConfigBuilder {
     }
 
     public void save() {
-        assert name != null;
         assert depositBlock != null;
         assert !nbts.isEmpty();
 

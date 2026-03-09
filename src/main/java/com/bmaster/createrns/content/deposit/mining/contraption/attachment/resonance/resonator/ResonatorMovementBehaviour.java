@@ -4,17 +4,21 @@ import com.bmaster.createrns.content.deposit.mining.contraption.attachment.Parti
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.content.contraptions.render.ContraptionMatrices;
 import com.simibubi.create.foundation.virtualWorld.VirtualRenderWorld;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class ResonatorMovementBehaviour extends ParticleEmittingMovementBehaviour {
     @Override
     public ParticleOptions getParticle(MovementContext context) {
-        if (!(context.state.getBlock() instanceof AbstractResonatorBlock rb)) return null;
-        return rb.getParticle();
+        return ((AbstractResonatorBlock) context.state.getBlock()).getParticle();
     }
 
     @Override

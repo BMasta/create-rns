@@ -3,12 +3,17 @@ package com.bmaster.createrns.content.deposit.info;
 import com.bmaster.createrns.CreateRNS;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public record DepositSpec(Item scannerIconItem, ResourceLocation structure) {
     public static final Codec<DepositSpec> CODEC = RecordCodecBuilder.create(i -> i.group(
             ForgeRegistries.ITEMS.getCodec().fieldOf("scanner_icon_item").forGetter(DepositSpec::scannerIconItem),

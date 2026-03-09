@@ -1,5 +1,6 @@
 package com.bmaster.createrns.content.deposit.info;
 
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -7,11 +8,14 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class DepositSpecLookup {
     private static Map<Item, DepositSpec> scannerIconToSpec;
     private static List<Item> allIcons;

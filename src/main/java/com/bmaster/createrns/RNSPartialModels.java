@@ -1,7 +1,12 @@
 package com.bmaster.createrns;
 
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import net.minecraft.MethodsReturnNonnullByDefault;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class RNSPartialModels {
     public static final PartialModel
 

@@ -12,16 +12,20 @@ import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.utility.CreateLang;
 import net.minecraft.ChatFormatting;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class GoggleTooltipModifiers {
     @SuppressWarnings("SameParameterValue")
     public static boolean addInventoryToGoggleTooltip(Context c, List<Component> tooltip) {

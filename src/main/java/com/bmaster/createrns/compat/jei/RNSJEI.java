@@ -10,20 +10,21 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Comparator;
 
-@ParametersAreNonnullByDefault
 @JeiPlugin
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class RNSJEI implements IModPlugin {
     public static final ResourceLocation ID = CreateRNS.asResource("jei_plugin");
 
     @Override
-    public @NotNull ResourceLocation getPluginUid() {
+    public ResourceLocation getPluginUid() {
         return ID;
     }
 

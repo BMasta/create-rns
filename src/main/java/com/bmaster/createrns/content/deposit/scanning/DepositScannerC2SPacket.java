@@ -1,6 +1,7 @@
 package com.bmaster.createrns.content.deposit.scanning;
 
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerServerHandler.RequestType;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -9,8 +10,11 @@ import net.minecraft.world.item.Items;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.function.Supplier;
 
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public record DepositScannerC2SPacket(Item item, RequestType rt) {
     public static void send(Item itemToScan, RequestType rt) {
         DepositScannerChannel.CHANNEL.sendToServer(new DepositScannerC2SPacket(itemToScan, rt));

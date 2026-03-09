@@ -3,6 +3,7 @@ package com.bmaster.createrns.data.pack;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -11,7 +12,6 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
 import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -25,6 +25,8 @@ import java.util.stream.Collectors;
 
 import static net.minecraft.util.datafix.fixes.BlockEntitySignTextStrictJsonFix.GSON;
 
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public final class DynamicDatapackResources implements PackResources {
     private final String packId;
 
@@ -50,18 +52,16 @@ public final class DynamicDatapackResources implements PackResources {
     }
 
     @Override
-    public @NotNull String packId() {
+    public String packId() {
         return packId;
     }
 
-    @ParametersAreNonnullByDefault
     @Override
-    public @NotNull Set<String> getNamespaces(PackType type) {
+    public Set<String> getNamespaces(PackType type) {
         if (type != PackType.SERVER_DATA) return Set.of();
         return serverData.keySet().stream().map(ResourceLocation::getNamespace).collect(Collectors.toSet());
     }
 
-    @ParametersAreNonnullByDefault
     @Override
     public @Nullable IoSupplier<InputStream> getResource(PackType type, ResourceLocation rl) {
         if (type != PackType.SERVER_DATA) return null;
@@ -69,7 +69,6 @@ public final class DynamicDatapackResources implements PackResources {
         return (b == null) ? null : () -> new ByteArrayInputStream(b);
     }
 
-    @ParametersAreNonnullByDefault
     @Override
     public void listResources(PackType type, String ns, String path, PackResources.ResourceOutput out) {
         if (type != PackType.SERVER_DATA) return;
@@ -84,7 +83,6 @@ public final class DynamicDatapackResources implements PackResources {
         }
     }
 
-    @ParametersAreNonnullByDefault
     @Override
     public @Nullable IoSupplier<InputStream> getRootResource(String... elements) {
         // Minecraft asks with elements = {"pack.mcmeta"}
@@ -95,7 +93,6 @@ public final class DynamicDatapackResources implements PackResources {
         return null; // no pack.png, etc.
     }
 
-    @ParametersAreNonnullByDefault
     @Override
     public @Nullable <T> T getMetadataSection(MetadataSectionSerializer<T> deserializer) throws IOException {
         if (deserializer == PackMetadataSection.TYPE) {

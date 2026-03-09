@@ -1,11 +1,15 @@
 package com.bmaster.createrns.content.deposit.mining.recipe.catalyst;
 
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.RegistryAccess;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.HashMap;
 import java.util.Map;
 
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class CatalystRequirementSetLookup {
     private static Map<String, CatalystRequirementSet> nameToSet;
 

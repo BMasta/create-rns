@@ -2,6 +2,7 @@
   "values": [
     "create_rns:miner_bearing",
     "create_rns:drill_head",
+    "create_rns:drill_head_part",
     "create_rns:resonator",
     "create_rns:stabilizing_resonator",
     "create_rns:shattering_resonator",

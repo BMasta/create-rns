@@ -2,12 +2,16 @@ package com.bmaster.createrns.content.deposit.mining;
 
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.function.BiFunction;
 
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public interface IHaveAdaptiveGoggleInformation extends IHaveGoggleInformation {
     /// Must have a mining behavior
     KineticBlockEntity getTargetBlockEntity();

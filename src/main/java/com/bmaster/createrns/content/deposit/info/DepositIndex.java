@@ -12,7 +12,9 @@ import com.google.common.cache.CacheBuilder;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -28,10 +30,13 @@ import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.minecraftforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag> {
     public static final int MIN_COMPUTE_INTERVAL = 90;
 
@@ -337,48 +342,37 @@ public class DepositIndex implements IDepositIndex, INBTSerializable<CompoundTag
 
     @Override
     public void deserializeNBT(CompoundTag nbt) {
-        if (!(nbt.get("generated_found") instanceof CompoundTag generatedFound) ||
-                !(nbt.get("generated") instanceof CompoundTag generated) ||
-                !(nbt.get("ungenerated") instanceof CompoundTag ungenerated) ||
-                !(nbt.get("durabilities") instanceof ListTag durabilities)) {
-            CreateRNS.LOGGER.error("Failed to deserialize level deposit data from nbt");
-            return;
-        }
-        CreateRNS.LOGGER.trace("Deserializing deposit index with tag {}", nbt);
-        generatedFoundDeposits.clear();
-        generatedDeposits.clear();
-        ungeneratedDeposits.clear();
-        depositDurabilities.clear();
+        deserializeDeposits(nbt, "generated_found", generatedFoundDeposits);
+        deserializeDeposits(nbt, "generated", generatedDeposits);
+        deserializeDeposits(nbt, "ungenerated", ungeneratedDeposits);
 
-        for (String key : generatedFound.getAllKeys()) {
-            var rl = ResourceLocation.parse(key);
-            long[] packed = generatedFound.getLongArray(key);
-            var set = new ObjectOpenHashSet<BlockPos>(packed.length);
-            for (long l : packed) set.add(BlockPos.of(l));
-            generatedFoundDeposits.put(rl, set);
-        }
-        for (String key : generated.getAllKeys()) {
-            var rl = ResourceLocation.parse(key);
-            long[] packed = generated.getLongArray(key);
-            var set = new ObjectOpenHashSet<BlockPos>(packed.length);
-            for (long l : packed) set.add(BlockPos.of(l));
-            generatedDeposits.put(rl, set);
-        }
-        for (String key : ungenerated.getAllKeys()) {
-            var rl = ResourceLocation.parse(key);
-            long[] packed = ungenerated.getLongArray(key);
-            var set = new ObjectOpenHashSet<BlockPos>(packed.length);
-            for (long l : packed) set.add(BlockPos.of(l));
-            ungeneratedDeposits.put(rl, set);
+        depositDurabilities.clear();
+        if (!(nbt.get("durabilities") instanceof ListTag durabilities)) {
+            CreateRNS.LOGGER.error("Failed to deserialize deposit durabilities from nbt");
+            return;
         }
         for (var d : durabilities) {
             if (!(d instanceof CompoundTag dc)) continue;
             depositDurabilities.put(BlockPos.of(dc.getLong("pos")), dc.getLong("dur"));
         }
-        CreateRNS.LOGGER.trace("Deserialized generated_found to {}", generatedFoundDeposits);
-        CreateRNS.LOGGER.trace("Deserialized generated to {}", generatedDeposits);
-        CreateRNS.LOGGER.trace("Deserialized ungenerated to {}", ungeneratedDeposits);
         CreateRNS.LOGGER.trace("Deserialized durabilities ({} entries)", depositDurabilities.size());
+    }
+
+    private void deserializeDeposits(CompoundTag nbt, String depField, Object2ObjectOpenHashMap<ResourceLocation,
+            ObjectOpenHashSet<BlockPos>> deposits) {
+        deposits.clear();
+        if (!(nbt.get(depField) instanceof CompoundTag depTag)) {
+            CreateRNS.LOGGER.error("Failed to deserialize {} from nbt", depField);
+            return;
+        }
+        for (String key : depTag.getAllKeys()) {
+            var rl = ResourceLocation.parse(key);
+            long[] packed = depTag.getLongArray(key);
+            var set = new ObjectOpenHashSet<BlockPos>(packed.length);
+            for (long l : packed) set.add(BlockPos.of(l));
+            deposits.put(rl, set);
+        }
+        CreateRNS.LOGGER.trace("Deserialized {} to {}", depField, deposits);
     }
 
     private @Nullable BlockPos getNearest(ResourceKey<Structure> depositKey, @Nullable ServerPlayer sp,

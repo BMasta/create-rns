@@ -3,8 +3,8 @@ package com.bmaster.createrns.content.deposit.mining;
 import com.bmaster.createrns.RNSSoundEvents;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlockEntity;
-import com.bmaster.createrns.util.Utils;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
@@ -12,11 +12,14 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class MinerEffectsGenerator {
     public enum SoundModifier {
         RESONANCE
@@ -94,8 +97,6 @@ public class MinerEffectsGenerator {
 
         assert be.miningBehaviour.claimedDepositBlocks != null;
         float mult = Math.min(1f, be.miningBehaviour.claimedDepositBlocks.size() / 75f);
-
-        var drillFacingFlipped = Utils.normalVecFlip(drillFacing, true);
 
         for (int i = 0; i < Math.round(1 + mult * 5); i++) {
             level.addParticle(selectedParticle,

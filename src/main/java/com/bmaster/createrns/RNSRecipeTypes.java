@@ -2,10 +2,15 @@ package com.bmaster.createrns;
 
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.tterrag.registrate.util.entry.RegistryEntry;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class RNSRecipeTypes {
 
     public static final RegistryEntry<RecipeSerializer<MiningRecipe>> MINING_SERIALIZER =

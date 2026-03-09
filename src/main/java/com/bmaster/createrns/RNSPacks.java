@@ -2,10 +2,15 @@ package com.bmaster.createrns;
 
 import com.bmaster.createrns.data.pack.DynamicDatapack;
 import com.bmaster.createrns.data.pack.DynamicDatapackContent;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class RNSPacks {
     public static Pack MAIN_PACK = DynamicDatapack.createDatapack("dynamic_data")
             .title(Component.literal("Dynamic mod data for Create: Rock & Stone"))

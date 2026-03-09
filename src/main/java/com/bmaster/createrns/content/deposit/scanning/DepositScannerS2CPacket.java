@@ -2,14 +2,18 @@ package com.bmaster.createrns.content.deposit.scanning;
 
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler.AntennaStatus;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerServerHandler.RequestType;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.PacketDistributor;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.function.Supplier;
 
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public record DepositScannerS2CPacket(AntennaStatus antennaStatus, int interval, boolean found,
                                       RequestType rt) {
     public static void send(ServerPlayer receiver, AntennaStatus status, int interval, boolean found,

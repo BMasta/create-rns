@@ -5,6 +5,7 @@ import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHold
 import com.bmaster.createrns.content.deposit.info.IDepositIndex;
 import com.bmaster.createrns.content.deposit.mining.MiningBehaviour;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -19,6 +20,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class DepositBlock extends Block {
     public static final int MAX_DEPOSIT_VEIN_SIZE = 128;
     private static final Set<Direction> xzDirections = Set.of(

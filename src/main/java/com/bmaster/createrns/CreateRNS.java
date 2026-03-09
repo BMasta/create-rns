@@ -8,6 +8,7 @@ import com.google.gson.GsonBuilder;
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import net.createmod.catnip.lang.LangBuilder;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -21,7 +22,11 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 @Mod(CreateRNS.ID)
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class CreateRNS {
     public static final String ID = "create_rns";
     public static final Logger LOGGER = LogUtils.getLogger();

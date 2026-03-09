@@ -10,6 +10,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import net.minecraft.ChatFormatting;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.ResourceKeyArgument;
@@ -22,11 +23,14 @@ import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.Objects;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class ScannerCommand {
     private static final LiteralArgumentBuilder<CommandSourceStack> LOCATE = Commands.literal("locate")
             .then(Commands.literal("generated_undiscovered")
@@ -181,8 +185,10 @@ public class ScannerCommand {
         };
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static <T> List<ResourceKey<T>> parseResourceOrTag(
-            CommandContext<CommandSourceStack> ctx, String arg, ResourceKey<Registry<T>> reg) throws CommandSyntaxException {
+            CommandContext<CommandSourceStack> ctx, String arg, ResourceKey<Registry<T>> reg
+    ) throws CommandSyntaxException {
         var access = ctx.getSource().getLevel().registryAccess();
         var ex = new DynamicCommandExceptionType(id -> Component.literal("Unknown structure or tag: " + id));
         var resOrTag = ResourceOrTagKeyArgument.getResourceOrTagKey(ctx, arg, reg, ex).unwrap();
