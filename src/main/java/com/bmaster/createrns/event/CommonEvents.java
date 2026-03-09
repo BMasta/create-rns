@@ -10,6 +10,7 @@ import com.bmaster.createrns.content.deposit.scanning.DepositScannerC2SPayload;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerS2CPayload;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositWorldgenProvider;
 import com.bmaster.createrns.data.pack.DynamicDatapack;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.packs.PackType;
@@ -24,7 +25,11 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 @EventBusSubscriber(modid = CreateRNS.ID)
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class CommonEvents {
     // MOD BUS
     @SubscribeEvent

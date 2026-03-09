@@ -13,6 +13,7 @@ import net.createmod.catnip.animation.AnimationFunctions;
 import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.animation.LerpedFloat;
 import net.createmod.catnip.animation.LerpedFloat.Chaser;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.model.ItemTransform;
@@ -23,9 +24,12 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Random;
 
 /// A humble rip-off of Create's linked controller
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer {
     private static final PartialModel UNPOWERED = PartialModel.of(
             CreateRNS.asResource("item/deposit_scanner/unpowered"));
@@ -109,10 +113,10 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
     protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer,
                           ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buf,
                           int light, int overlay) {
-        staticRender(stack, model, renderer, transformType, ms, buf, light, overlay);
+        staticRender(model, renderer, transformType, ms, buf, light, overlay);
     }
 
-    private static void staticRender(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer,
+    private static void staticRender(CustomRenderedItemModel model, PartialItemModelRenderer renderer,
                                      ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buf,
                                      int light, int overlay) {
         var mc = Minecraft.getInstance();

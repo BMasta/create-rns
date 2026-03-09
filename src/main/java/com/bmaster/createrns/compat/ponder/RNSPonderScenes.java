@@ -18,6 +18,7 @@ import net.createmod.ponder.api.element.WorldSectionElement;
 import net.createmod.ponder.api.scene.SceneBuilder;
 import net.createmod.ponder.api.scene.SceneBuildingUtil;
 import net.createmod.ponder.api.scene.Selection;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ItemParticleOption;
@@ -28,10 +29,13 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class RNSPonderScenes {
     protected static int calcAngle(float rpm, float dur) {
         return Math.round(rpm * dur / 60 / 20) * 360;

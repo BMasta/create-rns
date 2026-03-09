@@ -52,13 +52,17 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     @Override
     public void initialize() {
         super.initialize();
-        if (getLevel().isClientSide) effects = new MinerEffectsGenerator(bearing);
+        var level = getLevel();
+        assert level != null;
+        if (level.isClientSide) effects = new MinerEffectsGenerator(bearing);
     }
 
     @Override
     public void unload() {
         super.unload();
-        if (getLevel().isClientSide) effects.uninitialize();
+        var level = getLevel();
+        assert level != null;
+        if (level.isClientSide) effects.uninitialize();
     }
 
     @Override
@@ -83,7 +87,9 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
             spoils = process.collect();
         }
         if (collected) {
-            RNSSoundEvents.MINED.playServer(getLevel(), equipment.drillHeadPos);
+            var level = getLevel();
+            assert level != null;
+            RNSSoundEvents.MINED.playServer(level, equipment.drillHeadPos);
         }
     }
 
@@ -111,14 +117,17 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
 
             // Other claimers in the area get what is left
             var area = getClaimingBoundingBox();
-            if (area != null) IDepositBlockClaimer.reclaimArea(getLevel(), area, getClaimerType());
+            var level = getLevel();
+            assert level != null;
+            if (area != null) IDepositBlockClaimer.reclaimArea(level, area, getClaimerType());
         }
     }
 
     @Override
     public void read(CompoundTag nbt, HolderLookup.Provider provider, boolean clientPacket) {
         if (clientPacket) {
-            if (getLevel().isClientSide && effects != null) effects.refresh();
+            var level = getLevel();
+            if (level != null && level.isClientSide && effects != null) effects.refresh();
             refreshEquipment();
             tryInitSpec();
         }
@@ -128,11 +137,13 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
 
     protected boolean refreshEquipment() {
         var ce = bearing.getMovedContraption();
-        if ((!getLevel().isClientSide || wasAssembled) && (!bearing.isRunning() || ce == null)) {
+        var level = getLevel();
+        assert level != null;
+        if ((!level.isClientSide || wasAssembled) && (!bearing.isRunning() || ce == null)) {
             equipment = null;
             wasAssembled = false;
             return false;
-        } else if ((!getLevel().isClientSide || !wasAssembled) && bearing.isRunning() && ce != null) {
+        } else if ((!level.isClientSide || !wasAssembled) && bearing.isRunning() && ce != null) {
             equipment = EquipmentManager.from((BearingContraption) ce.getContraption());
             wasAssembled = true;
             return true;

@@ -1,12 +1,17 @@
 package com.bmaster.createrns.infrastructure;
 
 import com.bmaster.createrns.CreateRNS;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 @EventBusSubscriber(modid = CreateRNS.ID)
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class ServerConfig {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 

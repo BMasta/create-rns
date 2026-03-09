@@ -6,9 +6,14 @@ import com.mojang.math.Axis;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.compat.jei.category.animations.AnimatedKinetics;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.level.block.Block;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class AnimatedMiner extends AnimatedKinetics {
     private Block depositBlock;
 
@@ -17,6 +22,7 @@ public class AnimatedMiner extends AnimatedKinetics {
         draw(graphics, xOffset, yOffset);
     }
 
+    @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
     @Override
     public void draw(GuiGraphics graphics, int xOffset, int yOffset) {

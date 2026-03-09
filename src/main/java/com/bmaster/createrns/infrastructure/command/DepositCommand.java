@@ -6,13 +6,18 @@ import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.network.chat.Component;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class DepositCommand {
     private enum ResourceAction {SET, SET_VEIN, UNSET, UNSET_VEIN, COMPUTE_VEIN}
 

@@ -2,6 +2,7 @@ package com.bmaster.createrns.data.pack;
 
 import com.bmaster.createrns.CreateRNS;
 import com.google.gson.JsonElement;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackLocationInfo;
@@ -11,10 +12,13 @@ import net.minecraft.server.packs.repository.BuiltInPackSource;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public class DynamicDatapack {
     public static List<Pack> DATAPACKS = new ArrayList<>();
     public static List<Pack> RESOURCE_PACKS = new ArrayList<>();
@@ -82,8 +86,11 @@ public class DynamicDatapack {
             resources.putJson(file.path, file.data);
         }
 
-        return Pack.readMetaAndCreate(resources.location(), BuiltInPackSource.fixedResources(resources),
+        var pack = Pack.readMetaAndCreate(resources.location(), BuiltInPackSource.fixedResources(resources),
                 type, new PackSelectionConfig(isRequired, pos, false));
+        assert pack != null;
+
+        return pack;
     }
 
     public Pack buildAndRegister() {

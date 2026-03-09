@@ -20,10 +20,6 @@ public class DepositClaimerInstanceHolder {
     private static final Object2ObjectOpenHashMap<ClaimerType,
             Object2ObjectOpenHashMap<Level, ObjectOpenHashSet<IDepositBlockClaimer>>> INSTANCES = new Object2ObjectOpenHashMap<>();
 
-    public static Set<IDepositBlockClaimer> getInstances(Level level, @Nullable ClaimerType type) {
-        return setFromLevelAndType(level, type).stream().collect(Collectors.toUnmodifiableSet());
-    }
-
     public static Set<IDepositBlockClaimer> getInstancesWithinManhattanDistance(Level level, BlockPos pos, int distance,
                                                                                 @Nullable ClaimerType type) {
         return setFromLevelAndType(level, type).stream()

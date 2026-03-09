@@ -4,10 +4,15 @@ import com.bmaster.createrns.util.Utils;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public record DepositDurability(long core, long edge, float randomSpread) {
     public static final MapCodec<DepositDurability> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
             Utils.longRangeCodec(1, Long.MAX_VALUE).fieldOf("core").forGetter(DepositDurability::core),

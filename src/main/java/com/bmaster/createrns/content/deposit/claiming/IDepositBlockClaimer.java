@@ -3,6 +3,7 @@ package com.bmaster.createrns.content.deposit.claiming;
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.util.Utils;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -21,13 +22,14 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public interface IDepositBlockClaimer {
     ClaimingMode getClaimingMode();
 
     ClaimerType getClaimerType();
 
-    Level getLevel();
+    @Nullable Level getLevel();
 
     @Nullable IDepositBlockClaimer.ClaimingArea getClaimingArea();
 
@@ -42,7 +44,6 @@ public interface IDepositBlockClaimer {
     void claimDepositBlocks();
 
     default @Nullable BoundingBox getClaimingBoundingBox() {
-        var level = getLevel();
         var spec = getClaimingArea();
         if (spec == null) return null;
         var anchor = getAnchor();
@@ -65,6 +66,7 @@ public interface IDepositBlockClaimer {
 
     default Set<BlockPos> getConfinedDepositVein() {
         var level = getLevel();
+        if (level == null) return Set.of();
         var spec = getClaimingArea();
         if (spec == null) return Set.of();
         var anchor = getAnchor();

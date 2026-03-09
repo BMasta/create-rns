@@ -12,7 +12,10 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 @MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public record DepositScannerS2CPayload(AntennaStatus antennaStatus, int interval, boolean found,
                                        RequestType rt) implements CustomPacketPayload {
     public static final Type<DepositScannerS2CPayload> TYPE =

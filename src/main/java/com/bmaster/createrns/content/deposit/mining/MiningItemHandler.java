@@ -3,6 +3,7 @@ package com.bmaster.createrns.content.deposit.mining;
 import com.bmaster.createrns.CreateRNS;
 import com.simibubi.create.foundation.blockEntity.SyncedBlockEntity;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -11,12 +12,14 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 import net.neoforged.neoforge.items.IItemHandler;
-import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class MiningItemHandler implements IItemHandler, INBTSerializable<CompoundTag> {
     private static final int MAX_COUNT_PER_TYPE = 64;
 
@@ -53,14 +56,13 @@ public class MiningItemHandler implements IItemHandler, INBTSerializable<Compoun
     }
 
     @Override
-    public @NotNull ItemStack getStackInSlot(int slot) {
+    public ItemStack getStackInSlot(int slot) {
         var stack = typeToStack.get(types.get(slot));
         return (stack.getCount() > 0) ? stack.copy() : ItemStack.EMPTY;
     }
 
     /// Attempts to collect items mined by the given mining process.
     public void collectMinedItems(MiningProcess process) {
-        if (process == null) return;
         boolean invUpdated = false;
         for (var p : process.innerProcesses) {
             var minedStack = p.collect();
@@ -94,7 +96,7 @@ public class MiningItemHandler implements IItemHandler, INBTSerializable<Compoun
         if (invUpdated) onContentsChanged();
     }
 
-    public @NotNull ItemStack extractFirstAvailableItem(boolean simulate) {
+    public ItemStack extractFirstAvailableItem(boolean simulate) {
         for (var e : typeToStack.entrySet()) {
             var stack = e.getValue();
             if (stack.isEmpty()) continue;
@@ -112,13 +114,13 @@ public class MiningItemHandler implements IItemHandler, INBTSerializable<Compoun
     ///
     /// @return Copy of the given item stack.
     @Override
-    public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+    public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
         return stack;
     }
 
     /// Extracts an ItemStack from the given slot
     @Override
-    public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
+    public ItemStack extractItem(int slot, int amount, boolean simulate) {
         if (slot >= types.size()) return ItemStack.EMPTY;
 
         var type = types.get(slot);
@@ -145,7 +147,7 @@ public class MiningItemHandler implements IItemHandler, INBTSerializable<Compoun
         return newStack;
     }
 
-    public @NotNull ItemStack extractItem(int slot, boolean simulate) {
+    public ItemStack extractItem(int slot, boolean simulate) {
         return extractItem(slot, MAX_COUNT_PER_TYPE, simulate);
     }
 
@@ -155,7 +157,7 @@ public class MiningItemHandler implements IItemHandler, INBTSerializable<Compoun
     }
 
     @Override
-    public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+    public boolean isItemValid(int slot, ItemStack stack) {
         return false;
     }
 
@@ -164,7 +166,7 @@ public class MiningItemHandler implements IItemHandler, INBTSerializable<Compoun
     }
 
     @Override
-    public CompoundTag serializeNBT(@NotNull HolderLookup.Provider p) {
+    public CompoundTag serializeNBT(HolderLookup.Provider p) {
         ListTag nbtTagList = new ListTag();
         for (int i = 0; i < types.size(); ++i) {
             var type = types.get(i);
@@ -182,7 +184,7 @@ public class MiningItemHandler implements IItemHandler, INBTSerializable<Compoun
     }
 
     @Override
-    public void deserializeNBT(@NotNull HolderLookup.Provider p, CompoundTag nbt) {
+    public void deserializeNBT(HolderLookup.Provider p, CompoundTag nbt) {
         typeToStack.clear();
 
         ListTag tagList = nbt.getList("Items", Tag.TAG_COMPOUND);

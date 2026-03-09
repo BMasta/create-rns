@@ -5,6 +5,7 @@ import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer.Claim
 import com.simibubi.create.AllItems;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.createmod.catnip.outliner.Outliner;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -13,6 +14,8 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class DepositClaimerOutlineRenderer {
     private static final String OUTLINER_SLOT = "%s:miningAreaOutline".formatted(CreateRNS.ID);
     private static final int MAX_TTL = 30;
@@ -39,7 +42,6 @@ public class DepositClaimerOutlineRenderer {
     public static void addClaimer(IDepositBlockClaimer claimer) {
         Player p = Minecraft.getInstance().player;
         if (p == null) return;
-        var l = p.level();
         if (!outlineActive) return;
         if (Math.sqrt(claimer.getAnchor().distManhattan(p.blockPosition())) > OUTLINE_MAX_DIST) return;
 
@@ -50,7 +52,6 @@ public class DepositClaimerOutlineRenderer {
         if (!outlineActive) return;
         Player p = Minecraft.getInstance().player;
         if (p == null) return;
-        var l = p.level();
         if (Math.sqrt(claimer.getAnchor().distManhattan(p.blockPosition())) > OUTLINE_MAX_DIST) return;
 
         if (selectedCluster.removeAll(claimer.getClaimedDepositBlocks())) outlineChanged = true;
