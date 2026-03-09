@@ -87,7 +87,7 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
     @Override
     public void write(CompoundTag nbt, boolean clientPacket) {
         super.write(nbt, clientPacket);
-        if (claimedDepositBlocks != null) nbt.put("claimer", serializeDepositBlockClaimer());
+        nbt.put("claimer", serializeDepositBlockClaimer());
         if (process != null || tryInitProcess(false)) {
             var processNBT = process.write(clientPacket);
             if (processNBT != null) nbt.put("process", processNBT);
@@ -152,17 +152,12 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
     }
 
     @Override
-    public BlockPos getAnchor() {
-        return getPos();
+    public @Nullable Set<BlockPos> getClaimedDepositBlocks() {
+        return claimedDepositBlocks;
     }
 
     @Override
-    public Set<BlockPos> getClaimedDepositBlocks() {
-        return (claimedDepositBlocks != null) ? claimedDepositBlocks : Set.of();
-    }
-
-    @Override
-    public void setClaimedDepositBlocks(Set<BlockPos> claimedBlocks) {
+    public void setClaimedDepositBlocks(@Nullable Set<BlockPos> claimedBlocks) {
         claimedDepositBlocks = claimedBlocks;
 
         // Recompute mining process based on claimed mining area
@@ -200,6 +195,10 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
                 }
             }
         }
+
+        var pos = getPos();
+        CreateRNS.LOGGER.trace("Miner at {}, {}, {} claimed {} deposit blocks", pos.getX(), pos.getY(), pos.getZ(),
+                claimedDepositBlocks.size());
 
         kBE.notifyUpdate();
     }

@@ -23,7 +23,10 @@ public class DepositClaimerInstanceHolder {
     public static Set<IDepositBlockClaimer> getInstancesWithinManhattanDistance(Level level, BlockPos pos, int distance,
                                                                                 @Nullable ClaimerType type) {
         return setFromLevelAndType(level, type).stream()
-                .filter(i -> i.getAnchor().distManhattan(pos) <= distance)
+                .filter(i -> {
+                    var anchor = i.getAnchor();
+                    return anchor != null && anchor.distManhattan(pos) <= distance;
+                })
                 .collect(Collectors.toUnmodifiableSet());
     }
 
@@ -32,12 +35,13 @@ public class DepositClaimerInstanceHolder {
                                                                              @Nullable ClaimerType type) {
         var anchor = claimer.getAnchor();
         var bb = claimer.getClaimingBoundingBox();
-        if (bb == null) return Set.of();
+        if (anchor == null || bb == null) return Set.of();
 
         return setFromLevelAndType(level, type).stream()
                 .filter(c -> {
                     var cur_bb = c.getClaimingBoundingBox();
-                    return !c.getAnchor().equals(anchor) && cur_bb != null && bb.intersects(cur_bb);
+                    var cAnchor = c.getAnchor();
+                    return cAnchor != null && !cAnchor.equals(anchor) && cur_bb != null && bb.intersects(cur_bb);
                 })
                 .collect(Collectors.toUnmodifiableSet());
     }

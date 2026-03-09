@@ -4,12 +4,13 @@ import com.bmaster.createrns.RNSSoundEvents;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.bmaster.createrns.content.deposit.mining.MinerEffectsGenerator;
 import com.bmaster.createrns.content.deposit.mining.MiningBehaviour;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.EquipmentManager;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.MinerEquipmentManager;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 
 import javax.annotation.Nullable;
@@ -20,7 +21,7 @@ import java.util.Set;
 @MethodsReturnNonnullByDefault
 public class ContraptionMiningBehaviour extends MiningBehaviour {
     public final MinerBearingBlockEntity bearing;
-    public @Nullable EquipmentManager equipment;
+    public @Nullable MinerEquipmentManager equipment;
     protected MinerEffectsGenerator effects;
 
     // Used by client to determine when a refresh is needed
@@ -40,6 +41,12 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     public boolean isMining() {
         var mc = bearing.getMovedContraption();
         return isMiningOrStalled() && !mc.isStalled();
+    }
+
+    @Override
+    public @Nullable BlockPos getAnchor() {
+        if (equipment == null) return null;
+        return equipment.drillHeadPos;
     }
 
     @Override
@@ -143,7 +150,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
             wasAssembled = false;
             return false;
         } else if ((!level.isClientSide || !wasAssembled) && bearing.isRunning() && ce != null) {
-            equipment = EquipmentManager.from((BearingContraption) ce.getContraption());
+            equipment = MinerEquipmentManager.from((BearingContraption) ce.getContraption());
             wasAssembled = true;
             return true;
         }
@@ -171,7 +178,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
 
         int radius = Math.max(0, ServerConfig.miningRadius + equipment.propagatorCount - equipment.bufferCount);
 
-        var area = new ClaimingArea(radius, ServerConfig.miningDepth, headOffset + 1);
+        var area = new ClaimingArea(radius, ServerConfig.miningDepth);
         spec = new MinerSpec(area, ServerConfig.miningSpeed);
 
         return true;

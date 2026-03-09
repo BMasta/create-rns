@@ -2,6 +2,7 @@ package com.bmaster.createrns.content.deposit.mining.contraption.attachment;
 
 import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlockEntity;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.propagator.ResonancePropagatorBlock;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
@@ -23,9 +24,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class EquipmentManager {
-    public static EquipmentManager from(BearingContraption contraption) {
-        return new EquipmentManager(contraption);
+public class MinerEquipmentManager {
+    public static MinerEquipmentManager from(BearingContraption contraption) {
+        return new MinerEquipmentManager(contraption);
     }
 
     public final BlockPos drillHeadPos;
@@ -55,21 +56,25 @@ public class EquipmentManager {
         contraption.entity.level().addFreshEntity(itemEntity);
     }
 
-    protected EquipmentManager(BearingContraption contraption) {
+    protected MinerEquipmentManager(BearingContraption contraption) {
         this.contraption = contraption;
-
+        // bearing pos = -27 65 8
+        // tip pos = -27 58 8
+        var bearingPos = contraption.anchor.relative(contraption.getFacing().getOpposite());
         BlockPos drillHeadPos = null;
 
         for (var e : contraption.getBlocks().entrySet()) {
             var pos = e.getKey();
             var bs = e.getValue().state();
             if (bs.is(RNSBlocks.DRILL_HEAD.get())) {
-                drillHeadPos = pos.offset(contraption.anchor);
+                var tipOffset = DrillHeadBlock.getConnectedDirection(bs)
+                        .getNormal()
+                        .multiply(bs.getValue(DrillHeadBlock.SIZE).getTipOffset());
+                drillHeadPos = pos.offset(contraption.anchor).offset(tipOffset);
             }
         }
 
         if (drillHeadPos == null) throw new IllegalStateException("Miner contraption does not have a drill head");
-        var bearingPos = contraption.anchor.relative(contraption.getFacing().getOpposite());
         if (!(contraption.entity.level().getBlockEntity(bearingPos) instanceof MinerBearingBlockEntity be)) {
             throw new IllegalStateException("Could not find the bearing block entity");
         }
