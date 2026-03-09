@@ -3,6 +3,8 @@ package com.bmaster.createrns;
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadMovementBehaviour;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadPartBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.propagator.ResonancePropagatorBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.propagator.ResonancePropagatorMovementBehaviour;
@@ -23,6 +25,7 @@ import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.providers.RegistrateRecipeProvider;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
@@ -35,10 +38,14 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.neoforge.common.Tags;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import static com.simibubi.create.api.behaviour.movement.MovementBehaviour.movementBehaviour;
 import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
 import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
 
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class RNSBlocks {
     public static final BlockEntry<MinerBearingBlock> MINER_BEARING = CreateRNS.REGISTRATE.block(
                     "miner_bearing", MinerBearingBlock::new)
@@ -76,6 +83,7 @@ public class RNSBlocks {
             .transform(pickaxeOnly())
             .blockstate((c, p) ->
                     p.horizontalFaceBlock(c.get(), AssetLookup.standardModel(c, p)))
+            .onRegister(movementBehaviour(new DrillHeadMovementBehaviour()))
             .simpleItem()
             .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
                     .define('I', Items.IRON_INGOT)
@@ -85,6 +93,18 @@ public class RNSBlocks {
                     .pattern("AAA")
                     .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.ANDESITE_ALLOY))
                     .save(p))
+            .register();
+
+    public static final BlockEntry<DrillHeadPartBlock> DRILL_HEAD_PART = CreateRNS.REGISTRATE.block(
+                    "drill_head_part", DrillHeadPartBlock::new)
+            .initialProperties(() -> Blocks.IRON_BLOCK)
+            .properties(p -> p
+                    .mapColor(MapColor.COLOR_GRAY)
+                    .noOcclusion()
+                    .noLootTable())
+            .transform(pickaxeOnly())
+            .blockstate((c, p) ->
+                    p.simpleBlock(c.get(), p.models().getExistingFile(p.modLoc("block/drill_head"))))
             .register();
 
     public static final BlockEntry<ResonatorBlock> RESONATOR = CreateRNS.REGISTRATE.block(

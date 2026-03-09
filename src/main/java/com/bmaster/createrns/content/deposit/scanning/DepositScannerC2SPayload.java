@@ -11,7 +11,10 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 @MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public record DepositScannerC2SPayload(ItemStack item, RequestType rt) implements CustomPacketPayload {
     public static final Type<DepositScannerC2SPayload> TYPE =
             new Type<>(CreateRNS.asResource("deposit_scanner_c2s"));

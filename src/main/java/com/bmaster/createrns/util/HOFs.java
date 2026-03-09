@@ -1,13 +1,16 @@
 package com.bmaster.createrns.util;
 
+import net.minecraft.MethodsReturnNonnullByDefault;
+
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class HOFs {
-
-
     /// Compares elements in each list in pairs. Returns the comparison result of the first non-equal pair.
     /// Lists of equal sizes with equal pairs are considered the same.
     /// For lists of different sizes, depending on the boolean argument, sizes are compared first or last.

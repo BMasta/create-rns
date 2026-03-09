@@ -7,6 +7,7 @@ import com.bmaster.createrns.compat.ponder.RNSPonderPlugin;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
 import com.bmaster.createrns.content.deposit.mining.MinerEffectsGenerator;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -21,7 +22,11 @@ import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 @EventBusSubscriber(modid = CreateRNS.ID, value = Dist.CLIENT)
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class ClientEvents {
     @SubscribeEvent
     public static void clientTick(ClientTickEvent.Pre event) {

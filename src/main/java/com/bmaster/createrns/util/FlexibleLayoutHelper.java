@@ -1,7 +1,12 @@
 package com.bmaster.createrns.util;
 
 import net.createmod.catnip.layout.LayoutHelper;
+import net.minecraft.MethodsReturnNonnullByDefault;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class FlexibleLayoutHelper implements LayoutHelper {
     public enum Anchor {
         START, CENTER, END

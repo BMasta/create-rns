@@ -3,6 +3,7 @@ package com.bmaster.createrns.compat.jade;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.infrastructure.ServerConfig;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.LongTag;
 import net.minecraft.network.chat.Component;
@@ -14,6 +15,10 @@ import snownee.jade.api.IServerDataProvider;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public enum DepositBlockComponentProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
     INSTANCE;
 

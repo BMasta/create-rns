@@ -15,9 +15,6 @@ import java.util.function.Function;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public abstract class AbstractResonanceCatalystRequirement extends CatalystRequirement {
-    // One resonator per side directly adjacent to the drill head
-    public static final int MAX_RESONATORS = 4;
-
     public static <T extends AbstractResonanceCatalystRequirement> Codec<T> codec(
             Function<Integer, T> factory) {
         return RecordCodecBuilder.create(i -> i.group(

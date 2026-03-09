@@ -4,14 +4,18 @@ import com.bmaster.createrns.CreateRNS;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import net.createmod.catnip.lang.LangBuilder;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.ChunkPos;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.text.DecimalFormat;
 import java.util.function.Function;
 
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class Utils {
     protected static DecimalFormat df = new DecimalFormat("0.##");
 

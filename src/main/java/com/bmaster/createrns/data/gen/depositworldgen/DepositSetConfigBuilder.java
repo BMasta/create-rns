@@ -1,5 +1,11 @@
 package com.bmaster.createrns.data.gen.depositworldgen;
 
+import net.minecraft.MethodsReturnNonnullByDefault;
+
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class DepositSetConfigBuilder {
     public static final int DEFAULT_SALT = 591646342;
     public static final int DEFAULT_SPACING = 48;

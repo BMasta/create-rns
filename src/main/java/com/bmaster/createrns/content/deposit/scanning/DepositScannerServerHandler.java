@@ -5,6 +5,7 @@ import com.bmaster.createrns.content.deposit.info.DepositSpecLookup;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler.AntennaStatus;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.bmaster.createrns.util.Utils;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,6 +14,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class DepositScannerServerHandler {
     public enum RequestType {
         DISCOVER, TRACK
