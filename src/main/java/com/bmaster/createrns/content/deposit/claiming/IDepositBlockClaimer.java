@@ -33,13 +33,13 @@ public interface IDepositBlockClaimer {
 
     @Nullable IDepositBlockClaimer.ClaimingArea getClaimingArea();
 
-    BlockPos getAnchor();
+    @Nullable BlockPos getAnchor();
 
     Direction getClaimingDirection();
 
-    Set<BlockPos> getClaimedDepositBlocks();
+    @Nullable Set<BlockPos> getClaimedDepositBlocks();
 
-    void setClaimedDepositBlocks(Set<BlockPos> claimedBlocks);
+    void setClaimedDepositBlocks(@Nullable Set<BlockPos> claimedBlocks);
 
     void claimDepositBlocks();
 
@@ -47,13 +47,14 @@ public interface IDepositBlockClaimer {
         var spec = getClaimingArea();
         if (spec == null) return null;
         var anchor = getAnchor();
+        if (anchor == null) return null;
         var dir = getClaimingDirection();
         Vec3i pos = new Vec3i(anchor.getX(), anchor.getY(), anchor.getZ());
 
         var minOffset = dir.getNormal().multiply(
-                dir.getAxisDirection() == Direction.AxisDirection.POSITIVE ? spec.offset : spec.offset + spec.length - 1);
+                dir.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 1 : spec.length);
         var maxOffset = dir.getNormal().multiply(
-                dir.getAxisDirection() == Direction.AxisDirection.NEGATIVE ? spec.offset : spec.offset + spec.length - 1);
+                dir.getAxisDirection() == Direction.AxisDirection.NEGATIVE ? 1 : spec.length);
 
         var minRadiusDelta = Utils.normalVecFlip(dir, false).multiply(spec.radius);
         var maxRadiusDelta = Utils.normalVecFlip(dir, true).multiply(spec.radius);
@@ -70,6 +71,7 @@ public interface IDepositBlockClaimer {
         var spec = getClaimingArea();
         if (spec == null) return Set.of();
         var anchor = getAnchor();
+        if (anchor == null) return Set.of();
         var ma = getClaimingBoundingBox();
         if (ma == null) return Set.of();
         var dir = getClaimingDirection();
@@ -77,7 +79,7 @@ public interface IDepositBlockClaimer {
         Queue<BlockPos> q = new ArrayDeque<>();
         LongOpenHashSet visited = new LongOpenHashSet(ma.getXSpan() * ma.getYSpan() * ma.getZSpan());
 
-        q.offer(anchor.relative(dir, spec.offset()));
+        q.offer(anchor.relative(dir));
         while (!q.isEmpty()) {
             var bp = q.poll();
             if (visited.contains(bp.asLong()) || !ma.isInside(bp) || !level.getBlockState(bp).is(RNSTags.Block.DEPOSIT_BLOCKS)) {
@@ -95,7 +97,8 @@ public interface IDepositBlockClaimer {
         if (getClaimingMode() == ClaimingMode.EXCLUSIVE) {
             // Remove blocks claimed by other claimers of the same type
             for (var c : DepositClaimerInstanceHolder.getInstancesWithIntersectingArea(this, level, getClaimerType())) {
-                vein.removeAll(c.getClaimedDepositBlocks());
+                var claimedBlocks = c.getClaimedDepositBlocks();
+                if (claimedBlocks != null) vein.removeAll(claimedBlocks);
             }
         }
         return vein;
@@ -105,29 +108,37 @@ public interface IDepositBlockClaimer {
         var root = new CompoundTag();
 
         var list = new ListTag();
-        var blocks = getClaimedDepositBlocks();
-        for (var bp : blocks) {
-            list.add(LongTag.valueOf(bp.asLong()));
+        var claimedBlocks = getClaimedDepositBlocks();
+        if (claimedBlocks != null) {
+            for (var bp : claimedBlocks) {
+                list.add(LongTag.valueOf(bp.asLong()));
+            }
+            root.put("claimed_blocks", list);
         }
-        root.put("claimed_blocks", list);
         return root;
     }
 
     default void deserializeDepositBlockClaimer(HolderLookup.Provider provider, CompoundTag nbt) {
-        var blocks = new HashSet<BlockPos>(nbt.size());
-        if (!(nbt.get("claimed_blocks") instanceof ListTag list)) return;
-        for (var t : list) {
-            if (!(t instanceof LongTag lt)) continue;
-            blocks.add(BlockPos.of(lt.getAsLong()));
+        var alreadyClaimedBlocks = getClaimedDepositBlocks();
+        Set<BlockPos> newlyClaimedBlocks = null;
+
+        // If list exists (even if empty), the claimer has finished claiming
+        if (nbt.get("claimed_blocks") instanceof ListTag list) {
+            newlyClaimedBlocks = new HashSet<BlockPos>(nbt.size());
+            for (var t : list) {
+                if (!(t instanceof LongTag lt)) continue;
+                newlyClaimedBlocks.add(BlockPos.of(lt.getAsLong()));
+            }
+            if (alreadyClaimedBlocks != null && alreadyClaimedBlocks.equals(newlyClaimedBlocks)) return;
+        } else if (alreadyClaimedBlocks == null) {
+            return;
         }
 
-        if (getClaimedDepositBlocks().equals(blocks)) return;
-
         var level = getLevel();
-        boolean updateOutline = level != null && level.isClientSide && !getClaimedDepositBlocks().equals(blocks);
+        boolean updateOutline = level != null && level.isClientSide;
 
         if (updateOutline) DepositClaimerOutlineRenderer.removeClaimer(this);
-        setClaimedDepositBlocks(blocks);
+        setClaimedDepositBlocks(newlyClaimedBlocks);
         if (updateOutline) DepositClaimerOutlineRenderer.addClaimer(this);
     }
 
@@ -139,7 +150,7 @@ public interface IDepositBlockClaimer {
         }
     }
 
-    record ClaimingArea(int radius, int length, int offset) {}
+    record ClaimingArea(int radius, int length) {}
 
     record ClaimerType(String name) {
         @Override

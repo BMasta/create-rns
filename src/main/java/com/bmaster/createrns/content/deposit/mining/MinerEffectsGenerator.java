@@ -120,7 +120,9 @@ public class MinerEffectsGenerator {
     }
 
     protected void refreshParticles() {
-        particleOptions = be.miningBehaviour.getClaimedDepositBlocks().stream()
+        var claimedBlocks = be.miningBehaviour.getClaimedDepositBlocks();
+        if (claimedBlocks == null) return;
+        particleOptions = claimedBlocks.stream()
                 .map(bp -> new BlockParticleOption(ParticleTypes.BLOCK, level.getBlockState(bp)))
                 .toList();
     }
