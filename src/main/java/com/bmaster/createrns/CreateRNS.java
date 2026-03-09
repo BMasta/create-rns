@@ -2,6 +2,7 @@ package com.bmaster.createrns;
 
 import com.bmaster.createrns.compat.ponder.RNSPonderPlugin;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerChannel;
+import com.bmaster.createrns.content.deposit.mining.contraption.RNSMovementChecks;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -64,6 +65,7 @@ public class CreateRNS {
         RNSPartialModels.register();
         RNSParticleTypes.register(modEventBus);
         RNSTags.register();
+        RNSMovementChecks.register();
         RNSBlocks.register();
         RNSItems.register();
         RNSBlockEntities.register();

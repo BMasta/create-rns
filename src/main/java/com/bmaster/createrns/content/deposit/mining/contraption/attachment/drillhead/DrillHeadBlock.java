@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -27,7 +28,7 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class DrillHeadBlock extends FaceAttachedMinerComponentBlock implements IBE<DrillHeadBlockEntity> {
-    public static final VoxelShaper SHAPE = new AllShapes.Builder(Block.box(0, 0, 0, 16, 12, 16)).forDirectional();
+    public static final VoxelShaper SHAPE = new AllShapes.Builder(Block.box(0, 0, 0, 16, 8, 16)).forDirectional();
     public static final EnumProperty<DrillHeadSize> SIZE = EnumProperty.create("size", DrillHeadSize.class);
 
     public DrillHeadBlock(Properties properties) {
@@ -60,6 +61,7 @@ public class DrillHeadBlock extends FaceAttachedMinerComponentBlock implements I
 
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        if (state.getValue(SIZE) != DrillHeadSize.SMALL) return Shapes.block();
         return SHAPE.get(getConnectedDirection(state));
     }
 
@@ -77,7 +79,7 @@ public class DrillHeadBlock extends FaceAttachedMinerComponentBlock implements I
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!level.isClientSide && !state.is(newState.getBlock())) {
+        if (!level.isClientSide && !movedByPiston && !state.is(newState.getBlock())) {
             DrillHeadMultiblock.removePartBlocks(level, pos, state);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);

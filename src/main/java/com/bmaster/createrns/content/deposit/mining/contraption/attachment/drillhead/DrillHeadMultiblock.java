@@ -27,33 +27,14 @@ public class DrillHeadMultiblock {
         Set<BlockPos> positions = new HashSet<>();
         Direction u = getUDirection(direction);
         Direction v = getVDirection(direction);
-
-        if (size == DrillHeadSize.MEDIUM) {
-            addCrossLayer(positions, controllerPos, u, v);
-            positions.add(controllerPos.relative(direction));
-        } else if (size == DrillHeadSize.LARGE) {
-            var middlePos = controllerPos.relative(direction);
-            var tipPos = middlePos.relative(direction);
-
-            addCrossLayer(positions, controllerPos, u, v);
-            addCrossLayer(positions, middlePos, u, v);
-
-            positions.add(tipPos);
-        } else {
-            positions.add(controllerPos);
+        switch (size) {
+            case SMALL -> positions.add(controllerPos);
+            case MEDIUM -> {
+                addSquareLayer(positions, controllerPos, u, v);
+                positions.add(controllerPos.relative(direction));
+            }
         }
-
         return positions;
-    }
-
-    public static boolean canOccupyForSize(
-            LevelReader level, BlockPos controllerPos, BlockState controllerState, DrillHeadSize targetSize
-    ) {
-        var direction = DrillHeadBlock.getConnectedDirection(controllerState);
-        var targetPositions = getOccupiedPositions(controllerPos, direction, targetSize);
-        var currentPositions = getOccupiedPositions(controllerPos, controllerState);
-
-        return canOccupyPositions(level, currentPositions, targetPositions);
     }
 
     public static boolean canOccupyPositions(
@@ -143,9 +124,9 @@ public class DrillHeadMultiblock {
         var occupied = getOccupiedPositions(controllerPos, controllerState);
         for (var p : occupied) {
             if (p.equals(controllerPos)) continue;
-            var stateAtPos = level.getBlockState(p);
-            if (stateAtPos.is(RNSBlocks.DRILL_HEAD_PART.get())) continue;
-            level.setBlock(p, RNSBlocks.DRILL_HEAD_PART.getDefaultState(), Block.UPDATE_ALL);
+            var desiredState = getPartStateForPosition(controllerPos, controllerState, p);
+            if (level.getBlockState(p).equals(desiredState)) continue;
+            level.setBlock(p, desiredState, Block.UPDATE_ALL);
         }
     }
 
@@ -180,11 +161,23 @@ public class DrillHeadMultiblock {
         );
     }
 
-    protected static void addCrossLayer(Set<BlockPos> positions, BlockPos center, Direction u, Direction v) {
-        positions.add(center);
-        positions.add(offsetInPlane(center, u, 1, v, 0));
-        positions.add(offsetInPlane(center, u, -1, v, 0));
-        positions.add(offsetInPlane(center, u, 0, v, 1));
-        positions.add(offsetInPlane(center, u, 0, v, -1));
+    protected static void addSquareLayer(Set<BlockPos> positions, BlockPos center, Direction u, Direction v) {
+        for (int du = -1; du <= 1; du++) {
+            for (int dv = -1; dv <= 1; dv++) {
+                positions.add(offsetInPlane(center, u, du, v, dv));
+            }
+        }
     }
+
+    protected static BlockState getPartStateForPosition(BlockPos controllerPos, BlockState controllerState, BlockPos partPos) {
+        var direction = DrillHeadBlock.getConnectedDirection(controllerState);
+        var position = switch (controllerState.getValue(DrillHeadBlock.SIZE)) {
+            case SMALL, MEDIUM -> DrillHeadPartPosition.CORE;
+        };
+
+        return RNSBlocks.DRILL_HEAD_PART.getDefaultState()
+                .setValue(DrillHeadPartBlock.FACING, direction)
+                .setValue(DrillHeadPartBlock.POSITION, position);
+    }
+
 }
