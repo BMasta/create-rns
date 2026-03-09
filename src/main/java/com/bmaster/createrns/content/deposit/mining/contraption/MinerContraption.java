@@ -13,7 +13,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -44,12 +43,6 @@ public class MinerContraption extends BearingContraption {
     @Override
     public boolean searchMovedStructure(Level world, BlockPos pos, @Nullable Direction forcedDirection) throws AssemblyException {
         drillHeadPos = null;
-        if (world.getBlockState(pos).is(RNSBlocks.DRILL_HEAD.get())) {
-            anchor = pos;
-            if (bounds == null) bounds = new AABB(BlockPos.ZERO);
-            addBlock(world, pos, capture(world, pos));
-            return true;
-        }
         boolean result = super.searchMovedStructure(world, pos, forcedDirection);
         int resonatorLimit = BASE_RESONATOR_LIMIT + bufferCount;
         // No drill heads found
