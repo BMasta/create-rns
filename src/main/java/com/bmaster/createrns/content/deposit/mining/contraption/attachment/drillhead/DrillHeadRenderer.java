@@ -23,13 +23,18 @@ public class DrillHeadRenderer extends SmartBlockEntityRenderer<DrillHeadBlockEn
     @Override
     protected void renderSafe(DrillHeadBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buf, int light, int overlay) {
         var bs = be.getBlockState();
-        var scale = getScaleForSize(bs.getValue(DrillHeadBlock.SIZE));
+        var size = bs.getValue(DrillHeadBlock.SIZE);
+        var scale = size.getModelScale();
+        var offset = size.getModelOffset();
+        var direction = DrillHeadBlock.getConnectedDirection(bs);
         var superBuffer = CachedBuffers.block(bs);
 
+        assert be.getLevel() != null;
         superBuffer
                 .center()
                 .scale(scale)
                 .uncenter()
+                .translate(direction.getStepX() * offset, direction.getStepY() * offset, direction.getStepZ() * offset)
                 .light(LightTexture.FULL_BRIGHT)
                 .useLevelLight(be.getLevel())
                 .renderInto(ms, buf.getBuffer(RenderType.solid()));
@@ -37,7 +42,10 @@ public class DrillHeadRenderer extends SmartBlockEntityRenderer<DrillHeadBlockEn
 
     public static void renderInContraption(MovementContext context, ContraptionMatrices matrices, MultiBufferSource buf) {
         var bs = context.state;
-        var scale = getScaleForSize(bs.getValue(DrillHeadBlock.SIZE));
+        var size = bs.getValue(DrillHeadBlock.SIZE);
+        var scale = size.getModelScale();
+        var offset = size.getModelOffset();
+        var direction = DrillHeadBlock.getConnectedDirection(bs);
         var superBuffer = CachedBuffers.block(bs);
 
         superBuffer
@@ -45,16 +53,9 @@ public class DrillHeadRenderer extends SmartBlockEntityRenderer<DrillHeadBlockEn
                 .center()
                 .scale(scale)
                 .uncenter()
+                .translate(direction.getStepX() * offset, direction.getStepY() * offset, direction.getStepZ() * offset)
                 .light(LightTexture.FULL_BRIGHT)
                 .useLevelLight(context.world, matrices.getWorld())
                 .renderInto(matrices.getViewProjection(), buf.getBuffer(RenderType.solid()));
-    }
-
-    protected static float getScaleForSize(DrillHeadSize size) {
-        return switch (size) {
-            case SMALL -> 1f;
-            case MEDIUM -> 1.5f;
-            case LARGE -> 2f;
-        };
     }
 }
