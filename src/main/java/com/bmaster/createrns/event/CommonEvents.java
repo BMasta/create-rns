@@ -4,23 +4,18 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.RNSRecipes;
 import com.bmaster.createrns.content.deposit.info.DepositSpec;
-import com.bmaster.createrns.content.deposit.info.DepositSpecLookup;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerC2SPayload;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerS2CPayload;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositWorldgenProvider;
 import com.bmaster.createrns.data.pack.DynamicDatapack;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.packs.PackType;
-import net.minecraft.world.level.ChunkPos;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
@@ -88,21 +83,4 @@ public class CommonEvents {
     }
 
     // GAME BUS
-
-    @SubscribeEvent
-    public static void onChunkLoad(ChunkEvent.Load e) {
-        if (!(e.getLevel() instanceof ServerLevel sl)) return;
-
-        var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
-
-        ChunkPos pos = e.getChunk().getPos();
-        var sm = sl.structureManager();
-
-        for (var start : sm.startsForStructure(pos, DepositSpecLookup.isDeposit(sl.registryAccess()))) {
-            sl.registryAccess()
-                    .registryOrThrow(Registries.STRUCTURE)
-                    .getResourceKey(start.getStructure())
-                    .ifPresent(structKey -> depData.addDeposit(structKey, start));
-        }
-    }
 }

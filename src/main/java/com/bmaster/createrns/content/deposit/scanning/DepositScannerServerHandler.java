@@ -1,7 +1,9 @@
 package com.bmaster.createrns.content.deposit.scanning;
 
+import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.content.deposit.info.DepositSpecLookup;
+import com.bmaster.createrns.content.deposit.info.LevelDepositData.DepPosInfo;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler.AntennaStatus;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.bmaster.createrns.util.Utils;
@@ -35,22 +37,31 @@ public class DepositScannerServerHandler {
         var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
 
         var structKey = DepositSpecLookup.getStructureKey(sl.registryAccess(), icon);
-        var nearest = switch (rt) {
+        if (rt == RequestType.DISCOVER) {
+            CreateRNS.LOGGER.trace("[Scanner discover] Player {} searching for {}", sp.getScoreboardName(),
+                    structKey.location());
+        }
+        DepPosInfo nearest = switch (rt) {
             case DISCOVER -> depData.getNearest(structKey, sp, SEARCH_RADIUS_CHUNKS);
             case TRACK -> depData.getNearestCached(structKey, sp, SEARCH_RADIUS_CHUNKS);
         };
 
         ScannerState state;
-        if (nearest == null) {
-            state = new ScannerState(AntennaStatus.INACTIVE, MAX_PING_INTERVAL, false);
-        } else {
-            state = getScannerState(sp, nearest);
-            if (state.found) depData.setFound(structKey, nearest, true);
+        state = getScannerState(sp, nearest);
+        if (state.found) {
+            if (nearest.startChunk() == null) {
+                assert nearest.accuratePos() != null;
+                depData.setCustomFound(structKey, nearest.accuratePos(), true);
+            } else {
+                depData.setFound(structKey, nearest.startChunk(), true);
+            }
         }
         PacketDistributor.sendToPlayer(sp, new DepositScannerS2CPayload(state.antennaStatus, state.interval, state.found, rt));
     }
 
-    private static ScannerState getScannerState(ServerPlayer sp, BlockPos targetPos) {
+    private static ScannerState getScannerState(ServerPlayer sp, DepPosInfo depInfo) {
+        var targetPos = depInfo.bestEffortPos();
+        if (targetPos == null) return new ScannerState(AntennaStatus.INACTIVE, MAX_PING_INTERVAL, false);
         var playerPos = sp.blockPosition();
         var distance = Math.min(MAX_BLOCK_DISTANCE, Math.sqrt(playerPos.distSqr(targetPos)));
 
