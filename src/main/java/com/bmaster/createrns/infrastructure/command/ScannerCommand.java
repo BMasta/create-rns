@@ -112,43 +112,43 @@ public class ScannerCommand {
 
     private static Command<CommandSourceStack> execIsFound() {
         return ctx -> {
-            var src = ctx.getSource();
-            var sl = src.getLevel();
-            var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
-            BlockPos pos = BlockPosArgument.getLoadedBlockPos(ctx, "target_position");
-            if (depData.getType(pos) == null) {
-                src.sendFailure(Component.literal("Target does not exist"));
-                return 0;
-            }
-            src.sendSuccess(() -> Component.literal(depData.isCustomFound(pos) ? "True" : "False"), false);
+//            var src = ctx.getSource();
+//            var sl = src.getLevel();
+//            var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
+//            BlockPos pos = BlockPosArgument.getLoadedBlockPos(ctx, "target_position");
+//            if (depData.getType(pos) == null) {
+//                src.sendFailure(Component.literal("Target does not exist"));
+//                return 0;
+//            }
+//            src.sendSuccess(() -> Component.literal(depData.isCustomFound(pos) ? "True" : "False"), false);
             return SINGLE_SUCCESS;
         };
     }
 
     private static Command<CommandSourceStack> execMarkFound() {
         return ctx -> {
-            var src = ctx.getSource();
-            var sl = src.getLevel();
-            var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
-
-            BlockPos pos = BlockPosArgument.getLoadedBlockPos(ctx, "target_position");
-            boolean val = ctx.getArgument("new_value", Boolean.class);
-            var type = depData.getType(pos);
-            if (type == null) {
-                src.sendFailure(Component.literal("Target does not exist"));
-                return 0;
-            }
-            var isSet = depData.setCustomFound(type, pos, val);
-            if (!isSet) {
-                src.sendFailure(Component.literal("Failed to mark target at ")
-                        .append(bracketedCoords(pos, false))
-                        .append(" as %s".formatted(val ? "found" : "not found")));
-                return 0;
-            }
-
-            src.sendSuccess(() -> Component.literal("Marked target at ")
-                    .append(bracketedCoords(pos, false))
-                    .append(" as %s".formatted(val ? "found" : "not found")), true);
+//            var src = ctx.getSource();
+//            var sl = src.getLevel();
+//            var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
+//
+//            BlockPos pos = BlockPosArgument.getLoadedBlockPos(ctx, "target_position");
+//            boolean val = ctx.getArgument("new_value", Boolean.class);
+//            var type = depData.getType(pos);
+//            if (type == null) {
+//                src.sendFailure(Component.literal("Target does not exist"));
+//                return 0;
+//            }
+//            var isSet = depData.setCustomFound(type, pos, val);
+//            if (!isSet) {
+//                src.sendFailure(Component.literal("Failed to mark target at ")
+//                        .append(bracketedCoords(pos, false))
+//                        .append(" as %s".formatted(val ? "found" : "not found")));
+//                return 0;
+//            }
+//
+//            src.sendSuccess(() -> Component.literal("Marked target at ")
+//                    .append(bracketedCoords(pos, false))
+//                    .append(" as %s".formatted(val ? "found" : "not found")), true);
             return SINGLE_SUCCESS;
         };
     }
@@ -168,11 +168,11 @@ public class ScannerCommand {
             for (var k : keys) {
                 var nearest = depData.getNearest(k, sl, pos, DepositSetConfigBuilder.DEFAULT_SPACING * 4,
                         !undiscovered);
-                if (nearest.bestEffortPos() == null) {
+                if (nearest.bestEffortPos == null) {
                     src.sendFailure(Component.literal("Could not find target of type " + k.location()));
                 } else {
                     src.sendSuccess(() -> Component.literal("Found " + k.location() + " at ")
-                            .append(bracketedCoords(nearest.bestEffortPos(), nearest.accuratePos() == null)), false);
+                            .append(bracketedCoords(nearest.bestEffortPos, nearest.accuratePos == null)), false);
                 }
             }
             return SINGLE_SUCCESS;
