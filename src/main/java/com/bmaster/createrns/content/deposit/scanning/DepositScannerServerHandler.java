@@ -49,18 +49,18 @@ public class DepositScannerServerHandler {
         ScannerState state;
         state = getScannerState(sp, nearest);
         if (state.found) {
-            if (nearest.startChunk() == null) {
-                assert nearest.accuratePos() != null;
-                depData.setCustomFound(structKey, nearest.accuratePos(), true);
+            if (nearest.startChunk == null) {
+                assert nearest.accuratePos != null;
+                depData.setCustomFound(structKey, nearest.accuratePos, true);
             } else {
-                depData.setFound(structKey, nearest.startChunk(), true);
+                depData.setFound(structKey, nearest.startChunk, true);
             }
         }
         PacketDistributor.sendToPlayer(sp, new DepositScannerS2CPayload(state.antennaStatus, state.interval, state.found, rt));
     }
 
     private static ScannerState getScannerState(ServerPlayer sp, DepPosInfo depInfo) {
-        var targetPos = depInfo.bestEffortPos();
+        var targetPos = depInfo.bestEffortPos;
         if (targetPos == null) return new ScannerState(AntennaStatus.INACTIVE, MAX_PING_INTERVAL, false);
         var playerPos = sp.blockPosition();
         var distance = Math.min(MAX_BLOCK_DISTANCE, Math.sqrt(playerPos.distSqr(targetPos)));
