@@ -12,8 +12,8 @@ import net.createmod.catnip.lang.FontHelper;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -38,8 +38,8 @@ public class RNSMisc {
 
     public static final Supplier<AttachmentType<LevelDepositData>> LEVEL_DEPOSIT_DATA = ATTACHMENT_TYPES.register(
             "level_deposit_data", () -> AttachmentType.serializable(holder -> {
-                if (!(holder instanceof Level level)) {
-                    throw new IllegalStateException("Level deposit data holder is not a level: " + holder);
+                if (!(holder instanceof ServerLevel level)) {
+                    throw new IllegalStateException("Level deposit data holder is not a server level: " + holder);
                 }
                 return new LevelDepositData(level);
             }).build());

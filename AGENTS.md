@@ -15,18 +15,6 @@ The current catalysts are:
 1. Various types of resonance - achieved by attaching a sufficient number of resonators to the miner contraption.
 2. Overclock - achieved by attaching a fluid container to the miner contraption and filling it with lava, which is then consumed as the miner is working. More catalysts may be added in the future.
 
-## Implementation Details
-### Drill Head Multiblock
-* Drill heads can be upgraded into larger multiblock variants.
-* Larger drill variants are composed of a main controller block plus invisible part blocks that provide physical occupancy.
-* Upgrading is performed by applying additional drill head items and validates whether surrounding space can be reserved for the larger structure.
-* Growth logic supports expanding in alternate directions when needed so the full structure can still fit.
-* Part blocks act as extensions of the controller for interaction and destruction behavior.
-* Breaking a drill returns resources based on how much was invested into its current size.
-* Drill multiblock behavior is integrated with contraption assembly in a general way so controller and part blocks move together without requiring glue on every part.
-* Oversized drill rendering is handled as a scaled/offset single model, with culling bounds expanded to prevent disappearing visuals when only part of the model is on screen.
-* Drill part blocks are configured to avoid unintended light occlusion artifacts.
-
 
 ## Dependencies
 
@@ -54,10 +42,11 @@ All versions are defined in `gradle.properties`. Java version is 21.
 * Assets and data files are located in resources.
 * Resources in `src/generated/resources` are generated automatically using datagen and shouldn't be modified/added manually.
 * Data-driven design: catalysts, deposit specs, and miner specs are defined as JSON datapack registry entries, not hardcoded. This makes them extensible by modpacks without code changes.
+* Targeted vanilla integration points may be implemented via Mixins declared in `${mod_id}.mixins.json` when no stable mod API hook exists.
 * Compat plugins (JEI, Jade) live in a `compat/` package and are conditionally loaded when the respective mod is present.
 * Translation keys follow `create_rns.<category>.<key>` for mod content and the standard Minecraft pattern (`block.create_rns.*`, `item.create_rns.*`) for blocks/items.
 
-## This Document
+## Instructions
 While doing any feature work, this file must be updated as part of the same change whenever behavior or architecture changes.
 
 For each meaningful feature, document the following at a high level:
@@ -79,7 +68,7 @@ For each meaningful feature, document the following at a high level:
   * Key invariants that should remain true after refactors.
   * Known limitations or intentional tradeoffs.
 
-Documentation updates must go to the "Architecture And Design" section if they apply to the project in general. Feature-specific updates should go to "Implementation Details".
-
 Avoid writing low-level implementation details that are likely to churn quickly.
 Favor stable intent and invariants so future contributors understand what must be preserved.
+
+Documentation updates that apply to the project in general must go to the "Architecture And Design" section in this file. Feature-specific updates must go to `docs/IMPLEMENTATION.md`.
