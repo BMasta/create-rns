@@ -2,8 +2,8 @@ package com.bmaster.createrns.content.deposit.scanning;
 
 import com.bmaster.createrns.RNSItems;
 import com.bmaster.createrns.RNSSoundEvents;
-import com.bmaster.createrns.content.deposit.info.DepositSpecLookup;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerServerHandler.RequestType;
+import com.bmaster.createrns.content.deposit.spec.DepositSpecLookup;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;

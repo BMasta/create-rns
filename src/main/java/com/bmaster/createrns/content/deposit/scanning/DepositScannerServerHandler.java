@@ -1,10 +1,9 @@
 package com.bmaster.createrns.content.deposit.scanning;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSMisc;
-import com.bmaster.createrns.content.deposit.info.DepositSpecLookup;
-import com.bmaster.createrns.content.deposit.info.LevelDepositData.DepPosInfo;
+import com.bmaster.createrns.content.deposit.info.DepositLocation;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler.AntennaStatus;
+import com.bmaster.createrns.content.deposit.spec.DepositSpecLookup;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.bmaster.createrns.util.Utils;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -16,6 +15,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
@@ -34,33 +34,27 @@ public class DepositScannerServerHandler {
 
     public static void processScanRequest(ServerPlayer sp, Item icon, RequestType rt) {
         if (!(sp.level() instanceof ServerLevel sl)) return;
-        var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
 
         var structKey = DepositSpecLookup.getStructureKey(sl.registryAccess(), icon);
         if (rt == RequestType.DISCOVER) {
             CreateRNS.LOGGER.trace("[Scanner discover] Player {} searching for {}", sp.getScoreboardName(),
                     structKey.location());
         }
-        DepPosInfo nearest = switch (rt) {
-            case DISCOVER -> depData.getNearest(structKey, sp, SEARCH_RADIUS_CHUNKS);
-            case TRACK -> depData.getNearestCached(structKey, sp, SEARCH_RADIUS_CHUNKS);
+        var nearest = switch (rt) {
+            case DISCOVER -> DepositLocation.getNearest(sp, structKey, false, SEARCH_RADIUS_CHUNKS, false);
+            case TRACK -> DepositLocation.getNearest(sp, structKey, false, SEARCH_RADIUS_CHUNKS, true);
         };
 
         ScannerState state;
-        state = getScannerState(sp, nearest);
+        state = getScannerState(sp, (nearest != null) ? nearest.getLocation() : null);
         if (state.found) {
-            if (nearest.startChunk == null) {
-                assert nearest.accuratePos != null;
-                depData.setCustomFound(structKey, nearest.accuratePos, true);
-            } else {
-                depData.setFound(structKey, nearest.startChunk, true);
-            }
+            assert nearest != null;
+            nearest.setFound(sl, true);
         }
         PacketDistributor.sendToPlayer(sp, new DepositScannerS2CPayload(state.antennaStatus, state.interval, state.found, rt));
     }
 
-    private static ScannerState getScannerState(ServerPlayer sp, DepPosInfo depInfo) {
-        var targetPos = depInfo.bestEffortPos;
+    private static ScannerState getScannerState(ServerPlayer sp, @Nullable BlockPos targetPos) {
         if (targetPos == null) return new ScannerState(AntennaStatus.INACTIVE, MAX_PING_INTERVAL, false);
         var playerPos = sp.blockPosition();
         var distance = Math.min(MAX_BLOCK_DISTANCE, Math.sqrt(playerPos.distSqr(targetPos)));

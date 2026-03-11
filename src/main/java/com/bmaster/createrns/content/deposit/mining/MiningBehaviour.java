@@ -1,10 +1,10 @@
 package com.bmaster.createrns.content.deposit.mining;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
+import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
@@ -16,6 +16,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
@@ -188,7 +189,7 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
 
         // Initialize deposit durabilities as needed
         for (var bp : claimedDepositBlocks) {
-            level.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get()).initDepositVeinDurability(bp);
+            DepositDurabilityManager.initDepositVeinDurability((ServerLevel) level, bp);
         }
 
         var pos = getPos();
