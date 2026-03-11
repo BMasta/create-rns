@@ -1,6 +1,8 @@
 package com.bmaster.createrns.content.deposit.info;
 
 import com.bmaster.createrns.CreateRNS;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -15,23 +17,32 @@ import net.neoforged.neoforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.UnknownNullability;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class LevelDepositData implements INBTSerializable<CompoundTag> {
     protected final ServerLevel level;
 
+    // Serializable
     protected final ObjectOpenHashSet<DepositLocation> foundDeposits = new ObjectOpenHashSet<>();
     protected final Object2ObjectOpenHashMap<ResourceLocation, ObjectOpenHashSet<CustomDepositLocation>> customDeposits =
             new Object2ObjectOpenHashMap<>();
-
     protected final Object2LongOpenHashMap<BlockPos> depositDurabilities = new Object2LongOpenHashMap<>();
+
+    // In-memory
+    protected final Cache<UUID, DepositLocation.CachedData> perPlayerCache = CacheBuilder.newBuilder()
+            .initialCapacity(1)
+            .expireAfterAccess(10, TimeUnit.MINUTES)
+            .build();
 
     public LevelDepositData(ServerLevel level) {
         this.level = level;
     }
 
     public boolean addCustomDeposit(CustomDepositLocation dep) {
+        if (StructureDepositLocation.hasStructureAtChunk(level, dep.key, dep.origin)) return false;
         var depSet = customDeposits.computeIfAbsent(dep.key.location(), k -> new ObjectOpenHashSet<>());
         if (depSet.contains(dep)) return false;
         depSet.add(dep);

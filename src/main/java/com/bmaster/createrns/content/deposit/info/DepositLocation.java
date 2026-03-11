@@ -2,9 +2,6 @@ package com.bmaster.createrns.content.deposit.info;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSMisc;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -16,15 +13,12 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import java.util.Objects;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public abstract class DepositLocation {
     public static final int MIN_COMPUTE_INTERVAL = 90;
-    protected static final Object2ObjectOpenHashMap<ServerLevel, Cache<UUID, CachedData>> perLevelPerPlayerCache =
-            new Object2ObjectOpenHashMap<>();
 
     /// Used when requested by a non-player entity
     public static @Nullable DepositLocation getNearest(
@@ -40,24 +34,19 @@ public abstract class DepositLocation {
             boolean allowFound, int searchRadiusChunks, boolean cached
     ) {
         if (cached) {
-            return getNearest(sp.serverLevel(), depKey, sp.blockPosition(), allowFound, searchRadiusChunks, sp);
-        } else {
             return getNearestCached(sp, depKey, searchRadiusChunks);
+        } else {
+            return getNearest(sp.serverLevel(), depKey, sp.blockPosition(), allowFound, searchRadiusChunks, sp);
         }
     }
 
-    protected static @Nullable DepositLocation getNearest(
+    private static @Nullable DepositLocation getNearest(
             ServerLevel sl, ResourceKey<Structure> depKey, BlockPos pos,
             boolean allowFound, int searchRadiusChunks, @Nullable ServerPlayer sp
     ) {
-        Cache<UUID, CachedData> perPlayerCache = null;
+        var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
         if (sp != null) {
-            perPlayerCache = perLevelPerPlayerCache.computeIfAbsent(sl, ignored -> CacheBuilder.newBuilder()
-                    .initialCapacity(1)
-                    .expireAfterAccess(10, TimeUnit.MINUTES)
-                    .build()
-            );
-            var hit = perPlayerCache.getIfPresent(sp.getUUID());
+            var hit = depData.perPlayerCache.getIfPresent(sp.getUUID());
 
             // Okay, chill out buddy
             if (hit != null && sl.getGameTime() - hit.creationTimestamp < MIN_COMPUTE_INTERVAL) return null;
@@ -79,7 +68,7 @@ public abstract class DepositLocation {
         }
 
         // Cache the result if possible
-        if (sp != null) perPlayerCache.put(sp.getUUID(), new CachedData(selected, sl.getGameTime()));
+        if (sp != null) depData.perPlayerCache.put(sp.getUUID(), new CachedData(selected, sl.getGameTime()));
 
         if (selected == null) {
             CreateRNS.LOGGER.debug("Could not find deposits nearby");
@@ -88,35 +77,35 @@ public abstract class DepositLocation {
                     selected.getLocationStr());
         }
 
+        if (selected != null) selected.computePreciseLocation();
         return selected;
     }
 
-    protected static @Nullable DepositLocation getNearestCached(
+    private static @Nullable DepositLocation getNearestCached(
             ServerPlayer sp, ResourceKey<Structure> depKey, int searchRadiusChunks
     ) {
         var sl = sp.serverLevel();
         var pos = sp.blockPosition();
         var uuid = sp.getUUID();
-        var perPlayerCache = perLevelPerPlayerCache.get(sl);
-        if (perPlayerCache == null) return null;
-        var hit = perPlayerCache.getIfPresent(uuid);
+        var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
+        var hit = depData.perPlayerCache.getIfPresent(uuid);
 
         if (hit == null) {
             CreateRNS.LOGGER.trace("[Cache miss] Deposit position is not cached for player");
             return null;
         } else if (hit.loc == null) {
-            perPlayerCache.invalidate(uuid);
+            depData.perPlayerCache.invalidate(uuid);
             CreateRNS.LOGGER.trace("[Cache hit] Did not find any deposits nearby");
             return null;
         } else if (!hit.loc.getKey().equals(depKey)) {
-            perPlayerCache.invalidate(uuid);
+            depData.perPlayerCache.invalidate(uuid);
             CreateRNS.LOGGER.trace("[Cache hit] Cached deposit type does not match the requested type");
             return null;
         }
         var depLoc = hit.loc.getLocation();
         var chDist = new ChunkPos(depLoc).getChessboardDistance(new ChunkPos(pos));
         if (chDist > searchRadiusChunks) {
-            perPlayerCache.invalidate(uuid);
+            depData.perPlayerCache.invalidate(uuid);
             CreateRNS.LOGGER.trace("[Cache hit] Cached deposit is too far away ({} blocks)", (int) depLoc.distSqr(pos));
             return null;
         }
@@ -125,6 +114,7 @@ public abstract class DepositLocation {
         CreateRNS.LOGGER.trace("[Cache hit] Found {} {} deposit at {}", hit.loc.getTypeStr(), hit.loc.getKey().location(),
                 hit.loc.getLocationStr());
 
+        hit.loc.computePreciseLocation();
         return hit.loc;
     }
 
@@ -149,9 +139,21 @@ public abstract class DepositLocation {
         return origin;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof DepositLocation other)) return false;
+        return Objects.equals(key, other.key) && Objects.equals(origin, other.origin);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(key, origin);
+    }
+
     public abstract BlockPos getLocation();
 
-    public abstract @Nullable BlockPos getPreciseLocation(boolean computeIfUnknown);
+    public abstract boolean computePreciseLocation();
 
     public abstract String getTypeStr();
 

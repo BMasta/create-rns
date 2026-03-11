@@ -19,9 +19,14 @@
 * Core behavior: discovery requests perform nearest-target resolution and write a per-player cached target; tracking requests only use the cached target.
 * Core behavior: server-side nearest-target computation is rate-limited; rapid repeated discovery attempts can intentionally return no target.
 * Core behavior: scanner targets may initially be ungenerated structure starts and are promoted to generated structure centers once chunks load.
+* Edge behavior: for a given deposit type, scanner targets are unique per chunk; admin-added custom targets are rejected if that chunk already
+  contains a same-type structure start or custom target.
 * Edge behavior: if cached target type no longer matches selection, or the player moves outside scan range, tracking stops and must be rediscovered.
 * System interaction: scanner state depends on `LevelDepositData` level attachment, including generated/ungenerated/found sets and per-player cache.
 * System interaction: chunk-load structure detection continuously populates scanner targets, and `/rns scanner` commands can add/remove targets or override found state.
+* System interaction: `/rns scanner found` resolves the nearest target of the specified type within a fixed chunk radius around
+  the provided coordinates, then reads/writes that target's found state.
+* Player/admin feedback: `/rns scanner found ...` responses include the resolved target coordinates so found-state checks are tied to a concrete target.
 * System interaction: scanner discovery can run under a scanner-only locate context consumed by a `ChunkGenerator` mixin hook, allowing
   structure candidates to be filtered (for example, already found deposits) without changing vanilla locate traversal order.
 * Data and assets: target types are data-driven via `deposit_spec` datapack entries (`scanner_icon_item` -> `structure`), not hardcoded.

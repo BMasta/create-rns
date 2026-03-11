@@ -4,8 +4,10 @@ import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerLocateContext;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerLocateContext.DepositCandidateFilter;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.Registries;
@@ -23,10 +25,20 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class StructureDepositLocation extends DepositLocation{
-    public static boolean isStructureAtChunkFound(ServerLevel sl, ChunkPos pos) {
+public class StructureDepositLocation extends DepositLocation {
+    public static boolean hasStructureAtChunk(ServerLevel sl, ResourceKey<Structure> depKey, ChunkPos pos) {
+        var chunkAccess = sl.getChunk(pos.x, pos.z, ChunkStatus.STRUCTURE_STARTS);
+        var structure = sl.registryAccess().registryOrThrow(Registries.STRUCTURE).getOrThrow(depKey);
+        var start = sl.structureManager().getStartForStructure(SectionPos.bottomOf(chunkAccess), structure, chunkAccess);
+        return start != null && start.isValid();
+    }
+
+    public static boolean isStructureAtChunkFound(ServerLevel sl, ResourceKey<Structure> depKey, ChunkPos pos) {
         var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
-        return depData.foundDeposits.stream().anyMatch(dl -> dl.getOrigin().equals(pos));
+        return depData.foundDeposits.stream()
+                .anyMatch(dl -> dl instanceof StructureDepositLocation
+                        && dl.getKey().equals(depKey)
+                        && dl.getOrigin().equals(pos));
     }
 
     public static @Nullable StructureDepositLocation getNearestStructure(
@@ -35,14 +47,18 @@ public class StructureDepositLocation extends DepositLocation{
         var gen = sl.getChunkSource().getGenerator();
         var searchRadiusRegions = searchRadiusChunks / DepositSetConfigBuilder.DEFAULT_SPACING;
         var targetStructure = sl.registryAccess().registryOrThrow(Registries.STRUCTURE).getHolderOrThrow(depKey);
-        DepositCandidateFilter filter = (level, structure, chunkPos) ->
-                !allowFound && (structure == targetStructure.value() && isStructureAtChunkFound(sl, chunkPos));
-        DepositScannerLocateContext.Scope scope = null;
+        DepositCandidateFilter ignoreFilter = (level, structure, chunkPos) ->
+                !allowFound && structure == targetStructure.value() && isStructureAtChunkFound(sl, depKey, chunkPos);
 
-        // If requested, the thread-local context within this scope is used by a mixin to filter out found deposits
-        if (!allowFound) scope = DepositScannerLocateContext.push(filter);
-        var hit = gen.findNearestMapStructure(sl, HolderSet.direct(targetStructure), pos, searchRadiusRegions, false);
-        if (!allowFound) scope.close();
+        Pair<BlockPos, Holder<Structure>> hit;
+        if (allowFound) {
+            hit = gen.findNearestMapStructure(sl, HolderSet.direct(targetStructure), pos, searchRadiusRegions, false);
+        } else {
+            // The thread-local context within this scope is used by a mixin to filter out found deposits
+            try (var ignored = DepositScannerLocateContext.push(ignoreFilter)) {
+                hit = gen.findNearestMapStructure(sl, HolderSet.direct(targetStructure), pos, searchRadiusRegions, false);
+            }
+        }
 
         return (hit != null) ? new StructureDepositLocation(sl, depKey, new ChunkPos(hit.getFirst())) : null;
     }
@@ -68,8 +84,8 @@ public class StructureDepositLocation extends DepositLocation{
     }
 
     @Override
-    public @Nullable BlockPos getPreciseLocation(boolean computeIfUnknown) {
-        if (center != null || !computeIfUnknown) return center;
+    public boolean computePreciseLocation() {
+        if (center != null) return true;
 
         // Compute structure start
         if (start == null) {
@@ -77,11 +93,11 @@ public class StructureDepositLocation extends DepositLocation{
             var structure = level.registryAccess().registryOrThrow(Registries.STRUCTURE).getOrThrow(key);
             start = level.structureManager().getStartForStructure(SectionPos.bottomOf(chunkAccess), structure, chunkAccess);
         }
-        if (start == null || !start.isValid()) return null;
+        if (start == null || !start.isValid()) return false;
 
         // Compute center if start is valid
         center = start.getBoundingBox().getCenter();
-        return center;
+        return true;
     }
 
     @Override

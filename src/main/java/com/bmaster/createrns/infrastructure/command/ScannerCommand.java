@@ -23,7 +23,9 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
@@ -34,6 +36,8 @@ import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class ScannerCommand {
+    private static final int FOUND_SEARCH_RADIUS_CHUNKS = 4;
+
     private static final LiteralArgumentBuilder<CommandSourceStack> LOCATE = Commands.literal("locate")
             .then(Commands.literal("any")
                     .then(Commands.argument("structure", ResourceOrTagKeyArgument.resourceOrTagKey(Registries.STRUCTURE))
@@ -57,10 +61,11 @@ public class ScannerCommand {
                     .executes(ScannerCommand.execAddRmTarget(false, false)));
 
     private static final LiteralArgumentBuilder<CommandSourceStack> FOUND = Commands.literal("found")
-            .then(Commands.argument("target_position", BlockPosArgument.blockPos())
-                    .executes(execIsFound())
-                    .then(Commands.argument("new_value", BoolArgumentType.bool())
-                            .executes(execMarkFound())));
+            .then(Commands.argument("structure", ResourceKeyArgument.key(Registries.STRUCTURE))
+                    .then(Commands.argument("target_position", BlockPosArgument.blockPos())
+                            .executes(execIsFound())
+                            .then(Commands.argument("new_value", BoolArgumentType.bool())
+                                    .executes(execMarkFound()))));
 
     public static final LiteralArgumentBuilder<CommandSourceStack> CMD = Commands.literal("scanner")
             .requires(css -> css.hasPermission(2))
@@ -84,7 +89,12 @@ public class ScannerCommand {
                 var center = BoundingBox.encapsulatingPositions(vein.keySet()).orElseThrow().getCenter();
                 if (isAdd) {
                     var key = ResourceKeyArgument.getStructure(ctx, "structure").key();
-                    depData.addCustomDeposit(new CustomDepositLocation(key, center));
+                    var isAdded = depData.addCustomDeposit(new CustomDepositLocation(key, center));
+                    if (!isAdded) {
+                        src.sendFailure(Component.literal("Cannot add target in this chunk: "
+                                + "it is already occupied by a structure deposit or custom target"));
+                        return 0;
+                    }
                     src.sendSuccess(() -> Component.literal("The %d-block vein of type %s with center at ".formatted(vein.size(), key.location()))
                             .append(bracketedCoords(center, false))
                             .append(" is now scannable"), true);
@@ -93,7 +103,12 @@ public class ScannerCommand {
                 var pos = BlockPosArgument.getLoadedBlockPos(ctx, "target_position");
                 if (isAdd) {
                     var key = ResourceKeyArgument.getStructure(ctx, "structure").key();
-                    depData.addCustomDeposit(new CustomDepositLocation(key, pos));
+                    var isAdded = depData.addCustomDeposit(new CustomDepositLocation(key, pos));
+                    if (!isAdded) {
+                        src.sendFailure(Component.literal("Cannot add target in this chunk: "
+                                + "it is already occupied by a generated structure target or a manually added target"));
+                        return 0;
+                    }
                     src.sendSuccess(() -> Component.literal("Target of type " + key.location() + " at ")
                             .append(bracketedCoords(pos, false))
                             .append(" is now scannable"), true);
@@ -119,45 +134,68 @@ public class ScannerCommand {
 
     private static Command<CommandSourceStack> execIsFound() {
         return ctx -> {
-//            var src = ctx.getSource();
-//            var sl = src.getLevel();
-//            var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
-//            BlockPos pos = BlockPosArgument.getLoadedBlockPos(ctx, "target_position");
-//            if (depData.getType(pos) == null) {
-//                src.sendFailure(Component.literal("Target does not exist"));
-//                return 0;
-//            }
-//            src.sendSuccess(() -> Component.literal(depData.isCustomFound(pos) ? "True" : "False"), false);
+            var src = ctx.getSource();
+            var sl = src.getLevel();
+            var dep = getFoundTarget(ctx);
+            if (dep == null) {
+                var key = ResourceKeyArgument.getStructure(ctx, "structure").key();
+                src.sendFailure(Component.literal("Could not find target of type " + key.location()
+                        + " within " + FOUND_SEARCH_RADIUS_CHUNKS + " chunks"));
+                return 0;
+            }
+            var precise = dep.computePreciseLocation();
+            var depPos = dep.getLocation();
+            var isFound = dep.isFound(sl);
+            src.sendSuccess(() -> Component.literal("Target at ")
+                    .append(bracketedCoords(depPos, !precise))
+                    .append(" is %s".formatted(isFound ? "found" : "not found")), false);
             return SINGLE_SUCCESS;
         };
     }
 
     private static Command<CommandSourceStack> execMarkFound() {
         return ctx -> {
-//            var src = ctx.getSource();
-//            var sl = src.getLevel();
-//            var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
-//
-//            BlockPos pos = BlockPosArgument.getLoadedBlockPos(ctx, "target_position");
-//            boolean val = ctx.getArgument("new_value", Boolean.class);
-//            var type = depData.getType(pos);
-//            if (type == null) {
-//                src.sendFailure(Component.literal("Target does not exist"));
-//                return 0;
-//            }
-//            var isSet = depData.setCustomFound(type, pos, val);
-//            if (!isSet) {
-//                src.sendFailure(Component.literal("Failed to mark target at ")
-//                        .append(bracketedCoords(pos, false))
-//                        .append(" as %s".formatted(val ? "found" : "not found")));
-//                return 0;
-//            }
-//
-//            src.sendSuccess(() -> Component.literal("Marked target at ")
-//                    .append(bracketedCoords(pos, false))
-//                    .append(" as %s".formatted(val ? "found" : "not found")), true);
+            var src = ctx.getSource();
+            var sl = src.getLevel();
+            var dep = getFoundTarget(ctx);
+            if (dep == null) {
+                var key = ResourceKeyArgument.getStructure(ctx, "structure").key();
+                src.sendFailure(Component.literal("Could not find target of type " + key.location()
+                        + " within " + FOUND_SEARCH_RADIUS_CHUNKS + " chunks"));
+                return 0;
+            }
+
+            boolean val = BoolArgumentType.getBool(ctx, "new_value");
+            var isSet = dep.setFound(sl, val);
+            var precise = dep.computePreciseLocation();
+            var depPos = dep.getLocation();
+            if (!isSet) {
+                src.sendFailure(Component.literal("Target at ")
+                        .append(bracketedCoords(depPos, !precise))
+                        .append(" is already %s".formatted(val ? "found" : "not found")));
+                return 0;
+            }
+
+            src.sendSuccess(() -> Component.literal("Marked target at ")
+                    .append(bracketedCoords(depPos, !precise))
+                    .append(" as %s".formatted(val ? "found" : "not found")), true);
             return SINGLE_SUCCESS;
         };
+    }
+
+    private static @Nullable DepositLocation getFoundTarget(CommandContext<CommandSourceStack> ctx)
+            throws CommandSyntaxException {
+        var sl = ctx.getSource().getLevel();
+        var key = ResourceKeyArgument.getStructure(ctx, "structure").key();
+        var pos = BlockPosArgument.getLoadedBlockPos(ctx, "target_position");
+
+        var dep = DepositLocation.getNearest(sl, key, pos, true, FOUND_SEARCH_RADIUS_CHUNKS);
+        if (dep == null) return null;
+
+        // Enforce strict chunk distance bound regardless of locate internals.
+        var distChunks = new ChunkPos(pos).getChessboardDistance(new ChunkPos(dep.getLocation()));
+        if (distChunks > FOUND_SEARCH_RADIUS_CHUNKS) return null;
+        return dep;
     }
 
     private static Command<CommandSourceStack> execLocate(boolean undiscovered) {
@@ -177,9 +215,8 @@ public class ScannerCommand {
                 if (nearest == null) {
                     src.sendFailure(Component.literal("Could not find target of type " + k.location()));
                 } else {
-                    boolean hideY = (nearest.getPreciseLocation(true) == null);
                     src.sendSuccess(() -> Component.literal("Found " + k.location() + " at ").append(
-                            bracketedCoords(nearest.getLocation(), hideY)), false);
+                            bracketedCoords(nearest.getLocation(), !nearest.computePreciseLocation())), false);
                 }
             }
             return SINGLE_SUCCESS;

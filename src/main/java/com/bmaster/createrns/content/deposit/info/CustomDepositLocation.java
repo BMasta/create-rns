@@ -75,8 +75,8 @@ public class CustomDepositLocation extends DepositLocation {
     }
 
     @Override
-    public @Nullable BlockPos getPreciseLocation(boolean computeIfUnknown) {
-        return location;
+    public boolean computePreciseLocation() {
+        return true;
     }
 
     @Override
