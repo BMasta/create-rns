@@ -3,6 +3,7 @@ package com.bmaster.createrns.content.deposit.mining;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.RNSTags;
+import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
@@ -21,6 +22,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -213,7 +215,8 @@ public class MiningProcess {
 
             // Use a random deposit block
             var rollDep = level.random.nextIntBetweenInclusive(0, depositPositions.size() - 1);
-            depData.useDepositBlock(depositPositions.get(rollDep), recipe.getReplacementBlock().defaultBlockState());
+            DepositDurabilityManager.useDepositBlock((ServerLevel) level, depositPositions.get(rollDep),
+                    recipe.getReplacementBlock().defaultBlockState());
 
             // For each yield: use all of its catalysts, then roll for success and add to collection queue if successful
             var yields = recipe.getYields();
@@ -273,7 +276,7 @@ public class MiningProcess {
             AtomicBoolean infinite = new AtomicBoolean(false);
             long totalDur = depositPositions.stream()
                     .map(bp -> {
-                        var dur = depData.getDepositBlockDurability(bp);
+                        var dur = DepositDurabilityManager.getDepositBlockDurability((ServerLevel) level, bp);
                         if (dur == 0) infinite.set(true);
                         return dur;
                     })

@@ -1,14 +1,15 @@
 package com.bmaster.createrns.content.deposit;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
+import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.mining.MiningBehaviour;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -96,7 +97,7 @@ public class DepositBlock extends Block {
         if (level.isClientSide) return;
         // Only non-depleted deposits have durability
         if (state.is(RNSTags.Block.DEPOSIT_BLOCKS)) {
-            level.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get()).removeDepositBlockDurability(pos);
+            DepositDurabilityManager.removeDepositBlockDurability((ServerLevel) level, pos);
         }
         updateNearbyClaimers(level, pos);
     }

@@ -2,6 +2,8 @@ package com.bmaster.createrns.infrastructure.command;
 
 import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.content.deposit.DepositBlock;
+import com.bmaster.createrns.content.deposit.info.CustomDepositLocation;
+import com.bmaster.createrns.content.deposit.info.DepositLocation;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.BoolArgumentType;
@@ -82,7 +84,7 @@ public class ScannerCommand {
                 var center = BoundingBox.encapsulatingPositions(vein.keySet()).orElseThrow().getCenter();
                 if (isAdd) {
                     var key = ResourceKeyArgument.getStructure(ctx, "structure").key();
-                    depData.addCustomDeposit(key, center);
+                    depData.addCustomDeposit(new CustomDepositLocation(key, center));
                     src.sendSuccess(() -> Component.literal("The %d-block vein of type %s with center at ".formatted(vein.size(), key.location()))
                             .append(bracketedCoords(center, false))
                             .append(" is now scannable"), true);
@@ -91,14 +93,19 @@ public class ScannerCommand {
                 var pos = BlockPosArgument.getLoadedBlockPos(ctx, "target_position");
                 if (isAdd) {
                     var key = ResourceKeyArgument.getStructure(ctx, "structure").key();
-                    depData.addCustomDeposit(key, pos);
+                    depData.addCustomDeposit(new CustomDepositLocation(key, pos));
                     src.sendSuccess(() -> Component.literal("Target of type " + key.location() + " at ")
                             .append(bracketedCoords(pos, false))
                             .append(" is now scannable"), true);
                 } else {
-                    boolean isRemoved = depData.removeCustomDeposit(pos);
+                    var closestCustom = CustomDepositLocation.getNearestCustom(sl, pos, true, 1);
+                    if (closestCustom == null) {
+                        src.sendFailure(Component.literal("Target not found in chunk"));
+                        return 0;
+                    }
+                    boolean isRemoved = depData.removeCustomDeposit(closestCustom);
                     if (!isRemoved) {
-                        src.sendFailure(Component.literal("Target does not exist"));
+                        src.sendFailure(Component.literal("Target is not registered"));
                         return 0;
                     }
                     src.sendSuccess(() -> Component.literal("Target at ")
@@ -164,15 +171,15 @@ public class ScannerCommand {
             }
             var pos = entity.blockPosition();
             var keys = parseResourceOrTag(ctx, "structure", Registries.STRUCTURE);
-            var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
             for (var k : keys) {
-                var nearest = depData.getNearest(k, sl, pos, DepositSetConfigBuilder.DEFAULT_SPACING * 4,
-                        !undiscovered);
-                if (nearest.bestEffortPos == null) {
+                var nearest = DepositLocation.getNearest(sl, k, pos, !undiscovered,
+                        DepositSetConfigBuilder.DEFAULT_SPACING * 4);
+                if (nearest == null) {
                     src.sendFailure(Component.literal("Could not find target of type " + k.location()));
                 } else {
-                    src.sendSuccess(() -> Component.literal("Found " + k.location() + " at ")
-                            .append(bracketedCoords(nearest.bestEffortPos, nearest.accuratePos == null)), false);
+                    boolean hideY = (nearest.getPreciseLocation(true) == null);
+                    src.sendSuccess(() -> Component.literal("Found " + k.location() + " at ").append(
+                            bracketedCoords(nearest.getLocation(), hideY)), false);
                 }
             }
             return SINGLE_SUCCESS;
