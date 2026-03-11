@@ -45,8 +45,7 @@ public class DepositScannerServerHandler {
             case TRACK -> DepositLocation.getNearest(sp, structKey, false, SEARCH_RADIUS_CHUNKS, true);
         };
 
-        ScannerState state;
-        state = getScannerState(sp, (nearest != null) ? nearest.getLocation() : null);
+        var state = getScannerState(sp, (nearest != null) ? nearest.getLocation() : null);
         if (state.found) {
             assert nearest != null;
             nearest.setFound(sl, true);
