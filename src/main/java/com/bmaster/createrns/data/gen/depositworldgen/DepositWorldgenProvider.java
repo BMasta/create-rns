@@ -44,6 +44,7 @@ public class DepositWorldgenProvider implements DataProvider {
 
     @Override
     public CompletableFuture<?> run(CachedOutput cache) {
+        if (depConf.isEmpty() || setConf == null) return CompletableFuture.allOf();
         var futures = new java.util.ArrayList<CompletableFuture<?>>();
         var dataRoot = output.getOutputFolder(PackOutput.Target.DATA_PACK).resolve(CreateRNS.ID);
 

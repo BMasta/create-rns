@@ -28,7 +28,7 @@ public class DynamicDatapack {
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     public static List<Pack> DATAPACKS = new ArrayList<>();
     public static List<Pack> RESOURCE_PACKS = new ArrayList<>();
-    private static final List<BuiltDynamicPack> REGISTERED_DEFINITIONS = new ArrayList<>();
+    private static final List<BuiltDynamicPack> PACK_SNAPSHOTS = new ArrayList<>();
 
     public static DynamicDatapack createDatapack(String id) {
         return new DynamicDatapack(ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, id), PackType.SERVER_DATA);
@@ -46,82 +46,14 @@ public class DynamicDatapack {
         return new DynamicDatapack(id, PackType.CLIENT_RESOURCES);
     }
 
-    private final ResourceLocation id;
-    private final PackType type;
-
-    private Component title = Component.empty();
-    private boolean isRequired = true;
-    private PackSource source = PackSource.BUILT_IN;
-    private Pack.Position pos = Pack.Position.BOTTOM;
-    private final List<DatapackFile> files = new ArrayList<>();
-
-    public DynamicDatapack title(Component title) {
-        this.title = title;
-        return this;
-    }
-
-    public DynamicDatapack optional() {
-        isRequired = false;
-        return this;
-    }
-
-    public DynamicDatapack source(PackSource source) {
-        this.source = source;
-        return this;
-    }
-
-    public DynamicDatapack overwritesLoadedPacks() {
-        pos = Pack.Position.TOP;
-        return this;
-    }
-
-    public DynamicDatapack addFile(DatapackFile file) {
-        files.add(file);
-        return this;
-    }
-
-    public DynamicDatapack addContent(List<DatapackFile> files) {
-        this.files.addAll(files);
-        return this;
-    }
-
-    public Pack build() {
-        var resources = new DynamicDatapackResources(id.toString());
-
-        for (var file : files) {
-            resources.putJson(file.path, file.data);
-        }
-
-        var pack = Pack.readMetaAndCreate(id.toString(), title, isRequired, (id) -> resources, type, pos, source);
-        assert pack != null;
-
-        return pack;
-    }
-
-    public Pack buildAndRegister() {
-        return buildAndRegister(true);
-    }
-
-    public Pack buildAndRegister(boolean registerDefinition) {
-        var pack = build();
-        if (type == PackType.SERVER_DATA) DATAPACKS.add(pack);
-        if (type == PackType.CLIENT_RESOURCES) RESOURCE_PACKS.add(pack);
-        if (registerDefinition) REGISTERED_DEFINITIONS.add(snapshot());
-        return pack;
-    }
-
-    public void registerDefinitionOnly() {
-        REGISTERED_DEFINITIONS.add(snapshot());
-    }
-
-    public static List<BuiltDynamicPack> getRegisteredDefinitions() {
-        return Collections.unmodifiableList(REGISTERED_DEFINITIONS);
+    public static List<BuiltDynamicPack> getPackSnapshots() {
+        return Collections.unmodifiableList(PACK_SNAPSHOTS);
     }
 
     public static void dumpRegisteredPacks(Path root) throws IOException {
         Files.createDirectories(root);
 
-        for (var def : REGISTERED_DEFINITIONS) {
+        for (var def : PACK_SNAPSHOTS) {
             Path packDir = root.resolve(def.folderName());
             Files.createDirectories(packDir);
 
@@ -141,19 +73,6 @@ public class DynamicDatapack {
         }
     }
 
-    private DynamicDatapack(ResourceLocation id, PackType type) {
-        this.id = id;
-        this.type = type;
-    }
-
-    private BuiltDynamicPack snapshot() {
-        var copiedFiles = files.stream()
-                .map(f -> new DatapackFile(f.path, f.data.deepCopy()))
-                .toList();
-
-        return new BuiltDynamicPack(id, type, title.getString(), isRequired, pos, copiedFiles);
-    }
-
     private static Path toPackRootPath(PackType type, String path) {
         int sep = path.indexOf('/');
         if (sep <= 0 || sep >= path.length() - 1) {
@@ -165,6 +84,89 @@ public class DynamicDatapack {
         String relativePath = path.substring(sep + 1);
         String rootFolder = (type == PackType.SERVER_DATA) ? "data" : "assets";
         return Path.of(rootFolder).resolve(namespace).resolve(relativePath);
+    }
+
+    private final ResourceLocation id;
+    private final PackType type;
+    private Component title;
+
+    private Component description = Component.empty();
+    private boolean isRequired = true;
+    private PackSource source = PackSource.BUILT_IN;
+    private Pack.Position pos = Pack.Position.BOTTOM;
+    private final List<DatapackFile> files = new ArrayList<>();
+
+    public DynamicDatapack title(Component title) {
+        this.title = title;
+        return this;
+    }
+
+    public DynamicDatapack description(Component description) {
+        this.description = description;
+        return this;
+    }
+
+    public DynamicDatapack optional() {
+        isRequired = false;
+        return this;
+    }
+
+    public DynamicDatapack source(PackSource source) {
+        this.source = source;
+        return this;
+    }
+
+    public DynamicDatapack overwritesLoadedPacks() {
+        pos = Pack.Position.TOP;
+        return this;
+    }
+
+    public DynamicDatapack addContent(List<DatapackFile> files) {
+        this.files.addAll(files);
+        return this;
+    }
+
+    public DynamicDatapack addContent(DatapackFile file) {
+        this.files.add(file);
+        return this;
+    }
+
+    public Pack build() {
+        var resources = new DynamicDatapackResources(id.toString(), description);
+
+        for (var file : files) {
+            resources.putJson(file.path, file.data);
+        }
+
+        var pack = Pack.readMetaAndCreate(id.toString(), title, isRequired, (id) -> resources, type, pos, source);
+        assert pack != null;
+
+        return pack;
+    }
+
+    public Pack buildAndRegister() {
+        var pack = build();
+        if (type == PackType.SERVER_DATA) DATAPACKS.add(pack);
+        if (type == PackType.CLIENT_RESOURCES) RESOURCE_PACKS.add(pack);
+        return pack;
+    }
+
+    public void registerSnapshots() {
+        PACK_SNAPSHOTS.add(snapshot());
+    }
+
+    private DynamicDatapack(ResourceLocation id, PackType type) {
+        this.id = id;
+        this.type = type;
+        this.title = Component.literal(id.toString());
+    }
+
+    private BuiltDynamicPack snapshot() {
+        var copiedFiles = files.stream()
+                .map(f -> new DatapackFile(f.path, f.data.deepCopy()))
+                .toList();
+
+        return new BuiltDynamicPack(id, type, title.getString(), isRequired, pos, copiedFiles);
     }
 
     public record DatapackFile(String path, JsonElement data) {}

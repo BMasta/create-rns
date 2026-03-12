@@ -27,16 +27,16 @@ import static net.minecraft.util.datafix.fixes.BlockEntitySignTextStrictJsonFix.
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public final class DynamicDatapackResources implements PackResources {
+public class DynamicDatapackResources implements PackResources {
     private final String packId;
 
     private final Map<ResourceLocation, byte[]> serverData = new Object2ObjectOpenHashMap<>();
     private final PackMetadataSection metadata;
 
-    public DynamicDatapackResources(String packId) {
+    public DynamicDatapackResources(String packId, Component description) {
         this.packId = packId;
         int packFormat = SharedConstants.getCurrentVersion().getPackVersion(PackType.SERVER_DATA);
-        this.metadata = new PackMetadataSection(Component.literal(packId), packFormat);
+        this.metadata = new PackMetadataSection(description, packFormat);
     }
 
     public void putJson(String path, JsonElement json) {
