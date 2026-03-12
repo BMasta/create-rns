@@ -12,8 +12,7 @@ import com.bmaster.createrns.content.deposit.mining.contraption.attachment.reson
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ResonatorMovementBehaviour;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ShatteringResonatorBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.StabilizingResonatorBlock;
-import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
-import com.bmaster.createrns.data.gen.depositworldgen.DepositStructureConfigBuilder;
+import com.bmaster.createrns.data.pack.DynamicDatapackDepositEntry;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.AllTags;
@@ -26,7 +25,6 @@ import com.tterrag.registrate.providers.RegistrateRecipeProvider;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.tags.BlockTags;
@@ -183,85 +181,63 @@ public class RNSBlocks {
             .simpleItem()
             .register();
 
-    public static final BlockEntry<DepositBlock> IRON_DEPOSIT = CreateRNS.REGISTRATE.block(
-                    "iron_deposit_block", DepositBlock::new)
+    public static final BlockEntry<DepositBlock> IRON_DEPOSIT = DynamicDatapackDepositEntry
+            .create("iron")
+            .depth(8)
+            .weight(10)
+            .nbt(DynamicDatapackDepositEntry.DEP_MEDIUM, 70)
+            .nbt(DynamicDatapackDepositEntry.DEP_LARGE, 30)
+            .block("iron_deposit_block")
             .transform(depositBlock(MapColor.RAW_IRON))
-            .onRegister(d -> DepositStructureConfigBuilder
-                    .create("iron")
-                    .depositBlock(BuiltInRegistries.BLOCK.getKey(d))
-                    .depth(8)
-                    .weight(10)
-                    .nbt(DepositStructureConfigBuilder.DEP_MEDIUM, 70)
-                    .nbt(DepositStructureConfigBuilder.DEP_LARGE, 30)
-                    .save())
             .register();
 
-    public static final BlockEntry<DepositBlock> COPPER_DEPOSIT = CreateRNS.REGISTRATE.block(
-                    "copper_deposit_block", DepositBlock::new)
+    public static final BlockEntry<DepositBlock> COPPER_DEPOSIT = DynamicDatapackDepositEntry
+            .create("copper")
+            .depth(8)
+            .weight(5)
+            .nbt(DynamicDatapackDepositEntry.DEP_MEDIUM, 70)
+            .nbt(DynamicDatapackDepositEntry.DEP_LARGE, 30)
+            .block("copper_deposit_block")
             .transform(depositBlock(MapColor.COLOR_ORANGE))
-            .onRegister(d -> DepositStructureConfigBuilder
-                    .create("copper")
-                    .depositBlock(BuiltInRegistries.BLOCK.getKey(d))
-                    .depth(8)
-                    .weight(5)
-                    .nbt(DepositStructureConfigBuilder.DEP_MEDIUM, 70)
-                    .nbt(DepositStructureConfigBuilder.DEP_LARGE, 30)
-                    .save())
             .register();
 
-    public static final BlockEntry<DepositBlock> ZINC_DEPOSIT = CreateRNS.REGISTRATE.block(
-                    "zinc_deposit_block", DepositBlock::new)
+    public static final BlockEntry<DepositBlock> ZINC_DEPOSIT = DynamicDatapackDepositEntry
+            .create("zinc")
+            .depth(8)
+            .weight(2)
+            .nbt(DynamicDatapackDepositEntry.DEP_SMALL, 70)
+            .nbt(DynamicDatapackDepositEntry.DEP_MEDIUM, 28)
+            .nbt(DynamicDatapackDepositEntry.DEP_LARGE, 2)
+            .block("zinc_deposit_block")
             .transform(depositBlock(MapColor.GLOW_LICHEN))
-            .onRegister(d -> DepositStructureConfigBuilder
-                    .create("zinc")
-                    .depositBlock(BuiltInRegistries.BLOCK.getKey(d))
-                    .depth(8)
-                    .weight(2)
-                    .nbt(DepositStructureConfigBuilder.DEP_SMALL, 70)
-                    .nbt(DepositStructureConfigBuilder.DEP_MEDIUM, 28)
-                    .nbt(DepositStructureConfigBuilder.DEP_LARGE, 2)
-                    .save())
             .register();
 
-    public static final BlockEntry<DepositBlock> GOLD_DEPOSIT = CreateRNS.REGISTRATE.block(
-                    "gold_deposit_block", DepositBlock::new)
+    public static final BlockEntry<DepositBlock> GOLD_DEPOSIT = DynamicDatapackDepositEntry
+            .create("gold")
+            .depth(12)
+            .weight(2)
+            .nbt(DynamicDatapackDepositEntry.DEP_SMALL, 70)
+            .nbt(DynamicDatapackDepositEntry.DEP_MEDIUM, 28)
+            .nbt(DynamicDatapackDepositEntry.DEP_LARGE, 2)
+            .block("gold_deposit_block")
             .transform(depositBlock(MapColor.GOLD))
-            .onRegister(d -> DepositStructureConfigBuilder
-                    .create("gold")
-                    .depositBlock(BuiltInRegistries.BLOCK.getKey(d))
-                    .depth(12)
-                    .weight(2)
-                    .nbt(DepositStructureConfigBuilder.DEP_SMALL, 70)
-                    .nbt(DepositStructureConfigBuilder.DEP_MEDIUM, 28)
-                    .nbt(DepositStructureConfigBuilder.DEP_LARGE, 2)
-                    .save())
             .register();
 
-    public static final BlockEntry<DepositBlock> REDSTONE_DEPOSIT = CreateRNS.REGISTRATE.block(
-                    "redstone_deposit_block", DepositBlock::new)
+    public static final BlockEntry<DepositBlock> REDSTONE_DEPOSIT = DynamicDatapackDepositEntry
+            .create("redstone")
+            .depth(12)
+            .weight(2)
+            .nbt(DynamicDatapackDepositEntry.DEP_SMALL, 70)
+            .nbt(DynamicDatapackDepositEntry.DEP_MEDIUM, 28)
+            .nbt(DynamicDatapackDepositEntry.DEP_LARGE, 2)
+            .block("redstone_deposit_block")
             .transform(depositBlock(MapColor.FIRE))
-            .onRegister(d -> DepositStructureConfigBuilder
-                    .create("redstone")
-                    .depositBlock(BuiltInRegistries.BLOCK.getKey(d))
-                    .depth(12)
-                    .weight(2)
-                    .nbt(DepositStructureConfigBuilder.DEP_SMALL, 70)
-                    .nbt(DepositStructureConfigBuilder.DEP_MEDIUM, 28)
-                    .nbt(DepositStructureConfigBuilder.DEP_LARGE, 2)
-                    .save())
             .register();
 
-    public static final BlockEntry<DepositBlock> DEPLETED_DEPOSIT = CreateRNS.REGISTRATE.block(
-                    "depleted_deposit_block", DepositBlock::new)
+    public static final BlockEntry<DepositBlock> DEPLETED_DEPOSIT = DynamicDatapackDepositEntry
+            .blockOnly("depleted_deposit_block")
             .transform(depositBlock(MapColor.COLOR_BLACK))
             .register();
-
-    static {
-        // Must run after all deposit configs are saved
-        DepositSetConfigBuilder
-                .create()
-                .save();
-    }
 
     public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> depositBlock(MapColor mapColor) {
         return b -> b

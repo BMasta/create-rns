@@ -50,6 +50,8 @@
 * System interaction: found-state filtering applies during structure lookup so discovery can ignore already-discovered deposits without changing worldgen itself.
 * Data and assets: behavior is data-driven through generated worldgen JSON and structure templates, with additional built-in datapack content controlling biome eligibility.
 * Data and assets: deposit type metadata for scanner selection is datapack-driven and must remain aligned with generated structure identities.
+* Data and assets: default built-in-pack worldgen entries are sourced from per-deposit registration definitions;
+  dump tooling uses an explicit dump-mode bootstrap path to materialize inspectable defaults outside game startup.
 * Maintenance invariant: structure templates must keep their agreed placeholder convention so replacement rules can reliably convert template blocks into deposit blocks.
 * Maintenance invariant: per-type worldgen entries, structure tags, and scanner target definitions must stay synchronized across code and datapack data.
 * Known limitation: default spawn tuning is authored in code-generated data, so balancing changes currently require updating generation inputs or overriding via datapack.
