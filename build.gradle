@@ -170,11 +170,13 @@ tasks.named('processResources', ProcessResources).configure {
     }
 }
 
-def dynamicDatapackDumpDir = layout.buildDirectory.dir("generated/dynamic_datapacks")
+def dynamicDatapackDumpDir = layout.projectDirectory.dir("src/generated/builtin_packs")
 def dynamicDatapackDumpWorkDir = layout.buildDirectory.dir("tmp/dynamic_datapack_dump")
 
 tasks.register('cleanDynamicDatapackDump', Delete) {
-    delete dynamicDatapackDumpDir
+    delete fileTree(dynamicDatapackDumpDir) {
+        exclude '**/README.md'
+    }
 }
 
 tasks.register('dumpDynamicDatapacks', JavaExec) {
@@ -188,7 +190,7 @@ tasks.register('dumpDynamicDatapacks', JavaExec) {
     doFirst {
         workingDir.mkdirs()
     }
-    args dynamicDatapackDumpDir.get().asFile.absolutePath
+    args dynamicDatapackDumpDir.asFile.absolutePath
 }
 
 // Example for how to get properties into the manifest for reading at runtime.
