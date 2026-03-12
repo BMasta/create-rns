@@ -35,3 +35,21 @@
 * Maintenance invariant: scan radius and ping scaling are coupled to deposit worldgen spacing constants; changing spacing changes scanner behavior.
 * Maintenance invariant: tracking depends on a prior discovery cache entry and should remain cheap (no structure search per ping).
 * Known limitation: request handling assumes selected scanner icon maps to a valid deposit spec; invalid icon payloads are not defensively handled.
+
+## Deposit World Generation (Structure-Based Deposits)
+* Player perspective: deposits appear underground as worldgen structures in supported biomes and are intended to be discovered, then mined in place.
+* Player perspective: different deposit types do not appear equally often, and each type can appear in multiple template variants, so world distribution feels varied.
+* Gameplay outcome: world seed and exploration route meaningfully affect which deposit types players find first, influencing mining progression and factory planning.
+* Core behavior: deposit generation is driven by structure-based worldgen with a shared placement policy plus per-type relative weighting.
+* Core behavior: each deposit type selects from weighted structure templates and applies block replacement rules so shared templates can produce type-specific deposits.
+* Core behavior: placement is constrained by biome eligibility and generation step settings, so deposits are injected into terrain generation rather than placed as ad-hoc runtime edits.
+* Edge behavior: disabling eligible biomes prevents new deposits from generating while preserving already-generated terrain.
+* Edge behavior: changing worldgen data affects newly generated chunks; existing chunks keep their previously generated deposits unless modified by gameplay or admin tools.
+* System interaction: scanner discovery and admin locate tooling depend on deposit worldgen structure identity remaining consistent with scanner target definitions.
+* System interaction: scanner search behavior assumes the worldgen placement model remains in the same general scale; major placement changes can require scanner tuning.
+* System interaction: found-state filtering applies during structure lookup so discovery can ignore already-discovered deposits without changing worldgen itself.
+* Data and assets: behavior is data-driven through generated worldgen JSON and structure templates, with additional built-in datapack content controlling biome eligibility.
+* Data and assets: deposit type metadata for scanner selection is datapack-driven and must remain aligned with generated structure identities.
+* Maintenance invariant: structure templates must keep their agreed placeholder convention so replacement rules can reliably convert template blocks into deposit blocks.
+* Maintenance invariant: per-type worldgen entries, structure tags, and scanner target definitions must stay synchronized across code and datapack data.
+* Known limitation: default spawn tuning is authored in code-generated data, so balancing changes currently require updating generation inputs or overriding via datapack.

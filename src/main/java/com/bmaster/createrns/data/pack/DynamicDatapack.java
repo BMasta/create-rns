@@ -1,8 +1,12 @@
 package com.bmaster.createrns.data.pack;
 
 import com.bmaster.createrns.CreateRNS;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
@@ -10,17 +14,24 @@ import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class DynamicDatapack {
+    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     public static List<Pack> DATAPACKS = new ArrayList<>();
     public static List<Pack> RESOURCE_PACKS = new ArrayList<>();
+    private static final List<BuiltDynamicPack> REGISTERED_DEFINITIONS = new ArrayList<>();
 
     public static DynamicDatapack createDatapack(String id) {
-        return new DynamicDatapack(CreateRNS.asResource(id), PackType.SERVER_DATA);
+        return new DynamicDatapack(ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, id), PackType.SERVER_DATA);
     }
 
     public static DynamicDatapack createDatapack(ResourceLocation id) {
@@ -28,7 +39,7 @@ public class DynamicDatapack {
     }
 
     public static DynamicDatapack createResourcePack(String id) {
-        return new DynamicDatapack(CreateRNS.asResource(id), PackType.CLIENT_RESOURCES);
+        return new DynamicDatapack(ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, id), PackType.CLIENT_RESOURCES);
     }
 
     public static DynamicDatapack createResourcePack(ResourceLocation id) {
@@ -88,10 +99,46 @@ public class DynamicDatapack {
     }
 
     public Pack buildAndRegister() {
+        return buildAndRegister(true);
+    }
+
+    public Pack buildAndRegister(boolean registerDefinition) {
         var pack = build();
-        if (type == PackType.SERVER_DATA) DATAPACKS.add(build());
-        if (type == PackType.CLIENT_RESOURCES) RESOURCE_PACKS.add(build());
+        if (type == PackType.SERVER_DATA) DATAPACKS.add(pack);
+        if (type == PackType.CLIENT_RESOURCES) RESOURCE_PACKS.add(pack);
+        if (registerDefinition) REGISTERED_DEFINITIONS.add(snapshot());
         return pack;
+    }
+
+    public void registerDefinitionOnly() {
+        REGISTERED_DEFINITIONS.add(snapshot());
+    }
+
+    public static List<BuiltDynamicPack> getRegisteredDefinitions() {
+        return Collections.unmodifiableList(REGISTERED_DEFINITIONS);
+    }
+
+    public static void dumpRegisteredPacks(Path root) throws IOException {
+        Files.createDirectories(root);
+
+        for (var def : REGISTERED_DEFINITIONS) {
+            Path packDir = root.resolve(def.folderName());
+            Files.createDirectories(packDir);
+
+            var metadata = new JsonObject();
+            var metadataPack = new JsonObject();
+            metadataPack.addProperty("description", def.title);
+            metadataPack.addProperty("pack_format", SharedConstants.getCurrentVersion().getPackVersion(def.type));
+            metadata.add("pack", metadataPack);
+            Files.writeString(packDir.resolve("pack.mcmeta"), GSON.toJson(metadata), StandardCharsets.UTF_8);
+
+            for (var f : def.files) {
+                Path target = packDir.resolve(toPackRootPath(def.type, f.path));
+                var parent = target.getParent();
+                if (parent != null) Files.createDirectories(parent);
+                Files.writeString(target, GSON.toJson(f.data), StandardCharsets.UTF_8);
+            }
+        }
     }
 
     private DynamicDatapack(ResourceLocation id, PackType type) {
@@ -99,5 +146,35 @@ public class DynamicDatapack {
         this.type = type;
     }
 
+    private BuiltDynamicPack snapshot() {
+        var copiedFiles = files.stream()
+                .map(f -> new DatapackFile(f.path, f.data.deepCopy()))
+                .toList();
+
+        return new BuiltDynamicPack(id, type, title.getString(), isRequired, pos, copiedFiles);
+    }
+
+    private static Path toPackRootPath(PackType type, String path) {
+        int sep = path.indexOf('/');
+        if (sep <= 0 || sep >= path.length() - 1) {
+            throw new IllegalArgumentException(
+                    "Dynamic datapack file path must be in the format 'namespace/path': " + path);
+        }
+
+        String namespace = path.substring(0, sep);
+        String relativePath = path.substring(sep + 1);
+        String rootFolder = (type == PackType.SERVER_DATA) ? "data" : "assets";
+        return Path.of(rootFolder).resolve(namespace).resolve(relativePath);
+    }
+
     public record DatapackFile(String path, JsonElement data) {}
+
+    public record BuiltDynamicPack(
+            ResourceLocation id, PackType type, String title, boolean required,
+            Pack.Position position, List<DatapackFile> files
+    ) {
+        public String folderName() {
+            return id.getNamespace() + "_" + id.getPath().replace('/', '_');
+        }
+    }
 }

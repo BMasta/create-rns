@@ -1,11 +1,9 @@
 package com.bmaster.createrns;
 
 import com.bmaster.createrns.compat.ponder.RNSPonderPlugin;
-import com.bmaster.createrns.content.deposit.scanning.DepositScannerChannel;
 import com.bmaster.createrns.content.deposit.mining.contraption.RNSMovementChecks;
+import com.bmaster.createrns.content.deposit.scanning.DepositScannerChannel;
 import com.bmaster.createrns.infrastructure.ServerConfig;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import net.createmod.catnip.lang.LangBuilder;
@@ -32,7 +30,6 @@ public class CreateRNS {
     public static final String ID = "create_rns";
     public static final Logger LOGGER = LogUtils.getLogger();
     public static final CreateRegistrate REGISTRATE = CreateRegistrate.create(CreateRNS.ID);
-    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     public static ResourceLocation asResource(String path) {
         return ResourceLocation.fromNamespaceAndPath(ID, path);

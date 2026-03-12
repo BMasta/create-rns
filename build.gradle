@@ -170,6 +170,27 @@ tasks.named('processResources', ProcessResources).configure {
     }
 }
 
+def dynamicDatapackDumpDir = layout.buildDirectory.dir("generated/dynamic_datapacks")
+def dynamicDatapackDumpWorkDir = layout.buildDirectory.dir("tmp/dynamic_datapack_dump")
+
+tasks.register('cleanDynamicDatapackDump', Delete) {
+    delete dynamicDatapackDumpDir
+}
+
+tasks.register('dumpDynamicDatapacks', JavaExec) {
+    group = 'create-rns'
+    description = 'Dumps in-memory dynamic datapack content to disk for inspection.'
+    dependsOn tasks.named('classes')
+    dependsOn tasks.named('cleanDynamicDatapackDump')
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.bmaster.createrns.data.pack.DynamicDatapackDumpTool'
+    workingDir = dynamicDatapackDumpWorkDir.get().asFile
+    doFirst {
+        workingDir.mkdirs()
+    }
+    args dynamicDatapackDumpDir.get().asFile.absolutePath
+}
+
 // Example for how to get properties into the manifest for reading at runtime.
 tasks.named('jar', Jar).configure {
     manifest {
