@@ -163,6 +163,27 @@ tasks.named('processResources', ProcessResources).configure {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+def dynamicDatapackDumpDir = layout.buildDirectory.dir("generated/dynamic_datapacks")
+def dynamicDatapackDumpWorkDir = layout.buildDirectory.dir("tmp/dynamic_datapack_dump")
+
+tasks.register('cleanDynamicDatapackDump', Delete) {
+    delete dynamicDatapackDumpDir
+}
+
+tasks.register('dumpDynamicDatapacks', JavaExec) {
+    group = 'create-rns'
+    description = 'Dumps in-memory dynamic datapack content to disk for inspection.'
+    dependsOn tasks.named('classes')
+    dependsOn tasks.named('cleanDynamicDatapackDump')
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.bmaster.createrns.data.pack.DynamicDatapackDumpTool'
+    workingDir = dynamicDatapackDumpWorkDir.get().asFile
+    doFirst {
+        workingDir.mkdirs()
+    }
+    args dynamicDatapackDumpDir.get().asFile.absolutePath
+}
+
 // IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
 idea {
     module {
