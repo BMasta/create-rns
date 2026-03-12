@@ -27,16 +27,16 @@ import static com.bmaster.createrns.CreateRNS.GSON;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public final class DynamicDatapackResources implements PackResources {
+public class DynamicDatapackResources implements PackResources {
     private final PackLocationInfo info;
 
     private final Map<ResourceLocation, byte[]> serverData = new Object2ObjectOpenHashMap<>();
     private final PackMetadataSection metadata;
 
-    public DynamicDatapackResources(PackLocationInfo info) {
+    public DynamicDatapackResources(PackLocationInfo info, Component description) {
         this.info = info;
         int packFormat = SharedConstants.getCurrentVersion().getPackVersion(PackType.SERVER_DATA);
-        this.metadata = new PackMetadataSection(Component.literal(info.id()), packFormat);
+        this.metadata = new PackMetadataSection(description, packFormat);
     }
 
     public void putJson(String path, JsonElement json) {
