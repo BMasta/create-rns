@@ -42,6 +42,7 @@ All versions are defined in `gradle.properties`. Java version is 21.
 * Assets and data files are located in resources.
 * Resources in `src/generated/resources` are generated automatically using datagen and shouldn't be modified/added manually.
 * Data-driven design: catalysts, deposit specs, and miner specs are defined as JSON datapack registry entries, not hardcoded. This makes them extensible by modpacks without code changes.
+* In-memory pack outputs can be inspected via the Gradle task `dumpDynamicDatapacks`, which writes generated pack files to `build/generated/dynamic_datapacks`.
 * Targeted vanilla integration points may be implemented via Mixins declared in `${mod_id}.mixins.json` when no stable mod API hook exists.
 * Compat plugins (JEI, Jade) live in a `compat/` package and are conditionally loaded when the respective mod is present.
 * Translation keys follow `create_rns.<category>.<key>` for mod content and the standard Minecraft pattern (`block.create_rns.*`, `item.create_rns.*`) for blocks/items.
