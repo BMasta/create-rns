@@ -164,6 +164,7 @@ public class DynamicDatapack {
         this.title = Component.literal(id.toString());
     }
 
+    /// Used for dumping datapack contents for inspection
     private BuiltDynamicPack snapshot() {
         var copiedFiles = files.stream()
                 .map(f -> new DatapackFile(f.path, f.data.deepCopy()))
@@ -174,6 +175,7 @@ public class DynamicDatapack {
 
     public record DatapackFile(String path, JsonElement data) {}
 
+    /// Used for dumping datapack contents for inspection
     public record BuiltDynamicPack(
             ResourceLocation id, PackType type, String title, boolean required,
             Pack.Position position, List<DatapackFile> files

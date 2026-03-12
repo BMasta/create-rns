@@ -1,0 +1,30 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 591646342,
+    "separation": 8,
+    "spacing": 48
+  },
+  "structures": [
+    {
+      "structure": "create_rns:deposit_iron",
+      "weight": 10
+    },
+    {
+      "structure": "create_rns:deposit_copper",
+      "weight": 5
+    },
+    {
+      "structure": "create_rns:deposit_zinc",
+      "weight": 2
+    },
+    {
+      "structure": "create_rns:deposit_gold",
+      "weight": 2
+    },
+    {
+      "structure": "create_rns:deposit_redstone",
+      "weight": 2
+    }
+  ]
+}

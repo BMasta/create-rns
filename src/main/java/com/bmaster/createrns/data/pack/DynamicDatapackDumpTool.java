@@ -11,7 +11,7 @@ import java.nio.file.Path;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class DynamicDatapackDumpTool {
-    private static final String DEFAULT_DUMP_PATH = "build/generated/dynamic_datapacks";
+    private static final String DEFAULT_DUMP_PATH = "src/generated/builtin_packs";
 
     public static void main(String[] args) throws IOException {
         var outputDir = (args.length > 0)
