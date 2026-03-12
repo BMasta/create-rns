@@ -2,12 +2,14 @@ package com.bmaster.createrns.content.deposit.info;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSMisc;
+import com.mojang.datafixers.util.Either;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import org.jetbrains.annotations.Nullable;
@@ -20,15 +22,27 @@ import java.util.Objects;
 public abstract class DepositLocation {
     public static final int MIN_COMPUTE_INTERVAL = 90;
 
-    /// Used when requested by a non-player entity
+    /// Does not cache the result. Does not have to be called by a player.
     public static @Nullable DepositLocation getNearest(
             ServerLevel sl, ResourceKey<Structure> depKey, BlockPos pos,
             boolean allowFound, int searchRadiusChunks
     ) {
-        return getNearest(sl, depKey, pos, allowFound, searchRadiusChunks, null);
+        return getNearest(sl, Either.left(depKey), pos, allowFound, searchRadiusChunks);
+    }
+    public static @Nullable DepositLocation getNearest(
+            ServerLevel sl, TagKey<Structure> depTag, BlockPos pos,
+            boolean allowFound, int searchRadiusChunks
+    ) {
+        return getNearest(sl, Either.right(depTag), pos, allowFound, searchRadiusChunks);
+    }
+    public static @Nullable DepositLocation getNearest(
+            ServerLevel sl, Either<ResourceKey<Structure>,TagKey<Structure>> depResOrTag, BlockPos pos,
+            boolean allowFound, int searchRadiusChunks
+    ) {
+        return getNearest(sl, depResOrTag, pos, allowFound, searchRadiusChunks, null);
     }
 
-    /// Used when requested by a player
+    /// Caches the result per player
     public static @Nullable DepositLocation getNearest(
             ServerPlayer sp, ResourceKey<Structure> depKey,
             boolean allowFound, int searchRadiusChunks, boolean cached
@@ -36,12 +50,24 @@ public abstract class DepositLocation {
         if (cached) {
             return getNearestCached(sp, depKey, searchRadiusChunks);
         } else {
-            return getNearest(sp.serverLevel(), depKey, sp.blockPosition(), allowFound, searchRadiusChunks, sp);
+            return getNearest(sp.serverLevel(), Either.left(depKey), sp.blockPosition(), allowFound, searchRadiusChunks, sp);
         }
+    }
+    public static @Nullable DepositLocation getNearest(
+            ServerPlayer sp, TagKey<Structure> depTag,
+            boolean allowFound, int searchRadiusChunks
+    ) {
+        return getNearest(sp.serverLevel(), Either.right(depTag), sp.blockPosition(), allowFound, searchRadiusChunks, sp);
+    }
+    public static @Nullable DepositLocation getNearest(
+            ServerPlayer sp, Either<ResourceKey<Structure>, TagKey<Structure>> depResOrTag,
+            boolean allowFound, int searchRadiusChunks
+    ) {
+        return getNearest(sp.serverLevel(), depResOrTag, sp.blockPosition(), allowFound, searchRadiusChunks, sp);
     }
 
     private static @Nullable DepositLocation getNearest(
-            ServerLevel sl, ResourceKey<Structure> depKey, BlockPos pos,
+            ServerLevel sl, Either<ResourceKey<Structure>, TagKey<Structure>> depResOrTag, BlockPos pos,
             boolean allowFound, int searchRadiusChunks, @Nullable ServerPlayer sp
     ) {
         var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
@@ -52,8 +78,8 @@ public abstract class DepositLocation {
             if (hit != null && sl.getGameTime() - hit.creationTimestamp < MIN_COMPUTE_INTERVAL) return null;
         }
 
-        var custom = CustomDepositLocation.getNearestCustom(sl, depKey, pos, allowFound, searchRadiusChunks);
-        var structure = StructureDepositLocation.getNearestStructure(sl, depKey, pos, allowFound, searchRadiusChunks);
+        var custom = CustomDepositLocation.getNearestCustom(sl, depResOrTag, pos, allowFound, searchRadiusChunks);
+        var structure = StructureDepositLocation.getNearestStructure(sl, depResOrTag, pos, allowFound, searchRadiusChunks);
 
         // Select between custom and structure deposit
         DepositLocation selected;
