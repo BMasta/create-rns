@@ -36,16 +36,24 @@ public class CreateRNS {
         return new LangBuilder(CreateRNS.ID);
     }
 
-    public static String asLangEntry(String langSuffix) {
-        return ID + "." + langSuffix;
-    }
-
     public static MutableComponent translatable(String langSuffix) {
         return Component.translatable(asLangEntry(langSuffix));
     }
 
-    public static MutableComponent translatable(String langPrefix, String langSuffix) {
+    public static MutableComponent translatable(String langSuffix, Object... args) {
+        return Component.translatable(asLangEntry(langSuffix), args);
+    }
+
+    public static MutableComponent vanillaTranslatable(String langPrefix, String langSuffix) {
         return Component.translatable(asLangEntry(langPrefix, langSuffix));
+    }
+
+    public static MutableComponent vanillaTranslatable(String langPrefix, String langSuffix, Object... args) {
+        return Component.translatable(asLangEntry(langPrefix, langSuffix), args);
+    }
+
+    public static String asLangEntry(String langSuffix) {
+        return ID + "." + langSuffix;
     }
 
     public static String asLangEntry(String prefix, String path) {

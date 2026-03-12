@@ -45,6 +45,7 @@ All versions are defined in `gradle.properties`. Java version is 21.
 * Targeted vanilla integration points may be implemented via Mixins declared in `${mod_id}.mixins.json` when no stable mod API hook exists.
 * Compat plugins (JEI, Jade) live in a `compat/` package and are conditionally loaded when the respective mod is present.
 * Translation keys follow `create_rns.<category>.<key>` for mod content and the standard Minecraft pattern (`block.create_rns.*`, `item.create_rns.*`) for blocks/items.
+* When creating translatable components for mod-owned keys (`create_rns.*`), prefer `CreateRNS.translatable(...)` over direct `Component.translatable(...)` calls.
 
 ## Instructions
 While doing any feature work, this file must be updated as part of the same change whenever behavior or architecture changes.

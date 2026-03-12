@@ -1,6 +1,7 @@
 package com.bmaster.createrns.content.deposit.info;
 
 import com.bmaster.createrns.RNSMisc;
+import com.mojang.datafixers.util.Either;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -8,6 +9,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import org.jetbrains.annotations.Nullable;
@@ -15,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 @ParametersAreNonnullByDefault
@@ -29,6 +32,17 @@ public class CustomDepositLocation extends DepositLocation {
                 pos, allowFound, searchRadiusChunks);
     }
 
+    public static @Nullable DepositLocation getNearestCustom(
+            ServerLevel sl, Either<ResourceKey<Structure>, TagKey<Structure>> depResOrTag, BlockPos pos,
+            boolean allowFound, int searchRadiusChunks
+    ) {
+        var res = depResOrTag.left().orElse(null);
+        var tag = depResOrTag.right().orElse(null);
+        assert res != null || tag != null;
+        if (res != null) return getNearestCustom(sl, res, pos, allowFound, searchRadiusChunks);
+        return getNearestCustom(sl, tag, pos, allowFound, searchRadiusChunks);
+    }
+
     public static @Nullable CustomDepositLocation getNearestCustom(
             ServerLevel sl, ResourceKey<Structure> key, BlockPos pos,
             boolean allowFound, int searchRadiusChunks
@@ -38,6 +52,32 @@ public class CustomDepositLocation extends DepositLocation {
         if (depSet == null) return null;
 
         return getNearestCustom(sl, depSet.stream(), pos, allowFound, searchRadiusChunks);
+    }
+
+    public static @Nullable DepositLocation getNearestCustom(
+            ServerLevel sl, TagKey<Structure> depTag, BlockPos pos,
+            boolean allowFound, int searchRadiusChunks
+    ) {
+        var named = sl.registryAccess().registryOrThrow(Registries.STRUCTURE).getTag(depTag).orElse(null);
+        if (named == null) return null;
+        var depKeys = named.stream()
+                .map(h -> h.unwrapKey().orElse(null))
+                .filter(Objects::nonNull)
+                .toList();
+
+        double shortestDist = Float.MAX_VALUE;
+        DepositLocation nearest = null;
+        for (var k : depKeys) {
+            var nearestOfType = getNearestCustom(sl, k, pos, allowFound, searchRadiusChunks);
+            if (nearestOfType == null) continue;
+            var dist = nearestOfType.getLocation().distSqr(pos);
+            if (dist < shortestDist) {
+                nearest = nearestOfType;
+                shortestDist = dist;
+            }
+        }
+
+        return nearest;
     }
 
     private static @Nullable CustomDepositLocation getNearestCustom(
