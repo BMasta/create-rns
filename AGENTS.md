@@ -34,17 +34,19 @@ All versions are defined in `gradle.properties`. Java version is 21.
 ## Coding Style Guidelines
 * Preferred line length is 120 characters.
 * Class members are ordered in the following way (earlier rules take precedence):
-  * Static members come before non-static members.
-  * Properties come before methods.
+  * Static members come before non-static members (except classes).
+  * Simple enums come first (with no methods), then properties, then methods, then inner classes, records, complex enums.
   * Final properties come before non-final properties.
   * Public members come first, then protected, then private.
   * Uninitialized properties come before initialized properties.
 * Rough Order:
+  1. public->protected->private simple enum.
   1. public->protected->private static final uninitialized property.
   2. public->protected->private static final initialized property.
   3. public->protected->private static non-final property.
   4. public->protected->private static method.
   5. Same as above, but non-static.
+  4. public->protected->private class or record or complex enum.
 * The rules above can be broken if the locality of certain class members greatly improves readability. E.g. public method overrides that delegate to a main private method can and should be placed adjacent to each other.
 * Consider factoring out a code block into a helper method ONLY if at least one of these is true:
     * The method gets very large (>50 loc).
@@ -75,7 +77,7 @@ All versions are defined in `gradle.properties`. Java version is 21.
 * Assets and data files are located in resources.
 * Resources in `src/generated/resources` are generated automatically using datagen and shouldn't be modified/added manually.
 * Data-driven design: catalysts, deposit specs, and miner specs are defined as JSON datapack registry entries, not hardcoded. This makes them extensible by modpacks without code changes.
-* In-memory pack outputs can be inspected via the Gradle task `dumpDynamicDatapacks`, which writes generated pack files to `build/generated/dynamic_datapacks`.
+* In-memory pack outputs can be inspected via the Gradle task `dumpDynamicDatapacks`, which writes generated pack files to `src/generated/builtin_packs`.
 * Targeted vanilla integration points may be implemented via Mixins declared in `${mod_id}.mixins.json` when no stable mod API hook exists.
 * Compat plugins (JEI, Jade) live in a `compat/` package and are conditionally loaded when the respective mod is present.
 * Translation keys follow `create_rns.<category>.<key>` for mod content and the standard Minecraft pattern (`block.create_rns.*`, `item.create_rns.*`) for blocks/items.
