@@ -1,4 +1,4 @@
-package com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead;
+package com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead;
 
 import com.bmaster.createrns.RNSBlocks;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -16,14 +16,14 @@ import java.util.Set;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class DrillHeadMultiblock {
+public class MineHeadMultiblock {
     public static Set<BlockPos> getOccupiedPositions(BlockPos controllerPos, BlockState controllerState) {
-        var direction = DrillHeadBlock.getConnectedDirection(controllerState);
-        var size = controllerState.getValue(DrillHeadBlock.SIZE);
+        var direction = MineHeadBlock.getConnectedDirection(controllerState);
+        var size = controllerState.getValue(MineHeadBlock.SIZE);
         return getOccupiedPositions(controllerPos, direction, size);
     }
 
-    public static Set<BlockPos> getOccupiedPositions(BlockPos controllerPos, Direction direction, DrillHeadSize size) {
+    public static Set<BlockPos> getOccupiedPositions(BlockPos controllerPos, Direction direction, MineHeadSize size) {
         Set<BlockPos> positions = new HashSet<>();
         Direction u = getUDirection(direction);
         Direction v = getVDirection(direction);
@@ -48,9 +48,9 @@ public class DrillHeadMultiblock {
     }
 
     public static @Nullable BlockPos findControllerPosForUpgrade(
-            LevelReader level, BlockPos controllerPos, BlockState controllerState, DrillHeadSize targetSize
+            LevelReader level, BlockPos controllerPos, BlockState controllerState, MineHeadSize targetSize
     ) {
-        var direction = DrillHeadBlock.getConnectedDirection(controllerState);
+        var direction = MineHeadBlock.getConnectedDirection(controllerState);
         var currentPositions = getOccupiedPositions(controllerPos, controllerState);
 
         var preferredTargets = getOccupiedPositions(controllerPos, direction, targetSize);
@@ -64,25 +64,25 @@ public class DrillHeadMultiblock {
     }
 
     public static boolean tryUpgrade(Level level, BlockPos controllerPos, BlockState controllerState) {
-        var currentSize = controllerState.getValue(DrillHeadBlock.SIZE);
+        var currentSize = controllerState.getValue(MineHeadBlock.SIZE);
         if (!currentSize.canGrow()) return false;
         return tryUpgrade(level, controllerPos, controllerState, currentSize.getNext());
     }
 
     protected static boolean tryUpgrade(
-            Level level, BlockPos controllerPos, BlockState controllerState, DrillHeadSize targetSize
+            Level level, BlockPos controllerPos, BlockState controllerState, MineHeadSize targetSize
     ) {
         var upgradedControllerPos = findControllerPosForUpgrade(level, controllerPos, controllerState, targetSize);
         if (upgradedControllerPos == null) return false;
 
-        var upgradedState = controllerState.setValue(DrillHeadBlock.SIZE, targetSize);
+        var upgradedState = controllerState.setValue(MineHeadBlock.SIZE, targetSize);
         if (upgradedControllerPos.equals(controllerPos)) {
             level.setBlock(controllerPos, upgradedState, Block.UPDATE_ALL);
             placePartBlocksForSize(level, controllerPos, upgradedState);
             return true;
         }
 
-        level.setBlock(controllerPos, RNSBlocks.DRILL_HEAD_PART.getDefaultState(), Block.UPDATE_ALL);
+        level.setBlock(controllerPos, RNSBlocks.MINE_HEAD_PART.getDefaultState(), Block.UPDATE_ALL);
         level.setBlock(upgradedControllerPos, upgradedState, Block.UPDATE_ALL);
         placePartBlocksForSize(level, upgradedControllerPos, upgradedState);
         return true;
@@ -101,7 +101,7 @@ public class DrillHeadMultiblock {
                 for (int z = -2; z <= 2; z++) {
                     var candidatePos = occupiedPos.offset(x, y, z);
                     var candidateState = level.getBlockState(candidatePos);
-                    if (!candidateState.is(RNSBlocks.DRILL_HEAD.get())) continue;
+                    if (!candidateState.is(RNSBlocks.MINE_HEAD.get())) continue;
 
                     var occupiedByCandidate = getOccupiedPositions(candidatePos, candidateState);
                     if (!occupiedByCandidate.contains(occupiedPos)) continue;
@@ -134,7 +134,7 @@ public class DrillHeadMultiblock {
         var occupied = getOccupiedPositions(controllerPos, controllerState);
         for (var p : occupied) {
             if (p.equals(controllerPos)) continue;
-            if (!level.getBlockState(p).is(RNSBlocks.DRILL_HEAD_PART.get())) continue;
+            if (!level.getBlockState(p).is(RNSBlocks.MINE_HEAD_PART.get())) continue;
             level.destroyBlock(p, false);
         }
     }
@@ -170,14 +170,14 @@ public class DrillHeadMultiblock {
     }
 
     protected static BlockState getPartStateForPosition(BlockPos controllerPos, BlockState controllerState, BlockPos partPos) {
-        var direction = DrillHeadBlock.getConnectedDirection(controllerState);
-        var position = switch (controllerState.getValue(DrillHeadBlock.SIZE)) {
-            case SMALL, LARGE -> DrillHeadPartPosition.CORE;
+        var direction = MineHeadBlock.getConnectedDirection(controllerState);
+        var position = switch (controllerState.getValue(MineHeadBlock.SIZE)) {
+            case SMALL, LARGE -> MineHeadPartPosition.CORE;
         };
 
-        return RNSBlocks.DRILL_HEAD_PART.getDefaultState()
-                .setValue(DrillHeadPartBlock.FACING, direction)
-                .setValue(DrillHeadPartBlock.POSITION, position);
+        return RNSBlocks.MINE_HEAD_PART.getDefaultState()
+                .setValue(MineHeadPartBlock.FACING, direction)
+                .setValue(MineHeadPartBlock.POSITION, position);
     }
 
 }

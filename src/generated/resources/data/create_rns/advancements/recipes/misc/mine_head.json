@@ -15,7 +15,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "create_rns:drill_head"
+        "recipe": "create_rns:mine_head"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -28,7 +28,7 @@
   ],
   "rewards": {
     "recipes": [
-      "create_rns:drill_head"
+      "create_rns:mine_head"
     ]
   },
   "sends_telemetry_event": false

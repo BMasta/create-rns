@@ -1,8 +1,0 @@
-{
-  "parent": "create_rns:block/drill_head",
-  "textures": {
-    "1": "create_rns:block/drill_head_tip_large",
-    "2": "create_rns:block/drill_head_base_large",
-    "particle": "create_rns:block/drill_head_tip_large"
-  }
-}

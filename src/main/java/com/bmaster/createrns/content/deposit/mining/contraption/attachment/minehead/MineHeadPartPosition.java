@@ -1,4 +1,4 @@
-package com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead;
+package com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.util.StringRepresentable;
@@ -8,7 +8,7 @@ import java.util.Locale;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public enum DrillHeadPartPosition implements StringRepresentable {
+public enum MineHeadPartPosition implements StringRepresentable {
     CORE,
     BOTTOM,
     TOP,

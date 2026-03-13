@@ -2,9 +2,9 @@ package com.bmaster.createrns;
 
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlock;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadBlock;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadPartBlock;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadSize;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadPartBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadSize;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferMovementBehaviour;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ResonatorBlock;
@@ -71,8 +71,8 @@ public class RNSBlocks {
             .build()
             .register();
 
-    public static final BlockEntry<DrillHeadBlock> DRILL_HEAD = CreateRNS.REGISTRATE.block(
-                    "drill_head", DrillHeadBlock::new)
+    public static final BlockEntry<MineHeadBlock> MINE_HEAD = CreateRNS.REGISTRATE.block(
+                    "mine_head", MineHeadBlock::new)
             .initialProperties(() -> Blocks.IRON_BLOCK)
             .properties(p -> p
                     .mapColor(MapColor.COLOR_GRAY)
@@ -80,9 +80,9 @@ public class RNSBlocks {
             .transform(pickaxeOnly())
             .blockstate((c, p) -> {
                 var baseModel = AssetLookup.standardModel(c, p);
-                var largeModel = p.models().getExistingFile(p.modLoc("block/drill_head_large"));
+                var largeModel = p.models().getExistingFile(p.modLoc("block/mine_head_large"));
                 p.horizontalFaceBlock(c.get(), state ->
-                        state.getValue(DrillHeadBlock.SIZE) == DrillHeadSize.LARGE ? largeModel : baseModel);
+                        state.getValue(MineHeadBlock.SIZE) == MineHeadSize.LARGE ? largeModel : baseModel);
             })
             .simpleItem()
             .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
@@ -95,8 +95,8 @@ public class RNSBlocks {
                     .save(p))
             .register();
 
-    public static final BlockEntry<DrillHeadPartBlock> DRILL_HEAD_PART = CreateRNS.REGISTRATE.block(
-                    "drill_head_part", DrillHeadPartBlock::new)
+    public static final BlockEntry<MineHeadPartBlock> MINE_HEAD_PART = CreateRNS.REGISTRATE.block(
+                    "mine_head_part", MineHeadPartBlock::new)
             .initialProperties(() -> Blocks.IRON_BLOCK)
             .properties(p -> p
                     .mapColor(MapColor.COLOR_GRAY)
@@ -104,7 +104,7 @@ public class RNSBlocks {
                     .noLootTable())
             .transform(pickaxeOnly())
             .blockstate((c, p) ->
-                    p.simpleBlock(c.get(), p.models().getExistingFile(p.modLoc("block/drill_head"))))
+                    p.simpleBlock(c.get(), p.models().getExistingFile(p.modLoc("block/mine_head"))))
             .register();
 
     public static final BlockEntry<ResonatorBlock> RESONATOR = CreateRNS.REGISTRATE.block(

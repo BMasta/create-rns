@@ -1,15 +1,15 @@
 # Implementation Details
-## Drill Head Multiblock
-* Drill heads can be upgraded into larger multiblock variants.
-* Larger drill variants are composed of a main controller block plus invisible part blocks that provide physical occupancy.
-* Upgrading is performed by applying additional drill head items and validates whether surrounding space can be reserved for the larger structure.
+## Mine Head Multiblock
+* Mine heads can be upgraded into larger multiblock variants.
+* Larger mine head variants are composed of a main controller block plus invisible part blocks that provide physical occupancy.
+* Upgrading is performed by applying additional mine head items and validates whether surrounding space can be reserved for the larger structure.
 * Growth logic supports expanding in alternate directions when needed so the full structure can still fit.
 * Part blocks act as extensions of the controller for interaction and destruction behavior.
-* Breaking a drill returns resources based on how much was invested into its current size.
-* Drill size directly affects mining footprint: small heads provide no radius bonus, medium heads provide +1 radius.
-* Drill multiblock behavior is integrated with contraption assembly in a general way so controller and part blocks move together without requiring glue on every part.
-* Oversized drill rendering is handled as a scaled/offset single model, with culling bounds expanded to prevent disappearing visuals when only part of the model is on screen.
-* Drill part blocks are configured to avoid unintended light occlusion artifacts.
+* Breaking a mine head returns resources based on how much was invested into its current size.
+* Mine head size directly affects mining footprint: small heads provide no radius bonus, medium heads provide +1 radius.
+* Mine head multiblock behavior is integrated with contraption assembly in a general way so controller and part blocks move together without requiring glue on every part.
+* Oversized mine head rendering is handled as a scaled/offset single model, with culling bounds expanded to prevent disappearing visuals when only part of the model is on screen.
+* Mine head part blocks are configured to avoid unintended light occlusion artifacts.
 
 ## Miner Resonance Attachments (Contraption Composition and Mining Footprint)
 * Player perspective: resonance attachments are added by placing resonators and resonance buffers on the miner contraption.
@@ -17,20 +17,20 @@
 * Player perspective: resonance buffers are support components that increase resonator capacity while reducing mining footprint.
 * Gameplay outcome: attachment layout controls both catalyst availability and effective mining area, so contraption design
   directly affects throughput and coverage tradeoffs.
-* Core behavior: contraption assembly requires exactly one drill head; resonance attachments are counted during assembly validation.
+* Core behavior: contraption assembly requires exactly one mine head; resonance attachments are counted during assembly validation.
 * Core behavior: resonator cap is `BASE_RESONATOR_LIMIT + buffer_count`; assembly fails when resonator count exceeds this cap.
 * Core behavior: buffer count has an independent assembly cap; assembly fails when that cap is exceeded.
-* Core behavior: mining radius starts from server config, then applies drill-size bonus and a single buffer penalty when at least
+* Core behavior: mining radius starts from server config, then applies mine head size bonus and a single buffer penalty when at least
   one buffer is present.
 * Edge behavior: additional buffers increase resonator capacity but do not stack further mining-radius penalties.
-* Edge behavior: changing drill size or resonance attachment composition causes the miner spec to refresh so claim area and mining
+* Edge behavior: changing mine head size or resonance attachment composition causes the miner spec to refresh so claim area and mining
   behavior stay aligned with current contraption state.
 * System interaction: resonance, shattering resonance, and stabilizing resonance catalysts are detected from contraption block composition.
 * System interaction: fluid overclock catalyst handling composes with resonance catalysts on the same contraption.
 * Data and assets: attachment behavior is code-defined; visuals are driven by models, textures, and partial models.
 * Maintenance invariant: miner assembly and mining-area calculations must treat resonators and resonance buffers as the authoritative
   resonance attachment set.
-* Maintenance invariant: drill-size bonus and buffer penalty rules define expected mining footprint scaling and should stay aligned
+* Maintenance invariant: mine head size bonus and buffer penalty rules define expected mining footprint scaling and should stay aligned
   with player-facing tooltip/guide text.
 
 ## Deposit Scanner (Server-Driven Discovery and Tracking)

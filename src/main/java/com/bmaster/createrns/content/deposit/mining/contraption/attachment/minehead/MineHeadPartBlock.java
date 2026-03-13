@@ -1,4 +1,4 @@
-package com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead;
+package com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -22,16 +22,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class DrillHeadPartBlock extends Block {
+public class MineHeadPartBlock extends Block {
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
-    public static final EnumProperty<DrillHeadPartPosition> POSITION =
-            EnumProperty.create("position", DrillHeadPartPosition.class);
+    public static final EnumProperty<MineHeadPartPosition> POSITION =
+            EnumProperty.create("position", MineHeadPartPosition.class);
 
-    public DrillHeadPartBlock(Properties properties) {
+    public MineHeadPartBlock(Properties properties) {
         super(properties);
         registerDefaultState(defaultBlockState()
                 .setValue(FACING, Direction.NORTH)
-                .setValue(POSITION, DrillHeadPartPosition.CORE));
+                .setValue(POSITION, MineHeadPartPosition.CORE));
     }
 
     @Override
@@ -62,7 +62,7 @@ public class DrillHeadPartBlock extends Block {
 
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        if (state.getValue(POSITION) == DrillHeadPartPosition.CORE) return Shapes.block();
+        if (state.getValue(POSITION) == MineHeadPartPosition.CORE) return Shapes.block();
 
         var dirs = getOutwardDirections(state.getValue(FACING), state.getValue(POSITION));
         int minX = 0, minY = 0, minZ = 0;
@@ -82,9 +82,9 @@ public class DrillHeadPartBlock extends Block {
         return Block.box(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
-    protected static Direction[] getOutwardDirections(Direction facing, DrillHeadPartPosition position) {
-        var u = DrillHeadMultiblock.getUDirection(facing);
-        var v = DrillHeadMultiblock.getVDirection(facing);
+    protected static Direction[] getOutwardDirections(Direction facing, MineHeadPartPosition position) {
+        var u = MineHeadMultiblock.getUDirection(facing);
+        var v = MineHeadMultiblock.getVDirection(facing);
         return switch (position) {
             case CORE -> new Direction[0];
             case BOTTOM -> new Direction[]{v};
@@ -103,11 +103,11 @@ public class DrillHeadPartBlock extends Block {
 //            ItemStack stack, BlockState state, Level level, BlockPos pos,
 //            Player player, InteractionHand hand, BlockHitResult hitResult
 //    ) {
-//        var ownerPos = DrillHeadMultiblock.findOwnerController(level, pos);
+//        var ownerPos = MineHeadMultiblock.findOwnerController(level, pos);
 //        if (ownerPos == null) return ItemInteractionResult.FAIL;
 //
 //        var ownerState = level.getBlockState(ownerPos);
-//        if (!(ownerState.getBlock() instanceof DrillHeadBlock owner)) return ItemInteractionResult.FAIL;
+//        if (!(ownerState.getBlock() instanceof MineHeadBlock owner)) return ItemInteractionResult.FAIL;
 //
 //        var ownerHit = new BlockHitResult(hitResult.getLocation(), hitResult.getDirection(), ownerPos, hitResult.isInside());
 //        return owner.useItemOn(stack, ownerState, level, ownerPos, player, hand, ownerHit);
@@ -132,14 +132,14 @@ public class DrillHeadPartBlock extends Block {
     @Override
     public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         super.tick(state, level, pos, random);
-        if (DrillHeadMultiblock.findOwnerController(level, pos) != null) return;
+        if (MineHeadMultiblock.findOwnerController(level, pos) != null) return;
         level.removeBlock(pos, false);
     }
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!level.isClientSide && !movedByPiston && !state.is(newState.getBlock())) {
-            var ownerPos = DrillHeadMultiblock.findOwnerController(level, pos);
+            var ownerPos = MineHeadMultiblock.findOwnerController(level, pos);
             if (ownerPos != null) {
                 level.destroyBlock(ownerPos, true);
             }

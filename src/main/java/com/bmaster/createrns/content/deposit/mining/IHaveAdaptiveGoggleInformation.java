@@ -5,6 +5,7 @@ import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
@@ -15,8 +16,6 @@ import java.util.function.BiFunction;
 public interface IHaveAdaptiveGoggleInformation extends IHaveGoggleInformation {
     /// Must have a mining behavior
     KineticBlockEntity getTargetBlockEntity();
-
-    String getLangIdentifier();
 
     /// Rendered if not shifted or if all secondaries failed to render
     default List<BiFunction<Context, List<Component>, Boolean>> getPrimarySections() {
@@ -41,7 +40,9 @@ public interface IHaveAdaptiveGoggleInformation extends IHaveGoggleInformation {
     @Override
     default boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         var be = getTargetBlockEntity();
-        var langId = getLangIdentifier();
+        var beLoc = ForgeRegistries.BLOCK_ENTITY_TYPES.getKey(be.getType());
+        if (beLoc == null) return false;
+        var langId = beLoc.getPath();
         var primary = isPlayerSneaking ? getSecondarySections() : getPrimarySections();
         var secondary = isPlayerSneaking ? getPrimarySections() : getSecondarySections();
         var mandatoryTop = getMandatoryTopSections();

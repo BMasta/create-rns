@@ -46,7 +46,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     @Override
     public @Nullable BlockPos getAnchor() {
         if (equipment == null) return null;
-        return equipment.drillHeadPos;
+        return equipment.mineHeadPos;
     }
 
     @Override
@@ -95,7 +95,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
         if (collected) {
             var level = getLevel();
             assert level != null;
-            RNSSoundEvents.MINED.playServer(level, equipment.drillHeadPos);
+            RNSSoundEvents.MINED.playServer(level, equipment.mineHeadPos);
         }
     }
 
@@ -173,7 +173,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
             return false;
         }
         int radius = Math.max(0, ServerConfig.MINING_RADIUS.get()
-                + equipment.drillHeadSize.getRadiusBonus()
+                + equipment.mineHeadSize.getRadiusBonus()
                 - ((equipment.bufferCount == 0) ? 0 : 1));
         var area = new ClaimingArea(radius, ServerConfig.MINING_DEPTH.get());
         spec = new MinerSpec(area, ServerConfig.MINING_SPEED.get());

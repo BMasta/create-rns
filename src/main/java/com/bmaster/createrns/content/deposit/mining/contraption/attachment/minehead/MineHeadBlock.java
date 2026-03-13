@@ -1,4 +1,4 @@
-package com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead;
+package com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead;
 
 import com.bmaster.createrns.RNSBlockEntities;
 import com.bmaster.createrns.RNSBlocks;
@@ -27,13 +27,13 @@ import java.util.List;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class DrillHeadBlock extends FaceAttachedMinerComponentBlock implements IBE<DrillHeadBlockEntity> {
+public class MineHeadBlock extends FaceAttachedMinerComponentBlock implements IBE<MineHeadBlockEntity> {
     public static final VoxelShaper SHAPE = new AllShapes.Builder(Block.box(0, 0, 0, 16, 8, 16)).forDirectional();
-    public static final EnumProperty<DrillHeadSize> SIZE = EnumProperty.create("size", DrillHeadSize.class);
+    public static final EnumProperty<MineHeadSize> SIZE = EnumProperty.create("size", MineHeadSize.class);
 
-    public DrillHeadBlock(Properties properties) {
+    public MineHeadBlock(Properties properties) {
         super(properties);
-        registerDefaultState(defaultBlockState().setValue(SIZE, DrillHeadSize.SMALL));
+        registerDefaultState(defaultBlockState().setValue(SIZE, MineHeadSize.SMALL));
     }
 
     @Override
@@ -47,12 +47,12 @@ public class DrillHeadBlock extends FaceAttachedMinerComponentBlock implements I
 //            ItemStack stack, BlockState state, Level level, BlockPos pos,
 //            Player player, InteractionHand hand, BlockHitResult hitResult
 //    ) {
-//        if (!stack.is(RNSBlocks.DRILL_HEAD.get().asItem()))
+//        if (!stack.is(RNSBlocks.MINE_HEAD.get().asItem()))
 //            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 //        if (!player.mayBuild()) return ItemInteractionResult.FAIL;
 //
 //        if (level.isClientSide) return ItemInteractionResult.SUCCESS;
-//        boolean upgraded = DrillHeadMultiblock.tryUpgrade(level, pos, state);
+//        boolean upgraded = MineHeadMultiblock.tryUpgrade(level, pos, state);
 //        if (!upgraded) return ItemInteractionResult.CONSUME;
 //
 //        if (!player.isCreative()) stack.shrink(1);
@@ -61,7 +61,7 @@ public class DrillHeadBlock extends FaceAttachedMinerComponentBlock implements I
 
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        if (state.getValue(SIZE) != DrillHeadSize.SMALL) return Shapes.block();
+        if (state.getValue(SIZE) != MineHeadSize.SMALL) return Shapes.block();
         return SHAPE.get(getConnectedDirection(state));
     }
 
@@ -72,15 +72,16 @@ public class DrillHeadBlock extends FaceAttachedMinerComponentBlock implements I
     }
 
     @Override
+
     public List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
-        int drillCount = state.getValue(SIZE).getDrillHeadCost();
-        return List.of(new ItemStack(RNSBlocks.DRILL_HEAD.get(), drillCount));
+        int mineHeadCount = state.getValue(SIZE).getMineHeadCost();
+        return List.of(new ItemStack(RNSBlocks.MINE_HEAD.get(), mineHeadCount));
     }
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!level.isClientSide && !movedByPiston && !state.is(newState.getBlock())) {
-            DrillHeadMultiblock.removePartBlocks(level, pos, state);
+            MineHeadMultiblock.removePartBlocks(level, pos, state);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
@@ -91,12 +92,12 @@ public class DrillHeadBlock extends FaceAttachedMinerComponentBlock implements I
     }
 
     @Override
-    public Class<DrillHeadBlockEntity> getBlockEntityClass() {
-        return DrillHeadBlockEntity.class;
+    public Class<MineHeadBlockEntity> getBlockEntityClass() {
+        return MineHeadBlockEntity.class;
     }
 
     @Override
-    public BlockEntityType<? extends DrillHeadBlockEntity> getBlockEntityType() {
-        return RNSBlockEntities.DRILL_HEAD_BE.get();
+    public BlockEntityType<? extends MineHeadBlockEntity> getBlockEntityType() {
+        return RNSBlockEntities.MINE_HEAD_BE.get();
     }
 }
