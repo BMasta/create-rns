@@ -1,6 +1,6 @@
 {
   "type": "create:mechanical_crafting",
-  "acceptMirrored": false,
+  "acceptMirrored": true,
   "key": {
     "A": {
       "item": "create_rns:polished_resonant_amethyst"

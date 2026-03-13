@@ -10,9 +10,9 @@
     }
   },
   "pattern": [
-    "III",
+    " A ",
     "AIA",
-    "AAA"
+    "AIA"
   ],
   "result": {
     "item": "create_rns:drill_head"

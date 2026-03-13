@@ -1,7 +1,10 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "misc",
+  "type": "create:mechanical_crafting",
+  "acceptMirrored": true,
   "key": {
+    "A": {
+      "item": "create_rns:polished_resonant_amethyst"
+    },
     "B": {
       "item": "create:brass_sheet"
     },
@@ -16,12 +19,12 @@
     }
   },
   "pattern": [
-    "SBS",
-    "QRQ",
-    "SBS"
+    "QAQ",
+    "QAQ",
+    "BRB",
+    "SSS"
   ],
   "result": {
     "item": "create_rns:shattering_resonator"
-  },
-  "show_notification": true
+  }
 }
