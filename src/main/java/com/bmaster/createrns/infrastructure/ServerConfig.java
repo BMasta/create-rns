@@ -12,15 +12,16 @@ public class ServerConfig {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     // ------------------------------------------------ Config values ----------------------------------------------- //
-    private static final ModConfigSpec.ConfigValue<Float> MINER_MK1_SPEED_CV = BUILDER
+
+    private static final ModConfigSpec.DoubleValue MINER_MK1_SPEED_CV = BUILDER
             .comment(" How many mining operations a miner mk1 can complete in one hour\n" +
                     " at 256 RPM, with one deposit block claimed, and no deposit multipliers.")
-            .define("minerMk1Speed", 45f);
+            .defineInRange("minerMk1Speed", 45.0, 0.0, Short.MAX_VALUE);
 
-    private static final ModConfigSpec.ConfigValue<Float> MINER_MK2_SPEED_CV = BUILDER
+    private static final ModConfigSpec.DoubleValue MINER_MK2_SPEED_CV = BUILDER
             .comment(" How many mining operations a miner mk2 can complete in one hour\n" +
                     " at 256 RPM, with one deposit block claimed, and no deposit multipliers.")
-            .define("minerMk2Speed", 45f);
+            .defineInRange("minerMk2Speed", 45.0, 0.0, Short.MAX_VALUE);
 
     public static final ModConfigSpec SPEC = BUILDER.build();
 
