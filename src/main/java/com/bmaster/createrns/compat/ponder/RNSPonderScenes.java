@@ -3,7 +3,9 @@ package com.bmaster.createrns.compat.ponder;
 import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ResonatorBlock;
 import com.bmaster.createrns.infrastructure.ServerConfig;
+import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.contraptions.actors.psi.PortableItemInterfaceBlockEntity;
 import com.simibubi.create.content.redstone.diodes.BrassDiodeBlock;
 import com.simibubi.create.content.redstone.diodes.BrassDiodeBlockEntity;
@@ -27,6 +29,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.AttachFace;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -59,23 +62,28 @@ public class RNSPonderScenes {
 
         // Positions
         var bearing = pos.at(2, 2, 2);
-        var bearingNewPos = pos.at(2, 4, 2);
+        var bearingNewPos = pos.at(2, 3, 2);
         var mineHead = pos.at(2, 1, 2);
         var bearing2 = pos.at(1, 2, 2);
         var mineHead2 = pos.at(1, 1, 2);
         var depositUnderBearing = pos.at(2, 0, 2);
         var depositTopRight = pos.at(0, 0, 4);
         var depositBottomRight = pos.at(0, 0, 0);
+        var resonatorBase = pos.at(2, 2, 2);
 
         // Selections
         var sourceCog = sel.position(5, 0, 2);
-        var nearBearingKinetics = sel.fromTo(2, 3, 2, 2, 4, 2);
-        var chainDriveKinetics = sel.fromTo(2, 5, 2, 4, 5, 2);
-        var verticalShaftKinetics = sel.fromTo(4, 1, 2, 4, 4, 2);
-        var resonators = sel.fromTo(2, 2, 2, 2, 3, 2);
+        var miner1Cog = sel.position(2, 3, 2);
+        var chainDriveKinetics = sel.fromTo(2, 4, 2, 4, 4, 2);
+        var verticalShaftKinetics = sel.fromTo(4, 1, 2, 4, 3, 2);
         var miner2Cog = sel.fromTo(1, 3, 2, 1, 3, 2);
         var deposits = sel.fromTo(0, 0, 0, 4, 0, 4);
         var depositsClaimableByMiner2 = sel.fromTo(0, 0, 0, 3, 0, 4);
+        var resonators = sel.position(resonatorBase)
+                .add(sel.position(resonatorBase.north()))
+                .add(sel.position(resonatorBase.south()))
+                .add(sel.position(resonatorBase.east()))
+                .add(sel.position(resonatorBase.west()));
 
         // Other
         float rpm = 100;
@@ -87,20 +95,29 @@ public class RNSPonderScenes {
         var rawIronPos = mineHead.getCenter().add(new Vec3(-1.5, -0.2, -1.5));
         var bearingFacingDown = RNSBlocks.MINER_BEARING.getDefaultState().setValue(MinerBearingBlock.FACING, Direction.DOWN);
         var miner = new MinerContraption(s, util, bearing, mineHead, sel.position(mineHead), RNSBlocks.IRON_DEPOSIT.get())
-                .syncKinetics(nearBearingKinetics, false)
+                .syncKinetics(miner1Cog, false)
                 .syncKinetics(chainDriveKinetics, false)
                 .syncKinetics(verticalShaftKinetics, false)
                 .syncKinetics(sourceCog, true);
         var miner2 = new MinerContraption(s, util, bearing2, mineHead2, sel.position(mineHead2), RNSBlocks.IRON_DEPOSIT.get())
                 .syncKinetics(miner2Cog, false);
-        var minerAfter = new MinerContraption(s, util, bearingNewPos, mineHead, resonators.add(sel.position(mineHead)), RNSBlocks.IRON_DEPOSIT.get())
+        var minerAfter = new MinerContraption(
+                s, util, bearingNewPos, mineHead,
+                sel.position(resonatorBase)
+                        .add(sel.position(mineHead))
+                        .add(sel.position(resonatorBase.north()))
+                        .add(sel.position(resonatorBase.south()))
+                        .add(sel.position(resonatorBase.east()))
+                        .add(sel.position(resonatorBase.west())),
+                RNSBlocks.IRON_DEPOSIT.get()
+        )
                 .syncKinetics(chainDriveKinetics, false)
                 .syncKinetics(verticalShaftKinetics, false)
                 .syncKinetics(sourceCog, true);
 
         // Initial kinetics setup
         w.setKineticSpeed(sourceCog, -rpm);
-        w.setKineticSpeed(nearBearingKinetics, rpm);
+        w.setKineticSpeed(miner1Cog, rpm);
         w.setKineticSpeed(chainDriveKinetics, rpm);
         w.setKineticSpeed(verticalShaftKinetics, rpm);
         w.setKineticSpeed(miner2Cog, -rpm);
@@ -140,10 +157,10 @@ public class RNSPonderScenes {
         w.showSection(verticalShaftKinetics, Direction.WEST);
         s.idle(2);
 
-        w.showSection(chainDriveKinetics, Direction.UP);
+        w.showSection(chainDriveKinetics, Direction.DOWN);
         s.idle(2);
 
-        w.showSection(nearBearingKinetics, Direction.NORTH);
+        w.showSection(miner1Cog, Direction.NORTH);
         s.idle(10);
 
         miner.setBearingKinetics(rpm);
@@ -213,17 +230,22 @@ public class RNSPonderScenes {
 
         miner.hideBearing(Direction.SOUTH);
         miner.hideContraption(Direction.SOUTH);
-        w.hideSection(nearBearingKinetics, Direction.SOUTH);
+        w.hideSection(miner1Cog, Direction.SOUTH);
         s.idle(15);
 
-        w.setBlocks(resonators, RNSBlocks.RESONATOR.getDefaultState(), false);
+        w.setBlock(resonatorBase, AllBlocks.ANDESITE_CASING.getDefaultState(), false);
+        for (var d : new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST}) {
+            w.setBlocks(sel.position(resonatorBase.relative(d)), RNSBlocks.RESONATOR.getDefaultState()
+                    .setValue(ResonatorBlock.FACE, AttachFace.WALL)
+                    .setValue(ResonatorBlock.FACING, d), false);
+        }
         w.setBlock(bearingNewPos, bearingFacingDown, false);
         minerAfter.setBearingKinetics(rpm);
         minerAfter.showBearing(Direction.NORTH);
         minerAfter.showContraption(Direction.NORTH);
         s.idle(15);
 
-        o.showOutline(PonderPalette.GREEN, new Object(), resonators, 270);
+        o.showOutline(PonderPalette.GREEN, new Object(), resonators.add(sel.position(resonatorBase)), 20);
         s.idle(15);
 
         o.showControls(vec.blockSurface(bearingNewPos, Direction.WEST), Pointing.LEFT, 10).rightClick();
@@ -415,7 +437,8 @@ public class RNSPonderScenes {
         protected Map<Selection, Boolean> syncedKinetics = new Object2ObjectOpenHashMap<>();
 
         protected MinerContraption(CreateSceneBuilder scene, SceneBuildingUtil util,
-                                   BlockPos bearing, BlockPos mineHead, Selection contraption, DepositBlock depBlock) {
+                BlockPos bearing, BlockPos mineHead, Selection contraption, DepositBlock depBlock
+        ) {
             this.scene = scene;
             this.util = util;
             this.bearing = bearing;
