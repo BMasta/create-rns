@@ -19,7 +19,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class DepositDurabilityManager {
     public static int initDepositVeinDurability(ServerLevel sl, BlockPos start) {
         var dd = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
-        if (ServerConfig.infiniteDeposits) return 0;
+        if (ServerConfig.INFINITE_DEPOSITS.get()) return 0;
         if (dd.depositDurabilities.containsKey(start)) return 0;
         var startRecipe = MiningRecipeLookup.find(sl, sl.getBlockState(start).getBlock());
         if (startRecipe == null) return 0;
@@ -49,7 +49,7 @@ public class DepositDurabilityManager {
     /// Returns -1 if not initialized, 0 if infinite, actual durability otherwise.
     public static long getDepositBlockDurability(ServerLevel sl, BlockPos dbPos, boolean initIfNeeded) {
         var dd = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
-        if (ServerConfig.infiniteDeposits) return 0;
+        if (ServerConfig.INFINITE_DEPOSITS.get()) return 0;
         if (initIfNeeded) initDepositVeinDurability(sl, dbPos);
         if (!dd.depositDurabilities.containsKey(dbPos)) return -1;
         return dd.depositDurabilities.getLong(dbPos);
@@ -62,7 +62,7 @@ public class DepositDurabilityManager {
 
     public static boolean setDepositBlockDurability(ServerLevel sl, BlockPos dbPos, long durability) {
         var dd = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
-        if (ServerConfig.infiniteDeposits) return false;
+        if (ServerConfig.INFINITE_DEPOSITS.get()) return false;
         dd.depositDurabilities.put(dbPos, durability);
         return true;
     }
@@ -73,7 +73,7 @@ public class DepositDurabilityManager {
     }
 
     public static void useDepositBlock(ServerLevel sl, BlockPos dbPos, BlockState replacementBlock) {
-        if (ServerConfig.infiniteDeposits) return;
+        if (ServerConfig.INFINITE_DEPOSITS.get()) return;
         var dd = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
         initDepositVeinDurability(sl, dbPos); // No-op if already initialized
         var dur = dd.depositDurabilities.getLong(dbPos);

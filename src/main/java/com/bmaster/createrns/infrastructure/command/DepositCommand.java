@@ -54,7 +54,7 @@ public class DepositCommand {
     private static Command<CommandSourceStack> execResources(ResourceAction action, boolean infinite) {
         return ctx -> {
             var src = ctx.getSource();
-            if (ServerConfig.infiniteDeposits) {
+            if (ServerConfig.INFINITE_DEPOSITS.get()) {
                 src.sendFailure(Component.literal("Command requires finite deposits (enabled in server config)!"));
                 return 0;
             }
