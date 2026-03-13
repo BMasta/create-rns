@@ -6,7 +6,6 @@ import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.content.deposit.info.CustomDepositLocation;
 import com.bmaster.createrns.content.deposit.info.DepositLocation;
-import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -39,11 +38,7 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 import net.neoforged.neoforge.common.Tags;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashSet;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -119,7 +114,11 @@ public class ScannerCommand {
             .then(Commands.literal("undiscovered")
                     .then(Commands.argument("structure", ResourceOrTagKeyArgument.resourceOrTagKey(Registries.STRUCTURE))
                             .suggests(SUGGEST_DEPOSIT_STRUCTURES_OR_TAGS)
-                            .executes(execLocate(true))));
+                            .executes(execLocate(true))))
+            .then(Commands.literal("all")
+                    .executes(execLocateAll(false))
+                    .then(Commands.argument("source_position", BlockPosArgument.blockPos())
+                            .executes(execLocateAll(true))));
 
     private static final LiteralArgumentBuilder<CommandSourceStack> ADD_TARGET = Commands.literal("add_target")
             .then(Commands.literal("block")
@@ -138,14 +137,13 @@ public class ScannerCommand {
                     .executes(ScannerCommand.execAddRmTarget(false, false)));
 
     private static final LiteralArgumentBuilder<CommandSourceStack> FOUND = Commands.literal("found")
-            .then(Commands.argument("structure", ResourceKeyArgument.key(Registries.STRUCTURE))
-                    .suggests(SUGGEST_DEPOSIT_STRUCTURES)
-                    .then(Commands.argument("target_position", BlockPosArgument.blockPos())
-                            .executes(execIsFound())
-                            .then(Commands.argument("new_value", BoolArgumentType.bool())
-                                    .executes(execMarkFound()))));
+            .then(Commands.argument("target_position", BlockPosArgument.blockPos())
+                    .executes(execIsFound())
+                    .then(Commands.argument("new_value", BoolArgumentType.bool())
+                            .executes(execMarkFound())));
 
     public static final LiteralArgumentBuilder<CommandSourceStack> CMD = Commands.literal("scanner")
+
             .requires(css -> css.hasPermission(2))
             .then(LOCATE)
             .then(ADD_TARGET)
@@ -191,8 +189,13 @@ public class ScannerCommand {
     public static final Function3<Object, Component, Boolean, Component> S_NOW_FOUND = (t, c, v) ->
             CreateRNS.translatable(CMD_S + ".marked_state", t.toString(), c, foundState(v));
 
-    public static final BiFunction<Object, Component, Component> S_FOUND_AT = (t, c) ->
-            CreateRNS.translatable(CMD_S + ".found_at", t.toString(), c);
+    public static final Function3<Object, Component, Integer, Component> S_FOUND_AT = (t, c, n) ->
+            CreateRNS.translatable(CMD_S + ".found_at", t.toString(), c, Component.literal(n + "").withStyle(ChatFormatting.GOLD));
+
+    public static final Function<Integer, Component> S_AVG_DIST = (n) ->
+            CreateRNS.translatable(CMD_S + ".avg_dist", Component.literal(n + "").withStyle(ChatFormatting.GOLD));
+
+    private static final int SEARCH_RADIUS_CHUNKS = 600; // 9600 blocks
 
     private static Component foundState(boolean isFound) {
         return CreateRNS.translatable(isFound
@@ -263,11 +266,10 @@ public class ScannerCommand {
         return ctx -> {
             var src = ctx.getSource();
             var sl = src.getLevel();
-            var depKey = getDepositResourceKeyFromArg(ctx, "structure");
             var pos = BlockPosArgument.getLoadedBlockPos(ctx, "target_position");
-            var dep = DepositLocation.getNearest(sl, depKey, pos, true, 1);
+            var dep = DepositLocation.getNearest(sl, RNSTags.Structure.DEPOSITS, pos, true, 1);
             if (dep == null) {
-                src.sendFailure(F_NOT_FOUND_IN_CHUNK.apply(depKey.location()));
+                src.sendFailure(F_NOT_FOUND_IN_CHUNK.apply(RNSTags.Structure.DEPOSITS.location()));
                 return 0;
             }
             var precise = dep.computePreciseLocation();
@@ -315,7 +317,7 @@ public class ScannerCommand {
                 src.sendFailure(F_CALLER_NOT_ENTITY.get());
                 return 0;
             }
-            int searchRadiusChunks = DepositSetConfigBuilder.DEFAULT_SPACING * 4;
+            int searchRadiusChunks = SEARCH_RADIUS_CHUNKS;
             var pos = entity.blockPosition();
             var resOrTag = getDepositKeyFromArg(ctx, "structure");
 
@@ -325,8 +327,65 @@ public class ScannerCommand {
                 src.sendFailure(F_NOT_FOUND_IN_X_CHUNKS.apply(getIdFromResOrTag(resOrTag), searchRadiusChunks));
             } else {
                 // Use structure ID resolved by getNearest()
+                var dist = (int) Math.sqrt(nearest.getLocation().distSqr(pos));
                 src.sendSuccess(() -> S_FOUND_AT.apply(nearest.getKey().location(), bracketedCoords(nearest.getLocation(),
-                        !nearest.computePreciseLocation())), false);
+                        !nearest.computePreciseLocation()), dist), false);
+            }
+
+            return SINGLE_SUCCESS;
+        };
+    }
+
+    private static Command<CommandSourceStack> execLocateAll(boolean positionSpecified) {
+        return ctx -> {
+            var src = ctx.getSource();
+            var sl = src.getLevel();
+            BlockPos pos;
+            if (positionSpecified) {
+                pos = BlockPosArgument.getBlockPos(ctx, "source_position");
+            } else {
+                pos = BlockPos.containing(src.getPosition());
+            }
+            int searchRadiusChunks = SEARCH_RADIUS_CHUNKS;
+            var lookup = sl.registryAccess().lookupOrThrow(Registries.STRUCTURE);
+            var deposits = lookup.get(RNSTags.Structure.DEPOSITS).orElse(null);
+
+            if (deposits == null) {
+                src.sendFailure(F_NOT_FOUND.apply(RNSTags.Structure.DEPOSITS.location()));
+                return 0;
+            }
+
+            var nearestAny = DepositLocation.getNearest(sl, RNSTags.Structure.DEPOSITS, pos, true, searchRadiusChunks);
+            if (nearestAny == null) {
+                src.sendFailure(F_NOT_FOUND_IN_X_CHUNKS.apply(RNSTags.Structure.DEPOSITS.location(), searchRadiusChunks));
+            } else {
+                var dist = (int) Math.sqrt(nearestAny.getLocation().distSqr(pos));
+                src.sendSuccess(() -> S_FOUND_AT.apply(RNSTags.Structure.DEPOSITS.location(), bracketedCoords(
+                        nearestAny.getLocation(), !nearestAny.computePreciseLocation()), dist), false);
+            }
+
+            var depKeys = deposits.stream()
+                    .map(h -> h.unwrapKey().orElse(null))
+                    .filter(Objects::nonNull)
+                    .sorted(Comparator.comparing(k -> k.location().toString()))
+                    .toList();
+
+            int distSum = 0;
+            for (var depKey : depKeys) {
+                var nearest = DepositLocation.getNearest(sl, depKey, pos, true, searchRadiusChunks);
+                if (nearest == null) {
+                    src.sendFailure(F_NOT_FOUND_IN_X_CHUNKS.apply(depKey.location(), searchRadiusChunks));
+                } else {
+                    var dist = (int) Math.sqrt(nearest.getLocation().distSqr(pos));
+                    distSum += dist;
+                    src.sendSuccess(() -> S_FOUND_AT.apply(nearest.getKey().location(), bracketedCoords(
+                            nearest.getLocation(), !nearest.computePreciseLocation()), dist), false);
+                }
+            }
+
+            if (!depKeys.isEmpty() && distSum > 0) {
+                var avgDist = distSum / depKeys.size();
+                src.sendSuccess(() -> S_AVG_DIST.apply(avgDist), false);
             }
 
             return SINGLE_SUCCESS;

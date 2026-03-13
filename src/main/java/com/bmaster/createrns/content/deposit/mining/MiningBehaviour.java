@@ -229,5 +229,5 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
         return true;
     }
 
-    public record MinerSpec(ClaimingArea miningArea, float miningSpeed) {}
+    public record MinerSpec(ClaimingArea miningArea, double miningSpeed) {}
 }

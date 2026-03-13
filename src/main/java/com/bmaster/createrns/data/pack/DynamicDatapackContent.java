@@ -14,16 +14,15 @@ import java.util.List;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class DynamicDatapackContent {
+    public static final String DEPOSIT_STRUCTURE_SET_NAME = "deposits";
+    public static final int DEFAULT_DEP_SET_SALT = 591646342;
+
     private static final String HAS_DEPOSIT_TAG_PATH = "%s/tags/worldgen/biome/has_deposit.json";
     private static final String DEPOSIT_STRUCTURE_TAG_PATH = "%s/tags/worldgen/structure/deposits.json";
-    private static final String DEPOSIT_STRUCTURE_SET_PATH = "%s/worldgen/structure_set/deposits.json";
+    private static final String DEPOSIT_STRUCTURE_SET_PATH = "%s/worldgen/structure_set/" + DEPOSIT_STRUCTURE_SET_NAME + ".json";
     private static final String DEPOSIT_STRUCTURE_PATH = "%s/worldgen/structure/deposit_%s.json";
     private static final String DEPOSIT_TEMPLATE_POOL_PATH = "%s/worldgen/template_pool/deposit_%s/start.json";
     private static final String DEPOSIT_PROCESSOR_LIST_PATH = "%s/worldgen/processor_list/%s.json";
-
-    private static final int DEPOSIT_SET_SALT = 591646342;
-    private static final int DEPOSIT_SET_SPACING = 48;
-    private static final int DEPOSIT_SET_SEPARATION = 8;
 
     public static List<DatapackFile> depositBiomeTag(boolean disableGeneration) {
         var values = new JsonArray();
@@ -144,14 +143,18 @@ public class DynamicDatapackContent {
         return new DatapackFile(DEPOSIT_STRUCTURE_TAG_PATH.formatted(CreateRNS.ID), root);
     }
 
-    public static DatapackFile depositStructureSet() {
+    public static DatapackFile depositStructureSet(int separation, int spacing) {
+        return depositStructureSet(separation, spacing, DEFAULT_DEP_SET_SALT);
+    }
+
+    public static DatapackFile depositStructureSet(int separation, int spacing, int salt) {
         var root = new JsonObject();
 
         var placement = new JsonObject();
         placement.addProperty("type", "minecraft:random_spread");
-        placement.addProperty("salt", DEPOSIT_SET_SALT);
-        placement.addProperty("separation", DEPOSIT_SET_SEPARATION);
-        placement.addProperty("spacing", DEPOSIT_SET_SPACING);
+        placement.addProperty("separation", separation);
+        placement.addProperty("spacing", spacing);
+        placement.addProperty("salt", salt);
         root.add("placement", placement);
 
         var structures = new JsonArray();
