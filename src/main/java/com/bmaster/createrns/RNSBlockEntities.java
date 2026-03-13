@@ -1,8 +1,8 @@
 package com.bmaster.createrns;
 
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlockEntity;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadBlockEntity;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadRenderer;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadBlockEntity;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadRenderer;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferRenderer;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ResonatorBlockEntity;
@@ -24,10 +24,10 @@ public class RNSBlockEntities {
             .renderer(() -> BearingRenderer::new)
             .register();
 
-    public static final BlockEntityEntry<DrillHeadBlockEntity> DRILL_HEAD_BE = CreateRNS.REGISTRATE
-            .blockEntity("drill_head", DrillHeadBlockEntity::new)
-            .validBlocks(RNSBlocks.DRILL_HEAD)
-            .renderer(() -> DrillHeadRenderer::new)
+    public static final BlockEntityEntry<MineHeadBlockEntity> MINE_HEAD_BE = CreateRNS.REGISTRATE
+            .blockEntity("mine_head", MineHeadBlockEntity::new)
+            .validBlocks(RNSBlocks.MINE_HEAD)
+            .renderer(() -> MineHeadRenderer::new)
             .register();
 
     public static final BlockEntityEntry<ResonatorBlockEntity> RESONATOR_BE = CreateRNS.REGISTRATE

@@ -4,9 +4,9 @@
   "parent": "block/block",
   "ambientocclusion": false,
   "textures": {
-    "1": "create_rns:block/drill_head_tip",
-    "2": "create_rns:block/drill_head_base",
-    "particle": "create_rns:block/drill_head_tip"
+    "1": "create_rns:block/mine_head_tip",
+    "2": "create_rns:block/mine_head_base",
+    "particle": "create_rns:block/mine_head_tip"
   },
   "elements": [
     {

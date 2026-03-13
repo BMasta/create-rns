@@ -1,4 +1,4 @@
-package com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead;
+package com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.util.StringRepresentable;
@@ -8,12 +8,12 @@ import java.util.Locale;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public enum DrillHeadSize implements StringRepresentable {
+public enum MineHeadSize implements StringRepresentable {
     SMALL,
     LARGE;
 
     @SuppressWarnings("SameReturnValue")
-    public DrillHeadSize getNext() {
+    public MineHeadSize getNext() {
         return switch (this) {
             case SMALL, LARGE -> LARGE;
         };
@@ -37,7 +37,7 @@ public enum DrillHeadSize implements StringRepresentable {
         };
     }
 
-    public int getDrillHeadCost() {
+    public int getMineHeadCost() {
         return switch (this) {
             case SMALL -> 1;
             case LARGE -> 2;

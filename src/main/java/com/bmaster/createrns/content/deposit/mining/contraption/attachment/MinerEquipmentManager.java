@@ -2,8 +2,8 @@ package com.bmaster.createrns.content.deposit.mining.contraption.attachment;
 
 import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlockEntity;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadBlock;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadSize;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadSize;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferBlock;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.FluidCatalyst;
@@ -29,8 +29,8 @@ public class MinerEquipmentManager {
         return new MinerEquipmentManager(contraption);
     }
 
-    public final BlockPos drillHeadPos;
-    public final DrillHeadSize drillHeadSize;
+    public final BlockPos mineHeadPos;
+    public final MineHeadSize mineHeadSize;
     public final ObjectOpenHashSet<Catalyst> catalysts = new ObjectOpenHashSet<>();
     public final int bufferCount;
 
@@ -46,7 +46,7 @@ public class MinerEquipmentManager {
         if (remainder.isEmpty())
             return;
 
-        Vec3 vec = new Vec3(drillHeadPos.getX(), drillHeadPos.getY(), drillHeadPos.getZ());
+        Vec3 vec = new Vec3(mineHeadPos.getX(), mineHeadPos.getY(), mineHeadPos.getZ());
 
         ItemEntity itemEntity = new ItemEntity(contraption.entity.level(),
                 vec.x + 0.4 * contraption.entity.level().random.nextFloat(),
@@ -61,29 +61,29 @@ public class MinerEquipmentManager {
         // bearing pos = -27 65 8
         // tip pos = -27 58 8
         var bearingPos = contraption.anchor.relative(contraption.getFacing().getOpposite());
-        BlockPos drillHeadPos = null;
-        DrillHeadSize drillHeadSize = null;
+        BlockPos mineHeadPos = null;
+        MineHeadSize mineHeadSize = null;
 
         for (var e : contraption.getBlocks().entrySet()) {
             var pos = e.getKey();
             var bs = e.getValue().state();
-            if (bs.is(RNSBlocks.DRILL_HEAD.get())) {
-                var tipOffset = DrillHeadBlock.getConnectedDirection(bs)
+            if (bs.is(RNSBlocks.MINE_HEAD.get())) {
+                var tipOffset = MineHeadBlock.getConnectedDirection(bs)
                         .getNormal()
-                        .multiply(bs.getValue(DrillHeadBlock.SIZE).getTipOffset());
-                drillHeadPos = pos.offset(contraption.anchor).offset(tipOffset);
-                drillHeadSize = bs.getValue(DrillHeadBlock.SIZE);
+                        .multiply(bs.getValue(MineHeadBlock.SIZE).getTipOffset());
+                mineHeadPos = pos.offset(contraption.anchor).offset(tipOffset);
+                mineHeadSize = bs.getValue(MineHeadBlock.SIZE);
             }
         }
 
-        if (drillHeadPos == null) throw new IllegalStateException("Miner contraption does not have a drill head");
+        if (mineHeadPos == null) throw new IllegalStateException("Miner contraption does not have a mine head");
         if (!(contraption.entity.level().getBlockEntity(bearingPos) instanceof MinerBearingBlockEntity be)) {
             throw new IllegalStateException("Could not find the bearing block entity");
         }
 
         this.bearing = be;
-        this.drillHeadPos = drillHeadPos;
-        this.drillHeadSize = drillHeadSize;
+        this.mineHeadPos = mineHeadPos;
+        this.mineHeadSize = mineHeadSize;
 
         this.bufferCount = ResonanceBufferBlock.countInContraption(contraption);
 

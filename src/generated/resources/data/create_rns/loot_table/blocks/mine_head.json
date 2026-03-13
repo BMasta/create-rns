@@ -11,11 +11,11 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "create_rns:drill_head"
+          "name": "create_rns:mine_head"
         }
       ],
       "rolls": 1.0
     }
   ],
-  "random_sequence": "create_rns:blocks/drill_head"
+  "random_sequence": "create_rns:blocks/mine_head"
 }

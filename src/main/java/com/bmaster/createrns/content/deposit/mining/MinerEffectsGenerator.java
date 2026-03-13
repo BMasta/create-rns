@@ -44,15 +44,15 @@ public class MinerEffectsGenerator {
                     return miner.miningBehaviour.isMining();
                 })
                 .min(Comparator.comparing(e ->
-                        e.getKey().miningBehaviour.equipment.drillHeadPos.distSqr(p.blockPosition())))
+                        e.getKey().miningBehaviour.equipment.mineHeadPos.distSqr(p.blockPosition())))
                 .ifPresent(e -> {
                     var miner = e.getKey();
-                    var drillPos = miner.miningBehaviour.equipment.drillHeadPos;
+                    var mineHeadPos = miner.miningBehaviour.equipment.mineHeadPos;
                     var modifiers = e.getValue();
                     float pitch = 0.5f + Math.min(1, Math.abs(miner.getTheoreticalSpeed()) / 256f) / 2;
-                    RNSSoundEvents.MINING.playClient(p.level(), drillPos, 1, pitch, false);
+                    RNSSoundEvents.MINING.playClient(p.level(), mineHeadPos, 1, pitch, false);
                     if (modifiers.contains(SoundModifier.RESONANCE)) {
-                        RNSSoundEvents.MINING_RESONANCE_ACCENT.playClient(p.level(), drillPos, 1, pitch, false);
+                        RNSSoundEvents.MINING_RESONANCE_ACCENT.playClient(p.level(), mineHeadPos, 1, pitch, false);
                     }
                 });
         lastPlayed = 0;
@@ -91,8 +91,8 @@ public class MinerEffectsGenerator {
         if (particleOptions.isEmpty()) return;
 
         var r = level.random;
-        var drillPos = be.miningBehaviour.equipment.drillHeadPos.getCenter();
-        var drillFacing = be.getBlockState().getValue(MinerBearingBlock.FACING);
+        var mineHeadPos = be.miningBehaviour.equipment.mineHeadPos.getCenter();
+        var MineHeadFacing = be.getBlockState().getValue(MinerBearingBlock.FACING);
         var selectedParticle = particleOptions.get(r.nextInt(0, particleOptions.size()));
 
         assert be.miningBehaviour.claimedDepositBlocks != null;
@@ -100,9 +100,9 @@ public class MinerEffectsGenerator {
 
         for (int i = 0; i < Math.round(1 + mult * 5); i++) {
             level.addParticle(selectedParticle,
-                    drillPos.x + drillFacing.getStepX() * 0.5 * (1 - r.nextFloat() * mult),
-                    drillPos.y + drillFacing.getStepY() * 0.5 * (1 - r.nextFloat() * mult),
-                    drillPos.z + drillFacing.getStepZ() * 0.5 * (1 - r.nextFloat() * mult),
+                    mineHeadPos.x + MineHeadFacing.getStepX() * 0.5 * (1 - r.nextFloat() * mult),
+                    mineHeadPos.y + MineHeadFacing.getStepY() * 0.5 * (1 - r.nextFloat() * mult),
+                    mineHeadPos.z + MineHeadFacing.getStepZ() * 0.5 * (1 - r.nextFloat() * mult),
                     0, 0, 0);
         }
     }

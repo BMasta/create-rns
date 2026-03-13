@@ -21,7 +21,7 @@ public class ServerConfig {
     public static final ModConfigSpec.IntValue MINING_RADIUS = BUILDER
             .comment("""
                      Radius in which a miner can claim deposit blocks for mining. Radius of 2 results
-                     in a 5x5 square mining area with the drill head in the middle.\
+                     in a 5x5 square mining area with the Mine Head in the middle.\
                     """)
             .defineInRange("miningRadius", 2, 0, Integer.MAX_VALUE);
 

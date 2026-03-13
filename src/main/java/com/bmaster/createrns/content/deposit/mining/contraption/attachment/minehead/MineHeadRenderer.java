@@ -1,4 +1,4 @@
-package com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead;
+package com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer;
@@ -12,18 +12,18 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class DrillHeadRenderer extends SmartBlockEntityRenderer<DrillHeadBlockEntity> {
-    public DrillHeadRenderer(BlockEntityRendererProvider.Context context) {
+public class MineHeadRenderer extends SmartBlockEntityRenderer<MineHeadBlockEntity> {
+    public MineHeadRenderer(BlockEntityRendererProvider.Context context) {
         super(context);
     }
 
     @Override
-    protected void renderSafe(DrillHeadBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buf, int light, int overlay) {
+    protected void renderSafe(MineHeadBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buf, int light, int overlay) {
         var bs = be.getBlockState();
-        var size = bs.getValue(DrillHeadBlock.SIZE);
+        var size = bs.getValue(MineHeadBlock.SIZE);
         var scale = size.getModelScale();
         var offset = size.getModelOffset();
-        var direction = DrillHeadBlock.getConnectedDirection(bs);
+        var direction = MineHeadBlock.getConnectedDirection(bs);
         var superBuffer = CachedBuffers.block(bs);
 
         assert be.getLevel() != null;

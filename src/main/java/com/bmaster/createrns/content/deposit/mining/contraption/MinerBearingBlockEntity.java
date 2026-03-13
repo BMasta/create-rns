@@ -101,11 +101,6 @@ public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity implem
     }
 
     @Override
-    public String getLangIdentifier() {
-        return "megadrill";
-    }
-
-    @Override
     public List<BiFunction<Context, List<Component>, Boolean>> getPrimarySections() {
         return List.of(GoggleTooltipModifiers::addMinerInfoToGoggleTooltip);
     }
