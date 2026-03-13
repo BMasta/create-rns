@@ -85,7 +85,7 @@ public class MinerBearingBlock extends BearingBlock implements IBE<MinerBearingB
 
     @Override
     public BlockEntityType<MinerBearingBlockEntity> getBlockEntityType() {
-        return RNSBlockEntities.MINER_BEARING_BE.get();
+        return RNSBlockEntities.MINER_BEARING.get();
     }
 
     @Override

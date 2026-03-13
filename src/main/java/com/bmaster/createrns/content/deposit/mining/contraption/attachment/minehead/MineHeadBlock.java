@@ -100,6 +100,6 @@ public class MineHeadBlock extends FaceAttachedMinerComponentBlock implements IB
 
     @Override
     public BlockEntityType<? extends MineHeadBlockEntity> getBlockEntityType() {
-        return RNSBlockEntities.MINE_HEAD_BE.get();
+        return RNSBlockEntities.MINE_HEAD.get();
     }
 }
