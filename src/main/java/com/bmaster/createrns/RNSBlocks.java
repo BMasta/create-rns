@@ -4,6 +4,7 @@ import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadPartBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadSize;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferMovementBehaviour;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ResonatorBlock;
@@ -77,8 +78,12 @@ public class RNSBlocks {
                     .mapColor(MapColor.COLOR_GRAY)
                     .noOcclusion())
             .transform(pickaxeOnly())
-            .blockstate((c, p) ->
-                    p.horizontalFaceBlock(c.get(), AssetLookup.standardModel(c, p)))
+            .blockstate((c, p) -> {
+                var baseModel = AssetLookup.standardModel(c, p);
+                var largeModel = p.models().getExistingFile(p.modLoc("block/drill_head_large"));
+                p.horizontalFaceBlock(c.get(), state ->
+                        state.getValue(DrillHeadBlock.SIZE) == DrillHeadSize.LARGE ? largeModel : baseModel);
+            })
             .simpleItem()
             .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
                     .define('I', Items.IRON_INGOT)

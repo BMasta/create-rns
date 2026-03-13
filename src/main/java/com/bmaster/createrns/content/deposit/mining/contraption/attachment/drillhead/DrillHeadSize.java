@@ -10,51 +10,51 @@ import java.util.Locale;
 @ParametersAreNonnullByDefault
 public enum DrillHeadSize implements StringRepresentable {
     SMALL,
-    MEDIUM;
+    LARGE;
 
     @SuppressWarnings("SameReturnValue")
     public DrillHeadSize getNext() {
         return switch (this) {
-            case SMALL, MEDIUM -> MEDIUM;
+            case SMALL, LARGE -> LARGE;
         };
     }
 
     public boolean canGrow() {
-        return this != MEDIUM;
+        return this != LARGE;
     }
 
     public int getRadiusBonus() {
         return switch (this) {
             case SMALL -> 0;
-            case MEDIUM -> 1;
+            case LARGE -> 1;
         };
     }
 
     public int getTipOffset() {
         return switch (this) {
             case SMALL -> 0;
-            case MEDIUM -> 1;
+            case LARGE -> 1;
         };
     }
 
     public int getDrillHeadCost() {
         return switch (this) {
             case SMALL -> 1;
-            case MEDIUM -> 2;
+            case LARGE -> 2;
         };
     }
 
     public float getModelScale() {
         return switch (this) {
             case SMALL -> 1f;
-            case MEDIUM -> 2f;
+            case LARGE -> 2f;
         };
     }
 
     public float getModelOffset() {
         return switch (this) {
             case SMALL -> 0f;
-            case MEDIUM -> 0.248f;
+            case LARGE -> 0.248f;
         };
     }
 
