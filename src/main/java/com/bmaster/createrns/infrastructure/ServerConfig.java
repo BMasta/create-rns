@@ -12,15 +12,15 @@ public class ServerConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
     // ------------------------------------------------ Config values ----------------------------------------------- //
-    private static final ForgeConfigSpec.ConfigValue<Float> MINER_MK1_SPEED_CV = BUILDER
+    private static final ForgeConfigSpec.DoubleValue MINER_MK1_SPEED_CV = BUILDER
             .comment(" How many mining operations a miner mk1 can complete in one hour\n" +
                     " at 256 RPM, with one deposit block claimed, and no deposit multipliers.")
-            .define("minerMk1Speed", 45f);
+            .defineInRange("minerMk1Speed", 45.0, 0.0, Short.MAX_VALUE);
 
-    private static final ForgeConfigSpec.ConfigValue<Float> MINER_MK2_SPEED_CV = BUILDER
+    private static final ForgeConfigSpec.DoubleValue MINER_MK2_SPEED_CV = BUILDER
             .comment(" How many mining operations a miner mk2 can complete in one hour\n" +
                     " at 256 RPM, with one deposit block claimed, and no deposit multipliers.")
-            .define("minerMk2Speed", 45f);
+            .defineInRange("minerMk2Speed", 45.0, 0.0, Short.MAX_VALUE);
 
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
