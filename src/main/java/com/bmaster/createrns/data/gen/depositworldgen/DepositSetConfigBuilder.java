@@ -1,5 +1,6 @@
 package com.bmaster.createrns.data.gen.depositworldgen;
 
+import com.bmaster.createrns.RNSPacks;
 import net.minecraft.MethodsReturnNonnullByDefault;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -8,10 +9,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class DepositSetConfigBuilder {
     public static final int DEFAULT_SALT = 591646342;
-    public static final int DEFAULT_SPACING = 48;
 
     private int separation = 8;
-    private int spacing = DEFAULT_SPACING;
+    private int spacing = RNSPacks.DEFAULT_SPACING;
     private int salt = DEFAULT_SALT;
 
     public static DepositSetConfigBuilder create() {
