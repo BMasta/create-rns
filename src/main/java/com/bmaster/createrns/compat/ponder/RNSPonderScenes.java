@@ -114,7 +114,7 @@ public class RNSPonderScenes {
                 .pointAt(vec.topOf(depositUnderBearing))
                 .attachKeyFrame()
                 .placeNearTarget()
-                .sharedText(ServerConfig.infiniteDeposits ? "mining_infinite" : "mining_finite");
+                .sharedText(ServerConfig.INFINITE_DEPOSITS.get() ? "mining_infinite" : "mining_finite");
         s.idle(100);
 
         miner.showBearing(Direction.NORTH);

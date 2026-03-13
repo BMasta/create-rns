@@ -25,7 +25,7 @@ public enum DepositBlockComponentProvider implements IBlockComponentProvider, IS
 
     @Override
     public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
-        if (ServerConfig.infiniteDeposits) return;
+        if (ServerConfig.INFINITE_DEPOSITS.get()) return;
         var sd = accessor.getServerData();
         if (!sd.contains("durability", LongTag.TAG_LONG)) return;
         var dur = sd.getLong("durability");

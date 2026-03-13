@@ -40,8 +40,8 @@ public class DepositScannerServerHandler {
                     structKey.location());
         }
         var nearest = switch (rt) {
-            case DISCOVER -> DepositLocation.getNearest(sp, structKey, false, ServerConfig.maxScanDistance, false);
-            case TRACK -> DepositLocation.getNearest(sp, structKey, false, ServerConfig.maxScanDistance, true);
+            case DISCOVER -> DepositLocation.getNearest(sp, structKey, false, ServerConfig.MAX_SCAN_DISTANCE.get(), false);
+            case TRACK -> DepositLocation.getNearest(sp, structKey, false, ServerConfig.MAX_SCAN_DISTANCE.get(), true);
         };
 
         var state = getScannerState(sp, (nearest != null) ? nearest.getLocation() : null);
@@ -55,7 +55,7 @@ public class DepositScannerServerHandler {
     private static ScannerState getScannerState(ServerPlayer sp, @Nullable BlockPos targetPos) {
         if (targetPos == null) return new ScannerState(AntennaStatus.INACTIVE, MAX_PING_INTERVAL, false);
         var playerPos = sp.blockPosition();
-        var maxBlockDistance = SectionPos.sectionToBlockCoord(ServerConfig.maxScanDistance);
+        var maxBlockDistance = SectionPos.sectionToBlockCoord(ServerConfig.MAX_SCAN_DISTANCE.get());
         var distance = Math.min(maxBlockDistance, Math.sqrt(playerPos.distSqr(targetPos)));
 
         AntennaStatus status;
