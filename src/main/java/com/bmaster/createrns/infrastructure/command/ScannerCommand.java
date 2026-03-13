@@ -2,7 +2,7 @@ package com.bmaster.createrns.infrastructure.command;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSMisc;
-import com.bmaster.createrns.RNSTags;
+import com.bmaster.createrns.RNSTags.RNSStructureTags;
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.content.deposit.info.CustomDepositLocation;
 import com.bmaster.createrns.content.deposit.info.DepositLocation;
@@ -52,7 +52,7 @@ public class ScannerCommand {
     public static final SuggestionProvider<CommandSourceStack> SUGGEST_DEPOSIT_STRUCTURES =
             (ctx, b) -> SharedSuggestionProvider.suggestResource(
                     ctx.getSource().getLevel().registryAccess().lookupOrThrow(Registries.STRUCTURE).listElements()
-                            .filter(h -> h.is(RNSTags.Structure.DEPOSITS))
+                            .filter(h -> h.is(RNSStructureTags.DEPOSITS))
                             .map(h -> h.key().location()),
                     b
             );
@@ -61,14 +61,14 @@ public class ScannerCommand {
             (ctx, b) -> {
                 var lookup = ctx.getSource().getLevel().registryAccess().lookupOrThrow(Registries.STRUCTURE);
                 var structures = lookup.listElements()
-                        .filter(h -> h.is(RNSTags.Structure.DEPOSITS))
+                        .filter(h -> h.is(RNSStructureTags.DEPOSITS))
                         .map(h -> h.key().location())
                         .toList();
                 var tags = lookup.listTags()
                         .filter(named -> !named.key().equals(Tags.Structures.HIDDEN_FROM_DISPLAYERS))
                         .filter(named -> !named.key().equals(Tags.Structures.HIDDEN_FROM_LOCATOR_SELECTION))
                         .filter(named -> named.stream().allMatch(h ->
-                                h.is(RNSTags.Structure.DEPOSITS)))
+                                h.is(RNSStructureTags.DEPOSITS)))
                         .map(named -> named.key().location())
                         .toList();
                 var remaining = b.getRemaining().toLowerCase(Locale.ROOT);
@@ -267,9 +267,9 @@ public class ScannerCommand {
             var src = ctx.getSource();
             var sl = src.getLevel();
             var pos = BlockPosArgument.getLoadedBlockPos(ctx, "target_position");
-            var dep = DepositLocation.getNearest(sl, RNSTags.Structure.DEPOSITS, pos, true, 1);
+            var dep = DepositLocation.getNearest(sl, RNSStructureTags.DEPOSITS, pos, true, 1);
             if (dep == null) {
-                src.sendFailure(F_NOT_FOUND_IN_CHUNK.apply(RNSTags.Structure.DEPOSITS.location()));
+                src.sendFailure(F_NOT_FOUND_IN_CHUNK.apply(RNSStructureTags.DEPOSITS.location()));
                 return 0;
             }
             var precise = dep.computePreciseLocation();
@@ -348,19 +348,19 @@ public class ScannerCommand {
             }
             int searchRadiusChunks = SEARCH_RADIUS_CHUNKS;
             var lookup = sl.registryAccess().lookupOrThrow(Registries.STRUCTURE);
-            var deposits = lookup.get(RNSTags.Structure.DEPOSITS).orElse(null);
+            var deposits = lookup.get(RNSStructureTags.DEPOSITS).orElse(null);
 
             if (deposits == null) {
-                src.sendFailure(F_NOT_FOUND.apply(RNSTags.Structure.DEPOSITS.location()));
+                src.sendFailure(F_NOT_FOUND.apply(RNSStructureTags.DEPOSITS.location()));
                 return 0;
             }
 
-            var nearestAny = DepositLocation.getNearest(sl, RNSTags.Structure.DEPOSITS, pos, true, searchRadiusChunks);
+            var nearestAny = DepositLocation.getNearest(sl, RNSStructureTags.DEPOSITS, pos, true, searchRadiusChunks);
             if (nearestAny == null) {
-                src.sendFailure(F_NOT_FOUND_IN_X_CHUNKS.apply(RNSTags.Structure.DEPOSITS.location(), searchRadiusChunks));
+                src.sendFailure(F_NOT_FOUND_IN_X_CHUNKS.apply(RNSStructureTags.DEPOSITS.location(), searchRadiusChunks));
             } else {
                 var dist = (int) Math.sqrt(nearestAny.getLocation().distSqr(pos));
-                src.sendSuccess(() -> S_FOUND_AT.apply(RNSTags.Structure.DEPOSITS.location(), bracketedCoords(
+                src.sendSuccess(() -> S_FOUND_AT.apply(RNSStructureTags.DEPOSITS.location(), bracketedCoords(
                         nearestAny.getLocation(), !nearestAny.computePreciseLocation()), dist), false);
             }
 
@@ -434,7 +434,7 @@ public class ScannerCommand {
 
     private static void ensureIsDepositStructure(RegistryLookup<Structure> reg, ResourceKey<Structure> key) throws CommandSyntaxException {
         var holder = reg.get(key).orElse(null);
-        if (holder == null || !holder.is(RNSTags.Structure.DEPOSITS)) {
+        if (holder == null || !holder.is(RNSStructureTags.DEPOSITS)) {
             throw new DynamicCommandExceptionType(F_STRUCTURE_NOT_DEPOSIT::apply).create(key.location());
         }
     }

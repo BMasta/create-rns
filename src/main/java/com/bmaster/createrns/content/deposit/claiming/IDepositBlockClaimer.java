@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.claiming;
 
-import com.bmaster.createrns.RNSTags;
+import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.util.Utils;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -82,7 +82,7 @@ public interface IDepositBlockClaimer {
         q.offer(anchor.relative(dir));
         while (!q.isEmpty()) {
             var bp = q.poll();
-            if (visited.contains(bp.asLong()) || !ma.isInside(bp) || !level.getBlockState(bp).is(RNSTags.Block.DEPOSIT_BLOCKS)) {
+            if (visited.contains(bp.asLong()) || !ma.isInside(bp) || !level.getBlockState(bp).is(RNSBlockTags.DEPOSIT_BLOCKS)) {
                 continue;
             }
             visited.add(bp.asLong());

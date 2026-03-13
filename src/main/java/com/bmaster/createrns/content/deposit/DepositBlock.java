@@ -1,7 +1,7 @@
 package com.bmaster.createrns.content.deposit;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSTags;
+import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.mining.MiningBehaviour;
@@ -31,7 +31,7 @@ public class DepositBlock extends Block {
     public static Object2IntOpenHashMap<BlockPos> getVein(Level level, BlockPos start) {
         Queue<BlockPos> q = new ArrayDeque<>();
         Object2IntOpenHashMap<BlockPos> visited = new Object2IntOpenHashMap<>();
-        if (!level.getBlockState(start).is(RNSTags.Block.DEPOSIT_BLOCKS)) return visited;
+        if (!level.getBlockState(start).is(RNSBlockTags.DEPOSIT_BLOCKS)) return visited;
         q.add(start);
 
         // Collect all blocks in the deposit vein. Assign depth of outer blocks to 0, all other to MAX_VALUE.
@@ -43,7 +43,7 @@ public class DepositBlock extends Block {
             AtomicBoolean external = new AtomicBoolean(false);
             Direction.stream().forEach(d -> {
                 var nb = bp.relative(d);
-                if (level.getBlockState(nb).is(RNSTags.Block.DEPOSIT_BLOCKS)) {
+                if (level.getBlockState(nb).is(RNSBlockTags.DEPOSIT_BLOCKS)) {
                     q.add(bp.relative(d));
                 } else {
                     if (xzDirections.contains(d)) external.set(true);
@@ -96,7 +96,7 @@ public class DepositBlock extends Block {
         super.onRemove(state, level, pos, newState, movedByPiston);
         if (level.isClientSide) return;
         // Only non-depleted deposits have durability
-        if (state.is(RNSTags.Block.DEPOSIT_BLOCKS)) {
+        if (state.is(RNSBlockTags.DEPOSIT_BLOCKS)) {
             DepositDurabilityManager.removeDepositBlockDurability((ServerLevel) level, pos);
         }
         updateNearbyClaimers(level, pos);
