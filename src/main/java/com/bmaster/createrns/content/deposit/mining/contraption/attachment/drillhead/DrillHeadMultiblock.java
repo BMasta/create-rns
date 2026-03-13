@@ -29,7 +29,7 @@ public class DrillHeadMultiblock {
         Direction v = getVDirection(direction);
         switch (size) {
             case SMALL -> positions.add(controllerPos);
-            case MEDIUM -> {
+            case LARGE -> {
                 addSquareLayer(positions, controllerPos, u, v);
                 positions.add(controllerPos.relative(direction));
             }
@@ -172,7 +172,7 @@ public class DrillHeadMultiblock {
     protected static BlockState getPartStateForPosition(BlockPos controllerPos, BlockState controllerState, BlockPos partPos) {
         var direction = DrillHeadBlock.getConnectedDirection(controllerState);
         var position = switch (controllerState.getValue(DrillHeadBlock.SIZE)) {
-            case SMALL, MEDIUM -> DrillHeadPartPosition.CORE;
+            case SMALL, LARGE -> DrillHeadPartPosition.CORE;
         };
 
         return RNSBlocks.DRILL_HEAD_PART.getDefaultState()
