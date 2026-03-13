@@ -29,7 +29,7 @@ public class RNSPonderPlugin implements PonderPlugin {
     public void registerScenes(PonderSceneRegistrationHelper<ResourceLocation> helper) {
         PonderSceneRegistrationHelper<ItemProviderEntry<?, ?>> helper1 = helper.withKeyFunction(RegistryEntry::getId);
 
-        helper1.forComponents(RNSBlocks.MINER_BEARING, RNSBlocks.DRILL_HEAD)
+        helper1.forComponents(RNSBlocks.MINER_BEARING, RNSBlocks.MINE_HEAD)
                 .addStoryBoard("mining", RNSPonderScenes::mining)
                 .addStoryBoard("extracting", RNSPonderScenes::extracting);
     }

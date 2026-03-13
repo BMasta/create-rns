@@ -16,8 +16,6 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.capabilities.Capabilities;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
@@ -27,41 +25,6 @@ import java.util.stream.Collectors;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class GoggleTooltipModifiers {
-    @SuppressWarnings("SameParameterValue")
-    public static boolean addInventoryToGoggleTooltip(Context c, List<Component> tooltip) {
-        var be = c.target();
-        var level = be.getLevel();
-        if (level == null) return false;
-        var inventory = level.getCapability(Capabilities.ItemHandler.BLOCK, be.getBlockPos(), null);
-        if (inventory == null) return false;
-        boolean empty = true;
-        for (int i = 0; i < inventory.getSlots(); ++i) {
-            if (!inventory.getStackInSlot(i).isEmpty()) {
-                empty = false;
-                break;
-            }
-        }
-        if (empty) return false;
-
-        if (c.isFirstSection()) {
-            CreateRNS.lang().translate(c.langId() + ".contents").forGoggles(tooltip);
-        } else {
-            // Newline between sections
-            CreateRNS.lang().space().forGoggles(tooltip);
-        }
-
-        for (int slot = 0; slot < inventory.getSlots(); ++slot) {
-            var is = inventory.getStackInSlot(slot);
-            if (is.equals(ItemStack.EMPTY)) continue;
-            CreateRNS.lang()
-                    .add(is.getHoverName().copy().withStyle(ChatFormatting.GRAY))
-                    .add(Component.literal(" x" + is.getCount()).withStyle(ChatFormatting.GREEN))
-                    .forGoggles(tooltip, 1);
-        }
-
-        return true;
-    }
-
     public static boolean addUsesToGoggleTooltip(Context c, List<Component> tooltip) {
         if (ServerConfig.INFINITE_DEPOSITS.get()) return false;
         var be = c.target();

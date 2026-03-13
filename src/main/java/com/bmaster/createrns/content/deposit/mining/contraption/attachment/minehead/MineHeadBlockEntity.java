@@ -1,4 +1,4 @@
-package com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead;
+package com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead;
 
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
@@ -13,8 +13,8 @@ import java.util.List;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class DrillHeadBlockEntity extends SmartBlockEntity {
-    public DrillHeadBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+public class MineHeadBlockEntity extends SmartBlockEntity {
+    public MineHeadBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
 
@@ -24,7 +24,7 @@ public class DrillHeadBlockEntity extends SmartBlockEntity {
 
     @Override
     public AABB getRenderBoundingBox() {
-        var occupied = DrillHeadMultiblock.getOccupiedPositions(worldPosition, getBlockState());
+        var occupied = MineHeadMultiblock.getOccupiedPositions(worldPosition, getBlockState());
         if (occupied.isEmpty()) return super.getRenderBoundingBox();
 
         int minX = Integer.MAX_VALUE;

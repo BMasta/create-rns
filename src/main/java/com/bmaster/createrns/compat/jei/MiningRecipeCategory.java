@@ -47,7 +47,7 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
             CreateRNS.asResource("mining"));
     public static final List<Supplier<? extends ItemStack>> CATALYSTS = List.of(
             () -> new ItemStack(RNSBlocks.MINER_BEARING.get()),
-            () -> new ItemStack(RNSBlocks.DRILL_HEAD.get()),
+            () -> new ItemStack(RNSBlocks.MINE_HEAD.get()),
             () -> new ItemStack(RNSBlocks.RESONATOR.get()),
             () -> new ItemStack(RNSBlocks.SHATTERING_RESONATOR.get()),
             () -> new ItemStack(RNSBlocks.STABILIZING_RESONATOR.get())
