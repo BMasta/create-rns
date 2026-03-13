@@ -3,19 +3,19 @@
   "category": "misc",
   "key": {
     "A": {
-      "item": "create:andesite_alloy"
-    },
-    "I": {
-      "item": "create:iron_sheet"
-    },
-    "R": {
       "item": "create_rns:polished_resonant_amethyst"
+    },
+    "C": {
+      "item": "create:brass_casing"
+    },
+    "T": {
+      "item": "create:transmitter"
     }
   },
   "pattern": [
-    "AIA",
-    "IRI",
-    "AIA"
+    "A",
+    "T",
+    "C"
   ],
   "result": {
     "count": 1,

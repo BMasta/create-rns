@@ -1,7 +1,11 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "create:mechanical_crafting",
+  "accept_mirrored": true,
   "category": "misc",
   "key": {
+    "A": {
+      "item": "create_rns:polished_resonant_amethyst"
+    },
     "B": {
       "item": "create:brass_sheet"
     },
@@ -16,9 +20,10 @@
     }
   },
   "pattern": [
-    "SBS",
-    "DRD",
-    "SBS"
+    "DAD",
+    "DAD",
+    "BRB",
+    "SSS"
   ],
   "result": {
     "count": 1,
