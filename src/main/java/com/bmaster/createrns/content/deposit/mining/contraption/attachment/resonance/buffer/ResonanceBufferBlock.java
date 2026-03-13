@@ -1,11 +1,14 @@
 package com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer;
 
+import com.bmaster.createrns.RNSBlockEntities;
 import com.simibubi.create.AllShapes;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
+import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -14,7 +17,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class ResonanceBufferBlock extends Block {
+public class ResonanceBufferBlock extends Block implements IBE<ResonanceBufferBlockEntity> {
     public static int countInContraption(BearingContraption contraption) {
         var count = 0;
         for (var info : contraption.getBlocks().values()) {
@@ -72,5 +75,15 @@ public class ResonanceBufferBlock extends Block {
     @Override
     public boolean useShapeForLightOcclusion(BlockState state) {
         return true;
+    }
+
+    @Override
+    public Class<ResonanceBufferBlockEntity> getBlockEntityClass() {
+        return ResonanceBufferBlockEntity.class;
+    }
+
+    @Override
+    public BlockEntityType<? extends ResonanceBufferBlockEntity> getBlockEntityType() {
+        return RNSBlockEntities.RESONANCE_BUFFER_BE.get();
     }
 }

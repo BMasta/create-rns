@@ -1,4 +1,4 @@
-package com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.propagator;
+package com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer;
 
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
@@ -12,8 +12,8 @@ import java.util.List;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class ResonancePropagatorBlockEntity extends SmartBlockEntity {
-    public ResonancePropagatorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+public class ResonanceBufferBlockEntity extends SmartBlockEntity {
+    public ResonanceBufferBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
 

@@ -6,6 +6,7 @@ import com.simibubi.create.content.contraptions.render.ContraptionMatrices;
 import com.simibubi.create.foundation.virtualWorld.VirtualRenderWorld;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
@@ -23,14 +24,8 @@ public class ResonatorMovementBehaviour extends ParticleEmittingMovementBehaviou
 
     @Override
     public Vec3 getDisplacement(MovementContext context) {
-        int displaceX = context.world.random.nextIntBetweenInclusive(-1, 1);
-        int displaceY = context.world.random.nextIntBetweenInclusive(-1, 1);
-        int displaceZ = context.world.random.nextIntBetweenInclusive(-1, 1);
-        return new Vec3(
-                0.5f * displaceX,
-                0.1f * displaceY,
-                0.5f * displaceZ
-        );
+        Direction facing = ResonatorBlock.getConnectedDirection(context.state);
+        return new Vec3(facing.getStepX() * 0.40, facing.getStepY() * 0.40, facing.getStepZ() * 0.40);
     }
 
     @Override

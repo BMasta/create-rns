@@ -1,9 +1,11 @@
 package com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator;
 
 import com.bmaster.createrns.RNSBlockEntities;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.FaceAttachedMinerComponentBlock;
 import com.simibubi.create.AllShapes;
 import com.simibubi.create.foundation.block.IBE;
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import net.createmod.catnip.math.VoxelShaper;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
@@ -18,16 +20,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class AbstractResonatorBlock extends Block implements IBE<ResonatorBlockEntity> {
-    public static final VoxelShape SHAPE = new AllShapes.Builder(
-            Block.box(0, 0, 0, 16, 4, 16))
-            .add(Block.box(0, 12, 0, 16, 16, 16))
-            .add(Block.box(0, 4, 0, 4, 12, 4))
-            .add(Block.box(0, 4, 12, 4, 12, 16))
-            .add(Block.box(12, 4, 0, 16, 12, 4))
-            .add(Block.box(12, 4, 12, 16, 12, 16))
-            .add(Block.box(5, 4, 5, 11, 12, 11))
-            .build();
+public abstract class AbstractResonatorBlock extends FaceAttachedMinerComponentBlock implements IBE<ResonatorBlockEntity> {
+    public static final VoxelShaper SHAPE = new AllShapes.Builder(Block.box(6, 0, 6, 10, 14, 10)).forDirectional();
 
     public abstract PartialModel getShard(boolean active);
 
@@ -38,6 +32,16 @@ public abstract class AbstractResonatorBlock extends Block implements IBE<Resona
     }
 
     @Override
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return SHAPE.get(getConnectedDirection(state));
+    }
+
+    @Override
+    public boolean useShapeForLightOcclusion(BlockState state) {
+        return true;
+    }
+
+    @Override
     public Class<ResonatorBlockEntity> getBlockEntityClass() {
         return ResonatorBlockEntity.class;
     }
@@ -45,30 +49,5 @@ public abstract class AbstractResonatorBlock extends Block implements IBE<Resona
     @Override
     public BlockEntityType<? extends ResonatorBlockEntity> getBlockEntityType() {
         return RNSBlockEntities.RESONATOR_BE.get();
-    }
-
-    @Override
-    public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return SHAPE;
-    }
-
-    @Override
-    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return SHAPE;
-    }
-
-    @Override
-    public VoxelShape getOcclusionShape(BlockState state, BlockGetter level, BlockPos pos) {
-        return SHAPE;
-    }
-
-    @Override
-    public VoxelShape getVisualShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return SHAPE;
-    }
-
-    @Override
-    public boolean useShapeForLightOcclusion(BlockState state) {
-        return true;
     }
 }
