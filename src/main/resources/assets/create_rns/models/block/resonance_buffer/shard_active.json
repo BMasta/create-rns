@@ -1,0 +1,22 @@
+{
+  "format_version": "1.9.0",
+  "credit": "Made with Blockbench",
+  "parent": "block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "0": "create_rns:block/resonance_buffer",
+    "particle": "create_rns:block/resonance_buffer"
+  },
+  "elements": [
+    {
+      "from": [5, 4, 5],
+      "to": [11, 12, 11],
+      "faces": {
+        "north": {"uv": [11, 0, 14, 4], "texture": "#0"},
+        "east": {"uv": [11, 0, 14, 4], "texture": "#0"},
+        "south": {"uv": [11, 0, 14, 4], "texture": "#0"},
+        "west": {"uv": [11, 0, 14, 4], "texture": "#0"}
+      }
+    }
+  ]
+}

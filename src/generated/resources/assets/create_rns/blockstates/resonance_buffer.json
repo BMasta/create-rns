@@ -1,7 +1,7 @@
 {
   "variants": {
     "": {
-      "model": "create_rns:block/resonance_buffer"
+      "model": "create_rns:block/resonance_buffer/block"
     }
   }
 }

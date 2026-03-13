@@ -16,11 +16,11 @@ public class RNSPartialModels {
     RESONATOR_SHARD_ACTIVE = PartialModel.of(
             CreateRNS.asResource("block/resonator/shard_active")),
 
-    PROPAGATOR_SHARD = PartialModel.of(
-            CreateRNS.asResource("block/resonance_propagator/shard")),
+    RESONANCE_BUFFER_SHARD = PartialModel.of(
+            CreateRNS.asResource("block/resonance_buffer/shard")),
 
-    PROPAGATOR_SHARD_ACTIVE = PartialModel.of(
-            CreateRNS.asResource("block/resonance_propagator/shard_active")),
+    RESONANCE_BUFFER_SHARD_ACTIVE = PartialModel.of(
+            CreateRNS.asResource("block/resonance_buffer/shard_active")),
 
     STABILIZING_RESONATOR_SHARD = PartialModel.of(
             CreateRNS.asResource("block/stabilizing_resonator/shard")),

@@ -173,7 +173,9 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
             spec = null;
             return false;
         }
-        int radius = Math.max(0, ServerConfig.MINING_RADIUS.get() + equipment.propagatorCount - equipment.bufferCount);
+        int radius = Math.max(0, ServerConfig.MINING_RADIUS.get()
+                + equipment.drillHeadSize.getRadiusBonus()
+                - ((equipment.bufferCount == 0) ? 0 : 1));
         var area = new ClaimingArea(radius, ServerConfig.MINING_DEPTH.get());
         spec = new MinerSpec(area, ServerConfig.MINING_SPEED.get());
 
