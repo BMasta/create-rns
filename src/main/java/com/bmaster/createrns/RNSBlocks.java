@@ -5,8 +5,7 @@ import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBloc
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadPartBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferBlock;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.propagator.ResonancePropagatorBlock;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.propagator.ResonancePropagatorMovementBehaviour;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferMovementBehaviour;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ResonatorBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ResonatorMovementBehaviour;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ShatteringResonatorBlock;
@@ -147,36 +146,17 @@ public class RNSBlocks {
                     .save(p))
             .register();
 
-    public static final BlockEntry<ResonancePropagatorBlock> RESONANCE_PROPAGATOR = CreateRNS.REGISTRATE.block(
-                    "resonance_propagator", ResonancePropagatorBlock::new)
-            .initialProperties(SharedProperties::softMetal)
-            .properties(p -> p
-                    .mapColor(MapColor.COLOR_PURPLE)
-                    .noOcclusion())
-            .transform(pickaxeOnly())
-            .blockstate((c, p) ->
-                    p.horizontalFaceBlock(c.get(), AssetLookup.partialBaseModel(c, p)))
-            .onRegister(movementBehaviour(new ResonancePropagatorMovementBehaviour()))
-            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
-                    .define('A', RNSItems.POLISHED_RESONANT_AMETHYST)
-                    .define('E', AllItems.ELECTRON_TUBE)
-                    .define('C', AllBlocks.BRASS_CASING)
-                    .pattern("A")
-                    .pattern("E")
-                    .pattern("C")
-                    .unlockedBy("has_item", RegistrateRecipeProvider.has(RNSBlocks.RESONATOR))
-                    .save(p))
-            .item()
-            .model(AssetLookup::customItemModel)
-            .build()
-            .register();
-
     public static final BlockEntry<ResonanceBufferBlock> RESONANCE_BUFFER = CreateRNS.REGISTRATE.block(
                     "resonance_buffer", ResonanceBufferBlock::new)
             .initialProperties(SharedProperties::softMetal)
             .properties(p -> p.mapColor(MapColor.COLOR_PURPLE))
             .transform(pickaxeOnly())
-            .simpleItem()
+            .blockstate((c, p) ->
+                    p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
+            .onRegister(movementBehaviour(new ResonanceBufferMovementBehaviour()))
+            .item()
+            .model(AssetLookup::customItemModel)
+            .build()
             .register();
 
     public static final BlockEntry<DepositBlock> IRON_DEPOSIT = DynamicDatapackDepositEntry
@@ -260,7 +240,7 @@ public class RNSBlocks {
                         .noOcclusion())
                 .transform(pickaxeOnly())
                 .blockstate((c, p) ->
-                        p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
+                        p.horizontalFaceBlock(c.get(), AssetLookup.partialBaseModel(c, p)))
                 .onRegister(movementBehaviour(new ResonatorMovementBehaviour()))
                 .item()
                 .model(AssetLookup::customItemModel)

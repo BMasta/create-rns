@@ -3,8 +3,8 @@ package com.bmaster.createrns.content.deposit.mining.contraption.attachment;
 import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadBlock;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadSize;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferBlock;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.propagator.ResonancePropagatorBlock;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.FluidCatalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ResonanceCatalyst;
@@ -30,9 +30,9 @@ public class MinerEquipmentManager {
     }
 
     public final BlockPos drillHeadPos;
+    public final DrillHeadSize drillHeadSize;
     public final ObjectOpenHashSet<Catalyst> catalysts = new ObjectOpenHashSet<>();
     public final int bufferCount;
-    public final int propagatorCount;
 
     protected final MinerBearingBlockEntity bearing;
     protected final BearingContraption contraption;
@@ -62,6 +62,7 @@ public class MinerEquipmentManager {
         // tip pos = -27 58 8
         var bearingPos = contraption.anchor.relative(contraption.getFacing().getOpposite());
         BlockPos drillHeadPos = null;
+        DrillHeadSize drillHeadSize = null;
 
         for (var e : contraption.getBlocks().entrySet()) {
             var pos = e.getKey();
@@ -71,6 +72,7 @@ public class MinerEquipmentManager {
                         .getNormal()
                         .multiply(bs.getValue(DrillHeadBlock.SIZE).getTipOffset());
                 drillHeadPos = pos.offset(contraption.anchor).offset(tipOffset);
+                drillHeadSize = bs.getValue(DrillHeadBlock.SIZE);
             }
         }
 
@@ -81,9 +83,9 @@ public class MinerEquipmentManager {
 
         this.bearing = be;
         this.drillHeadPos = drillHeadPos;
+        this.drillHeadSize = drillHeadSize;
 
         this.bufferCount = ResonanceBufferBlock.countInContraption(contraption);
-        this.propagatorCount = ResonancePropagatorBlock.countInContraption(contraption);
 
         var rc = ResonanceCatalyst.fromContraption(contraption);
         if (rc != null) catalysts.add(rc);

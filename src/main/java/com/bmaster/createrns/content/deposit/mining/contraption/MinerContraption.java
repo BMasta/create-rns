@@ -3,7 +3,6 @@ package com.bmaster.createrns.content.deposit.mining.contraption;
 import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferBlock;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.propagator.ResonancePropagatorBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.AbstractResonatorBlock;
 import com.bmaster.createrns.util.Utils;
 import com.simibubi.create.content.contraptions.AssemblyException;
@@ -24,12 +23,10 @@ import java.util.Set;
 public class MinerContraption extends BearingContraption {
     public static final int BASE_RESONATOR_LIMIT = 4;
     public static final int BUFFER_LIMIT = 4;
-    public static final int PROPAGATOR_LIMIT = 4;
 
     public BlockPos drillHeadPos;
     public int resonatorCount = 0;
     public int bufferCount = 0;
-    public int propagatorCount = 0;
 
     public MinerContraption(boolean isWindmill, Direction facing) {
         super(isWindmill, facing);
@@ -50,8 +47,6 @@ public class MinerContraption extends BearingContraption {
             throw new RNSAssemblyException("not_one_drill");
         } else if (bufferCount > BUFFER_LIMIT) {
             throw new RNSAssemblyException("too_many_buffers", BUFFER_LIMIT);
-        } else if (propagatorCount > PROPAGATOR_LIMIT) {
-            throw new RNSAssemblyException("too_many_propagators", PROPAGATOR_LIMIT);
         } else if (resonatorCount > resonatorLimit) {
             throw new RNSAssemblyException("too_many_resonators", resonatorLimit);
         }
@@ -83,8 +78,6 @@ public class MinerContraption extends BearingContraption {
                 resonatorCount++;
             } else if (b instanceof ResonanceBufferBlock) {
                 bufferCount++;
-            } else if (b instanceof ResonancePropagatorBlock) {
-                propagatorCount++;
             }
         }
         return super.moveBlock(world, forcedDirection, frontier, visited);

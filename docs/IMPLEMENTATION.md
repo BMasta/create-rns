@@ -6,9 +6,32 @@
 * Growth logic supports expanding in alternate directions when needed so the full structure can still fit.
 * Part blocks act as extensions of the controller for interaction and destruction behavior.
 * Breaking a drill returns resources based on how much was invested into its current size.
+* Drill size directly affects mining footprint: small heads provide no radius bonus, medium heads provide +1 radius.
 * Drill multiblock behavior is integrated with contraption assembly in a general way so controller and part blocks move together without requiring glue on every part.
 * Oversized drill rendering is handled as a scaled/offset single model, with culling bounds expanded to prevent disappearing visuals when only part of the model is on screen.
 * Drill part blocks are configured to avoid unintended light occlusion artifacts.
+
+## Miner Resonance Attachments (Contraption Composition and Mining Footprint)
+* Player perspective: resonance attachments are added by placing resonators and resonance buffers on the miner contraption.
+* Player perspective: resonators are face-attached components that can be placed on floor, wall, or ceiling surfaces.
+* Player perspective: resonance buffers are support components that increase resonator capacity while reducing mining footprint.
+* Gameplay outcome: attachment layout controls both catalyst availability and effective mining area, so contraption design
+  directly affects throughput and coverage tradeoffs.
+* Core behavior: contraption assembly requires exactly one drill head; resonance attachments are counted during assembly validation.
+* Core behavior: resonator cap is `BASE_RESONATOR_LIMIT + buffer_count`; assembly fails when resonator count exceeds this cap.
+* Core behavior: buffer count has an independent assembly cap; assembly fails when that cap is exceeded.
+* Core behavior: mining radius starts from server config, then applies drill-size bonus and a single buffer penalty when at least
+  one buffer is present.
+* Edge behavior: additional buffers increase resonator capacity but do not stack further mining-radius penalties.
+* Edge behavior: changing drill size or resonance attachment composition causes the miner spec to refresh so claim area and mining
+  behavior stay aligned with current contraption state.
+* System interaction: resonance, shattering resonance, and stabilizing resonance catalysts are detected from contraption block composition.
+* System interaction: fluid overclock catalyst handling composes with resonance catalysts on the same contraption.
+* Data and assets: attachment behavior is code-defined; visuals are driven by models, textures, and partial models.
+* Maintenance invariant: miner assembly and mining-area calculations must treat resonators and resonance buffers as the authoritative
+  resonance attachment set.
+* Maintenance invariant: drill-size bonus and buffer penalty rules define expected mining footprint scaling and should stay aligned
+  with player-facing tooltip/guide text.
 
 ## Deposit Scanner (Server-Driven Discovery and Tracking)
 * Player perspective: right-click starts discovery for the currently selected deposit type, and right-click again cancels tracking.
