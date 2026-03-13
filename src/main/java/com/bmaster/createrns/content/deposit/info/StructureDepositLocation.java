@@ -1,8 +1,8 @@
 package com.bmaster.createrns.content.deposit.info;
 
+import com.bmaster.createrns.RNSPacks;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerLocateContext;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerLocateContext.DepositCandidateFilter;
-import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.mojang.datafixers.util.Either;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -27,6 +27,19 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class StructureDepositLocation extends DepositLocation {
+    /// Spacing may be overridden by datapacks and is therefore resolved at runtime after all datapacks have been loaded.
+    /// The default value serves as a fallback.
+    private static int SPACING = RNSPacks.DEFAULT_SPACING;
+
+    public static int getSpacing() {
+        return SPACING;
+    }
+
+    public static void setSpacing(int spacing) {
+        if (spacing <= 0) throw new IllegalArgumentException("Deposit structure spacing must be positive");
+        SPACING = spacing;
+    }
+
     public static boolean hasStructureAtChunk(ServerLevel sl, ResourceKey<Structure> depKey, ChunkPos pos) {
         var chunkAccess = sl.getChunk(pos.x, pos.z, ChunkStatus.STRUCTURE_STARTS);
         var structure = sl.registryAccess().registryOrThrow(Registries.STRUCTURE).getOrThrow(depKey);
@@ -58,7 +71,7 @@ public class StructureDepositLocation extends DepositLocation {
             ServerLevel sl, ResourceKey<Structure> depKey, BlockPos pos, boolean allowFound, int searchRadiusChunks
     ) {
         var gen = sl.getChunkSource().getGenerator();
-        var searchRadiusRegions = searchRadiusChunks / DepositSetConfigBuilder.DEFAULT_SPACING;
+        var searchRadiusRegions = searchRadiusChunks / SPACING;
         var targetStructure = sl.registryAccess().registryOrThrow(Registries.STRUCTURE).getHolderOrThrow(depKey);
         DepositCandidateFilter ignoreFilter = (level, structure, chunkPos) ->
                 !allowFound && structure == targetStructure.value() && isStructureAtChunkFound(sl, depKey, chunkPos);
@@ -86,7 +99,8 @@ public class StructureDepositLocation extends DepositLocation {
         if (namedDepHS == null) return null;
 
         var gen = sl.getChunkSource().getGenerator();
-        var searchRadiusRegions = searchRadiusChunks / DepositSetConfigBuilder.DEFAULT_SPACING;
+
+        var searchRadiusRegions = searchRadiusChunks / SPACING;
         DepositCandidateFilter ignoreFilter = (level, structure, chunkPos) -> {
             if (allowFound) return false;
             for (var h : namedDepHS) {

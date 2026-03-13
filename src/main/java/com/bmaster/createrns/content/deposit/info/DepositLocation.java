@@ -102,8 +102,9 @@ public abstract class DepositLocation {
         if (selected == null) {
             CreateRNS.LOGGER.debug("Could not find deposits nearby");
         } else {
-            CreateRNS.LOGGER.debug("Found {} {} deposit at {}", selected.getTypeStr(), selected.getKey().location(),
-                    selected.getLocationStr());
+            int dist = (int) Math.sqrt(selected.getLocation().distSqr(pos));
+            CreateRNS.LOGGER.debug("Found {} {} deposit at {} ({} blocks away)", selected.getTypeStr(),
+                    selected.getKey().location(), selected.getLocationStr(), dist);
         }
 
         if (selected != null) selected.computePreciseLocation();

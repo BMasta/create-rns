@@ -3,7 +3,6 @@ package com.bmaster.createrns;
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadBlock;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadMovementBehaviour;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.drillhead.DrillHeadPartBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.propagator.ResonancePropagatorBlock;
@@ -81,7 +80,6 @@ public class RNSBlocks {
             .transform(pickaxeOnly())
             .blockstate((c, p) ->
                     p.horizontalFaceBlock(c.get(), AssetLookup.standardModel(c, p)))
-            .onRegister(movementBehaviour(new DrillHeadMovementBehaviour()))
             .simpleItem()
             .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
                     .define('I', Items.IRON_INGOT)

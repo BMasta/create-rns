@@ -241,8 +241,10 @@ public class MiningProcess {
             if (dbRL == null) return null;
             root.putString("deposit_block", dbRL.toString());
 
-            computeRemainingUses();
-            root.putLong("remaining_uses", remainingUses);
+            if (!level.isClientSide) {
+                computeRemainingUses();
+                root.putLong("remaining_uses", remainingUses);
+            }
 
             if (clientPacket) {
                 if (!catStats.isChancesComputed()) {
@@ -258,7 +260,9 @@ public class MiningProcess {
         }
 
         public void read(CompoundTag nbt, boolean clientPacket) {
-            this.remainingUses = nbt.getLong("remaining_uses");
+            if (nbt.contains("remaining_uses")) {
+                this.remainingUses = nbt.getLong("remaining_uses");
+            }
 
             if (clientPacket && nbt.contains("catalyst_stats")) {
                 this.catStats.deserializeNBT(nbt.getCompound("catalyst_stats"));
