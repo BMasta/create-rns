@@ -2,7 +2,7 @@ package com.bmaster.createrns.content.deposit.mining;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSMisc;
-import com.bmaster.createrns.RNSTags;
+import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
@@ -54,10 +54,10 @@ public class MiningProcess {
 
         var depBlockCounts = depositBlocks.stream()
                 .map(bp -> level.getBlockState(bp).getBlock())
-                .filter(db -> db.defaultBlockState().is(RNSTags.Block.DEPOSIT_BLOCKS))
+                .filter(db -> db.defaultBlockState().is(RNSBlockTags.DEPOSIT_BLOCKS))
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
         var depBlockPositions = depositBlocks.stream()
-                .filter(bp -> level.getBlockState(bp).getBlock().defaultBlockState().is(RNSTags.Block.DEPOSIT_BLOCKS))
+                .filter(bp -> level.getBlockState(bp).getBlock().defaultBlockState().is(RNSBlockTags.DEPOSIT_BLOCKS))
                 .collect(Collectors.groupingBy(bp -> level.getBlockState(bp).getBlock(), Collectors.toList()));
 
         for (var e : depBlockCounts.entrySet()) {
