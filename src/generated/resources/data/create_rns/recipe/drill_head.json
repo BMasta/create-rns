@@ -10,9 +10,9 @@
     }
   },
   "pattern": [
-    "III",
+    " A ",
     "AIA",
-    "AAA"
+    "AIA"
   ],
   "result": {
     "count": 1,

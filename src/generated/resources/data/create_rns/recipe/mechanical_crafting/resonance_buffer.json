@@ -1,6 +1,6 @@
 {
   "type": "create:mechanical_crafting",
-  "accept_mirrored": false,
+  "accept_mirrored": true,
   "category": "misc",
   "key": {
     "A": {
@@ -20,6 +20,5 @@
   "result": {
     "count": 2,
     "id": "create_rns:resonance_buffer"
-  },
-  "show_notification": false
+  }
 }
