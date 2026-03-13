@@ -1,5 +1,6 @@
 package com.bmaster.createrns;
 
+import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadBlock;
@@ -212,7 +213,7 @@ public class RNSBlocks {
                         .noLootTable())
                 .transform(pickaxeOnly())
                 .tag(BlockTags.NEEDS_DIAMOND_TOOL)
-                .tag(RNSTags.Block.DEPOSIT_BLOCKS)
+                .tag(RNSBlockTags.DEPOSIT_BLOCKS)
                 .item()
                 .build();
     }
