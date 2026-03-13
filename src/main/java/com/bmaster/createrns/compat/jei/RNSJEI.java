@@ -41,7 +41,7 @@ public class RNSJEI implements IModPlugin {
 
         var recipes = level.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.MINING_RECIPE_TYPE.get());
         // Hide depleted deposit recipe when infinite deposits are configured
-        if (ServerConfig.infiniteDeposits) {
+        if (ServerConfig.INFINITE_DEPOSITS.get()) {
             recipes = recipes.stream()
                     .filter(r -> r.getDepositBlock() != RNSBlocks.DEPLETED_DEPOSIT.get())
                     .toList();

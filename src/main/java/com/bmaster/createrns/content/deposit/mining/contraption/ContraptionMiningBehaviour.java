@@ -172,14 +172,9 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
             spec = null;
             return false;
         }
-
-        var headLocalPos = equipment.drillHeadPos.subtract(getPos());
-        var headOffset = Math.abs(headLocalPos.getX()) + Math.abs(headLocalPos.getY()) + Math.abs(headLocalPos.getZ());
-
-        int radius = Math.max(0, ServerConfig.miningRadius + equipment.propagatorCount - equipment.bufferCount);
-
-        var area = new ClaimingArea(radius, ServerConfig.miningDepth);
-        spec = new MinerSpec(area, ServerConfig.miningSpeed);
+        int radius = Math.max(0, ServerConfig.MINING_RADIUS.get() + equipment.propagatorCount - equipment.bufferCount);
+        var area = new ClaimingArea(radius, ServerConfig.MINING_DEPTH.get());
+        spec = new MinerSpec(area, ServerConfig.MINING_SPEED.get());
 
         return true;
     }

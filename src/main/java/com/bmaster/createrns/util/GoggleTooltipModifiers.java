@@ -63,7 +63,7 @@ public class GoggleTooltipModifiers {
     }
 
     public static boolean addUsesToGoggleTooltip(Context c, List<Component> tooltip) {
-        if (ServerConfig.infiniteDeposits) return false;
+        if (ServerConfig.INFINITE_DEPOSITS.get()) return false;
         var be = c.target();
         if (!(be instanceof SmartBlockEntity sbe)) return false;
         var mb = sbe.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
