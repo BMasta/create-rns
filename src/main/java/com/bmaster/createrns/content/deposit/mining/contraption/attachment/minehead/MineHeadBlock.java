@@ -8,20 +8,17 @@ import com.simibubi.create.foundation.block.IBE;
 import net.createmod.catnip.math.VoxelShaper;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.storage.loot.LootParams;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -47,20 +44,11 @@ public class MineHeadBlock extends FaceAttachedMinerComponentBlock implements IB
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(
-            ItemStack stack, BlockState state, Level level, BlockPos pos,
-            Player player, InteractionHand hand, BlockHitResult hitResult
-    ) {
-        if (!stack.is(RNSBlocks.MINE_HEAD.get().asItem()))
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-        if (!player.mayBuild()) return ItemInteractionResult.FAIL;
-
-        if (level.isClientSide) return ItemInteractionResult.SUCCESS;
-        boolean upgraded = MineHeadMultiblock.tryUpgrade(level, pos, state);
-        if (!upgraded) return ItemInteractionResult.CONSUME;
-
-        if (!player.isCreative()) stack.shrink(1);
-        return ItemInteractionResult.SUCCESS;
+    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+        super.onPlace(state, level, pos, oldState, movedByPiston);
+        if (level.isClientSide || state.is(oldState.getBlock()) || movedByPiston) return;
+        if (state.getValue(SIZE) != MineHeadSize.SMALL) return;
+        MineHeadMultiblock.formMultiblock(level, pos, state);
     }
 
     @Override
@@ -76,14 +64,20 @@ public class MineHeadBlock extends FaceAttachedMinerComponentBlock implements IB
 
     @Override
     protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
-        int mineHeadCount = state.getValue(SIZE).getMineHeadCost();
+        int mineHeadCount = switch (state.getValue(SIZE)) {
+            case SMALL -> 1;
+            case LARGE -> 0;
+        };
+        if (mineHeadCount == 0) return List.of();
         return List.of(new ItemStack(RNSBlocks.MINE_HEAD.get(), mineHeadCount));
     }
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!level.isClientSide && !movedByPiston && !state.is(newState.getBlock())) {
-            MineHeadMultiblock.removePartBlocks(level, pos, state);
+        if (!level.isClientSide && !movedByPiston && !state.is(newState.getBlock()) &&
+                !newState.is(Blocks.IRON_BLOCK) && !newState.is(RNSBlocks.MINE_HEAD_PART.get())) {
+            // Trigger multiblock removal
+            MineHeadMultiblock.breakMultiblock(level, pos, state, pos);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }

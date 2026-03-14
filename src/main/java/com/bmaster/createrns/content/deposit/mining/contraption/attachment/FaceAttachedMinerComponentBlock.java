@@ -37,6 +37,14 @@ public class FaceAttachedMinerComponentBlock extends FaceAttachedHorizontalDirec
         }
     }
 
+    public static BlockState withConnectedDirection(BlockState state, Direction direction) {
+        return switch (direction) {
+            case UP -> state.setValue(FACE, AttachFace.FLOOR);
+            case DOWN -> state.setValue(FACE, AttachFace.CEILING);
+            default -> state.setValue(FACE, AttachFace.WALL).setValue(FACING, direction);
+        };
+    }
+
     public FaceAttachedMinerComponentBlock(Properties properties) {
         super(properties);
     }
