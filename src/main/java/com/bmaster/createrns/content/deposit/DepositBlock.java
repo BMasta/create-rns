@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("deprecation")
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class DepositBlock extends Block {
@@ -82,8 +83,6 @@ public class DepositBlock extends Block {
         super(pProperties);
     }
 
-    @SuppressWarnings("deprecation")
-    @ParametersAreNonnullByDefault
     @Override
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
@@ -91,8 +90,6 @@ public class DepositBlock extends Block {
         updateNearbyClaimers(level, pos);
     }
 
-    @SuppressWarnings("deprecation")
-    @ParametersAreNonnullByDefault
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         super.onRemove(state, level, pos, newState, movedByPiston);

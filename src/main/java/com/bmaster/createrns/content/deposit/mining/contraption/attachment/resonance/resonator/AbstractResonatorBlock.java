@@ -18,6 +18,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@SuppressWarnings("deprecation")
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public abstract class AbstractResonatorBlock extends FaceAttachedMinerComponentBlock implements IBE<ResonatorBlockEntity> {

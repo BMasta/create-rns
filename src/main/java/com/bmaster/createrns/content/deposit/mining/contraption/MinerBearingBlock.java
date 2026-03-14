@@ -51,6 +51,7 @@ public class MinerBearingBlock extends BearingBlock implements IBE<MinerBearingB
         if (type != null && area != null) IDepositBlockClaimer.reclaimArea(level, area, type);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn,
                                  BlockHitResult hit) {

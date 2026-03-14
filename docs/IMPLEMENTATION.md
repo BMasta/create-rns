@@ -1,15 +1,22 @@
 # Implementation Details
 ## Mine Head Multiblock
-* Mine heads can be upgraded into larger multiblock variants.
-* Larger mine head variants are composed of a main controller block plus invisible part blocks that provide physical occupancy.
-* Upgrading is performed by applying additional mine head items and validates whether surrounding space can be reserved for the larger structure.
-* Growth logic supports expanding in alternate directions when needed so the full structure can still fit.
-* Part blocks act as extensions of the controller for interaction and destruction behavior.
-* Breaking a mine head returns resources based on how much was invested into its current size.
-* Mine head size directly affects mining footprint: small heads provide no radius bonus, medium heads provide +1 radius.
-* Mine head multiblock behavior is integrated with contraption assembly in a general way so controller and part blocks move together without requiring glue on every part.
-* Oversized mine head rendering is handled as a scaled/offset single model, with culling bounds expanded to prevent disappearing visuals when only part of the model is on screen.
-* Mine head part blocks are configured to avoid unintended light occlusion artifacts.
+* Player perspective: placing a mine head adjacent to the center block of a valid 3x3 iron-block pattern immediately forms the large mine head variant.
+* Player perspective: the large mine head orientation is derived from where the small mine head was placed relative to the iron pattern, and ignores the
+  small head's initially placed orientation.
+* Edge behavior: if no valid 3x3 iron pattern is found (or placement is not adjacent to the pattern center), the mine head remains small.
+* Core behavior: large mine heads are represented by one controller block plus invisible part blocks that reserve all occupied positions.
+* Core behavior: formation consumes/replaces the iron pattern blocks and converts the originally placed mine head position into part occupancy when needed.
+* Core behavior: if multiple candidate iron patterns are simultaneously valid around the placed mine head, formation is rejected to avoid ambiguous orientation.
+* Core behavior: breaking any block in a large mine head immediately reconstructs the whole structure into its prerequisite layout
+  (3x3 iron base + small mine head tip).
+* Edge behavior: the first break on a large mine head only performs reconstruction; it does not also break any reconstructed block.
+* Edge behavior: after reconstruction, subsequent breaks behave as normal block breaks on the resulting iron blocks and small mine head.
+* System interaction: part blocks continue to proxy interaction/destruction to the controller, and mine head multiblock occupancy remains compatible with
+  contraption assembly/movement rules.
+* Gameplay outcome: mine head size affects mining footprint (small = no radius bonus, large = +1 radius), so pattern-based formation directly impacts miner range.
+* Data and assets: formation logic is code-defined (not datapack-driven); large-head visuals and culling behavior remain model/renderer-driven.
+* Maintenance invariant: controller/part occupancy and facing derivation from placement position must stay consistent so assembly, rendering, and drops remain stable.
+* Known limitation: command/worldedit-style direct edits are allowed to partially damage mine head multiblocks; this is an accepted non-gameplay edge case.
 
 ## Miner Resonance Attachments (Contraption Composition and Mining Footprint)
 * Player perspective: resonance attachments are added by placing resonators and resonance buffers on the miner contraption.
