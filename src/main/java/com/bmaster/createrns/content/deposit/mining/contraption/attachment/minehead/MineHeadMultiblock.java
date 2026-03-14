@@ -1,13 +1,16 @@
 package com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead;
 
 import com.bmaster.createrns.RNSBlocks;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.FaceAttachedMinerComponentBlock;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -37,59 +40,73 @@ public class MineHeadMultiblock {
         return positions;
     }
 
-    public static boolean canOccupyPositions(
-            LevelReader level, Set<BlockPos> currentPositions, Set<BlockPos> targetPositions
-    ) {
-        for (var p : targetPositions) {
-            if (currentPositions.contains(p)) continue;
-            if (!canReplaceForUpgrade(level.getBlockState(p))) return false;
+    public static void formMultiblock(Level level, BlockPos tipPos, BlockState tipState) {
+        BlockPos controllerPos = null;
+        Direction direction = null;
+
+        // Resolve a unique formation direction from the placed tip position and nearby iron patterns.
+        for (var candidateDirection : Direction.values()) {
+            var candidateControllerPos = tipPos.relative(candidateDirection.getOpposite());
+            var u = getUDirection(candidateDirection);
+            var v = getVDirection(candidateDirection);
+
+            boolean hasIronPattern = true;
+            for (int du = -1; du <= 1; du++) {
+                for (int dv = -1; dv <= 1; dv++) {
+                    var ironPos = offsetInPlane(candidateControllerPos, u, du, v, dv);
+                    if (level.getBlockState(ironPos).is(Blocks.IRON_BLOCK)) continue;
+                    hasIronPattern = false;
+                    break;
+                }
+                if (!hasIronPattern) break;
+            }
+            if (!hasIronPattern) continue;
+
+            if (controllerPos != null) return;
+            controllerPos = candidateControllerPos;
+            direction = candidateDirection;
         }
-        return true;
+
+        // Abort when no valid pattern exists around the placed mine head.
+        if (controllerPos == null) return;
+
+        // Replace the pattern with the large mine head multiblock and enforce orientation from placement position.
+        var controllerState = FaceAttachedMinerComponentBlock.withConnectedDirection(tipState, direction)
+                .setValue(MineHeadBlock.SIZE, MineHeadSize.LARGE);
+        level.setBlock(controllerPos, controllerState, Block.UPDATE_ALL);
+        placePartBlocksForSize(level, controllerPos, controllerState);
     }
 
-    public static @Nullable BlockPos findControllerPosForUpgrade(
-            LevelReader level, BlockPos controllerPos, BlockState controllerState, MineHeadSize targetSize
+    public static void breakMultiblock(
+            Level level, BlockPos controllerPos, BlockState controllerState, BlockPos brokenPos
     ) {
+        if (!controllerState.is(RNSBlocks.MINE_HEAD.get())) return;
+        var mineHeadSize = controllerState.getValue(MineHeadBlock.SIZE);
+        if (mineHeadSize == MineHeadSize.SMALL) return;
+
         var direction = MineHeadBlock.getConnectedDirection(controllerState);
-        var currentPositions = getOccupiedPositions(controllerPos, controllerState);
+        var u = getUDirection(direction);
+        var v = getVDirection(direction);
+        var smallMineHead = FaceAttachedMinerComponentBlock.withConnectedDirection(
+                RNSBlocks.MINE_HEAD.getDefaultState(), direction);
+        var tipPos = controllerPos.relative(direction);
+        Set<BlockPos> basePositions = new HashSet<>();
 
-        var preferredTargets = getOccupiedPositions(controllerPos, direction, targetSize);
-        if (canOccupyPositions(level, currentPositions, preferredTargets)) return controllerPos;
+        // Gather base positions
+        switch (mineHeadSize) {
+            case LARGE -> {
+                addSquareLayer(basePositions, controllerPos, u, v);
+                if (!brokenPos.equals(tipPos) && !basePositions.contains(brokenPos)) return;
 
-        var fallbackControllerPos = controllerPos.relative(direction.getOpposite());
-        var fallbackTargets = getOccupiedPositions(fallbackControllerPos, direction, targetSize);
-        if (canOccupyPositions(level, currentPositions, fallbackTargets)) return fallbackControllerPos;
-
-        return null;
-    }
-
-    public static boolean tryUpgrade(Level level, BlockPos controllerPos, BlockState controllerState) {
-        var currentSize = controllerState.getValue(MineHeadBlock.SIZE);
-        if (!currentSize.canGrow()) return false;
-        return tryUpgrade(level, controllerPos, controllerState, currentSize.getNext());
-    }
-
-    protected static boolean tryUpgrade(
-            Level level, BlockPos controllerPos, BlockState controllerState, MineHeadSize targetSize
-    ) {
-        var upgradedControllerPos = findControllerPosForUpgrade(level, controllerPos, controllerState, targetSize);
-        if (upgradedControllerPos == null) return false;
-
-        var upgradedState = controllerState.setValue(MineHeadBlock.SIZE, targetSize);
-        if (upgradedControllerPos.equals(controllerPos)) {
-            level.setBlock(controllerPos, upgradedState, Block.UPDATE_ALL);
-            placePartBlocksForSize(level, controllerPos, upgradedState);
-            return true;
+            }
+            default -> throw new NotImplementedException(mineHeadSize.name() + " Mine Head size is not implemented");
         }
 
-        level.setBlock(controllerPos, RNSBlocks.MINE_HEAD_PART.getDefaultState(), Block.UPDATE_ALL);
-        level.setBlock(upgradedControllerPos, upgradedState, Block.UPDATE_ALL);
-        placePartBlocksForSize(level, upgradedControllerPos, upgradedState);
-        return true;
-    }
-
-    protected static boolean canReplaceForUpgrade(BlockState state) {
-        return state.isAir() || state.canBeReplaced();
+        // First restore the tip to avoid retriggering multiblock formation. Then restore the base.
+        level.setBlock(tipPos, smallMineHead, Block.UPDATE_ALL);
+        for (var basePos : basePositions) {
+            level.setBlock(basePos, Blocks.IRON_BLOCK.defaultBlockState(), Block.UPDATE_ALL);
+        }
     }
 
     public static @Nullable BlockPos findOwnerController(LevelReader level, BlockPos occupiedPos) {
@@ -179,5 +196,4 @@ public class MineHeadMultiblock {
                 .setValue(MineHeadPartBlock.FACING, direction)
                 .setValue(MineHeadPartBlock.POSITION, position);
     }
-
 }

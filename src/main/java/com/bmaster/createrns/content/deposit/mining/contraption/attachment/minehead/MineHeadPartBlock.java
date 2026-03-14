@@ -1,24 +1,21 @@
 package com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead;
 
+import com.bmaster.createrns.RNSBlocks;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -104,21 +101,6 @@ public class MineHeadPartBlock extends Block {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(
-            ItemStack stack, BlockState state, Level level, BlockPos pos,
-            Player player, InteractionHand hand, BlockHitResult hitResult
-    ) {
-        var ownerPos = MineHeadMultiblock.findOwnerController(level, pos);
-        if (ownerPos == null) return ItemInteractionResult.FAIL;
-
-        var ownerState = level.getBlockState(ownerPos);
-        if (!(ownerState.getBlock() instanceof MineHeadBlock owner)) return ItemInteractionResult.FAIL;
-
-        var ownerHit = new BlockHitResult(hitResult.getLocation(), hitResult.getDirection(), ownerPos, hitResult.isInside());
-        return owner.useItemOn(stack, ownerState, level, ownerPos, player, hand, ownerHit);
-    }
-
-    @Override
     protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
         if (level.isClientSide || state.is(oldState.getBlock())) return;
@@ -143,10 +125,15 @@ public class MineHeadPartBlock extends Block {
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!level.isClientSide && !movedByPiston && !state.is(newState.getBlock())) {
+        if (!level.isClientSide && !movedByPiston && !state.is(newState.getBlock()) &&
+                !newState.is(Blocks.IRON_BLOCK) && !newState.is(RNSBlocks.MINE_HEAD.get())) {
             var ownerPos = MineHeadMultiblock.findOwnerController(level, pos);
             if (ownerPos != null) {
-                level.destroyBlock(ownerPos, true);
+                var ownerState = level.getBlockState(ownerPos);
+                if (ownerState.getValue(MineHeadBlock.SIZE) != MineHeadSize.SMALL) {
+                    // Trigger multiblock removal
+                    MineHeadMultiblock.breakMultiblock(level, ownerPos, ownerState, pos);
+                }
             }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
