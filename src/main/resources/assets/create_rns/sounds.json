@@ -38,8 +38,8 @@
     "replace": false,
     "sounds": [
       {
-        "name": "minecraft:entity.item_frame.rotate_item",
-        "type": "event",
+        "name": "minecraft:entity/itemframe/rotate_item1",
+        "type": "file",
         "volume": 0.4,
         "pitch": 2.0
       }
