@@ -89,6 +89,6 @@ jobs:
         run: |
           set -euo pipefail
           gh release create "${{ steps.version.outputs.tag }}" \
-            --title "Create: Rock & Stone ${{ steps.version.outputs.new_version }}" \
+            --title "Create: Rock & Stone v${{ steps.version.outputs.new_version }}" \
             --generate-notes \
             "${{ steps.artifact.outputs.path }}"

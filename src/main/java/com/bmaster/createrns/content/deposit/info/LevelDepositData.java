@@ -57,6 +57,13 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
         return result;
     }
 
+    public void forgetFoundDeposits() {
+        for (var d : foundDeposits) {
+            CreateRNS.LOGGER.debug("Forgot {} at {}", d.getKey().location(), d.getLocationStr());
+        }
+        foundDeposits.clear();
+    }
+
     @Override
     public @UnknownNullability CompoundTag serializeNBT(HolderLookup.Provider provider) {
         var root = new CompoundTag();

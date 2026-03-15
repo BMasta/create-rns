@@ -1,5 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.contraption;
 
+import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSSoundEvents;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.bmaster.createrns.content.deposit.mining.MinerEffectsGenerator;
@@ -151,9 +152,15 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
             wasAssembled = false;
             return false;
         } else if ((!level.isClientSide || !wasAssembled) && bearing.isRunning() && ce != null) {
-            equipment = MinerEquipmentManager.from((BearingContraption) ce.getContraption());
-            wasAssembled = true;
-            return true;
+            try {
+                equipment = MinerEquipmentManager.from((BearingContraption) ce.getContraption());
+                wasAssembled = true;
+                return true;
+            } catch (IllegalStateException e) {
+                CreateRNS.LOGGER.error("Failed to initialize miner equipment for miner at {},{},{}",
+                        getPos().getX(), getPos().getY(), getPos().getZ());
+                return false;
+            }
         }
         return equipment != null;
     }

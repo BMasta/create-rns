@@ -140,7 +140,9 @@ public class ScannerCommand {
             .then(Commands.argument("target_position", BlockPosArgument.blockPos())
                     .executes(execIsFound())
                     .then(Commands.argument("new_value", BoolArgumentType.bool())
-                            .executes(execMarkFound())));
+                            .executes(execMarkFound(false))))
+            .then(Commands.literal("forget_all")
+                    .executes(execMarkFound(true)));
 
     public static final LiteralArgumentBuilder<CommandSourceStack> CMD = Commands.literal("scanner")
 
@@ -194,6 +196,9 @@ public class ScannerCommand {
 
     public static final Function<Integer, Component> S_AVG_DIST = (n) ->
             CreateRNS.translatable(CMD_S + ".avg_dist", Component.literal(n + "").withStyle(ChatFormatting.GOLD));
+
+    public static final Supplier<Component> S_FORGOT_FOUND = () ->
+            CreateRNS.translatable(CMD_S + ".forgot_all_found");
 
     private static final int SEARCH_RADIUS_CHUNKS = 600; // 9600 blocks
 
@@ -281,10 +286,16 @@ public class ScannerCommand {
         };
     }
 
-    private static Command<CommandSourceStack> execMarkFound() {
+    private static Command<CommandSourceStack> execMarkFound(boolean forgetAll) {
         return ctx -> {
             var src = ctx.getSource();
             var sl = src.getLevel();
+            if (forgetAll) {
+                sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get()).forgetFoundDeposits();
+                src.sendSuccess(S_FORGOT_FOUND, true);
+                return SINGLE_SUCCESS;
+            }
+
             var depKey = getDepositResourceKeyFromArg(ctx, "structure");
             var pos = BlockPosArgument.getLoadedBlockPos(ctx, "target_position");
             var dep = DepositLocation.getNearest(sl, depKey, pos, true, 1);

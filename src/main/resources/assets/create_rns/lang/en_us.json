@@ -110,6 +110,7 @@
   "create_rns.command.scanner.success.avg_dist": "Average distance: %1$s blocks",
   "create_rns.command.scanner.success.target_state": "%1$s at %2$s is %3$s",
   "create_rns.command.scanner.success.marked_state": "Marked %1$s at %2$s as %3$s",
+  "create_rns.command.scanner.success.forgot_all_found": "Forgot all found deposits!",
   "create_rns.command.scanner.state.found": "found",
   "create_rns.command.scanner.state.not_found": "not found",
   "create_rns.command.scanner.state.scannable": "now scannable",
