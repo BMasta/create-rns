@@ -33,7 +33,6 @@ public class MineHeadRenderer extends SmartBlockEntityRenderer<MineHeadBlockEnti
                 .uncenter()
                 .translate(direction.getStepX() * offset, direction.getStepY() * offset, direction.getStepZ() * offset)
                 .light(light)
-                .useLevelLight(be.getLevel())
                 .renderInto(ms, buf.getBuffer(RenderType.solid()));
     }
 }
