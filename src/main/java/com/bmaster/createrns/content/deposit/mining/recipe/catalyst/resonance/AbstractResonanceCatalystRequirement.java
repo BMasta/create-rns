@@ -19,7 +19,6 @@ public abstract class AbstractResonanceCatalystRequirement extends CatalystRequi
             Function<Integer, T> factory) {
         return RecordCodecBuilder.create(i -> i.group(
                         Codec.intRange(0, Integer.MAX_VALUE).fieldOf("min_resonators")
-                                .orElse(Integer.MAX_VALUE)
                                 .forGetter(c -> c.minResonators))
                 .apply(i, factory));
     }
