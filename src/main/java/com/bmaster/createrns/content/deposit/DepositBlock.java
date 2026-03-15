@@ -5,6 +5,7 @@ import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.mining.MiningBehaviour;
+import com.bmaster.createrns.infrastructure.ServerConfig;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -13,6 +14,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.PushReaction;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayDeque;
@@ -81,6 +84,12 @@ public class DepositBlock extends Block {
 
     public DepositBlock(Properties pProperties) {
         super(pProperties);
+    }
+
+
+    @Override
+    public @Nullable PushReaction getPistonPushReaction(BlockState state) {
+        return ServerConfig.MOVABLE_DEPOSITS.get() ? PushReaction.NORMAL : PushReaction.BLOCK;
     }
 
     @Override
