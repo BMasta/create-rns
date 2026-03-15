@@ -3,17 +3,27 @@
 This document covers what parts of Create: Rock & Stone are datapack-driven and can be overridden or extended.
 
 ## What You Can Override
-
-| Feature                                                      | Notes                                                                                                                                                                                                                                                                                                                                                   |
-|--------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Mining recipes (`create_rns:mining`)                         | Controls what you get when mining a deposit, how many resources it has on average (with finite deposits turned on), what happens when it gets depleted, and how the recipe is rendered in JEI.                                                                                                                                                          |
-| Catalyst definitions (custom registry `create_rns:catalyst`) | Defines catalyst requirement sets referenced by mining yields.                                                                                                                                                                                                                                                                                          |
-| Deposit world generation                                     | Allows adding new deposit structures, modifying existing ones, mapping a deposit scanner icon and name to a structure, controlling the frequency of spawns and spread of deposit structures, which biomes they appear in, and which structures are tagged as deposits.                                                                                  |
+* Mining recipes (mining rewards, resource uses for finite deposits, what to replace with when depleted, how recipe is displayed in JEI).
+* Catalysts (custom requirements for mining certain kinds of items from a deposit).
+* Deposit world generation (spawn rate, structure nbt, deposit scanner icon)
 
 ## Default Configuration
 
 - Non-worldgen files are located in `src/main/resources`.
 - Worldgen files come from built-in (in-memory) datapacks that don't have any associated files, but a dump of what they would contribute can be found in `src/generated/builtin_packs`.
+
+## Custom Deposit Spawn Rate
+Deposit spawn rate is influenced by these parameters:
+* Spacing (configured in structure set) - the average distance in chunks between two structures.
+* Separation (configured in structure set) - the minimum distance in chunks between two structures.
+* Frequency (configured in structure set) - the probability to spawn a structure if other requirements are met.
+* Biomes (configured in a structure or by modifying the `#create_rns:has_deposit` biome tag) - some biomes may be excluded, which will result in less frequent spawns.
+
+See https://minecraft.fandom.com/wiki/Custom_structure for more details.
+
+Easiest solution that works in most cases - copy the default structure set from
+`src/generated/builtin_packs/create_rns_dynamic_data/data/create_rns/worldgen/structure_set/deposits.json`
+and tweak the separation and spacing.
 
 ## Mining Recipe
 
