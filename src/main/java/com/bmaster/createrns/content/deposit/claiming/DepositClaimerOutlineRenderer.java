@@ -18,7 +18,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class DepositClaimerOutlineRenderer {
     private static final String OUTLINER_SLOT = "%s:miningAreaOutline".formatted(CreateRNS.ID);
-    private static final int MAX_TTL = 30;
+    private static final int MAX_TTL = 120;
     private static final int OUTLINE_MAX_DIST = 64;
 
     private static boolean outlineActive = false;
@@ -108,8 +108,9 @@ public class DepositClaimerOutlineRenderer {
         var l = p.level();
 
         if (!(mc.hitResult instanceof BlockHitResult ray) ||
-                !(l.getBlockState(ray.getBlockPos()).getBlock() instanceof IDepositClaimerOutlineTarget target) ||
-                !holdingCorrectItem(p)) return;
+                !(l.getBlockState(ray.getBlockPos()).getBlock() instanceof IDepositClaimerOutlineTarget target)) {
+            return;
+        }
 
         ttl = MAX_TTL;
         outlineActive = true;
