@@ -33,7 +33,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.neoforge.common.Tags;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -209,7 +208,6 @@ public class RNSBlocks {
                 .properties(p -> p
                         .mapColor(mapColor)
                         .strength(50.0F, 1200f)
-                        .pushReaction(PushReaction.BLOCK)
                         .noLootTable())
                 .transform(pickaxeOnly())
                 .tag(BlockTags.NEEDS_DIAMOND_TOOL)

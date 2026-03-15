@@ -34,6 +34,12 @@ public class ServerConfig {
     public static final ModConfigSpec.BooleanValue INFINITE_DEPOSITS = BUILDER
             .define("infiniteDeposits", true);
 
+    public static final ModConfigSpec.BooleanValue MOVABLE_DEPOSITS = BUILDER
+            .comment("""
+                     Whether deposits can be attached to a contraption or moved by a piston.\
+                    """)
+            .define("movableDeposits", false);
+
     public static final ModConfigSpec.IntValue MAX_SCAN_DISTANCE = BUILDER
             .comment("""
                      Maximum scanning distance of the Deposit Scanner in chunks.\
