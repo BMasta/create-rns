@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'Version bump type'
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - custom
+      custom_version:
+        description: 'Exact mod_version value to use when bump_type is custom'
+        required: false
+        type: string
+      tag_prefix:
+        description: 'Tag prefix'
+        required: true
+        default: v
+        type: string
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Configure git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Resolve release version
+        id: version
+        env:
+          BUMP_TYPE: ${{ inputs.bump_type }}
+          CUSTOM_VERSION: ${{ inputs.custom_version }}
+          TAG_PREFIX: ${{ inputs.tag_prefix }}
+        run: bash .github/scripts/resolve-release-version.sh
+
+      - name: Bump mod_version
+        run: |
+          set -euo pipefail
+          sed -i "s/^mod_version=.*/mod_version=${{ steps.version.outputs.new_version }}/" gradle.properties
+
+      - name: Build release jar
+        run: |
+          set -euo pipefail
+          ./gradlew assemble
+
+      - name: Resolve release artifact path
+        id: artifact
+        run: |
+          set -euo pipefail
+          artifact_path="build/libs/create_rns-${{ steps.version.outputs.new_version }}.jar"
+          if [[ ! -f "${artifact_path}" ]]; then
+            echo "Expected artifact not found: ${artifact_path}"
+            exit 1
+          fi
+          echo "path=${artifact_path}" >> "${GITHUB_OUTPUT}"
+
+      - name: Commit version bump
+        run: |
+          set -euo pipefail
+          git add gradle.properties
+          git commit -m "chore(release): bump mod version to ${{ steps.version.outputs.new_version }}"
+          git tag "${{ steps.version.outputs.tag }}"
+
+      - name: Push commit and tag
+        run: |
+          set -euo pipefail
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+          git push origin "${{ steps.version.outputs.tag }}"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create "${{ steps.version.outputs.tag }}" \
+            --title "Create: Rock & Stone ${{ steps.version.outputs.new_version }}" \
+            --generate-notes \
+            "${{ steps.artifact.outputs.path }}"
