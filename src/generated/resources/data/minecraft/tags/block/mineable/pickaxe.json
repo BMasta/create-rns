@@ -1,11 +1,17 @@
 {
   "values": [
-    "create_rns:miner_mk1",
-    "create_rns:miner_mk2",
+    "create_rns:miner_bearing",
+    "create_rns:mine_head",
+    "create_rns:mine_head_part",
+    "create_rns:resonator",
+    "create_rns:stabilizing_resonator",
+    "create_rns:shattering_resonator",
+    "create_rns:resonance_buffer",
     "create_rns:iron_deposit_block",
     "create_rns:copper_deposit_block",
     "create_rns:zinc_deposit_block",
     "create_rns:gold_deposit_block",
-    "create_rns:redstone_deposit_block"
+    "create_rns:redstone_deposit_block",
+    "create_rns:depleted_deposit_block"
   ]
 }

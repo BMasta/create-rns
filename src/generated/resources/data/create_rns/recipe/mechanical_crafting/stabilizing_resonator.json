@@ -1,0 +1,32 @@
+{
+  "type": "create:mechanical_crafting",
+  "accept_mirrored": true,
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "create_rns:polished_resonant_amethyst"
+    },
+    "B": {
+      "item": "create:brass_sheet"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "R": {
+      "item": "create_rns:resonator"
+    },
+    "S": {
+      "item": "create:sturdy_sheet"
+    }
+  },
+  "pattern": [
+    "DAD",
+    "DAD",
+    "BRB",
+    "SSS"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_rns:stabilizing_resonator"
+  }
+}

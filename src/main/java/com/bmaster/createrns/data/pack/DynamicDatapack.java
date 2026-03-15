@@ -1,12 +1,10 @@
 package com.bmaster.createrns.data.pack;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.data.pack.json.*;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import net.minecraft.core.registries.BuiltInRegistries;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackLocationInfo;
@@ -15,178 +13,175 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.BuiltInPackSource;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
-import net.minecraft.util.Tuple;
-import net.minecraft.world.level.block.Block;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public class DynamicDatapack {
-    public static final Function<String, ResourceLocation> PROCESSOR_RL = name ->
-            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "deposit/%s".formatted(name));
-    public static final Function<String, ResourceLocation> STRUCT_START_RL = name ->
-            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "deposit_%s/start".formatted(name));
-    public static final Function<String, ResourceLocation> STRUCT_RL = name ->
-            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "deposit_%s".formatted(name));
+    public static List<Pack> DATAPACKS = new ArrayList<>();
+    public static List<Pack> RESOURCE_PACKS = new ArrayList<>();
+    private static final List<BuiltDynamicPack> PACK_SNAPSHOTS = new ArrayList<>();
 
-    private static final String PROCESSOR_PATH = "%s/worldgen/processor_list/deposit/%s.json";
-    private static final String STRUCT_START_PATH = "%s/worldgen/template_pool/deposit_%s/start.json";
-    private static final String STRUCT_PATH = "%s/worldgen/structure/deposit_%s.json";
-    private static final String STRUCT_SET_PATH = "%s/worldgen/structure_set/deposits.json";
-    private static final String HAS_DEPOSIT_TAG_PATH = "%s/tags/worldgen/biome/has_deposit.json";
-    private static final String DEPOSIT_STRUCTURE_TAG_PATH = "%s/tags/worldgen/structure/deposits.json";
-
-    private static final String HAS_DEPOSIT_TAG = "#%s:has_deposit";
-    private static final String NOOP_PROCESSOR = "minecraft:empty";
-    private static final String PLACEHOLDER_BLOCK = "minecraft:end_stone";
-
-    private static final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-
-    private static final DynamicDatapackResources depositsResources = new DynamicDatapackResources(new PackLocationInfo(
-            "%s:dynamic_data".formatted(CreateRNS.MOD_ID),
-            Component.literal("Dynamic pack"),
-            PackSource.BUILT_IN,
-            Optional.empty()
-    ));
-    private static final PackSelectionConfig selectionConf = new PackSelectionConfig(
-            true, Pack.Position.BOTTOM, false);
-
-    private static final Set<Tuple<ResourceLocation, Integer>> bulkNBTPool = Set.of(
-            new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium"), 70),
-            new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_large"), 30)
-    );
-    private static final Set<Tuple<ResourceLocation, Integer>> preciousNBTPool = Set.of(
-            new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_small"), 70),
-            new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium"), 28),
-            new Tuple<>(ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_large"), 2)
-    );
-
-    private static final ObjectOpenHashSet<Deposit> deposits = new ObjectOpenHashSet<>();
-
-    public static void addDepositBiomeTag() {
-        var path = HAS_DEPOSIT_TAG_PATH.formatted(CreateRNS.MOD_ID);
-        depositsResources.putJson(path, gson.toJsonTree(new HasDepositBiomeTag()));
+    public static DynamicDatapack createDatapack(String id) {
+        return new DynamicDatapack(CreateRNS.asResource(id), PackType.SERVER_DATA);
     }
 
-    public static void addVanillaDeposits() {
-        deposits.add(new Deposit("iron", RNSContent.IRON_DEPOSIT_BLOCK.get(), bulkNBTPool, 8, 10));
-        deposits.add(new Deposit("copper", RNSContent.COPPER_DEPOSIT_BLOCK.get(), bulkNBTPool, 8, 5));
-        deposits.add(new Deposit("zinc", RNSContent.ZINC_DEPOSIT_BLOCK.get(), preciousNBTPool, 8, 2));
-        deposits.add(new Deposit("gold", RNSContent.GOLD_DEPOSIT_BLOCK.get(), preciousNBTPool, 12, 2));
-        deposits.add(new Deposit("redstone", RNSContent.REDSTONE_DEPOSIT_BLOCK.get(), preciousNBTPool, 12, 2));
+    public static DynamicDatapack createDatapack(ResourceLocation id) {
+        return new DynamicDatapack(id, PackType.SERVER_DATA);
     }
 
-    public static void addDepositSetAndTag() {
-        // Tag all added deposits and add tag to datapack
-        var path = DEPOSIT_STRUCTURE_TAG_PATH.formatted(CreateRNS.MOD_ID);
-        var tag = new DepositStructureTag(deposits.stream()
-                .map(d -> STRUCT_RL.apply(d.name).toString())
-                .toList());
-        depositsResources.putJson(path, gson.toJsonTree(tag));
-
-        // Add all deposits to a structure set and the structure set to datapack
-        new DepositSet(deposits).addToResources();
+    public static DynamicDatapack createResourcePack(String id) {
+        return new DynamicDatapack(CreateRNS.asResource(id), PackType.CLIENT_RESOURCES);
     }
 
-    public static Pack finish() {
-        return Pack.readMetaAndCreate(
-                depositsResources.location(),
-                BuiltInPackSource.fixedResources(depositsResources),
-                PackType.SERVER_DATA,
-                selectionConf
-        );
+    public static DynamicDatapack createResourcePack(ResourceLocation id) {
+        return new DynamicDatapack(id, PackType.CLIENT_RESOURCES);
     }
 
-    public static class DepositSet {
-        public Set<Deposit> deposits;
-        private boolean added = false;
+    public static List<BuiltDynamicPack> getPackSnapshots() {
+        return Collections.unmodifiableList(PACK_SNAPSHOTS);
+    }
 
-        public DepositSet(Set<Deposit> deposits) {
-            this.deposits = deposits;
-        }
+    public static void dumpRegisteredPacks(Path root) throws IOException {
+        Files.createDirectories(root);
 
-        private void addToResources() {
-            if (added) return;
+        for (var def : PACK_SNAPSHOTS) {
+            Path packDir = root.resolve(def.folderName());
+            Files.createDirectories(packDir);
 
-            List<DepositStructureSet.WeightedStructure> wsList = new ArrayList<>();
-            for (var d : deposits) {
-                d.addToResources();
-                var sRL = STRUCT_RL.apply(d.name);
-                wsList.add(new DepositStructureSet.WeightedStructure(sRL.toString(), d.weight));
+            var metadata = new JsonObject();
+            var metadataPack = new JsonObject();
+            metadataPack.addProperty("description", def.title);
+            metadataPack.addProperty("pack_format", SharedConstants.getCurrentVersion().getPackVersion(def.type));
+            metadata.add("pack", metadataPack);
+            Files.writeString(packDir.resolve("pack.mcmeta"), CreateRNS.GSON.toJson(metadata), StandardCharsets.UTF_8);
+
+            for (var f : def.files) {
+                Path target = packDir.resolve(toPackRootPath(def.type, f.path));
+                var parent = target.getParent();
+                if (parent != null) Files.createDirectories(parent);
+                Files.writeString(target, CreateRNS.GSON.toJson(f.data), StandardCharsets.UTF_8);
             }
-
-            // Create structure set
-            var sSetPath = STRUCT_SET_PATH.formatted(CreateRNS.MOD_ID);
-            depositsResources.putJson(sSetPath, gson.toJsonTree(new DepositStructureSet(wsList)));
-
-            added = true;
         }
     }
 
-    public static class Deposit {
-        public final String name;
-        public final @Nullable Block replacePlaceholderWith;
-        public final Collection<Tuple<ResourceLocation, Integer>> nbts_and_weights;
-        public final int depth;
-        public final int weight;
-
-        private boolean added = false;
-
-        public Deposit(String name, @Nullable Block replacePlaceholderWith,
-                       Collection<Tuple<ResourceLocation, Integer>> nbts_and_weights, int depth, int weight) {
-            this.name = name;
-            this.replacePlaceholderWith = replacePlaceholderWith;
-            this.nbts_and_weights = nbts_and_weights;
-            this.depth = depth;
-            this.weight = weight;
+    private static Path toPackRootPath(PackType type, String path) {
+        int sep = path.indexOf('/');
+        if (sep <= 0 || sep >= path.length() - 1) {
+            throw new IllegalArgumentException(
+                    "Dynamic datapack file path must be in the format 'namespace/path': " + path);
         }
 
-        private void addToResources() {
-            if (added) return;
+        String namespace = path.substring(0, sep);
+        String relativePath = path.substring(sep + 1);
+        String rootFolder = (type == PackType.SERVER_DATA) ? "data" : "assets";
+        return Path.of(rootFolder).resolve(namespace).resolve(relativePath);
+    }
 
-            if (depth < 0) {
-                throw new IllegalArgumentException("Could not create deposit '%s': Depth cannot be negative".formatted(name));
-            }
-            if (weight < 0) {
-                throw new IllegalArgumentException("Could not create deposit '%s': Weight cannot be negative".formatted(name));
-            }
+    private final ResourceLocation id;
+    private final PackType type;
+    private Component title;
 
-            String processor;
+    private Component description = Component.empty();
+    private boolean isRequired = true;
+    private PackSource source = PackSource.BUILT_IN;
+    private Pack.Position pos = Pack.Position.BOTTOM;
+    private final List<DatapackFile> files = new ArrayList<>();
 
-            // Create processor that replaces placeholder blocks with the specified block
-            if (replacePlaceholderWith != null) {
-                ResourceLocation depBlockRL = BuiltInRegistries.BLOCK.getKeyOrNull(replacePlaceholderWith);
-                if (depBlockRL == null) {
-                    throw new IllegalArgumentException("Could not create a processor for deposit '%s': ".formatted(name) +
-                            "provided deposit block does not exist");
-                }
-                var procPath = PROCESSOR_PATH.formatted(CreateRNS.MOD_ID, name);
-                depositsResources.putJson(procPath, gson.toJsonTree(
-                        new ReplaceWithProcessor(PLACEHOLDER_BLOCK, depBlockRL.toString())));
+    public DynamicDatapack title(Component title) {
+        this.title = title;
+        return this;
+    }
 
-                processor = PROCESSOR_RL.apply(name).toString();
-            } else {
-                processor = NOOP_PROCESSOR;
-            }
+    public DynamicDatapack description(Component description) {
+        this.description = description;
+        return this;
+    }
 
-            // Create structure start
-            var sStartPath = STRUCT_START_PATH.formatted(CreateRNS.MOD_ID, name);
-            var elements = nbts_and_weights.stream().map(t ->
-                            new DepositStructureStart.WeightedElement(t.getA().toString(), t.getB(), processor))
-                    .collect(Collectors.toList());
-            depositsResources.putJson(sStartPath, gson.toJsonTree(new DepositStructureStart(elements)));
+    public DynamicDatapack optional() {
+        isRequired = false;
+        return this;
+    }
 
-            // Create structure
-            var sPath = STRUCT_PATH.formatted(CreateRNS.MOD_ID, name);
-            var sStartRl = STRUCT_START_RL.apply(name);
+    public DynamicDatapack source(PackSource source) {
+        this.source = source;
+        return this;
+    }
 
-            String tag = HAS_DEPOSIT_TAG.formatted(CreateRNS.MOD_ID);
-            depositsResources.putJson(sPath, gson.toJsonTree(
-                    new DepositStructure(sStartRl.toString(), -depth, tag)));
+    public DynamicDatapack overwritesLoadedPacks() {
+        pos = Pack.Position.TOP;
+        return this;
+    }
 
-            added = true;
+    public DynamicDatapack addContent(List<DatapackFile> files) {
+        this.files.addAll(files);
+        return this;
+    }
+
+    public DynamicDatapack addContent(DatapackFile file) {
+        this.files.add(file);
+        return this;
+    }
+
+    public Pack build() {
+        var resources = new DynamicDatapackResources(new PackLocationInfo(
+                id.toString(), title, source, Optional.empty()), description);
+
+        for (var file : files) {
+            resources.putJson(file.path, file.data);
+        }
+
+        var pack = Pack.readMetaAndCreate(resources.location(), BuiltInPackSource.fixedResources(resources),
+                type, new PackSelectionConfig(isRequired, pos, false));
+        assert pack != null;
+
+        return pack;
+    }
+
+    public Pack buildAndRegister() {
+        var pack = build();
+        if (type == PackType.SERVER_DATA) DATAPACKS.add(pack);
+        if (type == PackType.CLIENT_RESOURCES) RESOURCE_PACKS.add(pack);
+        return pack;
+    }
+
+    public void registerSnapshots() {
+        PACK_SNAPSHOTS.add(snapshot());
+    }
+
+    private DynamicDatapack(ResourceLocation id, PackType type) {
+        this.id = id;
+        this.type = type;
+        this.title = Component.literal(id.toString());
+    }
+
+    /// Used for dumping datapack contents for inspection
+    private BuiltDynamicPack snapshot() {
+        var copiedFiles = files.stream()
+                .map(f -> new DatapackFile(f.path, f.data.deepCopy()))
+                .toList();
+
+        return new BuiltDynamicPack(id, type, title.getString(), isRequired, pos, copiedFiles);
+    }
+
+    public record DatapackFile(String path, JsonElement data) {}
+
+    /// Used for dumping datapack contents for inspection
+    public record BuiltDynamicPack(
+            ResourceLocation id, PackType type, String title, boolean required,
+            Pack.Position position, List<DatapackFile> files
+    ) {
+        public String folderName() {
+            return id.getNamespace() + "_" + id.getPath().replace('/', '_');
         }
     }
 }

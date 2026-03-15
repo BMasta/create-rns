@@ -1,0 +1,32 @@
+{
+  "type": "create:mechanical_crafting",
+  "accept_mirrored": true,
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "create_rns:polished_resonant_amethyst"
+    },
+    "B": {
+      "item": "create:brass_sheet"
+    },
+    "Q": {
+      "item": "create:polished_rose_quartz"
+    },
+    "R": {
+      "item": "create_rns:resonator"
+    },
+    "S": {
+      "item": "create:sturdy_sheet"
+    }
+  },
+  "pattern": [
+    "QAQ",
+    "QAQ",
+    "BRB",
+    "SSS"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_rns:shattering_resonator"
+  }
+}

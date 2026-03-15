@@ -1,0 +1,7 @@
+{
+  "parent": "create_rns:block/resonator/item",
+  "textures": {
+    "0": "create_rns:block/stabilizing_resonator",
+    "particle": "create_rns:block/stabilizing_resonator"
+  }
+}

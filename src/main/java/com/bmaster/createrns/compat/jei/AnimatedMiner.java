@@ -1,39 +1,77 @@
 package com.bmaster.createrns.compat.jei;
 
-import com.bmaster.createrns.mining.miner.MinerBlock;
-import com.bmaster.createrns.mining.miner.MinerBlockEntity;
+import com.bmaster.createrns.RNSBlocks;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import com.simibubi.create.AllBlocks;
+import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.compat.jei.category.animations.AnimatedKinetics;
-import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.world.level.block.Block;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class AnimatedMiner extends AnimatedKinetics {
-    private final MinerBlock<? extends MinerBlockEntity> miner;
-    private final PartialModel drill;
+    private Block depositBlock;
 
-    public AnimatedMiner(MinerBlock<? extends MinerBlockEntity> minerBlock, PartialModel drill) {
-        this.miner = minerBlock;
-        this.drill = drill;
+    public void draw(GuiGraphics graphics, int xOffset, int yOffset, Block depositBlock) {
+        this.depositBlock = depositBlock;
+        draw(graphics, xOffset, yOffset);
     }
 
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
     @Override
     public void draw(GuiGraphics graphics, int xOffset, int yOffset) {
         PoseStack matrixStack = graphics.pose();
         matrixStack.pushPose();
-        matrixStack.translate(xOffset, yOffset, 0);
-        matrixStack.mulPose(Axis.XP.rotationDegrees(-15.5f));
-        matrixStack.mulPose(Axis.YP.rotationDegrees(22.5f));
-        int scale = 26;
+        matrixStack.translate(xOffset + 0.7, yOffset, 0);
+        matrixStack.mulPose(Axis.XP.rotationDegrees(-22.5f));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(45f));
+        int scale = 16;
+        float angle = getCurrentAngle() * 8;
 
-        blockElement(miner.defaultBlockState())
+        blockElement(AllPartialModels.SHAFT_HALF)
                 .scale(scale)
+                .rotateBlock(-angle, 90, 90)
+                .atLocal(0, -1, 3)
                 .render(graphics);
 
-        blockElement(drill)
-                .rotateBlock(0, getCurrentAngle(), 0)
+        blockElement(RNSBlocks.MINER_BEARING.getDefaultState())
                 .scale(scale)
+                .rotateBlock(-90, 0, 0)
+                .atLocal(0, -1, 3)
                 .render(graphics);
+
+        blockElement(AllPartialModels.BEARING_TOP)
+                .scale(scale)
+                .rotateBlock(0, angle, 180)
+                .atLocal(0, -1, 3)
+                .render(graphics);
+
+        blockElement(AllBlocks.ANDESITE_CASING.getDefaultState())
+                .scale(scale)
+                .rotateBlock(0, angle, 180)
+                .atLocal(0, 0, 3)
+                .render(graphics);
+
+        blockElement(RNSBlocks.MINE_HEAD.getDefaultState())
+                .scale(scale)
+                .rotateBlock(0, angle, 180)
+                .atLocal(0, 1, 3)
+                .render(graphics);
+
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j) {
+                blockElement(depositBlock.defaultBlockState())
+                        .scale(scale)
+                        .atLocal(i - 1, 2, j + 2)
+                        .render(graphics);
+            }
+        }
 
         matrixStack.popPose();
     }

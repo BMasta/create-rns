@@ -1,42 +1,45 @@
 package com.bmaster.createrns.infrastructure;
 
-import com.bmaster.createrns.CreateRNS;
-import net.minecraft.SharedConstants;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.config.ModConfigEvent;
+import com.bmaster.createrns.content.deposit.scanning.DepositScannerServerHandler;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-@EventBusSubscriber(modid = CreateRNS.MOD_ID)
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class ServerConfig {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
-    // ------------------------------------------------ Config values ----------------------------------------------- //
+    public static final ModConfigSpec.IntValue MINING_SPEED = BUILDER
+            .comment("""
+                     How many mining operations a miner with no attachments can complete in one hour
+                     at 256 RPM, with one deposit block claimed, and no deposit multipliers.\
+                    """)
+            .defineInRange("miningSpeed", 45, 0, Integer.MAX_VALUE);
 
-    private static final ModConfigSpec.DoubleValue MINER_MK1_SPEED_CV = BUILDER
-            .comment(" How many mining operations a miner mk1 can complete in one hour\n" +
-                    " at 256 RPM, with one deposit block claimed, and no deposit multipliers.")
-            .defineInRange("minerMk1Speed", 45.0, 0.0, Short.MAX_VALUE);
+    public static final ModConfigSpec.IntValue MINING_RADIUS = BUILDER
+            .comment("""
+                     Radius in which a miner can claim deposit blocks for mining. Radius of 2 results
+                     in a 5x5 square mining area with the Mine Head in the middle.\
+                    """)
+            .defineInRange("miningRadius", 2, 0, Integer.MAX_VALUE);
 
-    private static final ModConfigSpec.DoubleValue MINER_MK2_SPEED_CV = BUILDER
-            .comment(" How many mining operations a miner mk2 can complete in one hour\n" +
-                    " at 256 RPM, with one deposit block claimed, and no deposit multipliers.")
-            .defineInRange("minerMk2Speed", 45.0, 0.0, Short.MAX_VALUE);
+    public static final ModConfigSpec.IntValue MINING_DEPTH = BUILDER
+            .comment("""
+                     How many blocks deep can a miner claim deposit blocks.\
+                    """)
+            .defineInRange("miningDepth", 10, 0, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.BooleanValue INFINITE_DEPOSITS = BUILDER
+            .define("infiniteDeposits", true);
+
+    public static final ModConfigSpec.IntValue MAX_SCAN_DISTANCE = BUILDER
+            .comment("""
+                     Maximum scanning distance of the Deposit Scanner in chunks.\
+                    """)
+            .defineInRange("maxScanDistance", DepositScannerServerHandler.DEFAULT_SEARCH_RADIUS_CHUNKS,
+                    0, Integer.MAX_VALUE);
 
     public static final ModConfigSpec SPEC = BUILDER.build();
-
-    // ------------------------------------------------ Baked values ------------------------------------------------ //
-    public static int minerMk1BaseProgress;
-    public static int minerMk2BaseProgress;
-
-    // -------------------------------------------------------------------------------------------------------------- //
-    @SubscribeEvent
-    static void onLoadReload(ModConfigEvent event) {
-        if (event instanceof ModConfigEvent.Unloading) return;
-        if (event.getConfig().getSpec() != ServerConfig.SPEC) return;
-
-        var ticksPerHour = 60 * SharedConstants.TICKS_PER_MINUTE;
-        minerMk1BaseProgress = 256 * ticksPerHour / (int) MINER_MK1_SPEED_CV.get().floatValue();
-        minerMk2BaseProgress = 256 * ticksPerHour / (int) MINER_MK2_SPEED_CV.get().floatValue();
-    }
 }
