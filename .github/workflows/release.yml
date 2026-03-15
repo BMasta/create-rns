@@ -17,11 +17,6 @@ on:
         description: 'Exact mod_version value to use when bump_type is custom'
         required: false
         type: string
-      tag_prefix:
-        description: 'Tag prefix'
-        required: true
-        default: v
-        type: string
 
 jobs:
   release:
@@ -52,7 +47,6 @@ jobs:
         env:
           BUMP_TYPE: ${{ inputs.bump_type }}
           CUSTOM_VERSION: ${{ inputs.custom_version }}
-          TAG_PREFIX: ${{ inputs.tag_prefix }}
         run: bash .github/scripts/resolve-release-version.sh
 
       - name: Bump mod_version
@@ -63,7 +57,7 @@ jobs:
       - name: Build release jar
         run: |
           set -euo pipefail
-          ./gradlew assemble
+          bash ./gradlew assemble
 
       - name: Resolve release artifact path
         id: artifact

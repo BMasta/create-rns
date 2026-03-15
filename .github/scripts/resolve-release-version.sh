@@ -74,7 +74,7 @@ if [[ "${new_version}" == "${current_version}" ]]; then
   exit 1
 fi
 
-tag="${TAG_PREFIX}${new_version}"
+tag="v${new_version}"
 if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
   echo "Tag '${tag}' already exists in local history."
   exit 1
@@ -83,6 +83,11 @@ if git ls-remote --exit-code --tags origin "refs/tags/${tag}" >/dev/null 2>&1; t
   echo "Tag '${tag}' already exists on origin."
   exit 1
 fi
+
+echo "Resolved release version info:"
+echo "  current_version=${current_version}"
+echo "  new_version=${new_version}"
+echo "  tag=${tag}"
 
 echo "current_version=${current_version}" >> "${GITHUB_OUTPUT}"
 echo "new_version=${new_version}" >> "${GITHUB_OUTPUT}"
