@@ -54,6 +54,13 @@ public class DepositIndex implements IDepositIndex {
         return result;
     }
 
+    public void forgetFoundDeposits() {
+        for (var d : foundDeposits) {
+            CreateRNS.LOGGER.debug("Forgot {} at {}", d.getKey().location(), d.getLocationStr());
+        }
+        foundDeposits.clear();
+    }
+
     @Override
     public CompoundTag serializeNBT() {
         var root = new CompoundTag();
