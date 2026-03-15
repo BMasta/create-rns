@@ -108,4 +108,6 @@ For each meaningful feature, document the following at a high level:
 Avoid writing low-level implementation details that are likely to churn quickly.
 Favor stable intent and invariants so future contributors understand what must be preserved.
 
-Documentation updates that apply to the project in general must go to the "Architecture And Design" section in this file. Feature-specific updates must go to `docs/IMPLEMENTATION.md`.
+* Documentation updates that apply to the project in general must go to the "Architecture And Design" section in this file.
+* Feature-specific updates must go to `docs/implementation.md`.
+* If any fields that can be overridden via datapacks change, the documentation in `docs/datapack.md` should be updated.
