@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.info;
 
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSMisc;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -43,7 +43,7 @@ public interface IDepositIndex {
     void useDepositBlock(BlockPos dbPos, BlockState replacementBlock);
 
     static @Nullable DepositIndex fromLevel(ServerLevel level) {
-        var cap = level.getCapability(RNSContent.DEPOSIT_INDEX).resolve().orElse(null);
+        var cap = level.getCapability(RNSMisc.DEPOSIT_INDEX).resolve().orElse(null);
         if (!(cap instanceof DepositIndex depIdx)) return null;
         depIdx.setLevel(level);
         return depIdx;

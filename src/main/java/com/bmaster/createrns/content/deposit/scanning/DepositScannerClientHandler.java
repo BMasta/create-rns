@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.scanning;
 
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSItems;
 import com.bmaster.createrns.RNSSoundEvents;
 import com.bmaster.createrns.content.deposit.info.DepositSpecLookup;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerServerHandler.RequestType;
@@ -76,9 +76,9 @@ public class DepositScannerClientHandler {
 
         // Make sure we are holding the scanner
         ItemStack heldItem = p.getMainHandItem();
-        if (!RNSContent.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
+        if (!RNSItems.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
             heldItem = p.getOffhandItem();
-            if (!RNSContent.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
+            if (!RNSItems.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
                 DepositScannerItemRenderer.resetWheel();
                 return;
             }

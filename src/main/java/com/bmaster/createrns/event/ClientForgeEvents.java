@@ -1,7 +1,7 @@
 package com.bmaster.createrns.event;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSItems;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler;
 import net.minecraft.client.Minecraft;
@@ -32,8 +32,8 @@ public class ClientForgeEvents {
             var scrollDelta = e.getScrollDelta();
 
             // Scanner - sneaking
-            if (p.level().isClientSide() && p.isShiftKeyDown() && (mainItem.is(RNSContent.DEPOSIT_SCANNER_ITEM.get()) ||
-                    offItem.is(RNSContent.DEPOSIT_SCANNER_ITEM.get()))) {
+            if (p.level().isClientSide() && p.isShiftKeyDown() && (mainItem.is(RNSItems.DEPOSIT_SCANNER_ITEM.get()) ||
+                    offItem.is(RNSItems.DEPOSIT_SCANNER_ITEM.get()))) {
                 if (scrollDelta > 0) {
                     DepositScannerClientHandler.scrollUp();
                 } else if (scrollDelta < 0) {

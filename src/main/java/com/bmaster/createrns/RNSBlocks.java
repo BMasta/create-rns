@@ -1,0 +1,283 @@
+package com.bmaster.createrns;
+
+import com.bmaster.createrns.content.deposit.DepositBlock;
+import com.bmaster.createrns.content.deposit.mining.block.MinerBlock;
+import com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlock;
+import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.MiningEquipmentMovementBehaviour;
+import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.drillhead.DrillHeadBlock;
+import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator.ResonatorBlock;
+import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator.ResonatorMovementBehaviour;
+import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator.ShatteringResonatorBlock;
+import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.resonator.StabilizingResonatorBlock;
+import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
+import com.bmaster.createrns.data.gen.depositworldgen.DepositStructureConfigBuilder;
+import com.simibubi.create.AllBlocks;
+import com.simibubi.create.AllItems;
+import com.simibubi.create.AllTags;
+import com.simibubi.create.api.stress.BlockStressValues;
+import com.simibubi.create.content.contraptions.bearing.StabilizedBearingMovementBehaviour;
+import com.simibubi.create.foundation.data.AssetLookup;
+import com.simibubi.create.foundation.data.SharedProperties;
+import com.tterrag.registrate.builders.BlockBuilder;
+import com.tterrag.registrate.providers.RegistrateRecipeProvider;
+import com.tterrag.registrate.util.entry.BlockEntry;
+import com.tterrag.registrate.util.nullness.NonNullFunction;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
+import net.minecraftforge.common.Tags;
+import net.minecraftforge.registries.ForgeRegistries;
+
+import static com.simibubi.create.api.behaviour.movement.MovementBehaviour.movementBehaviour;
+import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
+import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
+
+public class RNSBlocks {
+    public static final ResourceLocation DEP_SMALL =
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_small");
+    public static final ResourceLocation DEP_MEDIUM =
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_medium");
+    public static final ResourceLocation DEP_LARGE =
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.MOD_ID, "ore_deposit_large");
+
+    public static final BlockEntry<MinerBlock> MINER_MK1_BLOCK = CreateRNS.REGISTRATE.block("miner_mk1",
+                    MinerBlock::new)
+            .transform(minerBlock())
+            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
+            .item()
+            .model(AssetLookup::customItemModel)
+            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
+                    .define('F', AllBlocks.ANDESITE_FUNNEL)
+                    .define('C', AllBlocks.COGWHEEL)
+                    .define('D', AllBlocks.MECHANICAL_DRILL)
+                    .pattern("F")
+                    .pattern("C")
+                    .pattern("D")
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllBlocks.MECHANICAL_DRILL))
+                    .save(p))
+            .build()
+            .register();
+
+    public static final BlockEntry<MinerBlock> MINER_MK2_BLOCK = CreateRNS.REGISTRATE.block("miner_mk2",
+                    MinerBlock::new)
+            .transform(minerBlock())
+            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 2))
+            .item()
+            .model(AssetLookup::customItemModel)
+            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
+                    .define('F', AllBlocks.BRASS_FUNNEL)
+                    .define('R', AllItems.PRECISION_MECHANISM)
+                    .define('A', Items.AMETHYST_SHARD)
+                    .define('M', MINER_MK1_BLOCK)
+                    .pattern(" F ")
+                    .pattern("ARA")
+                    .pattern(" M ")
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.PRECISION_MECHANISM))
+                    .save(p))
+            .build()
+            .register();
+
+    public static final BlockEntry<MinerBearingBlock> MINER_BEARING_BLOCK = CreateRNS.REGISTRATE.block(
+                    "miner_bearing", MinerBearingBlock::new)
+            .initialProperties(SharedProperties::stone)
+            .properties(p -> p
+                    .mapColor(MapColor.PODZOL)
+                    .noOcclusion())
+            .transform(axeOrPickaxe())
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .onRegister((b) -> BlockStressValues.IMPACTS.register(b, () -> 32))
+            .onRegister(movementBehaviour(new StabilizedBearingMovementBehaviour()))
+            .blockstate((c, p) ->
+                    p.directionalBlock(c.get(), AssetLookup.partialBaseModel(c, p)))
+            .item()
+            .model(AssetLookup::customItemModel)
+            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
+                    .define('W', ItemTags.WOODEN_SLABS)
+                    .define('S', Tags.Items.STONE)
+                    .define('A', Items.AMETHYST_SHARD)
+                    .define('F', AllBlocks.SHAFT)
+                    .pattern(" W ")
+                    .pattern("ASA")
+                    .pattern(" F ")
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.ANDESITE_ALLOY))
+                    .save(p))
+            .build()
+            .register();
+
+    public static final BlockEntry<DrillHeadBlock> DRILL_HEAD_BLOCK = CreateRNS.REGISTRATE.block(
+                    "drill_head", DrillHeadBlock::new)
+            .initialProperties(() -> Blocks.IRON_BLOCK)
+            .properties(p -> p
+                    .mapColor(MapColor.COLOR_GRAY)
+                    .noOcclusion())
+            .transform(pickaxeOnly())
+            .blockstate((c, p) ->
+                    p.horizontalFaceBlock(c.get(), AssetLookup.standardModel(c, p)))
+            .onRegister(movementBehaviour(new MiningEquipmentMovementBehaviour()))
+            .simpleItem()
+            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
+                    .define('I', Items.IRON_INGOT)
+                    .define('A', AllItems.ANDESITE_ALLOY)
+                    .pattern("III")
+                    .pattern("AIA")
+                    .pattern("AAA")
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.ANDESITE_ALLOY))
+                    .save(p))
+            .register();
+
+    public static final BlockEntry<ResonatorBlock> RESONATOR_BLOCK = CreateRNS.REGISTRATE.block(
+                    "resonator", ResonatorBlock::new)
+            .transform(resonatorBlock(MapColor.COLOR_PURPLE))
+            .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
+                    .define('A', Items.AMETHYST_SHARD)
+                    .define('R', AllItems.PRECISION_MECHANISM)
+                    .define('C', AllBlocks.BRASS_CASING)
+                    .pattern("A")
+                    .pattern("R")
+                    .pattern("C")
+                    .unlockedBy("has_item", RegistrateRecipeProvider.has(AllItems.PRECISION_MECHANISM))
+                    .save(p))
+            .register();
+
+    public static final BlockEntry<StabilizingResonatorBlock> STABILIZING_RESONATOR_BLOCK = CreateRNS.REGISTRATE.block(
+                    "stabilizing_resonator", StabilizingResonatorBlock::new)
+            .transform(resonatorBlock(MapColor.COLOR_CYAN))
+            .register();
+
+    public static final BlockEntry<ShatteringResonatorBlock> SHATTERING_RESONATOR_BLOCK = CreateRNS.REGISTRATE.block(
+                    "shattering_resonator", ShatteringResonatorBlock::new)
+            .transform(resonatorBlock(MapColor.COLOR_RED))
+            .register();
+
+    public static final BlockEntry<DepositBlock> IRON_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
+                    "iron_deposit_block", DepositBlock::new)
+            .transform(depositBlock(MapColor.RAW_IRON))
+            .onRegister(d -> DepositStructureConfigBuilder
+                    .create("iron")
+                    .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
+                    .depth(8)
+                    .weight(10)
+                    .nbt(DEP_MEDIUM, 70)
+                    .nbt(DEP_LARGE, 30)
+                    .save())
+            .register();
+
+    public static final BlockEntry<DepositBlock> COPPER_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
+                    "copper_deposit_block", DepositBlock::new)
+            .transform(depositBlock(MapColor.COLOR_ORANGE))
+            .onRegister(d -> DepositStructureConfigBuilder
+                    .create("copper")
+                    .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
+                    .depth(8)
+                    .weight(5)
+                    .nbt(DEP_MEDIUM, 70)
+                    .nbt(DEP_LARGE, 30)
+                    .save())
+            .register();
+
+    public static final BlockEntry<DepositBlock> ZINC_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
+                    "zinc_deposit_block", DepositBlock::new)
+            .transform(depositBlock(MapColor.GLOW_LICHEN))
+            .onRegister(d -> DepositStructureConfigBuilder
+                    .create("zinc")
+                    .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
+                    .depth(8)
+                    .weight(2)
+                    .nbt(DEP_SMALL, 70)
+                    .nbt(DEP_MEDIUM, 28)
+                    .nbt(DEP_LARGE, 2)
+                    .save())
+            .register();
+
+    public static final BlockEntry<DepositBlock> GOLD_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
+                    "gold_deposit_block", DepositBlock::new)
+            .transform(depositBlock(MapColor.GOLD))
+            .onRegister(d -> DepositStructureConfigBuilder
+                    .create("gold")
+                    .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
+                    .depth(12)
+                    .weight(2)
+                    .nbt(DEP_SMALL, 70)
+                    .nbt(DEP_MEDIUM, 28)
+                    .nbt(DEP_LARGE, 2)
+                    .save())
+            .register();
+
+    public static final BlockEntry<DepositBlock> REDSTONE_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
+                    "redstone_deposit_block", DepositBlock::new)
+            .transform(depositBlock(MapColor.FIRE))
+            .onRegister(d -> DepositStructureConfigBuilder
+                    .create("redstone")
+                    .depositBlock(ForgeRegistries.BLOCKS.getKey(d))
+                    .depth(12)
+                    .weight(2)
+                    .nbt(DEP_SMALL, 70)
+                    .nbt(DEP_MEDIUM, 28)
+                    .nbt(DEP_LARGE, 2)
+                    .save())
+            .register();
+
+    public static final BlockEntry<DepositBlock> DEPLETED_DEPOSIT_BLOCK = CreateRNS.REGISTRATE.block(
+                    "depleted_deposit_block", DepositBlock::new)
+            .transform(depositBlock(MapColor.COLOR_BLACK))
+            .register();
+
+    static {
+        // Must run after all deposit configs are saved
+        DepositSetConfigBuilder
+                .create()
+                .save();
+    }
+
+    public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> depositBlock(MapColor mapColor) {
+        return b -> b
+                .initialProperties(() -> Blocks.RAW_IRON_BLOCK)
+                .properties(p -> p
+                        .mapColor(mapColor)
+                        .strength(50.0F, 1200f)
+                        .pushReaction(PushReaction.BLOCK)
+                        .noLootTable())
+                .transform(pickaxeOnly())
+                .tag(BlockTags.NEEDS_DIAMOND_TOOL)
+                .tag(RNSTags.Block.DEPOSIT_BLOCKS)
+                .item()
+                .build();
+    }
+
+    public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> minerBlock() {
+        return builder -> builder
+                .initialProperties(SharedProperties::stone)
+                .properties(p -> p
+                        .noOcclusion()
+                        .mapColor(MapColor.PODZOL)
+                        .pushReaction(PushReaction.BLOCK))
+                .transform(axeOrPickaxe())
+                .blockstate((c, p) ->
+                        p.simpleBlock(c.get(), AssetLookup.partialBaseModel(c, p)));
+    }
+
+    public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> resonatorBlock(MapColor mapColor) {
+        return builder -> builder
+                .initialProperties(SharedProperties::softMetal)
+                .properties(p -> p
+                        .mapColor(mapColor)
+                        .noOcclusion())
+                .transform(axeOrPickaxe())
+                .blockstate((c, p) ->
+                        p.horizontalFaceBlock(c.get(), AssetLookup.partialBaseModel(c, p)))
+                .onRegister(movementBehaviour(new ResonatorMovementBehaviour()))
+                .item()
+                .model(AssetLookup::customItemModel)
+                .build();
+    }
+
+    public static void register() {
+    }
+}

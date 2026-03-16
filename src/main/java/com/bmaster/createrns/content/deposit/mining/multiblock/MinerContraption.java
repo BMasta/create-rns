@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.multiblock;
 
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.content.deposit.mining.multiblock.attachment.MiningEquipmentBlock;
 import com.bmaster.createrns.util.Utils;
 import com.simibubi.create.content.contraptions.AssemblyException;
@@ -32,7 +32,7 @@ public class MinerContraption extends BearingContraption {
     @Override
     public boolean searchMovedStructure(Level world, BlockPos pos, @Nullable Direction forcedDirection) throws AssemblyException {
         drillHeadPos = null;
-        if (world.getBlockState(pos).is(RNSContent.DRILL_HEAD_BLOCK.get())) {
+        if (world.getBlockState(pos).is(RNSBlocks.DRILL_HEAD_BLOCK.get())) {
             anchor = pos;
             if (bounds == null) bounds = new AABB(BlockPos.ZERO);
             addBlock(world, pos, capture(world, pos));
@@ -60,7 +60,7 @@ public class MinerContraption extends BearingContraption {
                 equipmentPositions.add(pos);
             }
 
-            if (bs.is(RNSContent.DRILL_HEAD_BLOCK.get())) {
+            if (bs.is(RNSBlocks.DRILL_HEAD_BLOCK.get())) {
                 if (drillHeadPos != null) throw new RNSAssemblyException("not_one_drill_head");
                 // Local position of the drill head must not differ from origin
                 // on any axis other than the one the contraption is facing.

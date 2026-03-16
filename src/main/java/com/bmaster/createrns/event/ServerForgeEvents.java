@@ -1,7 +1,7 @@
 package com.bmaster.createrns.event;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.content.deposit.info.DepositIndexProvider;
 import com.bmaster.createrns.content.deposit.info.DepositSpecLookup;
 import com.bmaster.createrns.content.deposit.info.IDepositIndex;
@@ -31,7 +31,7 @@ public class ServerForgeEvents {
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         var d = event.getDispatcher();
-        d.register(RNSContent.RNS_COMMAND);
+        d.register(RNSMisc.RNS_COMMAND);
     }
 
     @SubscribeEvent

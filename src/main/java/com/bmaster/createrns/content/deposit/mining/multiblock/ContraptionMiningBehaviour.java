@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.multiblock;
 
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.bmaster.createrns.content.deposit.mining.MinerSpec;
 import com.bmaster.createrns.content.deposit.mining.MinerSpecLookup;
@@ -133,7 +133,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
         int tier = baseSpec.tier();
         int offset = baseSpec.miningArea().offset() + headOffset;
 
-        spec = new MinerSpec(RNSContent.MINER_BEARING_BLOCK.get(), tier, baseSpec.minesPerHour(),
+        spec = new MinerSpec(RNSBlocks.MINER_BEARING_BLOCK.get(), tier, baseSpec.minesPerHour(),
                 new ClaimingAreaSpec(baseSpec.miningArea().radius(), baseSpec.miningArea().length(), offset));
         return true;
     }

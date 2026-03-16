@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.scanning;
 
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSItems;
 import com.bmaster.createrns.content.deposit.info.DepositIndex;
 import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -41,7 +41,7 @@ public class DepositScannerItem extends Item {
             DepositScannerClientHandler.cancelTracking(true);
         } else {
             DepositScannerClientHandler.discoverDeposit();
-            player.getCooldowns().addCooldown(RNSContent.DEPOSIT_SCANNER_ITEM.get(), SCANNER_USE_COOLDOWN);
+            player.getCooldowns().addCooldown(RNSItems.DEPOSIT_SCANNER_ITEM.get(), SCANNER_USE_COOLDOWN);
         }
 
         return InteractionResultHolder.pass(player.getItemInHand(usedHand));

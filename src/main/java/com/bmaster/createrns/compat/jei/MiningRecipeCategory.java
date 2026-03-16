@@ -1,8 +1,6 @@
 package com.bmaster.createrns.compat.jei;
 
-import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSContent;
-import com.bmaster.createrns.RNSRecipeTypes;
+import com.bmaster.createrns.*;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.util.FlexibleLayoutHelper;
 import com.simibubi.create.compat.jei.EmptyBackground;
@@ -39,18 +37,18 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
     private static final Info<MiningRecipe> INFO = new Info<>(
             JEI_RECIPE_TYPE, Component.translatable(CreateRNS.MOD_ID + ".recipe.mining"),
             new EmptyBackground(177, 90),
-            new ItemIcon(() -> new ItemStack(RNSContent.MINER_MK1_BLOCK)),
+            new ItemIcon(() -> new ItemStack(RNSBlocks.MINER_MK1_BLOCK)),
             (() -> {
                 var level = Minecraft.getInstance().level;
                 if (level == null) return List.of();
                 return level.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.MINING_RECIPE_TYPE.get());
             }),
-            List.of(() -> new ItemStack(RNSContent.MINER_MK1_BLOCK.get().asItem()))
+            List.of(() -> new ItemStack(RNSBlocks.MINER_MK1_BLOCK.get().asItem()))
     );
 
     private static final IDrawable BASIC_SLOT = asDrawable(AllGuiTextures.JEI_SLOT);
     private static final IDrawable CHANCE_SLOT = asDrawable(AllGuiTextures.JEI_CHANCE_SLOT);
-    private static final AnimatedMiner MINER = new AnimatedMiner(RNSContent.MINER_MK1_BLOCK.get(), RNSContent.MINER_MK1_DRILL);
+    private static final AnimatedMiner MINER = new AnimatedMiner(RNSBlocks.MINER_MK1_BLOCK.get(), RNSPartialModels.MINER_MK1_DRILL);
 
     private static final int SLOTS_PER_YIELD_ROW = 5;
     private static final int MAX_YIELD_ROWS = 3;

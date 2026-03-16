@@ -1,7 +1,7 @@
 package com.bmaster.createrns.compat.jei;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.RNSRecipeTypes;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -43,7 +43,7 @@ public class RNSJEI implements IModPlugin {
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration reg) {
-        reg.addRecipeCatalyst(new ItemStack(RNSContent.MINER_MK1_BLOCK.get().asItem()), MiningRecipeCategory.JEI_RECIPE_TYPE);
-        reg.addRecipeCatalyst(new ItemStack(RNSContent.MINER_MK2_BLOCK.get().asItem()), MiningRecipeCategory.JEI_RECIPE_TYPE);
+        reg.addRecipeCatalyst(new ItemStack(RNSBlocks.MINER_MK1_BLOCK.get().asItem()), MiningRecipeCategory.JEI_RECIPE_TYPE);
+        reg.addRecipeCatalyst(new ItemStack(RNSBlocks.MINER_MK2_BLOCK.get().asItem()), MiningRecipeCategory.JEI_RECIPE_TYPE);
     }
 }

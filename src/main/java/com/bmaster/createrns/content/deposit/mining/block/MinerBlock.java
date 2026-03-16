@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.block;
 
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSBlockEntities;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.bmaster.createrns.content.deposit.claiming.IDepositClaimerOutlineTarget;
 import com.simibubi.create.AllShapes;
@@ -82,7 +82,7 @@ public class MinerBlock extends KineticBlock implements IBE<MinerBlockEntity>, I
 
     @Override
     public BlockEntityType<MinerBlockEntity> getBlockEntityType() {
-        return RNSContent.MINER_BE.get();
+        return RNSBlockEntities.MINER_BE.get();
     }
 
     @SuppressWarnings("deprecation")

@@ -1,11 +1,14 @@
 package com.bmaster.createrns;
 
+import com.bmaster.createrns.compat.ponder.RNSPonderPlugin;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerChannel;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.foundation.data.CreateRegistrate;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -22,11 +25,17 @@ public class CreateRNS {
     public CreateRNS(FMLJavaModLoadingContext context) {
         IEventBus modEventBus = context.getModEventBus();
         REGISTRATE.registerEventListeners(modEventBus);
-        RNSTags.register();
-        RNSContent.register();
-        RNSRecipeTypes.register();
+        RNSMisc.register();
+        RNSPartialModels.register();
         RNSParticleTypes.register(modEventBus);
+        RNSTags.register();
+        RNSBlocks.register();
+        RNSItems.register();
+        RNSBlockEntities.register();
+        RNSRecipeTypes.register();
         RNSRecipes.register();
+        RNSPacks.register();
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> RNSPonderPlugin::register);
 
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(RNSSoundEvents::register);

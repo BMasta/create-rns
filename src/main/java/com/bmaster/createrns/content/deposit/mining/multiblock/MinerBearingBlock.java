@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.multiblock;
 
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSBlockEntities;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer.ClaimerType;
 import com.bmaster.createrns.content.deposit.claiming.IDepositClaimerOutlineTarget;
@@ -85,7 +85,7 @@ public class MinerBearingBlock extends BearingBlock implements IBE<MinerBearingB
 
     @Override
     public BlockEntityType<MinerBearingBlockEntity> getBlockEntityType() {
-        return RNSContent.MINER_BEARING_BE.get();
+        return RNSBlockEntities.MINER_BEARING_BE.get();
     }
 
     @Override

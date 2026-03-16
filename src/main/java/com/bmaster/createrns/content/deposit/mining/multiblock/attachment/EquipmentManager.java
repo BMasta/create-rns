@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.multiblock.attachment;
 
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.content.deposit.mining.multiblock.MinerBearingBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ResonanceCatalyst;
@@ -58,7 +58,7 @@ public class EquipmentManager {
         for (var e : contraption.getBlocks().entrySet()) {
             var pos = e.getKey();
             var bs = e.getValue().state();
-            if (bs.is(RNSContent.DRILL_HEAD_BLOCK.get())) {
+            if (bs.is(RNSBlocks.DRILL_HEAD_BLOCK.get())) {
                 drillHeadPos = pos.offset(contraption.anchor);
             }
         }

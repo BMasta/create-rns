@@ -1,7 +1,7 @@
 package com.bmaster.createrns.event;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSPartialModels;
 import com.bmaster.createrns.RNSRecipes;
 import com.bmaster.createrns.content.deposit.info.DepositSpec;
 import com.bmaster.createrns.content.deposit.info.IDepositIndex;
@@ -48,8 +48,8 @@ public class ModEvents {
 
     @SubscribeEvent
     public static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
-        event.register(RNSContent.MINER_MK1_DRILL.modelLocation());
-        event.register(RNSContent.MINER_MK2_DRILL.modelLocation());
+        event.register(RNSPartialModels.MINER_MK1_DRILL.modelLocation());
+        event.register(RNSPartialModels.MINER_MK2_DRILL.modelLocation());
     }
 
     @SubscribeEvent
