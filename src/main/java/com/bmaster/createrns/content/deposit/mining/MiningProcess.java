@@ -59,7 +59,7 @@ public class MiningProcess {
             if (recipe == null || tier < recipe.getTier()) continue;
             var depBlockCount = e.getValue().intValue();
             innerProcesses.add(new InnerProcess(level, depBlockPositions.get(db), recipe, BASE_PROGRESS / depBlockCount,
-                    Math.min(byproductChanceStacks, recipe.getByproduct().maxStacks())));
+                    Math.min(byproductChanceStacks, recipe.getByproduct().maxStacks)));
         }
     }
 
@@ -178,10 +178,10 @@ public class MiningProcess {
 
             // Try rolling for a byproduct. If successful, it will be collected on the next call.
             var by = recipe.getByproduct();
-            if (by.chancePerStack() > 0) {
+            if (by.chancePerStack > 0) {
                 var rollBy = level.random.nextFloat();
-                if (by.chancePerStack() * byproductChanceStacks > rollBy) {
-                    uncollectedByproduct = new ItemStack(by.yield().roll(level.random));
+                if (by.chancePerStack * byproductChanceStacks > rollBy) {
+                    uncollectedByproduct = new ItemStack(by.yield.roll(level.random));
                     CreateRNS.LOGGER.trace("Successfully rolled for byproduct {}", uncollectedByproduct);
                 }
             }

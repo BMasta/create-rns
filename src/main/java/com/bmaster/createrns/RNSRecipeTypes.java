@@ -10,7 +10,7 @@ public class RNSRecipeTypes {
 
     public static final RegistryEntry<RecipeSerializer<MiningRecipe>> MINING_SERIALIZER =
             CreateRNS.REGISTRATE.simple("mining", ForgeRegistries.Keys.RECIPE_SERIALIZERS,
-                    MiningRecipe.Serializer::new);
+                    () -> MiningRecipe.Serializer.INSTANCE);
 
     public static final RegistryEntry<RecipeType<MiningRecipe>> MINING_RECIPE_TYPE =
             CreateRNS.REGISTRATE.simple("mining", ForgeRegistries.Keys.RECIPE_TYPES, () -> new RecipeType<>() {

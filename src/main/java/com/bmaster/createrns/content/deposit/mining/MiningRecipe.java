@@ -1,34 +1,31 @@
 package com.bmaster.createrns.content.deposit.mining;
 
 import com.bmaster.createrns.RNSRecipeTypes;
-import com.google.gson.JsonArray;
+import com.bmaster.createrns.util.Utils;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class MiningRecipe implements Recipe<Container> {
     private final ResourceLocation id;
     private final Block depositBlock;
@@ -39,24 +36,14 @@ public class MiningRecipe implements Recipe<Container> {
     private final Byproduct byproduct;
 
     public MiningRecipe(ResourceLocation id, Block depositBlock, Block replacementBlock, Durability dur, int tier,
-                        Yield yield, Byproduct byproduct) {
+                        List<YieldType> types, Byproduct byproduct) {
         this.id = id;
         this.depositBlock = depositBlock;
         this.replacementBlock = replacementBlock;
         this.dur = dur;
         this.tier = tier;
-        this.yield = yield;
+        this.yield = new Yield(types);
         this.byproduct = byproduct;
-    }
-
-    @Override
-    public @NotNull RecipeSerializer<?> getSerializer() {
-        return RNSRecipeTypes.MINING_SERIALIZER.get();
-    }
-
-    @Override
-    public @NotNull RecipeType<?> getType() {
-        return RNSRecipeTypes.MINING_RECIPE_TYPE.get();
     }
 
     public Block getDepositBlock() {
@@ -75,19 +62,6 @@ public class MiningRecipe implements Recipe<Container> {
         return byproduct;
     }
 
-    @ParametersAreNonnullByDefault
-    @Override
-    public boolean matches(Container c, Level l) {
-        return false;
-    }
-
-    @Deprecated
-    @ParametersAreNonnullByDefault
-    @Override
-    public @NotNull ItemStack assemble(Container c, RegistryAccess ra) {
-        return new ItemStack(yield.types.get(0).item);
-    }
-
     public Block getReplacementBlock() {
         return replacementBlock;
     }
@@ -101,20 +75,13 @@ public class MiningRecipe implements Recipe<Container> {
         return false;
     }
 
-    @Deprecated
-    @ParametersAreNonnullByDefault
     @Override
-    public @NotNull ItemStack getResultItem(RegistryAccess ra) {
-        return new ItemStack(yield.types.get(0).item);
+    public ItemStack getResultItem(RegistryAccess ra) {
+        return new ItemStack(yield.types.get(0).item());
     }
 
     @Override
-    public @NotNull ResourceLocation getId() {
-        return id;
-    }
-
-    @Override
-    public @NotNull NonNullList<Ingredient> getIngredients() {
+    public NonNullList<Ingredient> getIngredients() {
         return NonNullList.of(Ingredient.EMPTY, Ingredient.of(depositBlock));
     }
 
@@ -123,153 +90,52 @@ public class MiningRecipe implements Recipe<Container> {
         return true;
     }
 
-    @SuppressWarnings("SameParameterValue")
-    @ParametersAreNonnullByDefault
-    public static class Serializer implements RecipeSerializer<MiningRecipe> {
-        @Override
-        public @NotNull MiningRecipe fromJson(ResourceLocation id, JsonObject json) {
-            var depBlock = parseBlockId(json, "deposit_block");
-            Block replacement;
-            if (GsonHelper.isStringValue(json, "replace_when_depleted")) {
-                replacement = parseBlockId(json, "replace_when_depleted");
-            } else {
-                replacement = Blocks.AIR;
-            }
-            Durability dur;
-            if (GsonHelper.isObjectNode(json, "durability")) {
-                var durObj = GsonHelper.getAsJsonObject(json, "durability");
-                var coreDur = parseLongRange(durObj, "core", 1, Long.MAX_VALUE);
-                var edgeDur = parseLongRange(durObj, "edge", 1, Long.MAX_VALUE);
-                var spread = parseFloatRange(durObj, "random_spread", 0, 1);
-                dur = new Durability(coreDur, edgeDur, spread);
-            } else {
-                dur = new Durability(0, 0, 0f);
-            }
-            var tier = GsonHelper.getAsInt(json, "tier");
-            var yield = parseYield(GsonHelper.getAsJsonArray(json, "yield"));
-
-            Byproduct by;
-            if (GsonHelper.isObjectNode(json, "byproduct")) {
-                var byObj = GsonHelper.getAsJsonObject(json, "byproduct");
-                float chancePerStack = parseFloatRange(byObj, "chance_per_stack", 0, 1);
-                int maxStacks;
-                if (GsonHelper.isNumberValue(json, "max_stacks")) {
-                    maxStacks = parseIntRange(byObj, "max_stacks", 0, Integer.MAX_VALUE);
-                } else {
-                    maxStacks = Integer.MAX_VALUE;
-                }
-                var byYield = parseYield(GsonHelper.getAsJsonArray(byObj, "yield"));
-                by = new Byproduct(chancePerStack, maxStacks, byYield);
-            } else {
-                by = new Byproduct(0, 0, new Yield(List.of()));
-            }
-
-            return new MiningRecipe(id, depBlock, replacement, dur, tier, yield, by);
-        }
-
-        @Override
-        public MiningRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
-            var depBlock = Objects.requireNonNull(ForgeRegistries.BLOCKS.getValue(buf.readResourceLocation()));
-            var replacement = Objects.requireNonNull(ForgeRegistries.BLOCKS.getValue(buf.readResourceLocation()));
-            var dur = new Durability(buf.readLong(), buf.readLong(), buf.readFloat());
-            var tier = buf.readInt();
-            var yieldSz = buf.readInt();
-            List<YieldType> yieldTypes = new ArrayList<>(yieldSz);
-            for (int i = 0; i < yieldSz; ++i) {
-                yieldTypes.add(new YieldType(buf.readItem().getItem(), buf.readInt()));
-            }
-            float chancePerStack = buf.readFloat();
-            int maxStacks = buf.readInt();
-            int byYieldSz = buf.readInt();
-            List<YieldType> byYieldTypes = new ArrayList<>(yieldSz);
-            for (int i = 0; i < byYieldSz; ++i) {
-                byYieldTypes.add(new YieldType(buf.readItem().getItem(), buf.readInt()));
-            }
-            Byproduct by = new Byproduct(chancePerStack, maxStacks, new Yield(byYieldTypes));
-            return new MiningRecipe(id, depBlock, replacement, dur, tier, new Yield(yieldTypes), by);
-        }
-
-        @Override
-        public void toNetwork(FriendlyByteBuf buf, MiningRecipe r) {
-            buf.writeResourceLocation(Objects.requireNonNull(ForgeRegistries.BLOCKS.getKey(r.getDepositBlock())));
-            buf.writeResourceLocation(Objects.requireNonNull(ForgeRegistries.BLOCKS.getKey(r.getReplacementBlock())));
-            buf.writeLong(r.dur.core);
-            buf.writeLong(r.dur.edge);
-            buf.writeFloat(r.dur.randomSpread);
-            buf.writeInt(r.tier);
-            buf.writeInt(r.yield.types.size());
-            for (var t : r.yield.types) {
-                buf.writeItem(new ItemStack(t.item));
-                buf.writeInt(t.chanceWeight);
-            }
-            buf.writeFloat(r.byproduct.chancePerStack);
-            buf.writeInt(r.byproduct.maxStacks);
-            buf.writeInt(r.byproduct.yield.types.size());
-            for (var t : r.byproduct.yield.types) {
-                buf.writeItem(new ItemStack(t.item));
-                buf.writeInt(t.chanceWeight);
-            }
-        }
-
-        protected static Block parseBlockId(JsonObject json, String field) {
-            String raw = GsonHelper.getAsString(json, field);
-            ResourceLocation rl = ResourceLocation.tryParse(raw);
-            if (rl == null) {
-                throw new JsonSyntaxException("Invalid resource location for '%s': %s".formatted(field, raw));
-            }
-            Block block = ForgeRegistries.BLOCKS.getValue(rl);
-            if (block == null || block == Blocks.AIR) {
-                throw new JsonSyntaxException("Unknown block for '%s': %s".formatted(field, raw));
-            }
-            return block;
-        }
-
-        protected static Item parseItemId(JsonObject json, String field) {
-            String raw = GsonHelper.getAsString(json, field);
-            ResourceLocation rl = ResourceLocation.tryParse(raw);
-            if (rl == null) {
-                throw new JsonSyntaxException("Invalid resource location for '%s': %s".formatted(field, raw));
-            }
-            Item item = ForgeRegistries.ITEMS.getValue(rl);
-            if (item == null || item == Items.AIR) {
-                throw new JsonSyntaxException("Unknown item for '%s': %s".formatted(field, raw));
-            }
-            return item;
-        }
-
-        protected static Yield parseYield(JsonArray arr) {
-            return new Yield(arr.asList().stream().map(e -> {
-                var o = e.getAsJsonObject();
-                return new YieldType(parseItemId(o, "item"),
-                        GsonHelper.getAsInt(o, "chance_weight"));
-            }).toList());
-        }
-
-        protected static int parseIntRange(JsonObject json, String field, int min, int maxInclusive) {
-            int val = GsonHelper.getAsInt(json, field);
-            if (val < min || val > maxInclusive) throw new RuntimeException("Field " + field + "=" + val +
-                    " is not within the acceptable range [" + min + "," + maxInclusive + "]");
-            return val;
-        }
-
-        protected static long parseLongRange(JsonObject json, String field, long min, long maxInclusive) {
-            long val = GsonHelper.getAsLong(json, field);
-            if (val < min || val > maxInclusive) throw new RuntimeException("Field " + field + "=" + val +
-                    " is not within the acceptable range [" + min + "," + maxInclusive + "]");
-            return val;
-        }
-
-        protected static float parseFloatRange(JsonObject json, String field, float min, float maxInclusive) {
-            float val = GsonHelper.getAsFloat(json, field);
-            if (val < min || val > maxInclusive) throw new RuntimeException("Field " + field + "=" + val +
-                    " is not within the acceptable range [" + min + "," + maxInclusive + "]");
-            return val;
-        }
+    @Override
+    public boolean matches(Container c, Level l) {
+        return c.getContainerSize() > 0 && c.getItem(0).is(getDepositBlock().asItem());
     }
 
-    public record Byproduct(float chancePerStack, int maxStacks, Yield yield) {}
+    @Override
+    public ItemStack assemble(Container c, RegistryAccess ra) {
+        return new ItemStack(getYield().types.get(0).item());
+    }
+
+    @Override
+    public RecipeSerializer<?> getSerializer() {
+        return MiningRecipe.Serializer.INSTANCE;
+    }
+
+    @Override
+    public RecipeType<?> getType() {
+        return RNSRecipeTypes.MINING_RECIPE_TYPE.get();
+    }
+
+    @Override
+    public ResourceLocation getId() {
+        return id;
+    }
+
+    public static class Byproduct {
+        public final float chancePerStack;
+        public final int maxStacks;
+        public final Yield yield;
+
+        public Byproduct(float chancePerStack, int maxStacks, List<YieldType> types) {
+            this.chancePerStack = chancePerStack;
+            this.maxStacks = maxStacks;
+            this.yield = new Yield(types);
+        }
+
+        public static final Codec<Byproduct> CODEC = RecordCodecBuilder.create(i -> i.group(
+                        Codec.floatRange(0, 1).fieldOf("chance_per_stack").forGetter(bp -> bp.chancePerStack),
+                        Codec.intRange(0, Integer.MAX_VALUE).fieldOf("max_stacks").orElse(Integer.MAX_VALUE).forGetter(bp -> bp.maxStacks),
+                        Yield.CODEC.fieldOf("yield").forGetter(bp -> bp.yield.types))
+                .apply(i, Byproduct::new));
+    }
 
     public static class Yield {
+        public static final Codec<List<YieldType>> CODEC = Codec.list(YieldType.CODEC);
+
         public List<YieldType> types;
         private int totalWeight = 0;
 
@@ -288,7 +154,7 @@ public class MiningRecipe implements Recipe<Container> {
         }
 
         public Item roll(RandomSource rng) {
-            Item result = types.get(types.size() - 1).item;
+            Item result = types.get(types.size() - 1).item();
             float threshold = rng.nextFloat();
             float accChance = 0;
             for (var t : types) {
@@ -302,7 +168,46 @@ public class MiningRecipe implements Recipe<Container> {
         }
     }
 
-    public record YieldType(Item item, int chanceWeight) {}
+    public record YieldType(Item item, int chanceWeight) {
+        public static final Codec<YieldType> CODEC = RecordCodecBuilder.create(i -> i.group(
+                        ForgeRegistries.ITEMS.getCodec().fieldOf("item").forGetter(YieldType::item),
+                        Codec.intRange(0, Integer.MAX_VALUE).fieldOf("chance_weight").forGetter(YieldType::chanceWeight))
+                .apply(i, YieldType::new));
+    }
 
-    public record Durability(long core, long edge, float randomSpread) {}
+    public record Durability(long core, long edge, float randomSpread) {
+        public static final MapCodec<Durability> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
+                Utils.longRangeCodec(1, Long.MAX_VALUE).fieldOf("core").forGetter(Durability::core),
+                Utils.longRangeCodec(1, Long.MAX_VALUE).fieldOf("edge").forGetter(Durability::edge),
+                Codec.floatRange(0f, 1f).fieldOf("random_spread").forGetter(Durability::randomSpread)
+        ).apply(i, Durability::new));
+    }
+
+    public static class Serializer implements RecipeSerializer<MiningRecipe> {
+        public static MiningRecipe.Serializer INSTANCE = new MiningRecipe.Serializer();
+
+        public static final MapCodec<MiningRecipeHelper.SerializedRecipe> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
+                        ForgeRegistries.BLOCKS.getCodec().fieldOf("deposit_block").forGetter(MiningRecipeHelper.SerializedRecipe::depositBlock),
+                        ForgeRegistries.BLOCKS.getCodec().fieldOf("replace_when_depleted").orElse(Blocks.AIR).forGetter(MiningRecipeHelper.SerializedRecipe::replacementBlock),
+                        Durability.CODEC.fieldOf("durability").orElse(new Durability(0, 0, 0)).forGetter(MiningRecipeHelper.SerializedRecipe::durability),
+                        Codec.INT.fieldOf("tier").forGetter(MiningRecipeHelper.SerializedRecipe::tier),
+                        Yield.CODEC.fieldOf("yield").forGetter(MiningRecipeHelper.SerializedRecipe::yield),
+                        Byproduct.CODEC.fieldOf("byproduct").orElse(new Byproduct(0, 0, List.of())).forGetter(MiningRecipeHelper.SerializedRecipe::byproduct))
+                .apply(i, MiningRecipeHelper.SerializedRecipe::new));
+
+        @Override
+        public MiningRecipe fromJson(ResourceLocation id, JsonObject json) {
+            return MiningRecipeHelper.fromJson(CODEC, id, json);
+        }
+
+        @Override
+        public MiningRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+            return MiningRecipeHelper.fromNetwork(CODEC, id, buf);
+        }
+
+        @Override
+        public void toNetwork(FriendlyByteBuf buf, MiningRecipe recipe) {
+            MiningRecipeHelper.toNetwork(CODEC, buf, recipe);
+        }
+    }
 }
