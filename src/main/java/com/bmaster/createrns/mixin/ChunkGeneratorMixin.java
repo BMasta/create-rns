@@ -22,7 +22,11 @@ import java.util.Set;
 
 @Mixin(ChunkGenerator.class)
 public abstract class ChunkGeneratorMixin {
-    @Inject(method = "m_223198_(Ljava/util/Set;Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/world/level/StructureManager;ZLnet/minecraft/world/level/levelgen/structure/placement/StructurePlacement;Lnet/minecraft/world/level/ChunkPos;)Lcom/mojang/datafixers/util/Pair;",
+    @Inject(method = "getStructureGeneratingAt(" +
+            "Ljava/util/Set;Lnet/minecraft/world/level/LevelReader;" +
+            "Lnet/minecraft/world/level/StructureManager;" +
+            "ZLnet/minecraft/world/level/levelgen/structure/placement/StructurePlacement;" +
+            "Lnet/minecraft/world/level/ChunkPos;)Lcom/mojang/datafixers/util/Pair;",
             at = @At("RETURN"), cancellable = true)
     private static void create_rns$filterFound(
             Set<Holder<Structure>> structureHoldersSet, LevelReader level, StructureManager structureManager,

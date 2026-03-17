@@ -209,9 +209,10 @@ publishing {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    dependsOn 'createSrgToMcp'
+    dependsOn 'createSrgToMcp', 'createMcpToSrg'
     options.compilerArgs += [
-            "-AreobfSrgFile=${projectDir}/build/createSrgToMcp/output.srg",
+            "-AmappingTypes=tsrg",
+            "-AreobfTsrgFile=${projectDir}/build/createMcpToSrg/output.tsrg",
             "-AdefaultObfuscationEnv=searge",
             "-AoutRefMapFile=${projectDir}/build/classes/java/main/${mod_id}.refmap.json"
     ]
