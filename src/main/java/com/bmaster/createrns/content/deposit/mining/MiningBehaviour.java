@@ -5,6 +5,7 @@ import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHold
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.bmaster.createrns.content.deposit.info.IDepositIndex;
+import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
@@ -188,10 +189,10 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
 
         // Initialize deposit durabilities as needed
         if (kBE.getLevel() instanceof ServerLevel sl) {
-            var depIdx = IDepositIndex.fromLevel(sl);
+            var depIdx = IDepositIndex.get(sl);
             if (depIdx != null) {
                 for (var bp : claimedDepositBlocks) {
-                    depIdx.initDepositVeinDurability(bp);
+                    DepositDurabilityManager.initDepositVeinDurability((ServerLevel) level, bp);
                 }
             }
         }

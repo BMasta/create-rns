@@ -4,6 +4,7 @@ import com.bmaster.createrns.RNSMisc;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.common.util.LazyOptional;
@@ -14,10 +15,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class DepositIndexProvider implements ICapabilitySerializable<CompoundTag> {
-    private final DepositIndex data = new DepositIndex();
+    private final DepositIndex data;
     private final LazyOptional<IDepositIndex> opt;
 
-    public DepositIndexProvider() {
+    public DepositIndexProvider(ServerLevel sl) {
+        data = new DepositIndex(sl);
         this.opt = LazyOptional.of(() -> data);
     }
 

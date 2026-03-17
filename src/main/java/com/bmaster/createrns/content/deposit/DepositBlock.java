@@ -3,7 +3,7 @@ package com.bmaster.createrns.content.deposit;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
-import com.bmaster.createrns.content.deposit.info.IDepositIndex;
+import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.mining.MiningBehaviour;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -99,9 +99,7 @@ public class DepositBlock extends Block {
         if (!(level instanceof ServerLevel sl)) return;
         // Only non-depleted deposits have dur
         if (state.is(RNSTags.Block.DEPOSIT_BLOCKS)) {
-            var depIdx = IDepositIndex.fromLevel(sl);
-            if (depIdx == null) return;
-            depIdx.removeDepositBlockDurability(pos);
+            DepositDurabilityManager.removeDepositBlockDurability(sl, pos);
         }
         updateNearbyClaimers(level, pos);
     }

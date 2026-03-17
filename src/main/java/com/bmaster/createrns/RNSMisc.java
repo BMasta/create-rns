@@ -12,11 +12,12 @@ import net.createmod.catnip.lang.FontHelper;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
-import net.minecraft.world.level.Level;
+import net.minecraftforge.registries.DeferredRegister;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.function.Supplier;

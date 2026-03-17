@@ -1,7 +1,7 @@
 package com.bmaster.createrns.infrastructure.command;
 
 import com.bmaster.createrns.content.deposit.DepositBlock;
-import com.bmaster.createrns.content.deposit.info.IDepositIndex;
+import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.LongArgumentType;
@@ -58,14 +58,13 @@ public class DepositCommand {
                 return 0;
             }
             var sl = src.getLevel();
-            var depIndex = IDepositIndex.fromLevelOrThrow(sl);
             var pos = BlockPosArgument.getLoadedBlockPos(ctx, "dep_block_pos");
             switch (action) {
                 case SET -> {
                     long amount;
                     if (infinite) amount = 0;
                     else amount = ctx.getArgument("resource_amount", Long.class);
-                    boolean isSet = depIndex.setDepositBlockDurability(pos, amount);
+                    boolean isSet = DepositDurabilityManager.setDepositBlockDurability(sl, pos, amount);
                     if (isSet) {
                         src.sendSuccess(() -> Component.literal("Success!"), false);
                     } else {
@@ -79,7 +78,7 @@ public class DepositCommand {
                     var vein = DepositBlock.getVein(sl, pos);
                     boolean isSet = true;
                     for (var bp : vein.keySet()) {
-                        if (!depIndex.setDepositBlockDurability(bp, amount)) isSet = false;
+                        if (!DepositDurabilityManager.setDepositBlockDurability(sl, bp, amount)) isSet = false;
                     }
                     if (isSet) {
                         src.sendSuccess(() -> Component.literal("Success!"), false);
@@ -88,18 +87,18 @@ public class DepositCommand {
                     }
                 }
                 case UNSET -> {
-                    depIndex.removeDepositBlockDurability(pos);
+                    DepositDurabilityManager.removeDepositBlockDurability(sl, pos);
                     src.sendSuccess(() -> Component.literal("Success!"), false);
                 }
                 case UNSET_VEIN -> {
                     var vein = DepositBlock.getVein(sl, pos);
                     for (var bp : vein.keySet()) {
-                        depIndex.removeDepositBlockDurability(bp);
+                        DepositDurabilityManager.removeDepositBlockDurability(sl, bp);
                     }
                     src.sendSuccess(() -> Component.literal("Success!"), false);
                 }
                 case COMPUTE_VEIN -> {
-                    int initCount = depIndex.initDepositVeinDurability(pos);
+                    int initCount = DepositDurabilityManager.initDepositVeinDurability(sl, pos);
                     src.sendSuccess(() -> Component.literal("Initialized " + initCount + " blocks!"), true);
                 }
             }

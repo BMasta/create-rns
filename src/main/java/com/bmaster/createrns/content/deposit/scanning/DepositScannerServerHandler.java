@@ -1,9 +1,9 @@
 package com.bmaster.createrns.content.deposit.scanning;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.content.deposit.info.DepositSpecLookup;
-import com.bmaster.createrns.content.deposit.info.IDepositIndex;
+import com.bmaster.createrns.content.deposit.info.DepositLocation;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler.AntennaStatus;
+import com.bmaster.createrns.content.deposit.spec.DepositSpecLookup;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositSetConfigBuilder;
 import com.bmaster.createrns.util.Utils;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -14,6 +14,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
@@ -32,31 +33,28 @@ public class DepositScannerServerHandler {
 
     public static void processScanRequest(ServerPlayer sp, Item icon, RequestType rt) {
         if (!(sp.level() instanceof ServerLevel sl)) return;
-        var depIdx = IDepositIndex.fromLevel(sl);
-        if (depIdx == null) {
-            CreateRNS.LOGGER.error("Deposit index is not present on level {}", sl.dimension());
-            DepositScannerS2CPacket.send(sp, AntennaStatus.INACTIVE, 0, false, rt);
-            return;
-        }
 
         var structKey = DepositSpecLookup.getStructureKey(sl.registryAccess(), icon);
+        if (rt == RequestType.DISCOVER) {
+            CreateRNS.LOGGER.trace("[Scanner discover] Player {} searching for {}", sp.getScoreboardName(),
+                    structKey.location());
+        }
         var nearest = switch (rt) {
-            case DISCOVER -> depIdx.getNearest(structKey, sp, SEARCH_RADIUS_CHUNKS);
-            case TRACK -> depIdx.getNearestCached(structKey, sp, SEARCH_RADIUS_CHUNKS);
+            case DISCOVER -> DepositLocation.getNearest(sp, structKey, false, SEARCH_RADIUS_CHUNKS, false);
+            case TRACK -> DepositLocation.getNearest(sp, structKey, false, SEARCH_RADIUS_CHUNKS, true);
         };
 
-        ScannerState state;
-        if (nearest == null) {
-            state = new ScannerState(AntennaStatus.INACTIVE, MAX_PING_INTERVAL, false);
-        } else {
-            state = getScannerState(sp, nearest);
+        var state = getScannerState(sp, (nearest != null) ? nearest.getLocation() : null);
+        if (state.found) {
+            assert nearest != null;
+            nearest.setFound(sl, true);
         }
-        if (state.found) depIdx.setFound(structKey, nearest, true);
 
         DepositScannerS2CPacket.send(sp, state.antennaStatus, state.interval, state.found, rt);
     }
 
-    private static ScannerState getScannerState(ServerPlayer sp, BlockPos targetPos) {
+    private static ScannerState getScannerState(ServerPlayer sp, @Nullable BlockPos targetPos) {
+        if (targetPos == null) return new ScannerState(AntennaStatus.INACTIVE, MAX_PING_INTERVAL, false);
         var playerPos = sp.blockPosition();
         var distance = Math.min(MAX_BLOCK_DISTANCE, Math.sqrt(playerPos.distSqr(targetPos)));
 

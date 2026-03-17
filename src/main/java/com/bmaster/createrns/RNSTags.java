@@ -17,6 +17,11 @@ public class RNSTags {
                 CreateRNS.asResource("deposit_blocks"));
     }
 
+    public static class Structure {
+        public static final TagKey<net.minecraft.world.level.levelgen.structure.Structure> DEPOSITS =
+                TagKey.create(Registries.STRUCTURE, CreateRNS.asResource("deposits"));
+    }
+
     public static void register() {
     }
 }

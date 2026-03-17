@@ -2,7 +2,7 @@ package com.bmaster.createrns.content.deposit.mining;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags;
-import com.bmaster.createrns.content.deposit.info.IDepositIndex;
+import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
@@ -206,14 +206,13 @@ public class MiningProcess {
 
             if (progress < maxProgress) return null;
             if (!(level instanceof ServerLevel sl)) return null;
-            var depIdx = IDepositIndex.fromLevel(sl);
-            if (depIdx == null) return null;
 
             progress = progress - maxProgress; // Keep the extra progress
 
             // Use a random deposit block
             var rollDep = level.random.nextIntBetweenInclusive(0, depositPositions.size() - 1);
-            depIdx.useDepositBlock(depositPositions.get(rollDep), recipe.getReplacementBlock().defaultBlockState());
+            DepositDurabilityManager.useDepositBlock(sl, depositPositions.get(rollDep),
+                    recipe.getReplacementBlock().defaultBlockState());
 
             // For each yield: use all of its catalysts, then roll for success and add to collection queue if successful
             var yields = recipe.getYields();
@@ -272,12 +271,10 @@ public class MiningProcess {
         private void computeRemainingUses() {
             if (!(level instanceof ServerLevel sl))
                 throw new IllegalStateException("Clients may not call this function");
-            var depIdx = IDepositIndex.fromLevel(sl);
-            if (depIdx == null) return;
             AtomicBoolean infinite = new AtomicBoolean(false);
             long totalDur = depositPositions.stream()
                     .map(bp -> {
-                        var dur = depIdx.getDepositBlockDurability(bp);
+                        var dur = DepositDurabilityManager.getDepositBlockDurability(sl, bp);
                         if (dur == 0) infinite.set(true);
                         return dur;
                     })

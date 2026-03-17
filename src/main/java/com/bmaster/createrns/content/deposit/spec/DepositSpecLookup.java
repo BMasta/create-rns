@@ -1,4 +1,4 @@
-package com.bmaster.createrns.content.deposit.info;
+package com.bmaster.createrns.content.deposit.spec;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.RegistryAccess;
