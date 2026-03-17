@@ -1,0 +1,8 @@
+{
+  "name": "faint_resonance",
+  "resonance": {
+    "min_resonators": 2
+  },
+  "display_priority": 1000,
+  "hide_if_present": ["resonance"]
+}

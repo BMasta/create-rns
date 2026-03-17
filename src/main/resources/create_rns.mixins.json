@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.bmaster.createrns.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "create_rns.refmap.json",
+  "mixins": [
+    "ChunkGeneratorMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

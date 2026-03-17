@@ -73,10 +73,11 @@ minecraft {
             // Recommended logging level for the console
             // You can set various levels here.
             // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
-            property 'forge.logging.console.level', 'debug'
+            property 'forge.logging.console.level', 'trace'
 
             property("mixin.env.remapRefMap", "true")
             property("mixin.env.refMapRemappingFile", "${projectDir}/build/createSrgToMcp/output.srg")
+            args '--mixin.config', "${mod_id}.mixins.json"
 
             mods {
                 "${mod_id}" {
@@ -143,6 +144,7 @@ dependencies {
     compileOnly(fg.deobf("dev.engine-room.flywheel:flywheel-forge-api-${minecraft_version}:${flywheel_version}"))
     runtimeOnly(fg.deobf("dev.engine-room.flywheel:flywheel-forge-${minecraft_version}:${flywheel_version}"))
     implementation(fg.deobf("com.tterrag.registrate:Registrate:${registrate_version}"))
+    annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
     compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.4.1"))
     implementation("io.github.llamalad7:mixinextras-forge:0.4.1")
 
@@ -168,6 +170,29 @@ tasks.named('processResources', ProcessResources).configure {
     }
 }
 
+def dynamicDatapackDumpDir = layout.projectDirectory.dir("src/generated/builtin_packs")
+def dynamicDatapackDumpWorkDir = layout.buildDirectory.dir("tmp/dynamic_datapack_dump")
+
+tasks.register('cleanDynamicDatapackDump', Delete) {
+    delete fileTree(dynamicDatapackDumpDir) {
+        exclude '**/README.md'
+    }
+}
+
+tasks.register('dumpDynamicDatapacks', JavaExec) {
+    group = 'create-rns'
+    description = 'Dumps in-memory dynamic datapack content to disk for inspection.'
+    dependsOn tasks.named('classes')
+    dependsOn tasks.named('cleanDynamicDatapackDump')
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.bmaster.createrns.data.pack.DynamicDatapackDumpTool'
+    workingDir = dynamicDatapackDumpWorkDir.get().asFile
+    doFirst {
+        workingDir.mkdirs()
+    }
+    args dynamicDatapackDumpDir.asFile.absolutePath
+}
+
 // Example for how to get properties into the manifest for reading at runtime.
 tasks.named('jar', Jar).configure {
     manifest {
@@ -178,7 +203,8 @@ tasks.named('jar', Jar).configure {
                 'Implementation-Title'    : project.name,
                 'Implementation-Version'  : project.jar.archiveVersion,
                 'Implementation-Vendor'   : mod_authors,
-                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                'MixinConfigs'            : "${mod_id}.mixins.json"
         ])
     }
 
@@ -206,5 +232,12 @@ publishing {
 }
 
 tasks.withType(JavaCompile).configureEach {
+    dependsOn 'createSrgToMcp', 'createMcpToSrg'
+    options.compilerArgs += [
+            "-AmappingTypes=tsrg",
+            "-AreobfTsrgFile=${projectDir}/build/createMcpToSrg/output.tsrg",
+            "-AdefaultObfuscationEnv=searge",
+            "-AoutRefMapFile=${projectDir}/build/classes/java/main/${mod_id}.refmap.json"
+    ]
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }

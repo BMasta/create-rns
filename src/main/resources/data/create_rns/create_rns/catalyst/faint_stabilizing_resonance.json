@@ -1,0 +1,11 @@
+{
+  "name": "faint_stabilizing_resonance",
+  "resonance": {
+    "min_resonators": 4
+  },
+  "stabilizing_resonance": {
+    "min_resonators": 2
+  },
+  "display_priority": 1003,
+  "hide_if_present": ["stabilizing_resonance"]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "resonance",
+  "resonance": {
+    "min_resonators": 4
+  },
+  "display_priority": 1001
+}

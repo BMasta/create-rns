@@ -38,8 +38,8 @@
     "replace": false,
     "sounds": [
       {
-        "name": "minecraft:entity.item_frame.rotate_item",
-        "type": "event",
+        "name": "minecraft:entity/itemframe/rotate_item1",
+        "type": "file",
         "volume": 0.4,
         "pitch": 2.0
       }
@@ -89,6 +89,64 @@
         "type": "event",
         "volume": 0.8,
         "pitch": 1.0
+      }
+    ]
+  },
+  "mining": {
+    "replace": false,
+    "subtitle": "subtitle.create_rns.mining_1",
+    "sounds": [
+      {
+        "name": "minecraft:block.stone.hit",
+        "type": "event",
+        "volume": 2.0,
+        "pitch": 0.65
+      }
+    ]
+  },
+  "mining_compounded_1": {
+    "replace": false,
+    "sounds": [
+      {
+        "name": "minecraft:block.netherrack.hit",
+        "type": "event",
+        "volume": 0.5,
+        "pitch": 0.75
+      }
+    ]
+  },
+  "mining_compounded_2": {
+    "replace": false,
+    "sounds": [
+      {
+        "name": "minecraft:block.gravel.place",
+        "type": "event",
+        "volume": 0.1,
+        "pitch": 0.5
+      }
+    ]
+  },
+  "mining_resonance_accent": {
+    "replace": false,
+    "subtitle": "subtitle.create_rns.mining_resonance_accent",
+    "sounds": [
+      {
+        "name": "minecraft:block.amethyst_block.break",
+        "type": "event",
+        "volume": 0.1,
+        "pitch": 1
+      }
+    ]
+  },
+  "mined": {
+    "replace": false,
+    "subtitle": "subtitle.create_rns.mined",
+    "sounds": [
+      {
+        "name": "minecraft:block.netherite_block.break",
+        "type": "event",
+        "volume": 2,
+        "pitch": 1
       }
     ]
   }

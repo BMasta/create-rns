@@ -1,36 +1,37 @@
 package com.bmaster.createrns.compat.jei;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.RNSRecipeTypes;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
+import com.bmaster.createrns.infrastructure.ServerConfig;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Comparator;
 
-@ParametersAreNonnullByDefault
 @JeiPlugin
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class RNSJEI implements IModPlugin {
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(
-            CreateRNS.MOD_ID, "jei_plugin");
-
+    public static final ResourceLocation ID = CreateRNS.asResource("jei_plugin");
 
     @Override
-    public @NotNull ResourceLocation getPluginUid() {
+    public ResourceLocation getPluginUid() {
         return ID;
     }
 
     @Override
     public void registerCategories(IRecipeCategoryRegistration reg) {
-        reg.addRecipeCategories(new BasicMiningRecipeCategory());
-        reg.addRecipeCategories(new AdvancedMiningRecipeCategory());
+        reg.addRecipeCategories(new MiningRecipeCategory(reg.getJeiHelpers().getGuiHelper()));
+        reg.addRecipeCategories(new CatalystInfoCategory());
     }
 
     @Override
@@ -38,15 +39,30 @@ public class RNSJEI implements IModPlugin {
         var level = Minecraft.getInstance().level;
         if (level == null) return;
 
-        var basicRecipes = level.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.BASIC_MINING_TYPE.get());
-        var advancedRecipes = level.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.ADVANCED_MINING_TYPE.get());
-        reg.addRecipes(BasicMiningRecipeCategory.JEI_RECIPE_TYPE, basicRecipes);
-        reg.addRecipes(AdvancedMiningRecipeCategory.JEI_RECIPE_TYPE, advancedRecipes);
+        var recipes = level.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.MINING_RECIPE_TYPE.get());
+        // Hide depleted deposit recipe when infinite deposits are configured
+        if (ServerConfig.INFINITE_DEPOSITS.get()) {
+            recipes = recipes.stream()
+                    .filter(r -> r.getDepositBlock() != RNSBlocks.DEPLETED_DEPOSIT.get())
+                    .toList();
+        }
+        reg.addRecipes(MiningRecipeCategory.JEI_RECIPE_TYPE, recipes);
+
+        var crsRegistry = level.registryAccess().registryOrThrow(CatalystRequirementSet.REGISTRY_KEY);
+        var catalystInfoRecipes = crsRegistry.stream()
+                .sorted(Comparator.comparingInt(crs -> crs.displayPriority))
+                .toList();
+        reg.addRecipes(CatalystInfoCategory.JEI_RECIPE_TYPE, catalystInfoRecipes);
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration reg) {
-        reg.addRecipeCatalyst(new ItemStack(RNSContent.MINER_MK1_BLOCK.get().asItem()), BasicMiningRecipeCategory.JEI_RECIPE_TYPE);
-        reg.addRecipeCatalyst(new ItemStack(RNSContent.MINER_MK2_BLOCK.get().asItem()), AdvancedMiningRecipeCategory.JEI_RECIPE_TYPE);
+        for (var cs : MiningRecipeCategory.CATALYSTS) {
+            reg.addRecipeCatalyst(cs.get(), MiningRecipeCategory.JEI_RECIPE_TYPE);
+        }
+
+        for (var cs : CatalystInfoCategory.CATALYSTS) {
+            reg.addRecipeCatalyst(cs.get(), CatalystInfoCategory.JEI_RECIPE_TYPE);
+        }
     }
 }

@@ -1,7 +1,7 @@
 package com.bmaster.createrns.compat.ponder;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSContent;
+import com.bmaster.createrns.RNSBlocks;
 import com.tterrag.registrate.util.entry.ItemProviderEntry;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import net.createmod.ponder.api.registration.PonderPlugin;
@@ -22,14 +22,16 @@ public class RNSPonderPlugin implements PonderPlugin {
 
     @Override
     public String getModId() {
-        return CreateRNS.MOD_ID;
+        return CreateRNS.ID;
     }
 
     @Override
     public void registerScenes(PonderSceneRegistrationHelper<ResourceLocation> helper) {
-        PonderSceneRegistrationHelper<ItemProviderEntry<?>> HELPER = helper.withKeyFunction(RegistryEntry::getId);
-        HELPER.forComponents(RNSContent.MINER_MK1_BLOCK, RNSContent.MINER_MK2_BLOCK)
-                .addStoryBoard("mining", RNSPonderScenes::mining);
+        PonderSceneRegistrationHelper<ItemProviderEntry<?>> helper1 = helper.withKeyFunction(RegistryEntry::getId);
+
+        helper1.forComponents(RNSBlocks.MINER_BEARING, RNSBlocks.MINE_HEAD)
+                .addStoryBoard("mining", RNSPonderScenes::mining)
+                .addStoryBoard("extracting", RNSPonderScenes::extracting);
     }
 
     @Override

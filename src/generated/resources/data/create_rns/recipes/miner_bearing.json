@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "F": {
+      "item": "create:shaft"
+    },
+    "S": {
+      "tag": "forge:stone"
+    },
+    "W": {
+      "tag": "minecraft:wooden_slabs"
+    }
+  },
+  "pattern": [
+    " W ",
+    "ASA",
+    " F "
+  ],
+  "result": {
+    "item": "create_rns:miner_bearing"
+  },
+  "show_notification": true
+}
