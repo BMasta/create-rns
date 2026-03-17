@@ -126,6 +126,7 @@ public class CatalystRequirementSet {
     }
 
     protected boolean useCatalystsNonAtomic(List<Catalyst> catalysts, boolean simulate) {
+        if (catalysts.isEmpty()) return false;
         boolean allSatisfied = true;
         for (var cr : requirements) {
             boolean satisifed = false;
