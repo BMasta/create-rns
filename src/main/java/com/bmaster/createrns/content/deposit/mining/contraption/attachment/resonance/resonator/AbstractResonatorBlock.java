@@ -48,6 +48,6 @@ public abstract class AbstractResonatorBlock extends FaceAttachedMinerComponentB
 
     @Override
     public BlockEntityType<? extends ResonatorBlockEntity> getBlockEntityType() {
-        return RNSBlockEntities.RESONATOR_BE.get();
+        return RNSBlockEntities.RESONATOR.get();
     }
 }

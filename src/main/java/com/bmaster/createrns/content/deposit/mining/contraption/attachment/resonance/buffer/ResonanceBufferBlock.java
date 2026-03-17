@@ -84,6 +84,6 @@ public class ResonanceBufferBlock extends Block implements IBE<ResonanceBufferBl
 
     @Override
     public BlockEntityType<? extends ResonanceBufferBlockEntity> getBlockEntityType() {
-        return RNSBlockEntities.RESONANCE_BUFFER_BE.get();
+        return RNSBlockEntities.RESONANCE_BUFFER.get();
     }
 }
