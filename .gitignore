@@ -27,6 +27,5 @@ run-data
 # Files from Forge MDK
 forge*changelog.txt
 CLAUDE.md
-AGENTS.md
 .claude
 .tmp
