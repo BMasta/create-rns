@@ -7,7 +7,6 @@ import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRende
 import net.createmod.catnip.render.CachedBuffers;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;

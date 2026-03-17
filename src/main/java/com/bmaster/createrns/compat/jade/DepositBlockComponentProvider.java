@@ -1,7 +1,7 @@
 package com.bmaster.createrns.compat.jade;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSMisc;
+import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.nbt.CompoundTag;
@@ -9,6 +9,7 @@ import net.minecraft.nbt.LongTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.IServerDataProvider;
@@ -45,7 +46,7 @@ public enum DepositBlockComponentProvider implements IBlockComponentProvider, IS
 
     @Override
     public void appendServerData(CompoundTag nbt, BlockAccessor accessor) {
-        var depData = accessor.getLevel().getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
-        nbt.putLong("durability", depData.getDepositBlockDurability(accessor.getPosition(), false));
+        nbt.putLong("durability", DepositDurabilityManager.getDepositBlockDurability((ServerLevel) accessor.getLevel(),
+                accessor.getPosition(), false));
     }
 }
