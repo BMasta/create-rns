@@ -127,5 +127,17 @@
   "create_rns.datapack.frequent_deposit_worldgen.description": "2x the frequency of villages",
   "create_rns.datapack.very_frequent_deposit_worldgen.title": "Very Frequent Deposit Generation",
   "create_rns.datapack.very_frequent_deposit_worldgen.description": "3x the frequency of villages",
-  "create_rns.datapack.deposits_n_blocks_apart": "Deposits generate ~%1$s blocks apart on average"
+  "create_rns.datapack.deposits_n_blocks_apart": "Deposits generate ~%1$s blocks apart on average",
+  "create_rns.configuration.miningSpeed": "Mining Speed",
+  "create_rns.configuration.miningSpeed.tooltip": "How many mining operations a miner with no attachments can complete in one hour, at 256 RPM, with one deposit block claimed.",
+  "create_rns.configuration.miningRadius": "Mining Radius",
+  "create_rns.configuration.miningRadius.tooltip": "Radius in which a miner can claim deposit blocks for mining. Radius of 2 results in a 5x5 square mining area with the Mine Head in the middle.\n\n§eWarning: active miners have to be reassembled to apply this setting.",
+  "create_rns.configuration.miningDepth": "Mining Depth",
+  "create_rns.configuration.miningDepth.tooltip": "How many blocks deep can a miner claim deposit blocks.\n\n§eWarning: active miners have to be reassembled to apply this setting.",
+  "create_rns.configuration.infiniteDeposits": "Infinite Deposits",
+  "create_rns.configuration.infiniteDeposits.tooltip": "Whether deposits never run out of resources.",
+  "create_rns.configuration.movableDeposits": "Movable Deposits",
+  "create_rns.configuration.movableDeposits.tooltip": "Whether deposits can be attached to a contraption or moved by a piston.",
+  "create_rns.configuration.maxScanDistance": "Maximum Scanning Distance",
+  "create_rns.configuration.maxScanDistance.tooltip": "Maximum scanning distance of the Deposit Scanner in chunks."
 }

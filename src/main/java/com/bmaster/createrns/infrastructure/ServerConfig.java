@@ -13,25 +13,30 @@ public class ServerConfig {
 
     public static final ModConfigSpec.IntValue MINING_SPEED = BUILDER
             .comment("""
-                     How many mining operations a miner with no attachments can complete in one hour
-                     at 256 RPM, with one deposit block claimed, and no deposit multipliers.\
+                     How many mining operations a miner with no attachments can complete in one hour,
+                     at 256 RPM, with one deposit block claimed.\
                     """)
             .defineInRange("miningSpeed", 45, 0, Integer.MAX_VALUE);
 
     public static final ModConfigSpec.IntValue MINING_RADIUS = BUILDER
             .comment("""
                      Radius in which a miner can claim deposit blocks for mining. Radius of 2 results
-                     in a 5x5 square mining area with the Mine Head in the middle.\
+                     in a 5x5 square mining area with the Mine Head in the middle.
+                     Warning: active miners have to be reassembled to apply this setting.\
                     """)
             .defineInRange("miningRadius", 2, 0, Integer.MAX_VALUE);
 
     public static final ModConfigSpec.IntValue MINING_DEPTH = BUILDER
             .comment("""
-                     How many blocks deep can a miner claim deposit blocks.\
+                     How many blocks deep can a miner claim deposit blocks.
+                     Warning: active miners have to be reassembled to apply this setting.\
                     """)
             .defineInRange("miningDepth", 10, 0, Integer.MAX_VALUE);
 
     public static final ModConfigSpec.BooleanValue INFINITE_DEPOSITS = BUILDER
+            .comment("""
+                     Whether deposits never run out of resources.\
+                    """)
             .define("infiniteDeposits", true);
 
     public static final ModConfigSpec.BooleanValue MOVABLE_DEPOSITS = BUILDER

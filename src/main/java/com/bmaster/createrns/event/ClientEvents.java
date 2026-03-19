@@ -14,30 +14,45 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.function.Supplier;
 
 @EventBusSubscriber(modid = CreateRNS.ID, value = Dist.CLIENT)
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class ClientEvents {
     @SubscribeEvent
-    public static void clientTick(ClientTickEvent.Pre event) {
+    public static void onClientTick(ClientTickEvent.Pre event) {
         DepositScannerClientHandler.tick();
         DepositClaimerOutlineRenderer.tick();
         MinerEffectsGenerator.globalTick();
     }
 
     @SubscribeEvent
-    public static void clientInit(final FMLClientSetupEvent event) {
+    public static void onClientInit(final FMLClientSetupEvent event) {
         RNSPonderPlugin.register();
+    }
+
+    @SubscribeEvent
+    public static void onLoadComplete(FMLLoadCompleteEvent event) {
+        ModContainer rnsContainer = ModList.get()
+                .getModContainerById(CreateRNS.ID)
+                .orElseThrow(() -> new IllegalStateException("RNS mod container missing on LoadComplete"));
+        Supplier<IConfigScreenFactory> configScreen = () -> ConfigurationScreen::new;
+        rnsContainer.registerExtensionPoint(IConfigScreenFactory.class, configScreen);
     }
 
     @SubscribeEvent
