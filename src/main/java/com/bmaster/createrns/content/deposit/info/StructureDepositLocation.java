@@ -1,5 +1,6 @@
 package com.bmaster.createrns.content.deposit.info;
 
+import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.RNSPacks;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerLocateContext;
@@ -17,10 +18,12 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
+import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -28,19 +31,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class StructureDepositLocation extends DepositLocation {
-    /// Spacing may be overridden by datapacks and is therefore resolved at runtime after all datapacks have been loaded.
-    /// The default value serves as a fallback.
-    private static int SPACING = RNSPacks.DEFAULT_SPACING;
-
-    public static int getSpacing() {
-        return SPACING;
-    }
-
-    public static void setSpacing(int spacing) {
-        if (spacing <= 0) throw new IllegalArgumentException("Deposit structure spacing must be positive");
-        SPACING = spacing;
-    }
-
     public static boolean hasStructureAtChunk(ServerLevel sl, ResourceKey<Structure> depKey, ChunkPos pos) {
         var chunkAccess = sl.getChunk(pos.x, pos.z, ChunkStatus.STRUCTURE_STARTS);
         var structure = sl.registryAccess().registryOrThrow(Registries.STRUCTURE).getOrThrow(depKey);
@@ -72,7 +62,7 @@ public class StructureDepositLocation extends DepositLocation {
             ServerLevel sl, ResourceKey<Structure> depKey, BlockPos pos, boolean allowFound, int searchRadiusChunks
     ) {
         var gen = sl.getChunkSource().getGenerator();
-        var searchRadiusRegions = searchRadiusChunks / SPACING;
+        var searchRadiusRegions = Mth.positiveCeilDiv(searchRadiusChunks, getSpacing(sl, depKey));
         var targetStructure = sl.registryAccess().registryOrThrow(Registries.STRUCTURE).getHolderOrThrow(depKey);
         DepositCandidateFilter ignoreFilter = (level, structure, chunkPos) ->
                 !allowFound && structure == targetStructure.value() && isStructureAtChunkFound(sl, depKey, chunkPos);
@@ -99,8 +89,7 @@ public class StructureDepositLocation extends DepositLocation {
         if (namedDepHS == null) return null;
 
         var gen = sl.getChunkSource().getGenerator();
-
-        var searchRadiusRegions = searchRadiusChunks / SPACING;
+        var searchRadiusRegions = Mth.positiveCeilDiv(searchRadiusChunks, getSpacing(sl, depTag));
         DepositCandidateFilter ignoreFilter = (level, structure, chunkPos) -> {
             if (allowFound) return false;
             for (var h : namedDepHS) {
@@ -131,6 +120,43 @@ public class StructureDepositLocation extends DepositLocation {
         var key = ResourceKey.create(Registries.STRUCTURE, ResourceLocation.parse(nbt.getString("id")));
         var origin = new ChunkPos(nbt.getLong("start_chunk"));
         return new StructureDepositLocation(sl, key, origin);
+    }
+
+    private static int getSpacing(ServerLevel sl, ResourceKey<Structure> key) {
+        var structure = sl.registryAccess().registryOrThrow(Registries.STRUCTURE).getHolderOrThrow(key);
+        return getSpacing(sl, structure);
+    }
+
+    private static int getSpacing(ServerLevel sl, TagKey<Structure> tag) {
+        var structures = sl.registryAccess().lookupOrThrow(Registries.STRUCTURE).get(tag).orElse(null);
+        if (structures == null) {
+            CreateRNS.LOGGER.error("Failed to resolve structure tag {}. Using default spacing of {}",
+                    tag.location(), RNSPacks.DEFAULT_SPACING);
+            return RNSPacks.DEFAULT_SPACING;
+        }
+
+        int spacing = Integer.MAX_VALUE;
+        for (var structure : structures) {
+            spacing = Math.min(spacing, getSpacing(sl, structure));
+        }
+
+        return spacing;
+    }
+
+    private static int getSpacing(ServerLevel sl, Holder<Structure> structure) {
+        var key = structure.getKey();
+        int spacing = sl.getChunkSource().getGeneratorState().getPlacementsForStructure(structure).stream()
+                .filter(RandomSpreadStructurePlacement.class::isInstance)
+                .map(p -> ((RandomSpreadStructurePlacement) p).spacing())
+                .min(Integer::compareTo)
+                .orElse(-1);
+        if (spacing == -1) {
+            spacing = RNSPacks.DEFAULT_SPACING;
+            var id = key == null ? "<unknown>" : key.location();
+            CreateRNS.LOGGER.error("Failed to resolve spacing of structure {}. Using default spacing of {}",
+                    id, spacing);
+        }
+        return spacing;
     }
 
     protected ServerLevel level;
