@@ -50,7 +50,7 @@ public class CommonModEvents {
     }
 
     @SubscribeEvent
-    public static void gatherData(GatherDataEvent event) {
+    public static void onGatherData(GatherDataEvent event) {
         DataGenerator generator = event.getGenerator();
         PackOutput output = generator.getPackOutput();
         generator.addProvider(event.includeServer(), new RNSRecipes.MechanicalCrafting(output));

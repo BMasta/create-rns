@@ -25,7 +25,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @Mod.EventBusSubscriber(modid = CreateRNS.ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class ClientForgeEvents {
     @SubscribeEvent
-    public static void clientTick(TickEvent.ClientTickEvent event) {
+    public static void onClientTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) {
             DepositScannerClientHandler.tick();
             DepositClaimerOutlineRenderer.tick();
