@@ -7,7 +7,6 @@ import com.bmaster.createrns.content.deposit.spec.DepositSpecLookup;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 import static com.bmaster.createrns.content.deposit.scanning.DepositScannerServerHandler.MAX_PING_INTERVAL;
@@ -171,9 +170,8 @@ public class DepositScannerClientHandler {
 
         RNSSoundEvents.SCANNER_SCROLL.playClient(player.level(), player.blockPosition());
 
-        var dRL = DepositSpecLookup.getStructureKey(player.level().registryAccess(), getSelectedItem().getItem()).location();
-        var dName = Component.translatable(dRL.getNamespace() + ".structure." + dRL.getPath());
-        player.displayClientMessage(dName, true);
+        player.displayClientMessage(DepositSpecLookup.getDepositName(player.level().registryAccess(),
+                getSelectedItem().getItem()), true);
     }
 
     private static class State {

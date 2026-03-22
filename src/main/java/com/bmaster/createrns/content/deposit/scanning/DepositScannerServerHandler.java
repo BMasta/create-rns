@@ -1,7 +1,7 @@
 package com.bmaster.createrns.content.deposit.scanning;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.content.deposit.info.DepositLocation;
+import com.bmaster.createrns.content.deposit.info.ServerDepositLocation;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler.AntennaStatus;
 import com.bmaster.createrns.content.deposit.spec.DepositSpecLookup;
 import com.bmaster.createrns.infrastructure.ServerConfig;
@@ -39,8 +39,8 @@ public class DepositScannerServerHandler {
                     structKey.location());
         }
         var nearest = switch (rt) {
-            case DISCOVER -> DepositLocation.getNearest(sp, structKey, false, ServerConfig.MAX_SCAN_DISTANCE.get(), false);
-            case TRACK -> DepositLocation.getNearest(sp, structKey, false, ServerConfig.MAX_SCAN_DISTANCE.get(), true);
+            case DISCOVER -> ServerDepositLocation.getNearest(sp, structKey, false, ServerConfig.MAX_SCAN_DISTANCE.get(), false);
+            case TRACK -> ServerDepositLocation.getNearest(sp, structKey, false, ServerConfig.MAX_SCAN_DISTANCE.get(), true);
         };
 
         var state = getScannerState(sp, (nearest != null) ? nearest.getLocation() : null);

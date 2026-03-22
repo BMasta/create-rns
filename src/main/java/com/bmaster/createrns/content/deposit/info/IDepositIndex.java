@@ -11,9 +11,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public interface IDepositIndex extends INBTSerializable<CompoundTag> {
-    boolean addCustomDeposit(CustomDepositLocation dep);
+    boolean addCustomDeposit(CustomServerDepositLocation dep);
 
-    boolean removeCustomDeposit(CustomDepositLocation dep);
+    boolean removeCustomDeposit(CustomServerDepositLocation dep);
 
     static DepositIndex get(ServerLevel level) {
         var cap = level.getCapability(RNSMisc.DEPOSIT_INDEX).resolve().orElse(null);

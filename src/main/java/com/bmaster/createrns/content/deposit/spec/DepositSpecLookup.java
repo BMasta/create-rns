@@ -1,9 +1,15 @@
 package com.bmaster.createrns.content.deposit.spec;
 
+import com.bmaster.createrns.CreateRNS;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -38,10 +44,9 @@ public class DepositSpecLookup {
 
         allIcons = scannerIconToSpec.keySet().stream()
                 .sorted(Comparator.comparing(i -> {
-                    var rl = ForgeRegistries.ITEMS.getKey(i);
-                    if (rl == null)
-                        throw new IllegalStateException("This never happens, but my IDE won't shut up about it");
-                    return rl;
+                    var k = ForgeRegistries.ITEMS.getKey(i);
+                    if (k == null) k = ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, "unknown");
+                    return k;
                 })).toList();
 
         allStructureKeys = scannerIconToSpec.values().stream()
@@ -52,6 +57,17 @@ public class DepositSpecLookup {
     public static ResourceKey<Structure> getStructureKey(RegistryAccess access, Item scannerIconItem) {
         if (scannerIconToSpec == null) build(access);
         return ResourceKey.create(Registries.STRUCTURE, scannerIconToSpec.get(scannerIconItem).structure());
+    }
+
+    public static MutableComponent getDepositName(RegistryAccess access, Item scannerIconItem) {
+        return getDepositName(getStructureKey(access, scannerIconItem));
+    }
+
+    public static MutableComponent getDepositName(ResourceKey<Structure> depKey) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) return Component.empty();
+        var dRL = depKey.location();
+        return Component.translatable(dRL.getNamespace() + ".structure." + dRL.getPath());
     }
 
     public static List<Item> getAllScannerIcons(RegistryAccess access) {

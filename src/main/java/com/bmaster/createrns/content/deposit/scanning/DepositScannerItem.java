@@ -1,7 +1,7 @@
 package com.bmaster.createrns.content.deposit.scanning;
 
 import com.bmaster.createrns.RNSItems;
-import com.bmaster.createrns.content.deposit.info.DepositLocation;
+import com.bmaster.createrns.content.deposit.info.ServerDepositLocation;
 import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.InteractionHand;
@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 @MethodsReturnNonnullByDefault
 public class DepositScannerItem extends Item {
     // This is also enforced on the server side
-    private static final int SCANNER_USE_COOLDOWN = DepositLocation.MIN_COMPUTE_INTERVAL + 10;
+    private static final int SCANNER_USE_COOLDOWN = ServerDepositLocation.MIN_COMPUTE_INTERVAL + 10;
 
     public DepositScannerItem(Properties pProperties) {
         super(pProperties);

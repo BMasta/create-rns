@@ -29,7 +29,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class StructureDepositLocation extends DepositLocation {
+public class StructureServerDepositLocation extends ServerDepositLocation {
     public static boolean hasStructureAtChunk(ServerLevel sl, ResourceKey<Structure> depKey, ChunkPos pos) {
         var chunkAccess = sl.getChunk(pos.x, pos.z, ChunkStatus.STRUCTURE_STARTS);
         var structure = sl.registryAccess().registryOrThrow(Registries.STRUCTURE).getOrThrow(depKey);
@@ -40,12 +40,12 @@ public class StructureDepositLocation extends DepositLocation {
     public static boolean isStructureAtChunkFound(ServerLevel sl, ResourceKey<Structure> depKey, ChunkPos pos) {
         var depData = IDepositIndex.get(sl);
         return depData.foundDeposits.stream()
-                .anyMatch(dl -> dl instanceof StructureDepositLocation
+                .anyMatch(dl -> dl instanceof StructureServerDepositLocation
                         && dl.getKey().equals(depKey)
                         && dl.getOrigin().equals(pos));
     }
 
-    public static @Nullable StructureDepositLocation getNearestStructure(
+    public static @Nullable StructureServerDepositLocation getNearestStructure(
             ServerLevel sl, Either<ResourceKey<Structure>, TagKey<Structure>> depResOrTag, BlockPos pos,
             boolean allowFound, int searchRadiusChunks
     ) {
@@ -57,7 +57,7 @@ public class StructureDepositLocation extends DepositLocation {
     }
 
     /// Find nearest structure using a structure key (single structure)
-    public static @Nullable StructureDepositLocation getNearestStructure(
+    public static @Nullable StructureServerDepositLocation getNearestStructure(
             ServerLevel sl, ResourceKey<Structure> depKey, BlockPos pos, boolean allowFound, int searchRadiusChunks
     ) {
         var gen = sl.getChunkSource().getGenerator();
@@ -76,11 +76,11 @@ public class StructureDepositLocation extends DepositLocation {
             }
         }
 
-        return (hit != null) ? new StructureDepositLocation(sl, depKey, new ChunkPos(hit.getFirst())) : null;
+        return (hit != null) ? new StructureServerDepositLocation(sl, depKey, new ChunkPos(hit.getFirst())) : null;
     }
 
     /// Find nearest structure using a tag
-    public static @Nullable StructureDepositLocation getNearestStructure(
+    public static @Nullable StructureServerDepositLocation getNearestStructure(
             ServerLevel sl, TagKey<Structure> depTag, BlockPos pos, boolean allowFound, int searchRadiusChunks
     ) {
         var lookup = sl.registryAccess().lookupOrThrow(Registries.STRUCTURE);
@@ -115,13 +115,14 @@ public class StructureDepositLocation extends DepositLocation {
         var s = hit.getSecond();
         if (s == null) return null;
         var depKey = reg.getResourceKey(s.get()).orElse(null);
-        return (depKey != null) ? new StructureDepositLocation(sl, depKey, new ChunkPos(hit.getFirst())) : null;
+        if (depKey == null) return null;
+        return new StructureServerDepositLocation(sl, depKey, new ChunkPos(hit.getFirst()));
     }
 
-    public static StructureDepositLocation of(ServerLevel sl, CompoundTag nbt) {
+    public static StructureServerDepositLocation of(ServerLevel sl, CompoundTag nbt) {
         var key = ResourceKey.create(Registries.STRUCTURE, ResourceLocation.parse(nbt.getString("id")));
         var origin = new ChunkPos(nbt.getLong("start_chunk"));
-        return new StructureDepositLocation(sl, key, origin);
+        return new StructureServerDepositLocation(sl, key, origin);
     }
 
     private static int getSpacing(ServerLevel sl, ResourceKey<Structure> key) {
@@ -165,7 +166,7 @@ public class StructureDepositLocation extends DepositLocation {
     protected @Nullable BlockPos center;
     protected @Nullable StructureStart start;
 
-    public StructureDepositLocation(ServerLevel sl, ResourceKey<Structure> key, ChunkPos structureStartPos) {
+    public StructureServerDepositLocation(ServerLevel sl, ResourceKey<Structure> key, ChunkPos structureStartPos) {
         super(key, structureStartPos);
         level = sl;
     }
