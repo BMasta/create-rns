@@ -5,6 +5,8 @@ import com.bmaster.createrns.RNSItems;
 import com.bmaster.createrns.RNSParticleTypes;
 import com.bmaster.createrns.compat.ponder.RNSPonderPlugin;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
+import com.bmaster.createrns.content.deposit.info.FoundDepositClientCache;
+import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsSnapshotC2SPayload;
 import com.bmaster.createrns.content.deposit.mining.MinerEffectsGenerator;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -26,6 +28,7 @@ import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.function.Supplier;
@@ -47,6 +50,11 @@ public class ClientEvents {
     }
 
     @SubscribeEvent
+    public static void onClientLogin(ClientPlayerNetworkEvent.LoggingIn e) {
+        PacketDistributor.sendToServer(FoundDepositsSnapshotC2SPayload.INSTANCE);
+    }
+
+    @SubscribeEvent
     public static void onLoadComplete(FMLLoadCompleteEvent event) {
         ModContainer rnsContainer = ModList.get()
                 .getModContainerById(CreateRNS.ID)
@@ -65,8 +73,8 @@ public class ClientEvents {
             var scrollDelta = e.getScrollDeltaY();
 
             // Scanner - sneaking
-            if (p.level().isClientSide() && p.isShiftKeyDown() && (mainItem.is(RNSItems.DEPOSIT_SCANNER_ITEM.get()) ||
-                    offItem.is(RNSItems.DEPOSIT_SCANNER_ITEM.get()))) {
+            if (p.level().isClientSide() && p.isShiftKeyDown() && (mainItem.is(RNSItems.DEPOSIT_SCANNER.get()) ||
+                    offItem.is(RNSItems.DEPOSIT_SCANNER.get()))) {
                 if (scrollDelta > 0) {
                     DepositScannerClientHandler.scrollUp();
                 } else if (scrollDelta < 0) {
@@ -79,6 +87,7 @@ public class ClientEvents {
 
     @SubscribeEvent
     public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut e) {
+        FoundDepositClientCache.clear();
         DepositScannerClientHandler.clearState();
         DepositClaimerOutlineRenderer.clearOutline();
         MinerEffectsGenerator.clearState();

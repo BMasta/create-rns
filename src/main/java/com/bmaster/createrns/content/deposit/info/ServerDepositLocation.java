@@ -2,6 +2,8 @@ package com.bmaster.createrns.content.deposit.info;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSMisc;
+import com.bmaster.createrns.content.deposit.info.sync.FoundDepositDeltaS2CPayload;
+import com.bmaster.createrns.content.deposit.info.sync.FoundDepositSyncEntry;
 import com.mojang.datafixers.util.Either;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -12,6 +14,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.structure.Structure;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -169,12 +172,16 @@ public abstract class ServerDepositLocation extends DepositLocation {
     public boolean setFound(ServerLevel sl, boolean val) {
         var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
 
-        // Already done
         if (depData.foundDeposits.contains(this) == val) return false;
 
         if (val) depData.foundDeposits.add(this);
         else depData.foundDeposits.remove(this);
 
+        // Notify clients of this change
+        PacketDistributor.sendToAllPlayers(new FoundDepositDeltaS2CPayload(
+                val ? FoundDepositDeltaS2CPayload.Operation.ADD : FoundDepositDeltaS2CPayload.Operation.REMOVE,
+                FoundDepositSyncEntry.of(sl.dimension(), this)
+        ));
         return true;
     }
 

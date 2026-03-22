@@ -1,6 +1,7 @@
 package com.bmaster.createrns.content.deposit.info;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsClearS2CPayload;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
@@ -14,11 +15,13 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.UnknownNullability;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.Set;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
@@ -49,6 +52,10 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
         return true;
     }
 
+    public Set<ServerDepositLocation> getFoundDeposits() {
+        return foundDeposits;
+    }
+
     public boolean removeCustomDeposit(CustomServerDepositLocation dep) {
         var set = customDeposits.get(dep.key.location());
         if (set == null) return false;
@@ -62,6 +69,7 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
             CreateRNS.LOGGER.debug("Forgot {} at {}", d.getKey().location(), d.getLocationStr());
         }
         foundDeposits.clear();
+        PacketDistributor.sendToAllPlayers(new FoundDepositsClearS2CPayload(level.dimension()));
     }
 
     @Override

@@ -3,6 +3,10 @@ package com.bmaster.createrns.event;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.RNSRecipes;
+import com.bmaster.createrns.content.deposit.info.sync.FoundDepositDeltaS2CPayload;
+import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsClearS2CPayload;
+import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsSnapshotC2SPayload;
+import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsSnapshotS2CPayload;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerC2SPayload;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerS2CPayload;
@@ -50,7 +54,7 @@ public class CommonEvents {
     @SubscribeEvent
     public static void onRegisterPayloadHandlers(final RegisterPayloadHandlersEvent event) {
         // set a network version string (optional but recommended)
-        PayloadRegistrar registrar = event.registrar("1");
+        PayloadRegistrar registrar = event.registrar("2");
 
         // Client->Server
         registrar.playToServer(
@@ -58,11 +62,32 @@ public class CommonEvents {
                 DepositScannerC2SPayload.STREAM_CODEC,
                 DepositScannerC2SPayload::handle
         );
+        registrar.playToServer(
+                FoundDepositsSnapshotC2SPayload.TYPE,
+                FoundDepositsSnapshotC2SPayload.STREAM_CODEC,
+                FoundDepositsSnapshotC2SPayload::handle
+        );
 
+        // Server->Client
         registrar.playToClient(
                 DepositScannerS2CPayload.TYPE,
                 DepositScannerS2CPayload.STREAM_CODEC,
                 DepositScannerS2CPayload::handle
+        );
+        registrar.playToClient(
+                FoundDepositsSnapshotS2CPayload.TYPE,
+                FoundDepositsSnapshotS2CPayload.STREAM_CODEC,
+                FoundDepositsSnapshotS2CPayload::handle
+        );
+        registrar.playToClient(
+                FoundDepositDeltaS2CPayload.TYPE,
+                FoundDepositDeltaS2CPayload.STREAM_CODEC,
+                FoundDepositDeltaS2CPayload::handle
+        );
+        registrar.playToClient(
+                FoundDepositsClearS2CPayload.TYPE,
+                FoundDepositsClearS2CPayload.STREAM_CODEC,
+                FoundDepositsClearS2CPayload::handle
         );
     }
 

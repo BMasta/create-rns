@@ -7,8 +7,8 @@
     "ChunkGeneratorMixin"
   ],
   "client": [
-    "client.xaero.GuiMapAccessor",
-    "client.xaero.GuiMapMixin"
+    "RNSXaeroFullscreenMapAccessor",
+    "RNSXaeroFullscreenMapMixin"
   ],
   "injectors": {
     "defaultRequire": 1

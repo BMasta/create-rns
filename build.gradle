@@ -120,20 +120,22 @@ configurations {
 
 dependencies {
     compileOnly("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
-    localRuntime("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
     compileOnly("maven.modrinth:jade:${project.jade_version}")
-    localRuntime("maven.modrinth:jade:${project.jade_version}")
     compileOnly("info.journeymap:journeymap-api-neoforge:${project.journeymap_api_version}")
-//    localRuntime("maven.modrinth:journeymap:${project.journeymap_version}")
-    compileOnly("xaero.minimap:xaerominimap-neoforge-${minecraft_version}:${project.xaero_minimap_version}")
-    localRuntime("xaero.minimap:xaerominimap-neoforge-${minecraft_version}:${project.xaero_minimap_version}")
-    localRuntime("xaero.map:xaeroworldmap-neoforge-${minecraft_version}:${project.xaero_worldmap_version}")
+    compileOnly("xaero.map:xaeroworldmap-neoforge-${minecraft_version}:${project.xaero_worldmap_version}")
 
     implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
-    implementation("net.createmod.ponder:Ponder-NeoForge-${minecraft_version}:${ponder_version}")
+    implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
     compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
     runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
     implementation("com.tterrag.registrate:Registrate:${registrate_version}")
+
+    localRuntime("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
+    localRuntime("maven.modrinth:jade:${project.jade_version}")
+
+//    localRuntime("maven.modrinth:journeymap:${project.journeymap_version}")
+    localRuntime("xaero.minimap:xaerominimap-neoforge-${minecraft_version}:${project.xaero_minimap_version}")
+    localRuntime("xaero.map:xaeroworldmap-neoforge-${minecraft_version}:${project.xaero_worldmap_version}")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
