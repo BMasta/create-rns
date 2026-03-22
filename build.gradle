@@ -21,6 +21,7 @@ repositories {
     maven { url = "https://maven.createmod.net" } // Create, Ponder, Flywheel
     maven { url = "https://maven.ithundxr.dev/snapshots" } // Registrate
     maven { url = "https://maven.blamejared.com" } // JEI
+    maven { url = "https://chocolateminecraft.com/maven" } // Xaero's Minimap / World Map
     maven { url = 'https://www.cursemaven.com' }
     maven { url = "https://api.modrinth.com/maven" } // Jade
 }
@@ -122,6 +123,11 @@ dependencies {
     localRuntime("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
     compileOnly("maven.modrinth:jade:${project.jade_version}")
     localRuntime("maven.modrinth:jade:${project.jade_version}")
+    compileOnly("info.journeymap:journeymap-api-neoforge:${project.journeymap_api_version}")
+//    localRuntime("maven.modrinth:journeymap:${project.journeymap_version}")
+    compileOnly("xaero.minimap:xaerominimap-neoforge-${minecraft_version}:${project.xaero_minimap_version}")
+    localRuntime("xaero.minimap:xaerominimap-neoforge-${minecraft_version}:${project.xaero_minimap_version}")
+    localRuntime("xaero.map:xaeroworldmap-neoforge-${minecraft_version}:${project.xaero_worldmap_version}")
 
     implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
     implementation("net.createmod.ponder:Ponder-NeoForge-${minecraft_version}:${ponder_version}")

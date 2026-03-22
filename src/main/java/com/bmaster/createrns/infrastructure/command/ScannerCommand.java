@@ -4,8 +4,8 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.RNSTags.RNSStructureTags;
 import com.bmaster.createrns.content.deposit.DepositBlock;
-import com.bmaster.createrns.content.deposit.info.CustomDepositLocation;
-import com.bmaster.createrns.content.deposit.info.DepositLocation;
+import com.bmaster.createrns.content.deposit.info.CustomServerDepositLocation;
+import com.bmaster.createrns.content.deposit.info.ServerDepositLocation;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -229,7 +229,7 @@ public class ScannerCommand {
                 var center = BoundingBox.encapsulatingPositions(vein.keySet()).orElseThrow().getCenter();
                 if (isAdd) {
                     var depKey = getDepositResourceKeyFromArg(ctx, "structure");
-                    var isAdded = depData.addCustomDeposit(new CustomDepositLocation(depKey, center));
+                    var isAdded = depData.addCustomDeposit(new CustomServerDepositLocation(depKey, center));
                     if (!isAdded) {
                         src.sendFailure(F_OCCUPIED.get());
                         return 0;
@@ -241,7 +241,7 @@ public class ScannerCommand {
                 var pos = BlockPosArgument.getLoadedBlockPos(ctx, "target_position");
                 if (isAdd) {
                     var depKey = getDepositResourceKeyFromArg(ctx, "structure");
-                    var isAdded = depData.addCustomDeposit(new CustomDepositLocation(depKey, pos));
+                    var isAdded = depData.addCustomDeposit(new CustomServerDepositLocation(depKey, pos));
                     if (!isAdded) {
                         src.sendFailure(F_OCCUPIED.get());
                         return 0;
@@ -249,7 +249,7 @@ public class ScannerCommand {
                     src.sendSuccess(() -> S_ADD_RM.apply(
                             depKey.location(), bracketedCoords(pos, false), true), true);
                 } else {
-                    var closestCustom = CustomDepositLocation.getNearestCustom(sl, pos, true, 1);
+                    var closestCustom = CustomServerDepositLocation.getNearestCustom(sl, pos, true, 1);
                     if (closestCustom == null) {
                         src.sendFailure(F_NOT_FOUND_IN_CHUNK.apply("Target"));
                         return 0;
@@ -272,7 +272,7 @@ public class ScannerCommand {
             var src = ctx.getSource();
             var sl = src.getLevel();
             var pos = BlockPosArgument.getLoadedBlockPos(ctx, "target_position");
-            var dep = DepositLocation.getNearest(sl, RNSStructureTags.DEPOSITS, pos, true, 1);
+            var dep = ServerDepositLocation.getNearest(sl, RNSStructureTags.DEPOSITS, pos, true, 1);
             if (dep == null) {
                 src.sendFailure(F_NOT_FOUND_IN_CHUNK.apply(RNSStructureTags.DEPOSITS.location()));
                 return 0;
@@ -296,11 +296,10 @@ public class ScannerCommand {
                 return SINGLE_SUCCESS;
             }
 
-            var depKey = getDepositResourceKeyFromArg(ctx, "structure");
             var pos = BlockPosArgument.getLoadedBlockPos(ctx, "target_position");
-            var dep = DepositLocation.getNearest(sl, depKey, pos, true, 1);
+            var dep = ServerDepositLocation.getNearest(sl, RNSStructureTags.DEPOSITS, pos, true, 1);
             if (dep == null) {
-                src.sendFailure(F_NOT_FOUND_IN_CHUNK.apply(depKey.location()));
+                src.sendFailure(F_NOT_FOUND_IN_CHUNK.apply(RNSStructureTags.DEPOSITS.location()));
                 return 0;
             }
 
@@ -332,7 +331,7 @@ public class ScannerCommand {
             var pos = entity.blockPosition();
             var resOrTag = getDepositKeyFromArg(ctx, "structure");
 
-            var nearest = DepositLocation.getNearest(sl, resOrTag, pos, !undiscovered, searchRadiusChunks);
+            var nearest = ServerDepositLocation.getNearest(sl, resOrTag, pos, !undiscovered, searchRadiusChunks);
             if (nearest == null) {
                 // Use structure ID provided by the argument
                 src.sendFailure(F_NOT_FOUND_IN_X_CHUNKS.apply(getIdFromResOrTag(resOrTag), searchRadiusChunks));
@@ -366,7 +365,7 @@ public class ScannerCommand {
                 return 0;
             }
 
-            var nearestAny = DepositLocation.getNearest(sl, RNSStructureTags.DEPOSITS, pos, true, searchRadiusChunks);
+            var nearestAny = ServerDepositLocation.getNearest(sl, RNSStructureTags.DEPOSITS, pos, true, searchRadiusChunks);
             if (nearestAny == null) {
                 src.sendFailure(F_NOT_FOUND_IN_X_CHUNKS.apply(RNSStructureTags.DEPOSITS.location(), searchRadiusChunks));
             } else {
@@ -383,7 +382,7 @@ public class ScannerCommand {
 
             int distSum = 0;
             for (var depKey : depKeys) {
-                var nearest = DepositLocation.getNearest(sl, depKey, pos, true, searchRadiusChunks);
+                var nearest = ServerDepositLocation.getNearest(sl, depKey, pos, true, searchRadiusChunks);
                 if (nearest == null) {
                     src.sendFailure(F_NOT_FOUND_IN_X_CHUNKS.apply(depKey.location(), searchRadiusChunks));
                 } else {

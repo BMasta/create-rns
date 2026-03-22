@@ -26,13 +26,13 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
     protected final ServerLevel level;
 
     // Serializable
-    protected final ObjectOpenHashSet<DepositLocation> foundDeposits = new ObjectOpenHashSet<>();
-    protected final Object2ObjectOpenHashMap<ResourceLocation, ObjectOpenHashSet<CustomDepositLocation>> customDeposits =
+    protected final ObjectOpenHashSet<ServerDepositLocation> foundDeposits = new ObjectOpenHashSet<>();
+    protected final Object2ObjectOpenHashMap<ResourceLocation, ObjectOpenHashSet<CustomServerDepositLocation>> customDeposits =
             new Object2ObjectOpenHashMap<>();
     protected final Object2LongOpenHashMap<BlockPos> depositDurabilities = new Object2LongOpenHashMap<>();
 
     // In-memory
-    protected final Cache<UUID, DepositLocation.CachedData> perPlayerCache = CacheBuilder.newBuilder()
+    protected final Cache<UUID, ServerDepositLocation.CachedData> perPlayerCache = CacheBuilder.newBuilder()
             .initialCapacity(1)
             .expireAfterAccess(10, TimeUnit.MINUTES)
             .build();
@@ -41,15 +41,15 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
         this.level = level;
     }
 
-    public boolean addCustomDeposit(CustomDepositLocation dep) {
-        if (StructureDepositLocation.hasStructureAtChunk(level, dep.key, dep.origin)) return false;
+    public boolean addCustomDeposit(CustomServerDepositLocation dep) {
+        if (StructureServerDepositLocation.hasStructureAtChunk(level, dep.key, dep.origin)) return false;
         var depSet = customDeposits.computeIfAbsent(dep.key.location(), k -> new ObjectOpenHashSet<>());
         if (depSet.contains(dep)) return false;
         depSet.add(dep);
         return true;
     }
 
-    public boolean removeCustomDeposit(CustomDepositLocation dep) {
+    public boolean removeCustomDeposit(CustomServerDepositLocation dep) {
         var set = customDeposits.get(dep.key.location());
         if (set == null) return false;
         boolean result = set.remove(dep);
@@ -104,7 +104,7 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
         foundDeposits.clear();
         if (nbt.get("found") instanceof ListTag foundTag) {
             for (var dlTag : foundTag) {
-                foundDeposits.add(DepositLocation.of(level, (CompoundTag) dlTag));
+                foundDeposits.add(ServerDepositLocation.of(level, (CompoundTag) dlTag));
             }
             CreateRNS.LOGGER.trace("Deserialized found deposits to {}", foundDeposits);
         } else {
@@ -115,9 +115,9 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
         if (nbt.get("custom") instanceof CompoundTag customTag) {
             for (var id : customTag.getAllKeys()) {
                 var rl = ResourceLocation.parse(id);
-                var customPerType = new ObjectOpenHashSet<CustomDepositLocation>();
+                var customPerType = new ObjectOpenHashSet<CustomServerDepositLocation>();
                 for (var dlTag : customTag.getList(id, CompoundTag.TAG_COMPOUND)) {
-                    customPerType.add(CustomDepositLocation.of(level, (CompoundTag) dlTag));
+                    customPerType.add(CustomServerDepositLocation.of(level, (CompoundTag) dlTag));
                 }
                 customDeposits.put(rl, customPerType);
             }

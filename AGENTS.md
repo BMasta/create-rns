@@ -20,16 +20,19 @@ The current catalysts are:
 
 All versions are defined in `gradle.properties`. Java version is 21.
 
-| Dependency | Type | Version Property     | Role                                                                          |
-|------------|------|----------------------|-------------------------------------------------------------------------------|
-| Minecraft  | Hard | `minecraft_version`  | Base game (1.21.1)                                                            |
-| NeoForge   | Hard | `neo_version`        | Mod loader                                                                    |
-| Create     | Hard | `create_version`     | Parent mod this is an addon for                                               |
-| Flywheel   | Hard | `flywheel_version`   | Rendering engine (transitive via Create)                                      |
-| Registrate | Hard | `registrate_version` | Content registration framework                                                |
-| Ponder     | Hard | `ponder_version`     | In-game tutorial system                                                       |
-| JEI        | Soft | `jei_version`        | Recipe viewer; mod provides a JEI plugin for mining recipes and catalyst info |
-| Jade       | Soft | `jade_version`       | Tooltip overlay; mod provides a plugin showing remaining deposit resources    |
+| Dependency        | Type | Version Property         | Role                                                                          |
+|-------------------|------|--------------------------|-------------------------------------------------------------------------------|
+| Minecraft         | Hard | `minecraft_version`      | Base game (1.21.1)                                                            |
+| NeoForge          | Hard | `neo_version`            | Mod loader                                                                    |
+| Create            | Hard | `create_version`         | Parent mod this is an addon for                                               |
+| Flywheel          | Hard | `flywheel_version`       | Rendering engine (transitive via Create)                                      |
+| Registrate        | Hard | `registrate_version`     | Content registration framework                                                |
+| Ponder            | Hard | `ponder_version`         | In-game tutorial system                                                       |
+| JEI               | Soft | `jei_version`            | Recipe viewer; mod provides a JEI plugin for mining recipes and catalyst info |
+| Jade              | Soft | `jade_version`           | Tooltip overlay; mod provides a plugin showing remaining deposit resources    |
+| JourneyMap API    | Soft | `journeymap_api_version` | Optional client waypoint integration surface used for deposit markers         |
+| Xaero's Minimap   | Soft | `xaero_minimap_version`  | Optional client waypoint integration surface used for deposit markers         |
+| Xaero's World Map | Soft | `xaero_worldmap_version` | Optional client map UI that displays Xaero waypoint data                      |
 
 ## Coding Style Guidelines
 * Preferred line length is 120 characters.
@@ -79,7 +82,8 @@ All versions are defined in `gradle.properties`. Java version is 21.
 * Data-driven design: catalysts, deposit specs, and miner specs are defined as JSON datapack registry entries, not hardcoded. This makes them extensible by modpacks without code changes.
 * In-memory pack outputs can be inspected via the Gradle task `dumpDynamicDatapacks`, which writes generated pack files to `src/generated/builtin_packs`.
 * Targeted vanilla integration points may be implemented via Mixins declared in `${mod_id}.mixins.json` when no stable mod API hook exists.
-* Compat plugins (JEI, Jade) live in a `compat/` package and are conditionally loaded when the respective mod is present.
+* Compat plugins (JEI, Jade, optional Xaero and JourneyMap map integrations) live in a `compat/` package and are conditionally loaded when the respective mod is present.
+* Xaero World Map overlay experiments use client-only pseudo-mixins targeting `xaero.map.gui.GuiMap`, because Xaero World Map does not expose a stable public overlay hook for custom renderers.
 * Translation keys follow `create_rns.<category>.<key>` for mod content and the standard Minecraft pattern (`block.create_rns.*`, `item.create_rns.*`) for blocks/items.
 * When creating translatable components for mod-owned keys (`create_rns.*`), prefer `CreateRNS.translatable(...)` over direct `Component.translatable(...)` calls.
 * Releases are published through the manual GitHub Actions workflow (`.github/workflows/release.yml`).

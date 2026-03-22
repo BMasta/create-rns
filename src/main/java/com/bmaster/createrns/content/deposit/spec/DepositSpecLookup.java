@@ -1,9 +1,13 @@
 package com.bmaster.createrns.content.deposit.spec;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.levelgen.structure.Structure;
@@ -37,12 +41,7 @@ public class DepositSpecLookup {
         });
 
         allIcons = scannerIconToSpec.keySet().stream()
-                .sorted(Comparator.comparing(i -> {
-                    var rl = BuiltInRegistries.ITEM.getKeyOrNull(i);
-                    if (rl == null)
-                        throw new IllegalStateException("This never happens, but my IDE won't shut up about it");
-                    return rl;
-                })).toList();
+                .sorted(Comparator.comparing(BuiltInRegistries.ITEM::getKey)).toList();
 
         allStructureKeys = scannerIconToSpec.values().stream()
                 .map(hs -> ResourceKey.create(Registries.STRUCTURE, hs.structure()))
@@ -52,6 +51,17 @@ public class DepositSpecLookup {
     public static ResourceKey<Structure> getStructureKey(RegistryAccess access, Item scannerIconItem) {
         if (scannerIconToSpec == null) build(access);
         return ResourceKey.create(Registries.STRUCTURE, scannerIconToSpec.get(scannerIconItem).structure());
+    }
+
+    public static MutableComponent getDepositName(RegistryAccess access, Item scannerIconItem) {
+        return getDepositName(getStructureKey(access, scannerIconItem));
+    }
+
+    public static MutableComponent getDepositName(ResourceKey<Structure> depKey) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) return Component.empty();
+        var dRL = depKey.location();
+        return Component.translatable(dRL.getNamespace() + ".structure." + dRL.getPath());
     }
 
     public static List<Item> getAllScannerIcons(RegistryAccess access) {

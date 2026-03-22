@@ -6,6 +6,10 @@
   "mixins": [
     "ChunkGeneratorMixin"
   ],
+  "client": [
+    "client.xaero.GuiMapAccessor",
+    "client.xaero.GuiMapMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }

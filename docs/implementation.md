@@ -104,3 +104,30 @@
 * Data and assets: automation is code-defined in workflow YAML, mutates `gradle.properties`, and publishes the assembled jar artifact.
 * Maintenance invariant: `mod_version` must remain defined in `gradle.properties` as a single `key=value` line for automated updates to remain stable.
 * Maintenance invariant: Gradle packaging must continue to produce `build/libs/create_rns-<mod_version>.jar` for release upload to succeed.
+
+## Client Map Waypoint Compat (Deposit Discovery Markers)
+* Player perspective: when scanner tracking completes discovery, supported client map mods create a waypoint at the player's discovery position.
+* Player perspective: the marker name matches the discovered deposit type, so players can treat it as a field note for where they first confirmed that deposit.
+* Edge behavior: the marker is placed at the discovery spot, not at the deposit structure center, so it reflects where the player stood when discovery completed.
+* Core behavior: waypoint creation is driven from the client-side scanner found-state transition, after the authoritative server discovery flow has already marked the deposit as found.
+* Core behavior: the shared compat entrypoint fans out to every supported installed map integration, so clients with both Xaero and JourneyMap receive markers in both systems.
+* Core behavior: JourneyMap markers are stored under create-rns ownership and replace an existing marker for the same deposit type at the same position instead of stacking duplicates.
+* Edge behavior: Xaero markers are written into the currently active waypoint set, so switching sets later can hide them even though they remain saved in Xaero data.
+* System interaction: the compat code is optional and must only execute when the corresponding map mod is present on the client.
+* System interaction: scanner discovery packets remain the only gameplay authority; map mods only mirror the local client's discovery result and are not used for sync.
+* Data and assets: the feature is code-defined only; it adds no datapack fields and no generated assets.
+* Maintenance invariant: compat entrypoints exposed outside the package should stay free of direct JourneyMap and Xaero types so the mod can load safely without either mod installed.
+* Known limitation: markers are still client-local discovery notes, so other players do not receive them automatically and previously found deposits only appear after each client discovers them.
+
+## Xaero World Map Overlay Prototype
+* Player perspective: when Xaero World Map is installed, opening the fullscreen world map renders two test markers anchored in map space near the player's current position.
+* Player perspective: the prototype renders one marker from a normal PNG texture and one marker from a Unicode glyph, so both rendering paths can be evaluated visually on the map UI.
+* Edge behavior: the test markers are client-only debug visuals and do not create Xaero waypoints, persist across sessions, or synchronize to other players.
+* Core behavior: the overlay hooks the Xaero fullscreen map screen through a client-only pseudo-mixin and projects world coordinates into Gui coordinates using Xaero's current camera position and zoom state.
+* Core behavior: actual marker drawing is isolated in a renderer helper so the Xaero hook only supplies map transform context and screen dimensions.
+* Edge behavior: the prototype assumes the viewed map dimension matches the local player's current dimension; if the user browses a different dimension, the debug markers are not intended to remain meaningful.
+* System interaction: the overlay is optional and only activates when Xaero World Map is present on the client runtime.
+* System interaction: the prototype reuses an existing deposit texture asset for the PNG marker and Minecraft font rendering for the Unicode marker.
+* Data and assets: the feature is code-defined and reuses existing texture assets; it adds no datapack fields and no generated resources.
+* Maintenance invariant: the compat package should remain decoupled from direct Xaero classes, with Xaero-specific field access isolated to pseudo-mixin accessors.
+* Known limitation: the prototype is a rendering experiment only and is not yet wired to discovered deposit data or client/server sync.

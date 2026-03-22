@@ -22,8 +22,8 @@ import java.util.stream.Stream;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class CustomDepositLocation extends DepositLocation {
-    public static @Nullable CustomDepositLocation getNearestCustom(
+public class CustomServerDepositLocation extends ServerDepositLocation {
+    public static @Nullable CustomServerDepositLocation getNearestCustom(
             ServerLevel sl, BlockPos pos,
             boolean allowFound, int searchRadiusChunks
     ) {
@@ -32,7 +32,7 @@ public class CustomDepositLocation extends DepositLocation {
                 pos, allowFound, searchRadiusChunks);
     }
 
-    public static @Nullable DepositLocation getNearestCustom(
+    public static @Nullable ServerDepositLocation getNearestCustom(
             ServerLevel sl, Either<ResourceKey<Structure>, TagKey<Structure>> depResOrTag, BlockPos pos,
             boolean allowFound, int searchRadiusChunks
     ) {
@@ -43,7 +43,7 @@ public class CustomDepositLocation extends DepositLocation {
         return getNearestCustom(sl, tag, pos, allowFound, searchRadiusChunks);
     }
 
-    public static @Nullable CustomDepositLocation getNearestCustom(
+    public static @Nullable CustomServerDepositLocation getNearestCustom(
             ServerLevel sl, ResourceKey<Structure> key, BlockPos pos,
             boolean allowFound, int searchRadiusChunks
     ) {
@@ -54,7 +54,7 @@ public class CustomDepositLocation extends DepositLocation {
         return getNearestCustom(sl, depSet.stream(), pos, allowFound, searchRadiusChunks);
     }
 
-    public static @Nullable DepositLocation getNearestCustom(
+    public static @Nullable ServerDepositLocation getNearestCustom(
             ServerLevel sl, TagKey<Structure> depTag, BlockPos pos,
             boolean allowFound, int searchRadiusChunks
     ) {
@@ -66,7 +66,7 @@ public class CustomDepositLocation extends DepositLocation {
                 .toList();
 
         double shortestDist = Float.MAX_VALUE;
-        DepositLocation nearest = null;
+        ServerDepositLocation nearest = null;
         for (var k : depKeys) {
             var nearestOfType = getNearestCustom(sl, k, pos, allowFound, searchRadiusChunks);
             if (nearestOfType == null) continue;
@@ -80,8 +80,8 @@ public class CustomDepositLocation extends DepositLocation {
         return nearest;
     }
 
-    private static @Nullable CustomDepositLocation getNearestCustom(
-            ServerLevel sl, Stream<CustomDepositLocation> locStream, BlockPos pos,
+    private static @Nullable CustomServerDepositLocation getNearestCustom(
+            ServerLevel sl, Stream<CustomServerDepositLocation> locStream, BlockPos pos,
             boolean allowFound, int searchRadiusChunks
     ) {
         var result = locStream
@@ -96,15 +96,15 @@ public class CustomDepositLocation extends DepositLocation {
         return result;
     }
 
-    public static CustomDepositLocation of(ServerLevel sl, CompoundTag nbt) {
+    public static CustomServerDepositLocation of(ServerLevel sl, CompoundTag nbt) {
         var key = ResourceKey.create(Registries.STRUCTURE, ResourceLocation.parse(nbt.getString("id")));
         var location = BlockPos.of(nbt.getLong("location"));
-        return new CustomDepositLocation(key, location);
+        return new CustomServerDepositLocation(key, location);
     }
 
     protected BlockPos location;
 
-    public CustomDepositLocation(ResourceKey<Structure> key, BlockPos pos) {
+    public CustomServerDepositLocation(ResourceKey<Structure> key, BlockPos pos) {
         super(key, new ChunkPos(pos));
         location = pos;
     }

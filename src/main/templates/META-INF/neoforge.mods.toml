@@ -93,6 +93,13 @@ versionRange = "[6.0.2,)"
 ordering = "AFTER"
 side = "BOTH"
 
+[[dependencies.${mod_id}]]
+modId = "journeymap"
+type = "optional"
+versionRange = "[0,)"
+ordering = "AFTER"
+side = "CLIENT"
+
 #[[dependencies.${mod_id}]]
 #modId = "jei"
 #type="optional"
