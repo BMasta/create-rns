@@ -78,6 +78,7 @@
   "create_rns.jei.for_group": "(group)",
   "create_rns.jei.for_item": "(item)",
   "create_rns.recipe.mining": "Mining",
+  "create_rns.map.toggle": "Deposit overlay",
   "create_rns.structure.deposit_iron": "Iron Deposit",
   "create_rns.structure.deposit_copper": "Copper Deposit",
   "create_rns.structure.deposit_zinc": "Zinc Deposit",

@@ -5,7 +5,7 @@ This document covers what parts of Create: Rock & Stone are datapack-driven and 
 ## What You Can Override
 * Mining recipes (mining rewards, resource uses for finite deposits, what to replace with when depleted, how recipe is displayed in JEI).
 * Catalysts (custom requirements for mining certain kinds of items from a deposit).
-* Deposit world generation (spawn rate, structure nbt, deposit scanner icon)
+* Deposit world generation (spawn rate, structure nbt, deposit scanner icon, map overlay icon)
 
 ## Default Configuration
 
@@ -145,6 +145,9 @@ Path: `data/your_pack/create_rns/deposit_spec/tin.json`
   // Used when selecting a Deposit Scanner target.
   // Lang entry your_pack.structure.deposit_tin is used as a structure name.
   "scanner_icon_item": "your_pack:raw_tin",
+  // Optional (defaults to scanner_icon_item).
+  // Defines which item icon is rendered on supported map overlays for found deposits.
+  "map_icon_item": "your_pack:raw_tin",
   "structure": "your_pack:deposit_tin"
 }
 ```

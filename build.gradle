@@ -35,8 +35,8 @@ minecraft {
 
     // When true, this property will have all Eclipse/IntelliJ IDEA run configurations run the "prepareX" task for the given run configuration before launching the game.
     // In most cases, it is not necessary to enable.
-    // enableEclipsePrepareRuns = true
-    // enableIdeaPrepareRuns = true
+    enableEclipsePrepareRuns = true
+    enableIdeaPrepareRuns = true
 
     // This property allows configuring Gradle's ProcessResources task(s) to run on IDE output locations before launching the game.
     // It is REQUIRED to be set to true for this template to function.
@@ -149,11 +149,15 @@ dependencies {
     compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.4.1"))
     implementation("io.github.llamalad7:mixinextras-forge:0.4.1")
 
-    compileOnly(fg.deobf("curse.maven:journeymap-${project.journeymap_api_version}"))
-//    runtimeOnly("maven.modrinth:journeymap:${project.journeymap_version}")
-    compileOnly("xaero.minimap:xaerominimap-forge-${minecraft_version}:${project.xaero_minimap_version}")
-    runtimeOnly("xaero.minimap:xaerominimap-forge-${minecraft_version}:${project.xaero_minimap_version}")
-    runtimeOnly("xaero.map:xaeroworldmap-forge-${minecraft_version}:${project.xaero_worldmap_version}")
+    compileOnly(fg.deobf("curse.maven:journeymap-${project.journeymap_version}"))
+    compileOnly(fg.deobf("xaero.lib:xaerolib-forge-${minecraft_version}:${project.xaero_lib_version}"))
+    compileOnly(fg.deobf("xaero.minimap:xaerominimap-forge-${minecraft_version}:${project.xaero_minimap_version}"))
+    compileOnly(fg.deobf("xaero.map:xaeroworldmap-forge-${minecraft_version}:${project.xaero_worldmap_version}"))
+
+//    runtimeOnly(fg.deobf("curse.maven:journeymap-${project.journeymap_version}"))
+    runtimeOnly(fg.deobf("xaero.lib:xaerolib-forge-${minecraft_version}:${project.xaero_lib_version}"))
+    runtimeOnly(fg.deobf("xaero.minimap:xaerominimap-forge-${minecraft_version}:${project.xaero_minimap_version}"))
+    runtimeOnly(fg.deobf("xaero.map:xaeroworldmap-forge-${minecraft_version}:${project.xaero_worldmap_version}"))
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
@@ -163,17 +167,34 @@ dependencies {
 tasks.named('processResources', ProcessResources).configure {
     duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
     var replaceProperties = [
-            minecraft_version: minecraft_version, minecraft_version_range: minecraft_version_range,
-            forge_version: forge_version, forge_version_range: forge_version_range,
-            loader_version_range: loader_version_range,
-            mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
-            mod_authors: mod_authors, mod_description: mod_description,
+            minecraft_version       : minecraft_version,
+            minecraft_version_range : minecraft_version_range,
+            forge_version           : forge_version,
+            forge_version_range     : forge_version_range,
+            loader_version_range    : loader_version_range,
+            jei_version             : jei_version,
+            mod_id                  : mod_id,
+            mod_name                : mod_name,
+            mod_license             : mod_license,
+            mod_version             : mod_version,
+            mod_authors             : mod_authors,
+            mod_description         : mod_description,
     ]
     inputs.properties replaceProperties
 
     filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
         expand replaceProperties + [project: project]
     }
+}
+
+tasks.register('copyMainResourcesToClasses', Copy) {
+    dependsOn tasks.named('processResources')
+    from layout.buildDirectory.dir('resources/main')
+    into layout.buildDirectory.dir('classes/java/main')
+}
+
+tasks.named('classes').configure {
+    dependsOn tasks.named('copyMainResourcesToClasses')
 }
 
 def dynamicDatapackDumpDir = layout.projectDirectory.dir("src/generated/builtin_packs")

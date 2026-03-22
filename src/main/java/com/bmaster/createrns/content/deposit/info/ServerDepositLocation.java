@@ -1,6 +1,8 @@
 package com.bmaster.createrns.content.deposit.info;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.content.deposit.info.sync.FoundDepositDeltaS2CPacket;
+import com.bmaster.createrns.content.deposit.info.sync.FoundDepositSyncEntry;
 import com.mojang.datafixers.util.Either;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -168,12 +170,16 @@ public abstract class ServerDepositLocation extends DepositLocation {
     public boolean setFound(ServerLevel sl, boolean val) {
         var depData = IDepositIndex.get(sl);
 
-        // Already done
         if (depData.foundDeposits.contains(this) == val) return false;
 
         if (val) depData.foundDeposits.add(this);
         else depData.foundDeposits.remove(this);
 
+        // Notify clients of this change
+        FoundDepositDeltaS2CPacket.sendToAll(sl.getServer(),
+                val ? FoundDepositDeltaS2CPacket.Operation.ADD : FoundDepositDeltaS2CPacket.Operation.REMOVE,
+                FoundDepositSyncEntry.of(sl.dimension(), this)
+        );
         return true;
     }
 

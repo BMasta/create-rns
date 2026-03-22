@@ -61,7 +61,7 @@
 * System interaction: scanner discovery can run under a scanner-only locate context consumed by a `ChunkGenerator` mixin hook, allowing
   structure candidates to be filtered (for example, already found deposits) without changing vanilla locate traversal order.
 * System interaction: scanner structure-search region radius is inferred from the structure set spacing value computed on server startup from the loaded deposit structure-set placement.
-* Data and assets: target types are data-driven via `deposit_spec` datapack entries (`scanner_icon_item` -> `structure`), not hardcoded.
+* Data and assets: target types are data-driven via `deposit_spec` datapack entries (`scanner_icon_item`, optional `map_icon_item`, and `structure`), not hardcoded.
 * Data and assets: scanner visuals/sounds are client assets; authoritative target selection and found-state mutation are server-side.
 * Maintenance invariant: tracking depends on a prior discovery cache entry and should remain cheap (no structure search per ping).
 * Known limitation: request handling assumes selected scanner icon maps to a valid deposit spec; invalid icon payloads are not defensively handled.
@@ -119,15 +119,51 @@
 * Maintenance invariant: compat entrypoints exposed outside the package should stay free of direct JourneyMap and Xaero types so the mod can load safely without either mod installed.
 * Known limitation: markers are still client-local discovery notes, so other players do not receive them automatically and previously found deposits only appear after each client discovers them.
 
-## Xaero World Map Overlay Prototype
-* Player perspective: when Xaero World Map is installed, opening the fullscreen world map renders two test markers anchored in map space near the player's current position.
-* Player perspective: the prototype renders one marker from a normal PNG texture and one marker from a Unicode glyph, so both rendering paths can be evaluated visually on the map UI.
-* Edge behavior: the test markers are client-only debug visuals and do not create Xaero waypoints, persist across sessions, or synchronize to other players.
+## Xaero World Map Overlay
+* Player perspective: when Xaero World Map is installed, opening the fullscreen world map renders icons for found deposits from the synchronized client cache.
+* Player perspective: each rendered deposit uses the item configured by that deposit type's `deposit_spec`, so different deposits can present different map icons without code changes.
+* Player perspective: a top-left toggle widget can temporarily disable deposit rendering on the map without affecting the synchronized cache.
+* Edge behavior: deposits only appear after the client has received the authoritative found-deposit sync from the server; opening the map earlier simply shows fewer or no markers until the cache fills.
 * Core behavior: the overlay hooks the Xaero fullscreen map screen through a client-only pseudo-mixin and projects world coordinates into Gui coordinates using Xaero's current camera position and zoom state.
-* Core behavior: actual marker drawing is isolated in a renderer helper so the Xaero hook only supplies map transform context and screen dimensions.
-* Edge behavior: the prototype assumes the viewed map dimension matches the local player's current dimension; if the user browses a different dimension, the debug markers are not intended to remain meaningful.
+* Core behavior: each render pass reads the current-dimension found deposits from `FoundDepositClientCache`, resolves the deposit's configured map item through `DepositSpecLookup`, and renders that item at the synced deposit location.
+* Edge behavior: the overlay currently filters by the local player's current dimension; if the map UI is browsing another dimension, markers are not yet remapped to that viewed dimension.
 * System interaction: the overlay is optional and only activates when Xaero World Map is present on the client runtime.
-* System interaction: the prototype reuses an existing deposit texture asset for the PNG marker and Minecraft font rendering for the Unicode marker.
-* Data and assets: the feature is code-defined and reuses existing texture assets; it adds no datapack fields and no generated resources.
+* System interaction: the toggle widget currently reuses Create's train-map toggle textures as placeholders and flips a shared client-only overlay-enabled flag used by both fullscreen map integrations.
+* System interaction: on Xaero, deposit markers render in the map layer while the deposit toggle renders in a later screen-space phase so markers stay behind top-left toggle widgets and other late UI.
+* System interaction: overlay rendering is read-only and consumes the same cache populated by snapshot/delta sync, so it stays decoupled from scanner audiovisual logic.
+* Data and assets: the feature is code-defined and uses datapack-provided `deposit_spec.map_icon_item` values for marker appearance; it adds no generated resources.
 * Maintenance invariant: the compat package should remain decoupled from direct Xaero classes, with Xaero-specific field access isolated to pseudo-mixin accessors.
-* Known limitation: the prototype is a rendering experiment only and is not yet wired to discovered deposit data or client/server sync.
+* Known limitation: the Xaero fullscreen hook still assumes the viewed dimension matches the local player's dimension because Xaero does not expose a stable viewed-dimension accessor through the current pseudo-mixin path.
+
+## JourneyMap Fullscreen Overlay
+* Player perspective: when JourneyMap is installed, the fullscreen map renders icons for found deposits from the synchronized client cache.
+* Player perspective: markers appear in the dimension JourneyMap is currently displaying, so browsing another synced dimension shows that dimension's found deposits rather than the player's current one.
+* Player perspective: the same top-left toggle widget used on Xaero can temporarily disable JourneyMap deposit rendering without mutating synced state.
+* Edge behavior: if the client cache has not been filled yet, JourneyMap opens normally and simply shows no deposit markers until sync arrives.
+* Core behavior: the compat layer is implemented as a JourneyMap client plugin that subscribes to JourneyMap's fullscreen render event.
+* Core behavior: the plugin translates JourneyMap fullscreen camera and zoom state into the shared `RNSMapRenderer` context and reuses the same cache-backed marker renderer as Xaero.
+* System interaction: the JourneyMap hook is optional and only activates when JourneyMap is present on the client runtime.
+* System interaction: the plugin also subscribes to JourneyMap fullscreen click events so the shared overlay toggle can consume clicks before the map handles them.
+* System interaction: marker content still comes from `FoundDepositClientCache` plus `deposit_spec.map_icon_item`, so JourneyMap does not own any separate discovery or sync state.
+* Data and assets: the feature is code-defined and reuses the same datapack-driven icon selection as other map overlays.
+* Maintenance invariant: JourneyMap-specific API types should stay isolated inside the compat package so the mod can load safely without JourneyMap installed.
+* Known limitation: this path currently targets JourneyMap fullscreen rendering only; minimap integration remains separate work.
+
+## Found Deposit Map Sync Cache, Snapshot Bootstrap, and Deltas
+* Player perspective: this phase still adds no direct new map UI yet, but reconnecting to a server now restores the local found-deposit cache automatically before any new discoveries happen in that session.
+* Player perspective: maps and overlays are expected to open immediately even if the snapshot has not arrived yet; they should render from the current cache contents without waiting on network traffic.
+* Player perspective: leaving a world or server clears the local found-deposit cache so stale overlay state does not leak into the next session.
+* Core behavior: found-deposit map sync has dedicated payload types for snapshot request, snapshot response, and incremental add/remove deltas.
+* Core behavior: the client sends one snapshot request when it logs into a world/server, and the server responds with the current authoritative found-deposit set from all server dimensions.
+* Core behavior: snapshot entries carry dimension, deposit structure identity, origin chunk, and render position so clients can reconstruct `ClientDepositLocation` values without server-only classes.
+* Core behavior: the client cache stores found deposits grouped by dimension and supports full replacement, incremental add, incremental remove, and full clear operations.
+* Core behavior: once the cache is bootstrapped, authoritative found-state mutations immediately push one add/remove delta to all connected clients instead of waiting for reconnect.
+* Edge behavior: snapshot bootstrap replaces the whole cache at once, so stale entries from a previous session or partial local state are discarded when the authoritative response arrives.
+* Edge behavior: cache identity is based on deposit structure key plus origin chunk, matching authoritative found-state identity rather than transient marker position.
+* System interaction: snapshot assembly reads only from `LevelDepositData` found-state attachments on each `ServerLevel`; it does not rescan world structures on demand.
+* System interaction: scanner discovery success and `/rns scanner found` command mutations flow through `ServerDepositLocation.setFound`, so duplicate no-op writes do not emit delta packets.
+* System interaction: `/rns scanner found forget_all` removes all found deposits in the targeted level attachment and emits a dimension-clear payload so clients drop that level's cached deposits in one step.
+* System interaction: the cache is owned by deposit-info code rather than scanner or map compat code, and both Xaero and JourneyMap fullscreen overlays now consume it directly at render time.
+* Data and assets: this feature is code-defined only; it adds no datapack fields and no generated assets.
+* Maintenance invariant: client map rendering must read only from the cache or future compat APIs layered on top of it, not from direct scanner events or synchronous network requests.
+* Known limitation: map compat redraw triggering is still deferred to a later phase, though the current Xaero overlay path naturally reflects cache changes on the next frame because it rereads the cache during render.

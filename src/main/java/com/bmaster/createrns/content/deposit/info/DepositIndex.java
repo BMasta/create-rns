@@ -1,6 +1,7 @@
 package com.bmaster.createrns.content.deposit.info;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsClearS2CPacket;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
@@ -16,6 +17,7 @@ import net.minecraft.server.level.ServerLevel;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.Set;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
@@ -46,6 +48,10 @@ public class DepositIndex implements IDepositIndex {
         return true;
     }
 
+    public Set<ServerDepositLocation> getFoundDeposits() {
+        return foundDeposits;
+    }
+
     public boolean removeCustomDeposit(CustomServerDepositLocation dep) {
         var set = customDeposits.get(dep.key.location());
         if (set == null) return false;
@@ -59,6 +65,7 @@ public class DepositIndex implements IDepositIndex {
             CreateRNS.LOGGER.debug("Forgot {} at {}", d.getKey().location(), d.getLocationStr());
         }
         foundDeposits.clear();
+        FoundDepositsClearS2CPacket.sendToAll(level.getServer(), level.dimension());
     }
 
     @Override

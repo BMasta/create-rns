@@ -41,7 +41,7 @@ public class DepositScannerItem extends Item {
             DepositScannerClientHandler.cancelTracking(true);
         } else {
             DepositScannerClientHandler.discoverDeposit();
-            player.getCooldowns().addCooldown(RNSItems.DEPOSIT_SCANNER_ITEM.get(), SCANNER_USE_COOLDOWN);
+            player.getCooldowns().addCooldown(RNSItems.DEPOSIT_SCANNER.get(), SCANNER_USE_COOLDOWN);
         }
 
         return InteractionResultHolder.pass(player.getItemInHand(usedHand));

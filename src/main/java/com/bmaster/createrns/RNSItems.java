@@ -16,7 +16,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class RNSItems {
-    public static final ItemEntry<DepositScannerItem> DEPOSIT_SCANNER_ITEM = CreateRNS.REGISTRATE.item(
+    public static final ItemEntry<DepositScannerItem> DEPOSIT_SCANNER = CreateRNS.REGISTRATE.item(
                     "deposit_scanner", DepositScannerItem::new)
             .properties(p -> p.stacksTo(1))
             .model(AssetLookup.itemModelWithPartials())
@@ -41,6 +41,18 @@ public class RNSItems {
     // Yoinked from tech reborn
     REDSTONE_SMALL_DUST = CreateRNS.REGISTRATE.item(
             "redstone_small_dust", Item::new).register();
+
+    public static final ItemEntry<Item> FAKE_UNPOWERED_DEPOSIT_SCANNER = CreateRNS.REGISTRATE.item(
+            "fake_unpowered_deposit_scanner", Item::new)
+            .model(AssetLookup.existingItemModel())
+            .removeTab(RNSMisc.MAIN_TAB.getKey())
+            .register();
+
+    public static final ItemEntry<Item> FAKE_POWERED_DEPOSIT_SCANNER = CreateRNS.REGISTRATE.item(
+            "fake_powered_deposit_scanner", Item::new)
+            .model(AssetLookup.existingItemModel())
+            .removeTab(RNSMisc.MAIN_TAB.getKey())
+            .register();
 
     public static void register() {
     }

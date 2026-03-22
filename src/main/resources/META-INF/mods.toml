@@ -57,11 +57,25 @@ versionRange = "[6.0.2,)"
 ordering = "AFTER"
 side = "BOTH"
 
-[[dependencies.${ mod_id }]]
+[[dependencies.${mod_id}]]
 modId = "jei"
 mandatory = false
-versionRange = "[15.19.0,)"
-ordering = "NONE"
+versionRange = "[${jei_version},)"
+ordering = "AFTER"
+side = "CLIENT"
+
+[[dependencies.${mod_id}]]
+modId = "xaeroworldmap"
+mandatory = false
+versionRange = "[0,)"
+ordering = "AFTER"
+side = "CLIENT"
+
+[[dependencies.${mod_id}]]
+modId = "journeymap"
+mandatory = false
+versionRange = "[0,)"
+ordering = "AFTER"
 side = "CLIENT"
 
 # Features are specific properties of the game environment, that you may want to declare you require. This example declares

@@ -15,18 +15,18 @@ Backport work in this branch should prioritize:
 
 All versions are defined in `gradle.properties`. Java version is 17.
 
-| Dependency          | Type | Version Property         | Role                                                                          |
-|---------------------|------|--------------------------|-------------------------------------------------------------------------------|
-| Minecraft           | Hard | `minecraft_version`      | Base game (1.20.1)                                                            |
-| Forge               | Hard | `forge_version`          | Mod loader                                                                    |
-| Create              | Hard | `create_version`         | Parent mod this is an addon for                                               |
-| Flywheel            | Hard | `flywheel_version`       | Rendering engine (transitive via Create)                                      |
-| Registrate          | Hard | `registrate_version`     | Content registration framework                                                |
-| Ponder              | Hard | `ponder_version`         | In-game tutorial system                                                       |
-| JEI                 | Soft | `jei_version`            | Recipe viewer; mod provides a JEI plugin for mining recipes and catalyst info |
-| JourneyMap API      | Soft | `journeymap_api_version` | Optional client waypoint integration surface used for deposit markers         |
-| Xaero's Minimap     | Soft | `xaero_minimap_version`  | Optional client waypoint integration surface used for deposit markers         |
-| Xaero's World Map   | Soft | `xaero_worldmap_version` | Optional client map UI that displays Xaero waypoint data                      |
+| Dependency        | Type | Version Property         | Role                                                                          |
+|-------------------|------|--------------------------|-------------------------------------------------------------------------------|
+| Minecraft         | Hard | `minecraft_version`      | Base game (1.20.1)                                                            |
+| Forge             | Hard | `forge_version`          | Mod loader                                                                    |
+| Create            | Hard | `create_version`         | Parent mod this is an addon for                                               |
+| Flywheel          | Hard | `flywheel_version`       | Rendering engine (transitive via Create)                                      |
+| Registrate        | Hard | `registrate_version`     | Content registration framework                                                |
+| Ponder            | Hard | `ponder_version`         | In-game tutorial system                                                       |
+| JEI               | Soft | `jei_version`            | Recipe viewer; mod provides a JEI plugin for mining recipes and catalyst info |
+| JourneyMap        | Soft | `journeymap_version`     | Optional client waypoint integration surface used for deposit markers         |
+| Xaero's Minimap   | Soft | `xaero_minimap_version`  | Optional client waypoint integration surface used for deposit markers         |
+| Xaero's World Map | Soft | `xaero_worldmap_version` | Optional client map UI that displays Xaero waypoint data                      |
 
 ## Coding Style Guidelines
 * Preferred line length is 120 characters.

@@ -80,9 +80,9 @@ public class DepositScannerClientHandler {
 
         // Make sure we are holding the scanner
         ItemStack heldItem = p.getMainHandItem();
-        if (!RNSItems.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
+        if (!RNSItems.DEPOSIT_SCANNER.isIn(heldItem)) {
             heldItem = p.getOffhandItem();
-            if (!RNSItems.DEPOSIT_SCANNER_ITEM.isIn(heldItem)) {
+            if (!RNSItems.DEPOSIT_SCANNER.isIn(heldItem)) {
                 DepositScannerItemRenderer.resetWheel();
                 return;
             }
