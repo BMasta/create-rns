@@ -4,7 +4,6 @@ import com.bmaster.createrns.compat.map.RNSMapOverlayRenderer;
 import com.bmaster.createrns.compat.map.RNSMapToggleRenderer;
 import com.bmaster.createrns.compat.map.RNSMapToggleRenderer.ToggleLocation;
 import journeymap.client.ui.fullscreen.Fullscreen;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -23,15 +22,14 @@ public abstract class RNSJourneyFullscreenMapMixin {
         var uiState = fullscreen.getUiState();
         if (uiState == null || !uiState.active) return;
 
-        var window = Minecraft.getInstance().getWindow();
         RNSMapOverlayRenderer.render(
                 (RNSMapOverlayRenderer.Context) this,
                 gui,
-                window.getGuiScaledWidth(),
-                window.getGuiScaledHeight(),
+                fullscreen.width,
+                fullscreen.height,
                 uiState.dimension
         );
-        RNSMapToggleRenderer.render(gui, window.getGuiScaledWidth(), window.getGuiScaledHeight(),
+        RNSMapToggleRenderer.render(gui, fullscreen.width, fullscreen.height,
                 mouseX, mouseY, ToggleLocation.JOURNEY);
     }
 
@@ -39,7 +37,9 @@ public abstract class RNSJourneyFullscreenMapMixin {
     private void create_rns$handleOverlayClick(
             double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir
     ) {
-        if (!RNSMapToggleRenderer.handleClick(mouseX, mouseY, button, ToggleLocation.JOURNEY)) return;
-        cir.setReturnValue(true);
+        var fullscreen = (Fullscreen) (Object) this;
+        boolean clicked = RNSMapToggleRenderer.handleClick(fullscreen.width, fullscreen.height,
+                mouseX, mouseY, button, ToggleLocation.JOURNEY);
+        if (clicked) cir.setReturnValue(true);
     }
 }

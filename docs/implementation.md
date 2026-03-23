@@ -122,14 +122,15 @@
 ## Xaero World Map Overlay
 * Player perspective: when Xaero World Map is installed, opening the fullscreen world map renders icons for found deposits from the synchronized client cache.
 * Player perspective: each rendered deposit uses the item configured by that deposit type's `deposit_spec`, so different deposits can present different map icons without code changes.
-* Player perspective: a top-left toggle widget can temporarily disable deposit rendering on the map without affecting the synchronized cache.
+* Player perspective: a toggle widget anchored near the lower-left edge of the map screen can temporarily disable deposit rendering without affecting the synchronized cache.
 * Edge behavior: deposits only appear after the client has received the authoritative found-deposit sync from the server; opening the map earlier simply shows fewer or no markers until the cache fills.
 * Core behavior: the overlay hooks the Xaero fullscreen map screen through a client-only pseudo-mixin and projects world coordinates into Gui coordinates using Xaero's current camera position and zoom state.
 * Core behavior: each render pass reads the current-dimension found deposits from `FoundDepositClientCache`, resolves the deposit's configured map item through `DepositSpecLookup`, and renders that item at the synced deposit location.
 * Edge behavior: the overlay currently filters by the local player's current dimension; if the map UI is browsing another dimension, markers are not yet remapped to that viewed dimension.
 * System interaction: the overlay is optional and only activates when Xaero World Map is present on the client runtime.
 * System interaction: the toggle widget currently reuses Create's train-map toggle textures as placeholders and flips a shared client-only overlay-enabled flag used by both fullscreen map integrations.
-* System interaction: on Xaero, deposit markers render in the map layer while the deposit toggle renders in a later screen-space phase so markers stay behind top-left toggle widgets and other late UI.
+* System interaction: toggle placement is resolved from per-map anchor metadata plus per-map offsets at render time, so the same renderer can target different screen corners or centered alignments without hardcoding absolute coordinates.
+* System interaction: on Xaero, deposit markers render in the map layer while the deposit toggle renders in a later screen-space phase so markers stay behind other late UI.
 * System interaction: overlay rendering is read-only and consumes the same cache populated by snapshot/delta sync, so it stays decoupled from scanner audiovisual logic.
 * Data and assets: the feature is code-defined and uses datapack-provided `deposit_spec.map_icon_item` values for marker appearance; it adds no generated resources.
 * Maintenance invariant: the compat package should remain decoupled from direct Xaero classes, with Xaero-specific field access isolated to pseudo-mixin accessors.
@@ -138,7 +139,7 @@
 ## JourneyMap Fullscreen Overlay
 * Player perspective: when JourneyMap is installed, the fullscreen map renders icons for found deposits from the synchronized client cache.
 * Player perspective: markers appear in the dimension JourneyMap is currently displaying, so browsing another synced dimension shows that dimension's found deposits rather than the player's current one.
-* Player perspective: the same top-left toggle widget used on Xaero can temporarily disable JourneyMap deposit rendering without mutating synced state.
+* Player perspective: the same lower-left anchored toggle widget used on Xaero can temporarily disable JourneyMap deposit rendering without mutating synced state.
 * Edge behavior: if the client cache has not been filled yet, JourneyMap opens normally and simply shows no deposit markers until sync arrives.
 * Core behavior: the compat layer is implemented as a JourneyMap client plugin that subscribes to JourneyMap's fullscreen render event.
 * Core behavior: the plugin translates JourneyMap fullscreen camera and zoom state into the shared `RNSMapRenderer` context and reuses the same cache-backed marker renderer as Xaero.

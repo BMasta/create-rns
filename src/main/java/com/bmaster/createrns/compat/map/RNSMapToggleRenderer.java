@@ -19,6 +19,9 @@ public class RNSMapToggleRenderer {
     public static final ItemStack DEPOSITS_DISABLED = new ItemStack(RNSItems.FAKE_UNPOWERED_DEPOSIT_SCANNER.get());
     public static final ItemStack DEPOSITS_ENABLED = new ItemStack(RNSItems.FAKE_POWERED_DEPOSIT_SCANNER.get());
 
+    private static final int ICON_OFFSET = 5;
+    private static final float ICON_SCALE = 0.75f;
+
     private static boolean overlayEnabled = true;
 
     private RNSMapToggleRenderer() {
@@ -31,8 +34,11 @@ public class RNSMapToggleRenderer {
     public static void render(
             GuiGraphics gui, int screenWidth, int screenHeight, int mouseX, int mouseY, ToggleLocation location
     ) {
-        renderWidget(gui, location);
-        if (!isHovered(mouseX, mouseY, location)) return;
+        int x = location.resolveX(screenWidth);
+        int y = location.resolveY(screenHeight);
+
+        renderWidget(gui, x, y);
+        if (!isHovered(mouseX, mouseY, x, y)) return;
 
         var pose = gui.pose();
         pose.pushPose();
@@ -43,43 +49,80 @@ public class RNSMapToggleRenderer {
         pose.popPose();
     }
 
-    public static boolean handleClick(double mouseX, double mouseY, int button, ToggleLocation location) {
-        if (button != 0 || !isHovered(mouseX, mouseY, location)) return false;
+    public static boolean handleClick(
+            int screenWidth, int screenHeight, double mouseX, double mouseY, int button, ToggleLocation location
+    ) {
+        int x = location.resolveX(screenWidth);
+        int y = location.resolveY(screenHeight);
+        if (button != 0 || !isHovered(mouseX, mouseY, x, y)) return false;
+
         overlayEnabled = !overlayEnabled;
         return true;
     }
 
-    private static void renderWidget(GuiGraphics gui, ToggleLocation location) {
+    private static void renderWidget(GuiGraphics gui, int x, int y) {
         RenderSystem.enableBlend();
-        float scale = 0.75f;
         var pose = gui.pose();
         pose.pushPose();
-        pose.translate(location.x, location.y, 1000);
+        pose.translate(x, y, 1900);
         RNSGuiTextures.DEPOSIT_MAP_TOGGLE_BG.render(gui, 0, 0);
-        pose.translate(5, 5, 0);
-        pose.scale(scale, scale, scale);
-        pose.translate(-5, -5, 900);
+        pose.translate(ICON_OFFSET, ICON_OFFSET, 0);
+        pose.scale(ICON_SCALE, ICON_SCALE, ICON_SCALE);
+        pose.translate(-ICON_OFFSET, -ICON_OFFSET, 0);
         gui.renderItem(overlayEnabled ? DEPOSITS_ENABLED : DEPOSITS_DISABLED, 0, 0);
         pose.popPose();
     }
 
-    private static boolean isHovered(double mouseX, double mouseY, ToggleLocation location) {
-        return mouseX >= location.x
-                && mouseX < location.x + 15
-                && mouseY >= location.y
-                && mouseY < location.y + 15;
+    private static boolean isHovered(double mouseX, double mouseY, int x, int y) {
+        return mouseX >= x
+                && mouseX < x + ToggleLocation.TOGGLE_WIDTH
+                && mouseY >= y
+                && mouseY < y + ToggleLocation.TOGGLE_HEIGHT;
+    }
+
+    public enum Anchor {
+        LEFT,
+        RIGHT,
+        TOP,
+        BOTTOM,
+        CENTER
     }
 
     public enum ToggleLocation {
-        XAERO(3, 193),
-        JOURNEY(7, 76);
+        XAERO(3, 64, Anchor.LEFT, Anchor.BOTTOM),
+        JOURNEY(7, -50, Anchor.LEFT, Anchor.CENTER);
+
+        public static final int TOGGLE_WIDTH = RNSGuiTextures.DEPOSIT_MAP_TOGGLE_BG.getWidth();
+        public static final int TOGGLE_HEIGHT = RNSGuiTextures.DEPOSIT_MAP_TOGGLE_BG.getHeight();
 
         public final int x;
         public final int y;
+        public final Anchor xAnchor;
+        public final Anchor yAnchor;
 
-        ToggleLocation(int x, int y) {
+        ToggleLocation(int x, int y, Anchor xAnchor, Anchor yAnchor) {
             this.x = x;
             this.y = y;
+            this.xAnchor = xAnchor;
+            this.yAnchor = yAnchor;
+        }
+
+        public int resolveX(int screenWidth) {
+            return switch (xAnchor) {
+                case LEFT -> x;
+                case RIGHT -> screenWidth - TOGGLE_WIDTH - x;
+                case CENTER -> (screenWidth - TOGGLE_WIDTH) / 2 + x;
+                default -> throw new IllegalStateException("Unsupported x anchor: " + xAnchor);
+            };
+        }
+
+        public int resolveY(int screenHeight) {
+            return switch (yAnchor) {
+                case TOP -> y;
+                case BOTTOM -> screenHeight - TOGGLE_HEIGHT - y;
+                case CENTER -> (screenHeight - TOGGLE_HEIGHT) / 2 + y;
+                default -> throw new IllegalStateException("Unsupported y anchor: " + yAnchor);
+            };
         }
     }
 }
