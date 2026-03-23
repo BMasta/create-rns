@@ -9,8 +9,11 @@ This document covers what parts of Create: Rock & Stone are datapack-driven and 
 
 ## Default Configuration
 
-- Non-worldgen files are located in `src/main/resources`.
-- Worldgen files come from built-in (in-memory) datapacks that don't have any associated files, but a dump of what they would contribute can be found in `src/generated/builtin_packs`.
+* Non-worldgen files are located in `src/main/resources`.
+* Worldgen files come from built-in (in-memory) datapacks that don't have any associated files.
+* Built-in datapacks are created dynamically based on which compatible mods are loaded.
+* Dumps of datapacks created when no compatible mods are loaded can be found in `src/generated/builtin_packs/default`.
+* Dumps of datapacks created when all compatible mods are loaded can be found in `src/generated/builtin_packs/with_compat`.
 
 ## Custom Deposit Spawn Rate
 Deposit spawn rate is influenced by these parameters:
@@ -22,7 +25,7 @@ Deposit spawn rate is influenced by these parameters:
 See https://minecraft.fandom.com/wiki/Custom_structure for more details.
 
 Easiest solution that works in most cases - copy the default structure set from
-`src/generated/builtin_packs/create_rns_dynamic_data/data/create_rns/worldgen/structure_set/deposits.json`
+`src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure_set/deposits.json`
 and tweak the separation and spacing.
 
 ## Mining Recipe
@@ -156,13 +159,13 @@ Path: `data/your_pack/create_rns/deposit_spec/tin.json`
 
 Path: `data/your_pack/worldgen/structure/deposit_tin.json`.
 
-See `src/generated/create_rns_dynamic_data/data/create_rns/worldgen/structure` for examples.
+See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure` for examples.
 
 ### 3. Template Pool Start
 
 Path: `data/your_pack/worldgen/template_pool/deposit_tin/start.json`.
 
-See `src/generated/create_rns_dynamic_data/data/create_rns/worldgen/template_pool` for examples.
+See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/template_pool` for examples.
 
 ### 4. Processor
 The deposit nbt's contain deposits made of end stone.
@@ -170,7 +173,7 @@ To convert it to your deposit blocks of choice, a custom processor is needed.
 
 Path: `data/your_pack/worldgen/processor_list/replace_with_your_pack_tin_deposit_block.json`
 
-See `src/generated/create_rns_dynamic_data/data/create_rns/worldgen/processor_list` for examples.
+See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/processor_list` for examples.
 
 
 ### 5. Structure Set
@@ -188,14 +191,14 @@ Copy the default file and add all extra deposit structures from your modpack to 
 2. Create your own structure set (recommended when pack priority is uncertain).
 If other datapacks may also override `create_rns:deposits`, define a separate structure set in your own namespace/path and put your custom deposits there.
 
-See `src/generated/builtin_packs/create_rns_dynamic_data/data/create_rns/worldgen/structure_set/deposits.json`
+See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure_set/deposits.json`
 for the default set.
 
 ### 6. Structure Tag
 
 Path: `data/create_rns/tags/worldgen/structure/deposits.json`
 
-See `src/generated/builtin_packs/create_rns_dynamic_data/data/create_rns/tags/worldgen/structure/deposits.json` for the default tag.
+See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/tags/worldgen/structure/deposits.json` for the default tag.
 
 ```json5
 {

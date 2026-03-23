@@ -96,14 +96,14 @@ side = "BOTH"
 [[dependencies.${mod_id}]]
 modId = "jei"
 type = "optional"
-versionRange = "[${jei_version}]"
+versionRange = "[${jei_version},)"
 ordering = "AFTER"
 side = "CLIENT"
 
 [[dependencies.${mod_id}]]
 modId = "jade"
 type = "optional"
-versionRange = "[${jade_version}]"
+versionRange = "[${jade_version},)"
 ordering = "AFTER"
 side = "CLIENT"
 

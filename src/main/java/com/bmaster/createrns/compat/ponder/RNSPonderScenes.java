@@ -1,6 +1,7 @@
 package com.bmaster.createrns.compat.ponder;
 
 import com.bmaster.createrns.RNSBlocks;
+import com.bmaster.createrns.RNSDeposits;
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadBlock;
@@ -96,15 +97,15 @@ public class RNSPonderScenes {
         var nuggetPos = mineHead.getCenter().add(new Vec3(-1.5, -0.2, 1.5));
         var rawIronPos = mineHead.getCenter().add(new Vec3(-1.5, -0.2, -1.5));
         var bearingFacingDown = RNSBlocks.MINER_BEARING.getDefaultState().setValue(MinerBearingBlock.FACING, Direction.DOWN);
-        var miner = new MinerContraption(s, util, bearing, mineHead, sel.position(mineHead), RNSBlocks.IRON_DEPOSIT.get())
+        var miner = new MinerContraption(s, util, bearing, mineHead, sel.position(mineHead), RNSDeposits.IRON_DEPOSIT.get())
                 .syncKinetics(miner1Cog, false)
                 .syncKinetics(chainDriveKinetics, false)
                 .syncKinetics(verticalShaftKinetics, false)
                 .syncKinetics(sourceCog, true);
-        var miner2 = new MinerContraption(s, util, bearing2, mineHead2, sel.position(mineHead2), RNSBlocks.IRON_DEPOSIT.get())
+        var miner2 = new MinerContraption(s, util, bearing2, mineHead2, sel.position(mineHead2), RNSDeposits.IRON_DEPOSIT.get())
                 .syncKinetics(miner2Cog, false);
         var minerAfter = new MinerContraption(
-                s, util, bearingNewPos, mineHead, resonatorsOrIron.add(sel.position(mineHead)), RNSBlocks.IRON_DEPOSIT.get()
+                s, util, bearingNewPos, mineHead, resonatorsOrIron.add(sel.position(mineHead)), RNSDeposits.IRON_DEPOSIT.get()
         )
                 .syncKinetics(chainDriveKinetics, false)
                 .syncKinetics(verticalShaftKinetics, false)
@@ -370,7 +371,7 @@ public class RNSPonderScenes {
             nbt.putFloat("Timer", 4);
         };
         Consumer<CompoundTag> psiOff = nbt -> nbt.putFloat("Timer", 1);
-        MinerContraption miner = new MinerContraption(s, util, bearing, mineHead, contraption, RNSBlocks.IRON_DEPOSIT.get())
+        MinerContraption miner = new MinerContraption(s, util, bearing, mineHead, contraption, RNSDeposits.IRON_DEPOSIT.get())
                 .syncKinetics(kineticsTop, false)
                 .syncKinetics(kineticsSide, false)
                 .syncKinetics(sourceCog, false);

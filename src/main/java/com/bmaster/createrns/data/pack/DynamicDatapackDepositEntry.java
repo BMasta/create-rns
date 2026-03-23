@@ -4,9 +4,13 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.tterrag.registrate.builders.BlockBuilder;
+import com.tterrag.registrate.util.entry.BlockEntry;
+import com.tterrag.registrate.util.nullness.NonNullFunction;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.fml.ModList;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,6 +22,7 @@ public class DynamicDatapackDepositEntry {
     public static final ResourceLocation DEP_SMALL = CreateRNS.asResource("ore_deposit_small");
     public static final ResourceLocation DEP_MEDIUM = CreateRNS.asResource("ore_deposit_medium");
     public static final ResourceLocation DEP_LARGE = CreateRNS.asResource("ore_deposit_large");
+    public static boolean dumpMode = false;
 
     private static final List<ConfiguredEntry> DEPOSITS = new ArrayList<>();
 
@@ -25,8 +30,8 @@ public class DynamicDatapackDepositEntry {
         return new DynamicDatapackDepositEntry(structureId);
     }
 
-    public static BlockBuilder<DepositBlock, CreateRegistrate> blockOnly(String name) {
-        return CreateRNS.REGISTRATE.block(name, DepositBlock::new);
+    public static DepositBlockBuilder blockOnly(String name) {
+        return new DepositBlockBuilder(name);
     }
 
     public static List<ConfiguredEntry> getDeposits() {
@@ -38,6 +43,7 @@ public class DynamicDatapackDepositEntry {
 
     private int depth = 8;
     private int weight = 2;
+    private @Nullable String requiredModId;
 
     public DynamicDatapackDepositEntry depth(int depth) {
         this.depth = depth;
@@ -56,13 +62,20 @@ public class DynamicDatapackDepositEntry {
         return this;
     }
 
-    public BlockBuilder<DepositBlock, CreateRegistrate> block(String name) {
+    public DynamicDatapackDepositEntry requireMod(String modId) {
+        if (modId.isBlank()) throw new IllegalArgumentException("Required mod id cannot be blank");
+        requiredModId = modId;
+        return this;
+    }
+
+    public DepositBlockBuilder block(String name) {
         var depositBlock = CreateRNS.asResource(name);
 
         if (weightedTemplates.isEmpty()) {
             throw new IllegalStateException("At least one template must be configured before registering");
         }
-        var candidate = new ConfiguredEntry(structureId, depositBlock, depth, weight, List.copyOf(weightedTemplates));
+        var candidate = new ConfiguredEntry(
+                structureId, depositBlock, depth, weight, requiredModId, List.copyOf(weightedTemplates));
         var existing = DEPOSITS.stream()
                 .filter(d -> d.name().equals(structureId))
                 .findFirst()
@@ -73,7 +86,7 @@ public class DynamicDatapackDepositEntry {
             throw new IllegalStateException("Conflicting dynamic deposit definition already exists: " + structureId);
         }
 
-        return CreateRNS.REGISTRATE.block(name, DepositBlock::new);
+        return new DepositBlockBuilder(name);
     }
 
     private DynamicDatapackDepositEntry(String structureId) {
@@ -81,8 +94,44 @@ public class DynamicDatapackDepositEntry {
     }
 
     public record ConfiguredEntry(
-            String name, ResourceLocation depositBlock, int depth, int weight, List<WeightedTemplate> weightedTemplates
-    ) {}
+            String name, ResourceLocation depositBlock, int depth, int weight, @Nullable String requiredModId,
+            List<WeightedTemplate> weightedTemplates
+    ) {
+        public boolean isEnabled() {
+            if (dumpMode) {
+                var enabledMods = DynamicDatapackDumpTool.getEnabledMods();
+                return requiredModId == null || enabledMods == null || enabledMods.contains(requiredModId);
+            }
+            var modList = ModList.get();
+            return requiredModId == null || modList.isLoaded(requiredModId);
+        }
+    }
 
     public record WeightedTemplate(ResourceLocation template, int weight) {}
+
+    public static class DepositBlockBuilder {
+        private @Nullable BlockBuilder<DepositBlock, CreateRegistrate> delegate;
+
+        public DepositBlockBuilder(String name) {
+            if (!dumpMode) {
+                delegate = CreateRNS.REGISTRATE.block(name, DepositBlock::new);
+            }
+        }
+
+        public DepositBlockBuilder transform(
+                NonNullFunction<BlockBuilder<DepositBlock, CreateRegistrate>,
+                        BlockBuilder<DepositBlock, CreateRegistrate>> transform
+        ) {
+            if (delegate != null) {
+                delegate = transform.apply(delegate);
+            }
+            return this;
+        }
+
+        /// Returns null only when in dump mode
+        @SuppressWarnings("DataFlowIssue")
+        public BlockEntry<DepositBlock> register() {
+            return delegate == null ? null : delegate.register();
+        }
+    }
 }

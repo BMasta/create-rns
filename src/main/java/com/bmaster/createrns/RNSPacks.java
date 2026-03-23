@@ -78,5 +78,8 @@ public class RNSPacks {
     public static void registerSnapshots() {
         createMainPack().registerSnapshots();
         createNoDepositPack().registerSnapshots();
+        createDepositFrequencyPack("standard", DEFAULT_SEPARATION, DEFAULT_SPACING, true).registerSnapshots();
+        createDepositFrequencyPack("frequent", 3, 16, false).registerSnapshots();
+        createDepositFrequencyPack("very_frequent", 2, 12, false).registerSnapshots();
     }
 }

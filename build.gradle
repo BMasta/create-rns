@@ -176,9 +176,22 @@ tasks.named('processResources', ProcessResources).configure {
 def dynamicDatapackDumpDir = layout.projectDirectory.dir("src/generated/builtin_packs")
 def dynamicDatapackDumpWorkDir = layout.buildDirectory.dir("tmp/dynamic_datapack_dump")
 
-tasks.register('cleanDynamicDatapackDump', Delete) {
-    delete fileTree(dynamicDatapackDumpDir) {
-        exclude '**/README.md'
+tasks.register('cleanDynamicDatapackDump') {
+    doLast {
+        def dumpRoot = dynamicDatapackDumpDir.asFile
+        if (!dumpRoot.exists()) return
+
+        dumpRoot.listFiles()?.each { file ->
+            if (file.name == 'README.md') return
+
+            if (file.isDirectory()) {
+                if (!file.deleteDir()) {
+                    throw new GradleException("Failed to delete dynamic datapack dump directory: ${file}")
+                }
+            } else if (!file.delete()) {
+                throw new GradleException("Failed to delete dynamic datapack dump file: ${file}")
+            }
+        }
     }
 }
 

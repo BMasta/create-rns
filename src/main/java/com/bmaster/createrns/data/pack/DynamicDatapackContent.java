@@ -44,7 +44,7 @@ public class DynamicDatapackContent {
     }
 
     public static List<DatapackFile> depositProcessorLists() {
-        var depositEntries = DynamicDatapackDepositEntry.getDeposits();
+        var depositEntries = getEnabledDeposits();
         var files = new ArrayList<DatapackFile>(depositEntries.size());
         for (var def : depositEntries) {
             var root = new JsonObject();
@@ -82,7 +82,7 @@ public class DynamicDatapackContent {
     }
 
     public static List<DatapackFile> depositTemplatePools() {
-        var depositEntries = DynamicDatapackDepositEntry.getDeposits();
+        var depositEntries = getEnabledDeposits();
         var files = new ArrayList<DatapackFile>(depositEntries.size());
         for (var def : depositEntries) {
             var root = new JsonObject();
@@ -108,7 +108,7 @@ public class DynamicDatapackContent {
     }
 
     public static List<DatapackFile> depositStructures() {
-        var depositEntries = DynamicDatapackDepositEntry.getDeposits();
+        var depositEntries = getEnabledDeposits();
         var files = new ArrayList<DatapackFile>(depositEntries.size());
         for (var def : depositEntries) {
             var root = new JsonObject();
@@ -136,7 +136,7 @@ public class DynamicDatapackContent {
     public static DatapackFile depositStructureTag() {
         var root = new JsonObject();
         var values = new JsonArray();
-        for (var def : DynamicDatapackDepositEntry.getDeposits()) {
+        for (var def : getEnabledDeposits()) {
             values.add(CreateRNS.ID + ":deposit_" + def.name());
         }
         root.add("values", values);
@@ -158,7 +158,7 @@ public class DynamicDatapackContent {
         root.add("placement", placement);
 
         var structures = new JsonArray();
-        for (var def : DynamicDatapackDepositEntry.getDeposits()) {
+        for (var def : getEnabledDeposits()) {
             var e = new JsonObject();
             e.addProperty("structure", CreateRNS.ID + ":deposit_" + def.name());
             e.addProperty("weight", def.weight());
@@ -171,5 +171,11 @@ public class DynamicDatapackContent {
 
     private static String processorName(ResourceLocation depositBlock) {
         return "replace_with_" + depositBlock.getNamespace() + "_" + depositBlock.getPath();
+    }
+
+    private static List<DynamicDatapackDepositEntry.ConfiguredEntry> getEnabledDeposits() {
+        return DynamicDatapackDepositEntry.getDeposits().stream()
+                .filter(DynamicDatapackDepositEntry.ConfiguredEntry::isEnabled)
+                .toList();
     }
 }

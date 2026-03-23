@@ -51,6 +51,10 @@ public class DynamicDatapack {
         return Collections.unmodifiableList(PACK_SNAPSHOTS);
     }
 
+    public static void clearPackSnapshots() {
+        PACK_SNAPSHOTS.clear();
+    }
+
     public static void dumpRegisteredPacks(Path root) throws IOException {
         Files.createDirectories(root);
 

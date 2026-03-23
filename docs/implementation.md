@@ -73,6 +73,7 @@
 * Core behavior: deposit generation is driven by structure-based worldgen with a shared placement policy plus per-type relative weighting.
 * Core behavior: the shared placement policy (including spread cadence controls) is configured through default registration definitions and emitted into the built-in pack output.
 * Core behavior: each deposit type selects from weighted structure templates and applies block replacement rules so shared templates can produce type-specific deposits.
+* Core behavior: deposit definitions may declare a required mod id; entries with unmet mod requirements are omitted from all generated deposit worldgen files, while compatible loaded mods automatically extend the shared deposit structure set instead of enabling a separate compat pack.
 * Core behavior: placement is constrained by biome eligibility and generation step settings, so deposits are injected into terrain generation rather than placed as ad-hoc runtime edits.
 * Edge behavior: disabling eligible biomes prevents new deposits from generating while preserving already-generated terrain.
 * Edge behavior: changing worldgen data affects newly generated chunks; existing chunks keep their previously generated deposits unless modified by gameplay or admin tools.
@@ -80,7 +81,7 @@
 * System interaction: scanner search behavior assumes the worldgen placement model remains in the same general scale; major placement changes can require scanner tuning.
 * System interaction: found-state filtering applies during structure lookup so discovery can ignore already-discovered deposits without changing worldgen itself.
 * Data and assets: behavior is data-driven through generated worldgen JSON and structure templates, with additional built-in datapack content controlling biome eligibility.
-* Data and assets: deposit type metadata for scanner selection is datapack-driven and must remain aligned with generated structure identities.
+* Data and assets: deposit type metadata for scanner selection is datapack-driven and must remain aligned with generated structure identities; compat expansion remains code-defined through deposit registration plus required-mod gating rather than through a separate built-in datapack.
 * Data and assets: default built-in-pack worldgen entries are sourced from per-deposit registration definitions;
   dump tooling uses an explicit dump-mode bootstrap path to materialize inspectable defaults outside game startup.
 * Maintenance invariant: structure templates must keep their agreed placeholder convention so replacement rules can reliably convert template blocks into deposit blocks.

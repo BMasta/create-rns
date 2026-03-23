@@ -80,7 +80,8 @@ All versions are defined in `gradle.properties`. Java version is 21.
 * Assets and data files are located in resources.
 * Resources in `src/generated/resources` are generated automatically using datagen and shouldn't be modified/added manually.
 * Data-driven design: catalysts, deposit specs, and miner specs are defined as JSON datapack registry entries, not hardcoded. This makes them extensible by modpacks without code changes.
-* In-memory pack outputs can be inspected via the Gradle task `dumpDynamicDatapacks`, which writes generated pack files to `src/generated/builtin_packs`.
+* In-memory pack outputs can be inspected via the Gradle task `dumpDynamicDatapacks`, which writes generated pack files to `src/generated/builtin_packs/default` and `src/generated/builtin_packs/with_compat`.
+* `dumpDynamicDatapacks` bootstraps deposit worldgen through `RNSDeposits.register()` with `DynamicDatapackDepositEntry.dumpMode` enabled; in that mode deposit definitions stay centralized, Registrate block registration is skipped, and compat deposits are controlled by `DynamicDatapackDumpTool.getEnabledMods()` (`null` means include all compat-gated entries, otherwise the list acts as an allowlist of enabled mod ids). The dump tool emits both a no-compat pass and an all-compat pass by rebuilding pack snapshots separately for each variant.
 * Targeted vanilla integration points may be implemented via Mixins declared in `${mod_id}.mixins.json` when no stable mod API hook exists.
 * Compat plugins (JEI, Jade, optional Xaero and JourneyMap map integrations) live in a `compat/` package and are conditionally loaded when the respective mod is present.
 * `neoforge.mods.toml` should declare optional client-side compat dependencies only for integrations the mod actually loads against at runtime.

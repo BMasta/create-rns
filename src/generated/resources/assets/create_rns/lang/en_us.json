@@ -11,6 +11,7 @@
   "block.create_rns.resonator": "Resonator",
   "block.create_rns.shattering_resonator": "Shattering Resonator",
   "block.create_rns.stabilizing_resonator": "Stabilizing Resonator",
+  "block.create_rns.uranium_deposit_block": "Uranium Deposit Block",
   "block.create_rns.zinc_deposit_block": "Zinc Deposit Block",
   "item.create_rns.deposit_scanner": "Deposit Scanner",
   "item.create_rns.fake_powered_deposit_scanner": "Fake Powered Deposit Scanner",
