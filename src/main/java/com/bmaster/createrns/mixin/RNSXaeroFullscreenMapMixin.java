@@ -37,7 +37,7 @@ public class RNSXaeroFullscreenMapMixin extends Screen {
 
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
     private void create_rns$handleOverlayClick(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
-        if (!RNSMapToggleRenderer.handleClick(mouseX, mouseY, button, ToggleLocation.XAERO)) return;
+        if (!RNSMapToggleRenderer.handleClick(mouseX, mouseY, button, this, ToggleLocation.XAERO)) return;
         cir.setReturnValue(true);
     }
 }

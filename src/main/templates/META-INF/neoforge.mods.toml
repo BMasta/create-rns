@@ -94,18 +94,32 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
-modId = "journeymap"
+modId = "jei"
+type = "optional"
+versionRange = "[${jei_version}]"
+ordering = "AFTER"
+side = "CLIENT"
+
+[[dependencies.${mod_id}]]
+modId = "jade"
+type = "optional"
+versionRange = "[${jade_version}]"
+ordering = "AFTER"
+side = "CLIENT"
+
+[[dependencies.${mod_id}]]
+modId = "xaeroworldmap"
 type = "optional"
 versionRange = "[0,)"
 ordering = "AFTER"
 side = "CLIENT"
 
-#[[dependencies.${mod_id}]]
-#modId = "jei"
-#type="optional"
-#versionRange = "[19.21.0,)"
-#ordering = "NONE"
-#side = "CLIENT"
+[[dependencies.${mod_id}]]
+modId = "journeymap"
+type = "optional"
+versionRange = "[0,)"
+ordering = "AFTER"
+side = "CLIENT"
 
 # Features are specific properties of the game environment, that you may want to declare you require. This example declares
 # that your mod requires GL version 3.2 or higher. Other features will be added. They are side aware so declaring this won't

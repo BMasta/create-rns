@@ -50,7 +50,14 @@ public class RNSJourneyMap implements IClientPlugin {
 
     private static void onFullscreenClick(FullscreenMapEvent.ClickEvent event) {
         if (event.getStage() != FullscreenMapEvent.Stage.PRE) return;
-        boolean clicked = RNSMapToggleRenderer.handleClick(event.getMouseX(), event.getMouseY(), event.getButton(),
+        var screen = Minecraft.getInstance().screen;
+        if (screen == null) return;
+
+        boolean clicked = RNSMapToggleRenderer.handleClick(
+                event.getMouseX(),
+                event.getMouseY(),
+                event.getButton(),
+                screen,
                 ToggleLocation.JOURNEY);
         if (clicked) event.cancel();
     }
