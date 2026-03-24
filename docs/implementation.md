@@ -88,6 +88,21 @@
 * Maintenance invariant: per-type worldgen entries, structure tags, and scanner target definitions must stay synchronized across code and datapack data.
 * Known limitation: default spawn tuning is authored in code-backed built-in-pack definitions, so balancing changes currently require updating code inputs or overriding via datapack.
 
+## Dynamic Mining Recipe Registration
+* Player perspective: mining behavior is still defined by mining recipe JSON, but the mod's default mining recipes now come from the built-in dynamic datapack instead of handwritten resource files.
+* Player perspective: when a compat recipe is defined in code for an optional dependency, it loads automatically when that mod is present and is absent otherwise; players do not toggle it separately.
+* Edge behavior: compat-gated mining recipes follow the same runtime-vs-dump enable rules as compat deposit worldgen, so default built-in-pack dumps exclude them while compat-enabled dumps include them.
+* Core behavior: code-defined mining recipes are registered as immutable configured entries through `MiningRecipeBuilder`, with recipe ids derived from their deposit block ids.
+* Core behavior: registration is colocated with deposit definitions through `DynamicDatapackDepositEntry.DepositBlockBuilder.recipe(...)`, so a deposit block and its dynamic mining recipe can stay authored in the same chain.
+* Core behavior: the main built-in dynamic datapack serializes enabled configured mining recipes into normal `recipe/*.json` files at pack-build time, leaving recipe loading itself to vanilla recipe handling.
+* System interaction: builder-defined recipe emission is independent from Registrate recipe generation and does not go through `RNSRecipes`; the shared bootstrap path is `RNSDeposits.register()` in both game runtime and dump tooling.
+* System interaction: compat recipe item and block references may use registry ids directly so recipes can target optional-mod content without adding those mods as compile-time dependencies.
+* System interaction: compat deposit blocks may also skip runtime block registration when their required mod is absent, so compat `BlockEntry` fields should not be assumed to exist unless the corresponding mod is loaded.
+* Data and assets: recipe behavior remains datapack-driven at runtime; this feature only changes how some default JSON is authored and emitted.
+* Maintenance invariant: every dynamic mining recipe id must remain derived from its deposit block id so handwritten and generated defaults cannot silently diverge.
+* Maintenance invariant: compat gating for dynamic mining recipes must stay aligned with the same mod-presence and dump-mode checks used by other dynamic built-in pack entries.
+* Known limitation: compat recipe ids that reference optional-mod items or blocks are not compile-time validated against those mods unless the integration dependency is added locally for testing.
+
 ## Release Automation (Manual Version Bump, Tag, and GitHub Release)
 * Maintainer perspective: releases are created by manually running `.github/workflows/release.yml` in GitHub Actions.
 * Maintainer perspective: each run uses `bump_type` (`patch`, `minor`, `major`, `custom`), and `custom_version` is used only

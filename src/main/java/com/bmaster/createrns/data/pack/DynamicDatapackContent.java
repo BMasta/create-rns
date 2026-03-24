@@ -1,6 +1,7 @@
 package com.bmaster.createrns.data.pack;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeBuilder;
 import com.bmaster.createrns.data.pack.DynamicDatapack.DatapackFile;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -23,6 +24,7 @@ public class DynamicDatapackContent {
     private static final String DEPOSIT_STRUCTURE_PATH = "%s/worldgen/structure/deposit_%s.json";
     private static final String DEPOSIT_TEMPLATE_POOL_PATH = "%s/worldgen/template_pool/deposit_%s/start.json";
     private static final String DEPOSIT_PROCESSOR_LIST_PATH = "%s/worldgen/processor_list/%s.json";
+    private static final String MINING_RECIPE_PATH = "%s/recipe/%s.json";
 
     public static List<DatapackFile> depositBiomeTag(boolean disableGeneration) {
         var values = new JsonArray();
@@ -169,6 +171,67 @@ public class DynamicDatapackContent {
         return new DatapackFile(DEPOSIT_STRUCTURE_SET_PATH.formatted(CreateRNS.ID), root);
     }
 
+    public static List<DatapackFile> miningRecipes() {
+        var recipeEntries = getEnabledRecipes();
+        var files = new ArrayList<DatapackFile>(recipeEntries.size());
+        for (var def : recipeEntries) {
+            var root = new JsonObject();
+            root.addProperty("type", CreateRNS.ID + ":mining");
+            root.addProperty("deposit_block", def.recipe().depositBlockId().toString());
+
+            if (def.recipe().replacementBlockId() != null) {
+                root.addProperty("replace_when_depleted", def.recipe().replacementBlockId().toString());
+            }
+            if (def.recipe().durability() != null) {
+                var durability = new JsonObject();
+                durability.addProperty("core", def.recipe().durability().core());
+                durability.addProperty("edge", def.recipe().durability().edge());
+                durability.addProperty("random_spread", def.recipe().durability().randomSpread());
+                root.add("durability", durability);
+            }
+
+            var yields = new JsonArray();
+            for (var yield : def.recipe().yields()) {
+                var yieldJson = new JsonObject();
+                if (yield.chance() != 1) {
+                    yieldJson.addProperty("chance", yield.chance());
+                }
+
+                var items = new JsonArray();
+                for (var item : yield.items()) {
+                    var itemJson = new JsonObject();
+                    itemJson.addProperty("item", item.itemId().toString());
+                    if (item.weight() != 1) {
+                        itemJson.addProperty("weight", item.weight());
+                    }
+                    items.add(itemJson);
+                }
+                yieldJson.add("items", items);
+
+                if (!yield.catalysts().isEmpty()) {
+                    var catalysts = new JsonArray();
+                    for (var catalyst : yield.catalysts()) {
+                        catalysts.add(catalyst);
+                    }
+                    yieldJson.add("catalysts", catalysts);
+                }
+                if (yield.jeiSlotColor() != 0) {
+                    yieldJson.addProperty("jei_slot_color", yield.jeiSlotColor());
+                }
+
+                yields.add(yieldJson);
+            }
+            root.add("yields", yields);
+
+            files.add(new DatapackFile(
+                    MINING_RECIPE_PATH.formatted(def.recipeId().getNamespace(), def.recipeId().getPath()),
+                    root
+            ));
+        }
+
+        return files;
+    }
+
     private static String processorName(ResourceLocation depositBlock) {
         return "replace_with_" + depositBlock.getNamespace() + "_" + depositBlock.getPath();
     }
@@ -176,6 +239,12 @@ public class DynamicDatapackContent {
     private static List<DynamicDatapackDepositEntry.ConfiguredEntry> getEnabledDeposits() {
         return DynamicDatapackDepositEntry.getDeposits().stream()
                 .filter(DynamicDatapackDepositEntry.ConfiguredEntry::isEnabled)
+                .toList();
+    }
+
+    private static List<MiningRecipeBuilder.ConfiguredEntry> getEnabledRecipes() {
+        return MiningRecipeBuilder.getRecipes().stream()
+                .filter(MiningRecipeBuilder.ConfiguredEntry::isEnabled)
                 .toList();
     }
 }

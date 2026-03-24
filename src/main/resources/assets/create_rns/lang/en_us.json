@@ -5,6 +5,7 @@
   "block.create_rns.gold_deposit_block": "Gold Deposit",
   "block.create_rns.redstone_deposit_block": "Redstone Deposit",
   "block.create_rns.depleted_deposit_block": "Depleted Deposit",
+  "block.create_rns.uranium_deposit_block": "Uranium Deposit",
   "block.create_rns.miner_bearing": "Miner Bearing",
   "block.create_rns.mine_head": "Mine Head",
   "block.create_rns.mine_head_part": "Mine Head",

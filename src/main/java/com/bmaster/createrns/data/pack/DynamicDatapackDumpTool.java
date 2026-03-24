@@ -26,9 +26,9 @@ public class DynamicDatapackDumpTool {
 
         DynamicDatapackDepositEntry.dumpMode = true;
         try {
-            RNSDeposits.register();
             // This tool runs outside normal game bootstrap. Initialize SharedConstants so pack_format can be resolved.
             SharedConstants.tryDetectVersion();
+            RNSDeposits.register();
 
             dumpVariant(outputRoot.resolve(DEFAULT_VARIANT_PATH), List.of());
             dumpVariant(outputRoot.resolve(WITH_COMPAT_VARIANT_PATH), null);

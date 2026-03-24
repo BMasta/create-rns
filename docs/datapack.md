@@ -9,11 +9,12 @@ This document covers what parts of Create: Rock & Stone are datapack-driven and 
 
 ## Default Configuration
 
-* Non-worldgen files are located in `src/main/resources`.
-* Worldgen files come from built-in (in-memory) datapacks that don't have any associated files.
+* Most resources are located in `src/main/resources` and `src/generated/resources`.
+* Default mining recipes and worldgen resources come from the mod's main built-in (in-memory) datapack.
 * Built-in datapacks are created dynamically based on which compatible mods are loaded.
 * Dumps of datapacks created when no compatible mods are loaded can be found in `src/generated/builtin_packs/default`.
 * Dumps of datapacks created when all compatible mods are loaded can be found in `src/generated/builtin_packs/with_compat`.
+* Code-registered compat mining recipes follow the same dump split as other dynamic content: `default` excludes them and `with_compat` includes them.
 
 ## Custom Deposit Spawn Rate
 Deposit spawn rate is influenced by these parameters:
@@ -31,6 +32,11 @@ and tweak the separation and spacing.
 ## Mining Recipe
 
 Path: `data/your_pack/recipe/tin_deposit_block.json`
+
+See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/recipe` for examples.
+
+Default mining recipes shipped by the mod are authored in code and emitted into the mod's main built-in datapack.
+The runtime format is still the same JSON shown below, and datapacks can override the recipe by providing a file with the same recipe id.
 
 ```json5
 {
@@ -97,6 +103,8 @@ Path: `data/your_pack/recipe/tin_deposit_block.json`
 
 Path: `data/your_pack/create_rns/catalyst/ultimate_resonance.json`
 
+See `src/main/resources/data/create_rns/create_rns/catalyst` for examples.
+
 ```json5
 {
   // Used to reference this overclock in mining recipes.
@@ -141,6 +149,8 @@ Path: `data/your_pack/create_rns/catalyst/ultimate_resonance.json`
 ### 1. Deposit Spec
 
 Path: `data/your_pack/create_rns/deposit_spec/tin.json`
+
+See `src/main/resources/data/create_rns/create_rns/deposit_spec` for examples.
 
 ```json5
 {

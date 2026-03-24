@@ -15,6 +15,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
@@ -31,7 +32,7 @@ public class DynamicDatapackDepositEntry {
     }
 
     public static DepositBlockBuilder blockOnly(String name) {
-        return new DepositBlockBuilder(name);
+        return new DepositBlockBuilder(name, null);
     }
 
     public static List<ConfiguredEntry> getDeposits() {
@@ -86,7 +87,7 @@ public class DynamicDatapackDepositEntry {
             throw new IllegalStateException("Conflicting dynamic deposit definition already exists: " + structureId);
         }
 
-        return new DepositBlockBuilder(name);
+        return new DepositBlockBuilder(name, requiredModId);
     }
 
     private DynamicDatapackDepositEntry(String structureId) {
@@ -110,11 +111,15 @@ public class DynamicDatapackDepositEntry {
     public record WeightedTemplate(ResourceLocation template, int weight) {}
 
     public static class DepositBlockBuilder {
+        private final ResourceLocation depositBlockId;
+        private @Nullable String requiredModId;
         private @Nullable BlockBuilder<DepositBlock, CreateRegistrate> delegate;
 
-        public DepositBlockBuilder(String name) {
+        public DepositBlockBuilder(String depositName, @Nullable String requiredModId) {
+            this.depositBlockId = CreateRNS.asResource(depositName);
+            this.requiredModId = requiredModId;
             if (!dumpMode) {
-                delegate = CreateRNS.REGISTRATE.block(name, DepositBlock::new);
+                delegate = CreateRNS.REGISTRATE.block(depositName, DepositBlock::new);
             }
         }
 
@@ -122,16 +127,45 @@ public class DynamicDatapackDepositEntry {
                 NonNullFunction<BlockBuilder<DepositBlock, CreateRegistrate>,
                         BlockBuilder<DepositBlock, CreateRegistrate>> transform
         ) {
-            if (delegate != null) {
+            if (delegate != null && isRequiredModSatisfied()) {
                 delegate = transform.apply(delegate);
             }
             return this;
         }
 
-        /// Returns null only when in dump mode
-        @SuppressWarnings("DataFlowIssue")
-        public BlockEntry<DepositBlock> register() {
-            return delegate == null ? null : delegate.register();
+        public DepositBlockBuilder requireMod(String modId) {
+            if (modId.isBlank()) throw new IllegalArgumentException("Required mod id cannot be blank");
+            requiredModId = modId;
+            return this;
         }
+
+        public DepositBlockBuilder recipe(Consumer<DepositBlockBuildingContext> ctx) {
+            ctx.accept(new DepositBlockBuildingContext(depositBlockId, requiredModId));
+            return this;
+        }
+
+        public @Nullable BlockEntry<DepositBlock> registerOrNull() {
+            if (delegate == null) return null;
+            if (!isRequiredModSatisfied()) return null;
+            return delegate.register();
+        }
+
+        /// Returns null only when in dump mode
+        public @Nullable BlockEntry<DepositBlock> registerOrThrow() {
+            if (delegate == null) return null;
+            if (!isRequiredModSatisfied()) {
+                throw new IllegalStateException(
+                        "Cannot register compat deposit block " + depositBlockId + " because required mod "
+                                + requiredModId + " is not loaded");
+            }
+            return delegate.register();
+        }
+
+        private boolean isRequiredModSatisfied() {
+            return requiredModId == null || ModList.get().isLoaded(requiredModId);
+        }
+    }
+
+    public record DepositBlockBuildingContext(ResourceLocation depositBlockId, @Nullable String requiredModId) {
     }
 }
