@@ -27,10 +27,16 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 public class MiningRecipe implements Recipe<Container> {
     public static final MapCodec<MiningRecipeHelper.SerializedRecipe> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
-                    ForgeRegistries.BLOCKS.getCodec().fieldOf("deposit_block").forGetter(MiningRecipeHelper.SerializedRecipe::depositBlock),
-                    ForgeRegistries.BLOCKS.getCodec().fieldOf("replace_when_depleted").orElse(Blocks.AIR).forGetter(MiningRecipeHelper.SerializedRecipe::replacementBlock),
-                    DepositDurability.CODEC.fieldOf("durability").orElse(new DepositDurability(0, 0, 0)).forGetter(MiningRecipeHelper.SerializedRecipe::dur),
-                    Yield.CODEC.listOf().fieldOf("yields").forGetter(MiningRecipeHelper.SerializedRecipe::yields))
+                    ForgeRegistries.BLOCKS.getCodec().fieldOf("deposit_block")
+                            .forGetter(MiningRecipeHelper.SerializedRecipe::depositBlock),
+                    ForgeRegistries.BLOCKS.getCodec().fieldOf("replace_when_depleted")
+                            .orElse(Blocks.AIR)
+                            .forGetter(MiningRecipeHelper.SerializedRecipe::replacementBlock),
+                    DepositDurability.CODEC.fieldOf("durability")
+                            .orElse(new DepositDurability(0, 0, 0))
+                            .forGetter(MiningRecipeHelper.SerializedRecipe::dur),
+                    Yield.CODEC.listOf().fieldOf("yields")
+                            .forGetter(MiningRecipeHelper.SerializedRecipe::yields))
             .apply(i, MiningRecipeHelper.SerializedRecipe::new));
 
     public static final MapCodec<MiningRecipeHelper.SerializedRecipe> STREAM_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
@@ -50,7 +56,8 @@ public class MiningRecipe implements Recipe<Container> {
     private final Block depositBlock;
     private final Block replacementBlock;
     private final DepositDurability dur;
-    private final List<Yield> yields;
+    private List<Yield> yields;
+    private boolean isInitialized = false;
 
     public MiningRecipe(ResourceLocation id, Block depositBlock, Block replacementBlock, DepositDurability dur,
             List<Yield> yields) {
@@ -75,6 +82,16 @@ public class MiningRecipe implements Recipe<Container> {
 
     public DepositDurability getDurability() {
         return dur;
+    }
+
+    public boolean initialize(RegistryAccess access) {
+        if (!isInitialized) {
+            yields = yields.stream()
+                    .filter(y -> y.initialize(access))
+                    .toList();
+            isInitialized = true;
+        }
+        return !yields.isEmpty();
     }
 
     @Override

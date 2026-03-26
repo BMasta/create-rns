@@ -12,11 +12,11 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 public class DepositStructureConfigBuilder {
     public static final ResourceLocation DEP_SMALL =
-            CreateRNS.asResource("ore_deposit_small");
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, "ore_deposit_small");
     public static final ResourceLocation DEP_MEDIUM =
-            CreateRNS.asResource("ore_deposit_medium");
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, "ore_deposit_medium");
     public static final ResourceLocation DEP_LARGE =
-            CreateRNS.asResource("ore_deposit_large");
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, "ore_deposit_large");
 
     private final String name;
     private final List<DepositWorldgenProvider.NBT> nbts = new ArrayList<>();

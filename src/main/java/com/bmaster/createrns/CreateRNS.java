@@ -71,6 +71,7 @@ public class CreateRNS {
         RNSParticleTypes.register(modEventBus);
         RNSTags.register();
         RNSMovementChecks.register();
+        RNSDeposits.register();
         RNSBlocks.register();
         RNSItems.register();
         RNSBlockEntities.register();

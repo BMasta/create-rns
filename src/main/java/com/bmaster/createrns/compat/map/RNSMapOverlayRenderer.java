@@ -34,7 +34,7 @@ public class RNSMapOverlayRenderer {
 
         var foundDeposits = FoundDepositClientCache.getDeposits(dimension);
         for (var deposit : foundDeposits) {
-            var mapIconItem = DepositSpecLookup.getMapIconItem(player.level().registryAccess(), deposit.getKey());
+            var mapIconItem = DepositSpecLookup.getMapIcon(player.level().registryAccess(), deposit.getKey());
             if (mapIconItem == null) continue;
             renderItemMarker(gui, context, width, height,
                     deposit.getLocation().getX() + 0.5, deposit.getLocation().getZ() + 0.5, mapIconItem);

@@ -111,14 +111,16 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
 
     @Override
     protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer,
-                          ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buf,
-                          int light, int overlay) {
+            ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buf,
+            int light, int overlay
+    ) {
         staticRender(model, renderer, transformType, ms, buf, light, overlay);
     }
 
     private static void staticRender(CustomRenderedItemModel model, PartialItemModelRenderer renderer,
-                                     ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buf,
-                                     int light, int overlay) {
+            ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buf,
+            int light, int overlay
+    ) {
         var mc = Minecraft.getInstance();
         var p = mc.player;
         if (p == null) return;
@@ -186,7 +188,8 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
     }
 
     private static void undoModelTransform(ItemTransform transform, PoseStack ms, PoseTransformStack msr,
-                                           int handModifier) {
+            int handModifier
+    ) {
         Vector3f trn = transform.translation;
         Vector3f rot = transform.rotation;
         Vector3f scl = transform.scale;
@@ -229,7 +232,8 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
     }
 
     private static void renderWheel(PoseStack ms, PoseTransformStack msr, PartialItemModelRenderer renderer,
-                                    int light, float partialTicks) {
+            int light, float partialTicks
+    ) {
         BakedModel wheel = WHEEL.get();
 
         ms.pushPose();
@@ -239,7 +243,11 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
     }
 
     private static void renderSelectedItem(PoseStack ms, PoseTransformStack msr, MultiBufferSource buf,
-                                           int light, int overlay, float partialTicks) {
+            int light, int overlay, float partialTicks
+    ) {
+        var selectedItem = DepositScannerClientHandler.getSelectedItem();
+        if (selectedItem == null) return;
+
         float am = ambientItemMovement.getValue(partialTicks);
         int phase = (am < 2) ? 1 : -1;
         float amLiftEased = (Utils.easeInOut(am % 2 / 2, 2f) - 0.5f) * 2 * phase;
@@ -257,7 +265,7 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
         msr.rotateXDegrees(-90);
         msr.rotateZDegrees(90);
         msr.rotateXDegrees(10 * amRotEased);
-        Minecraft.getInstance().getItemRenderer().renderStatic(DepositScannerClientHandler.getSelectedItem(),
+        Minecraft.getInstance().getItemRenderer().renderStatic(selectedItem,
                 ItemDisplayContext.GUI, light, overlay, ms, buf, null, 0);
         ms.popPose();
     }

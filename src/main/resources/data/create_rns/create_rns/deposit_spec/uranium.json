@@ -1,0 +1,5 @@
+{
+  "scanner_icon_tag_candidates": ["c:raw_materials/uranium", "c:ores/uranium", "c:ingots/uranium", "c:nuggets/uranium"],
+  "map_icon_item": "create_rns:uranium_deposit_block",
+  "structure": "create_rns:deposit_uranium"
+}

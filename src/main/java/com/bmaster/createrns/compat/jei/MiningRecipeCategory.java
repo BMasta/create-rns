@@ -121,6 +121,9 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, MiningRecipe recipe, IFocusGroup focuses) {
         var slotBGs = new Int2ObjectOpenHashMap<TintedDrawable>();
+        var conn = Minecraft.getInstance().getConnection();
+
+        recipe.initialize((conn != null) ? conn.registryAccess() : RegistryAccess.EMPTY);
 
         // Mined deposit block
         builder.addSlot(RecipeIngredientRole.INPUT, 43, 7) // Y=5 is level with the top of the yield grid
@@ -219,10 +222,10 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
             var conn = Minecraft.getInstance().getConnection();
             var access = (conn != null) ? conn.registryAccess() : RegistryAccess.EMPTY;
 
-            this.item = wItem.item();
+            this.item = wItem.getItem();
             this.count = count;
             this.itemsInGroup = yield.items.size();
-            this.weightRatio = (float) wItem.weight() / yield.getTotalWeight();
+            this.weightRatio = (float) wItem.weight / yield.getTotalWeight();
             this.chance = yield.chance;
             this.bgColor = yield.slotColor;
             this.crsList = yield.crsNames.stream()

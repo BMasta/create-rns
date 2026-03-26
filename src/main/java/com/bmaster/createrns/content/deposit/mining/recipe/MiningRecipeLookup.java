@@ -1,6 +1,5 @@
 package com.bmaster.createrns.content.deposit.mining.recipe;
 
-import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSRecipeTypes;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystHandler;
@@ -8,7 +7,6 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -22,12 +20,7 @@ public class MiningRecipeLookup {
 
     public static @Nullable MiningRecipe find(Level l, Block depositBlock) {
         if (depBlockToRecipe == null) build(l);
-        var res = depBlockToRecipe.get(depositBlock);
-        if (res == null) {
-            CreateRNS.LOGGER.error("Could not get mining recipe for deposit block {}",
-                    ForgeRegistries.BLOCKS.getKey(depositBlock));
-        }
-        return res;
+        return depBlockToRecipe.get(depositBlock);
     }
 
     public static boolean isDepositMineable(Level l, Block depositBlock, Set<Catalyst> catalysts) {
@@ -40,10 +33,13 @@ public class MiningRecipeLookup {
 
     public static void build(Level l) {
         var recipes = l.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.MINING_RECIPE_TYPE.get());
-        depBlockToRecipe = recipes.stream().collect(Collectors.toMap(
-                MiningRecipe::getDepositBlock,
-                r -> r,
-                (o, n) -> n,
-                Object2ObjectOpenHashMap::new));
+        depBlockToRecipe = recipes.stream()
+                .filter(r -> r.initialize(l.registryAccess()))
+                .collect(Collectors.toMap(
+                        MiningRecipe::getDepositBlock,
+                        r -> r,
+                        (o, n) -> n,
+                        Object2ObjectOpenHashMap::new));
+
     }
 }

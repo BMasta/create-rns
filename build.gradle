@@ -189,7 +189,9 @@ tasks.named('processResources', ProcessResources).configure {
 
 tasks.register('copyMainResourcesToClasses', Copy) {
     dependsOn tasks.named('processResources')
-    from layout.buildDirectory.dir('resources/main')
+    from(layout.buildDirectory.dir('resources/main')) {
+        include '*.mixins.json'
+    }
     into layout.buildDirectory.dir('classes/java/main')
 }
 
@@ -200,9 +202,22 @@ tasks.named('classes').configure {
 def dynamicDatapackDumpDir = layout.projectDirectory.dir("src/generated/builtin_packs")
 def dynamicDatapackDumpWorkDir = layout.buildDirectory.dir("tmp/dynamic_datapack_dump")
 
-tasks.register('cleanDynamicDatapackDump', Delete) {
-    delete fileTree(dynamicDatapackDumpDir) {
-        exclude '**/README.md'
+tasks.register('cleanDynamicDatapackDump') {
+    doLast {
+        def dumpRoot = dynamicDatapackDumpDir.asFile
+        if (!dumpRoot.exists()) return
+
+        dumpRoot.listFiles()?.each { file ->
+            if (file.name == 'README.md') return
+
+            if (file.isDirectory()) {
+                if (!file.deleteDir()) {
+                    throw new GradleException("Failed to delete dynamic datapack dump directory: ${file}")
+                }
+            } else if (!file.delete()) {
+                throw new GradleException("Failed to delete dynamic datapack dump file: ${file}")
+            }
+        }
     }
 }
 
@@ -222,6 +237,7 @@ tasks.register('dumpDynamicDatapacks', JavaExec) {
 
 // Example for how to get properties into the manifest for reading at runtime.
 tasks.named('jar', Jar).configure {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
         attributes([
                 'Specification-Title'     : mod_id,

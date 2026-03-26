@@ -1,7 +1,7 @@
 package com.bmaster.createrns.compat.jei;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSBlocks;
+import com.bmaster.createrns.RNSDeposits;
 import com.bmaster.createrns.RNSRecipeTypes;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.infrastructure.ServerConfig;
@@ -43,7 +43,7 @@ public class RNSJEI implements IModPlugin {
         // Hide depleted deposit recipe when infinite deposits are configured
         if (ServerConfig.INFINITE_DEPOSITS.get()) {
             recipes = recipes.stream()
-                    .filter(r -> r.getDepositBlock() != RNSBlocks.DEPLETED_DEPOSIT.get())
+                    .filter(r -> r.getDepositBlock() != RNSDeposits.DEPLETED_DEPOSIT.get())
                     .toList();
         }
         reg.addRecipes(MiningRecipeCategory.JEI_RECIPE_TYPE, recipes);

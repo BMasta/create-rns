@@ -73,6 +73,7 @@
 * Core behavior: deposit generation is driven by structure-based worldgen with a shared placement policy plus per-type relative weighting.
 * Core behavior: the shared placement policy (including spread cadence controls) is configured through default registration definitions and emitted into the built-in pack output.
 * Core behavior: each deposit type selects from weighted structure templates and applies block replacement rules so shared templates can produce type-specific deposits.
+* Core behavior: deposit definitions may declare a required mod id; entries with unmet mod requirements are omitted from all generated deposit worldgen files, while compatible loaded mods automatically extend the shared deposit structure set instead of enabling a separate compat pack.
 * Core behavior: placement is constrained by biome eligibility and generation step settings, so deposits are injected into terrain generation rather than placed as ad-hoc runtime edits.
 * Edge behavior: disabling eligible biomes prevents new deposits from generating while preserving already-generated terrain.
 * Edge behavior: changing worldgen data affects newly generated chunks; existing chunks keep their previously generated deposits unless modified by gameplay or admin tools.
@@ -80,12 +81,27 @@
 * System interaction: scanner search behavior assumes the worldgen placement model remains in the same general scale; major placement changes can require scanner tuning.
 * System interaction: found-state filtering applies during structure lookup so discovery can ignore already-discovered deposits without changing worldgen itself.
 * Data and assets: behavior is data-driven through generated worldgen JSON and structure templates, with additional built-in datapack content controlling biome eligibility.
-* Data and assets: deposit type metadata for scanner selection is datapack-driven and must remain aligned with generated structure identities.
+* Data and assets: deposit type metadata for scanner selection is datapack-driven and must remain aligned with generated structure identities; compat expansion remains code-defined through deposit registration plus required-mod gating rather than through a separate built-in datapack.
 * Data and assets: default built-in-pack worldgen entries are sourced from per-deposit registration definitions;
   dump tooling uses an explicit dump-mode bootstrap path to materialize inspectable defaults outside game startup.
 * Maintenance invariant: structure templates must keep their agreed placeholder convention so replacement rules can reliably convert template blocks into deposit blocks.
 * Maintenance invariant: per-type worldgen entries, structure tags, and scanner target definitions must stay synchronized across code and datapack data.
 * Known limitation: default spawn tuning is authored in code-backed built-in-pack definitions, so balancing changes currently require updating code inputs or overriding via datapack.
+
+## Dynamic Mining Recipe Registration
+* Player perspective: mining behavior is still defined by mining recipe JSON, but the mod's default mining recipes now come from the built-in dynamic datapack instead of handwritten resource files.
+* Player perspective: when a compat recipe is defined in code for an optional dependency, it loads automatically when that mod is present and is absent otherwise; players do not toggle it separately.
+* Edge behavior: compat-gated mining recipes follow the same runtime-vs-dump enable rules as compat deposit worldgen, so default built-in-pack dumps exclude them while compat-enabled dumps include them.
+* Core behavior: code-defined mining recipes are registered as immutable configured entries through `MiningRecipeBuilder`, with recipe ids derived from their deposit block ids.
+* Core behavior: registration is colocated with deposit definitions through `DynamicDatapackDepositEntry.DepositBlockBuilder.recipe(...)`, so a deposit block and its dynamic mining recipe can stay authored in the same chain.
+* Core behavior: the main built-in dynamic datapack serializes enabled configured mining recipes into normal `recipe/*.json` files at pack-build time, leaving recipe loading itself to vanilla recipe handling.
+* System interaction: builder-defined recipe emission is independent from Registrate recipe generation and does not go through `RNSRecipes`; the shared bootstrap path is `RNSDeposits.register()` in both game runtime and dump tooling.
+* System interaction: compat recipe item and block references may use registry ids directly so recipes can target optional-mod content without adding those mods as compile-time dependencies.
+* System interaction: compat deposit blocks may also skip runtime block registration when their required mod is absent, so compat `BlockEntry` fields should not be assumed to exist unless the corresponding mod is loaded.
+* Data and assets: recipe behavior remains datapack-driven at runtime; this feature only changes how some default JSON is authored and emitted.
+* Maintenance invariant: every dynamic mining recipe id must remain derived from its deposit block id so handwritten and generated defaults cannot silently diverge.
+* Maintenance invariant: compat gating for dynamic mining recipes must stay aligned with the same mod-presence and dump-mode checks used by other dynamic built-in pack entries.
+* Known limitation: compat recipe ids that reference optional-mod items or blocks are not compile-time validated against those mods unless the integration dependency is added locally for testing.
 
 ## Release Automation (Manual Version Bump, Tag, and GitHub Release)
 * Maintainer perspective: releases are created by manually running `.github/workflows/release.yml` in GitHub Actions.

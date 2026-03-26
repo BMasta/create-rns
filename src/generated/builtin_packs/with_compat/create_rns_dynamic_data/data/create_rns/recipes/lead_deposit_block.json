@@ -1,0 +1,209 @@
+{
+  "type": "create_rns:mining",
+  "deposit_block": "create_rns:lead_deposit_block",
+  "replace_when_depleted": "create_rns:depleted_deposit_block",
+  "durability": {
+    "core": 200000,
+    "edge": 75000,
+    "random_spread": 0.2
+  },
+  "yields": [
+    {
+      "items": [
+        {
+          "item_candidates": [
+            "minecraft:cobblestone"
+          ],
+          "tag_candidates": []
+        }
+      ]
+    },
+    {
+      "chance": 5.0E-4,
+      "items": [
+        {
+          "item_candidates": [
+            "create_rns:resonant_amethyst"
+          ],
+          "tag_candidates": []
+        }
+      ],
+      "catalysts": [
+        "overclock"
+      ]
+    },
+    {
+      "chance": 0.5,
+      "items": [
+        {
+          "item_candidates": [],
+          "tag_candidates": [
+            "forge:nuggets/lead"
+          ]
+        }
+      ],
+      "catalysts": [
+        "overclock"
+      ]
+    },
+    {
+      "chance": 0.05,
+      "items": [
+        {
+          "item_candidates": [],
+          "tag_candidates": [
+            "forge:raw_materials/lead"
+          ]
+        }
+      ],
+      "catalysts": [
+        "faint_resonance",
+        "overclock"
+      ],
+      "jei_slot_color": -6910797
+    },
+    {
+      "chance": 5.0E-4,
+      "items": [
+        {
+          "item_candidates": [
+            "create_rns:resonant_amethyst"
+          ],
+          "tag_candidates": []
+        }
+      ],
+      "catalysts": [
+        "resonance",
+        "overclock"
+      ],
+      "jei_slot_color": -8031553
+    },
+    {
+      "chance": 0.005,
+      "items": [
+        {
+          "item_candidates": [],
+          "tag_candidates": [
+            "forge:storage_blocks/raw_lead"
+          ]
+        }
+      ],
+      "catalysts": [
+        "resonance",
+        "overclock"
+      ],
+      "jei_slot_color": -8031553
+    },
+    {
+      "items": [
+        {
+          "item_candidates": [
+            "minecraft:tuff"
+          ],
+          "tag_candidates": []
+        },
+        {
+          "item_candidates": [
+            "minecraft:calcite"
+          ],
+          "tag_candidates": []
+        },
+        {
+          "item_candidates": [
+            "create:limestone"
+          ],
+          "tag_candidates": []
+        }
+      ],
+      "catalysts": [
+        "faint_shattering_resonance"
+      ],
+      "jei_slot_color": -5075058
+    },
+    {
+      "chance": 0.3,
+      "items": [
+        {
+          "item_candidates": [
+            "create:crimsite"
+          ],
+          "tag_candidates": []
+        },
+        {
+          "item_candidates": [
+            "create:veridium"
+          ],
+          "tag_candidates": []
+        },
+        {
+          "item_candidates": [
+            "create:asurine"
+          ],
+          "tag_candidates": []
+        },
+        {
+          "item_candidates": [
+            "create:ochrum"
+          ],
+          "tag_candidates": []
+        }
+      ],
+      "catalysts": [
+        "shattering_resonance",
+        "overclock"
+      ],
+      "jei_slot_color": -4229518
+    },
+    {
+      "chance": 0.15,
+      "items": [
+        {
+          "item_candidates": [
+            "minecraft:lapis_lazuli"
+          ],
+          "tag_candidates": []
+        },
+        {
+          "item_candidates": [
+            "minecraft:amethyst_shard"
+          ],
+          "tag_candidates": []
+        },
+        {
+          "item_candidates": [
+            "minecraft:emerald"
+          ],
+          "tag_candidates": []
+        }
+      ],
+      "catalysts": [
+        "faint_stabilizing_resonance",
+        "overclock"
+      ],
+      "jei_slot_color": -7427662
+    },
+    {
+      "chance": 0.06,
+      "items": [
+        {
+          "item_candidates": [
+            "minecraft:redstone"
+          ],
+          "tag_candidates": [],
+          "weight": 5
+        },
+        {
+          "item_candidates": [
+            "minecraft:diamond"
+          ],
+          "tag_candidates": []
+        }
+      ],
+      "catalysts": [
+        "stabilizing_resonance",
+        "overclock"
+      ],
+      "jei_slot_color": -9261889
+    }
+  ]
+}

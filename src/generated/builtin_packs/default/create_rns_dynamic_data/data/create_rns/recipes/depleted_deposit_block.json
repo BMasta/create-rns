@@ -1,0 +1,16 @@
+{
+  "type": "create_rns:mining",
+  "deposit_block": "create_rns:depleted_deposit_block",
+  "yields": [
+    {
+      "items": [
+        {
+          "item_candidates": [
+            "minecraft:cobblestone"
+          ],
+          "tag_candidates": []
+        }
+      ]
+    }
+  ]
+}
