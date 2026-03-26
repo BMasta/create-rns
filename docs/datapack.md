@@ -74,7 +74,14 @@ The runtime format is still the same JSON shown below, and datapacks can overrid
       "items": [
         // Will be selected 80% of the time.
         {
+          // Optional.
+          // Either item or tag must be specified.
+          // If both are present, item is prioritized, and tag is used as a fallback.
           "item": "your_pack:raw_tin",
+          // Optional.
+          // Reserved for future tag-driven yield entries.
+          // It is currently parsed and synchronized, but has no runtime effect yet.
+          "tag": "c:raw_materials/tin",
           // Optional (default 1)
           "weight": 4
         },

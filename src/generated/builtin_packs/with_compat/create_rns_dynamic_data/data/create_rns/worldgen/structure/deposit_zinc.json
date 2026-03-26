@@ -6,7 +6,7 @@
   "size": 1,
   "spawn_overrides": {},
   "start_height": {
-    "absolute": -8
+    "absolute": -12
   },
   "start_pool": "create_rns:deposit_zinc/start",
   "step": "underground_ores",

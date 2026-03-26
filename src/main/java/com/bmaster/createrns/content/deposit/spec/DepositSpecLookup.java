@@ -35,8 +35,10 @@ public class DepositSpecLookup {
         structureKeyToSpec = new HashMap<>(regEntries.size());
         regEntries.forEach(e -> {
             var spec = e.getValue();
-            var scannerIcon = spec.scannerIconItem();
-            if (BuiltInRegistries.ITEM.getKeyOrNull(scannerIcon) != null) {
+            spec.initialize(access);
+
+            var scannerIcon = spec.getIcon();
+            if (scannerIcon != null && BuiltInRegistries.ITEM.getKeyOrNull(scannerIcon) != null) {
                 if (scannerIconToSpec.containsKey(scannerIcon)) {
                     throw new KeyAlreadyExistsException("Found multiple deposit specs with the same scanner icon");
                 }
@@ -65,10 +67,10 @@ public class DepositSpecLookup {
         return getDepositName(getStructureKey(access, scannerIconItem));
     }
 
-    public static @Nullable ItemStack getMapIconItem(RegistryAccess access, ResourceKey<Structure> structureKey) {
+    public static @Nullable ItemStack getMapIcon(RegistryAccess access, ResourceKey<Structure> structureKey) {
         if (structureKeyToSpec == null) build(access);
         var spec = structureKeyToSpec.get(structureKey);
-        return spec == null ? null : spec.mapIconItem();
+        return spec == null ? null : spec.getMapIcon();
     }
 
     public static MutableComponent getDepositName(ResourceKey<Structure> depKey) {

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "create_rns:block/silver_deposit_block"
+    }
+  }
+}

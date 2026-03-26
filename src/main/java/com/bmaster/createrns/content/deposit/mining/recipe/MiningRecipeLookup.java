@@ -1,12 +1,10 @@
 package com.bmaster.createrns.content.deposit.mining.recipe;
 
-import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSRecipeTypes;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystHandler;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -23,12 +21,7 @@ public class MiningRecipeLookup {
 
     public static @Nullable MiningRecipe find(Level l, Block depositBlock) {
         if (depBlockToRecipe == null) build(l);
-        var res = depBlockToRecipe.get(depositBlock);
-        if (res == null) {
-            CreateRNS.LOGGER.error("Could not get mining recipe for deposit block {}",
-                    BuiltInRegistries.BLOCK.getKey(depositBlock));
-        }
-        return res;
+        return depBlockToRecipe.get(depositBlock);
     }
 
     public static boolean isDepositMineable(Level l, Block depositBlock, Set<Catalyst> catalysts) {
@@ -43,6 +36,7 @@ public class MiningRecipeLookup {
         var recipes = l.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.MINING_RECIPE_TYPE.get());
         depBlockToRecipe = recipes.stream()
                 .map(RecipeHolder::value)
+                .filter(r -> r.initialize(l.registryAccess()))
                 .collect(Collectors.toMap(
                         MiningRecipe::getDepositBlock,
                         r -> r,

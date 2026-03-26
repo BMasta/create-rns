@@ -5,11 +5,9 @@ import com.bmaster.createrns.RNSPacks;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.SharedConstants;
 
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
@@ -17,32 +15,33 @@ public class DynamicDatapackDumpTool {
     private static final String DEFAULT_DUMP_PATH = "src/generated/builtin_packs";
     private static final String DEFAULT_VARIANT_PATH = "default";
     private static final String WITH_COMPAT_VARIANT_PATH = "with_compat";
-    public static @Nullable List<String> ENABLED_MODS = null;
+    private static boolean includeCompat = false;
 
     public static void main(String[] args) throws IOException {
         var outputRoot = (args.length > 0)
                 ? Path.of(args[0])
                 : Path.of(DEFAULT_DUMP_PATH);
 
-        DynamicDatapackDepositEntry.dumpMode = true;
+        DepositStructureBuilder.dumpMode = true;
         try {
             // This tool runs outside normal game bootstrap. Initialize SharedConstants so pack_format can be resolved.
             SharedConstants.tryDetectVersion();
             RNSDeposits.register();
 
-            dumpVariant(outputRoot.resolve(DEFAULT_VARIANT_PATH), List.of());
-            dumpVariant(outputRoot.resolve(WITH_COMPAT_VARIANT_PATH), null);
+            includeCompat = false;
+            dumpVariant(outputRoot.resolve(DEFAULT_VARIANT_PATH));
+            includeCompat = true;
+            dumpVariant(outputRoot.resolve(WITH_COMPAT_VARIANT_PATH));
         } finally {
-            DynamicDatapackDepositEntry.dumpMode = false;
+            DepositStructureBuilder.dumpMode = false;
         }
     }
 
-    public static @Nullable List<String> getEnabledMods() {
-        return ENABLED_MODS;
+    public static boolean includeCompat() {
+        return includeCompat;
     }
 
-    private static void dumpVariant(Path outputDir, @Nullable List<String> enabledMods) throws IOException {
-        ENABLED_MODS = enabledMods;
+    private static void dumpVariant(Path outputDir) throws IOException {
         DynamicDatapack.clearPackSnapshots();
 
         // Registers in-memory pack definitions without requiring full NeoForge runtime bootstrap

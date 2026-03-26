@@ -11,7 +11,10 @@
     {
       "items": [
         {
-          "item": "minecraft:cobblestone"
+          "item_candidates": [
+            "minecraft:cobblestone"
+          ],
+          "tag_candidates": []
         }
       ]
     },
@@ -19,7 +22,10 @@
       "chance": 5.0E-4,
       "items": [
         {
-          "item": "create_rns:resonant_amethyst"
+          "item_candidates": [
+            "create_rns:resonant_amethyst"
+          ],
+          "tag_candidates": []
         }
       ],
       "catalysts": [
@@ -30,7 +36,12 @@
       "chance": 0.5,
       "items": [
         {
-          "item": "minecraft:iron_nugget"
+          "item_candidates": [
+            "minecraft:iron_nugget"
+          ],
+          "tag_candidates": [
+            "c:nuggets/iron"
+          ]
         }
       ],
       "catalysts": [
@@ -41,7 +52,12 @@
       "chance": 0.05,
       "items": [
         {
-          "item": "minecraft:raw_iron"
+          "item_candidates": [
+            "minecraft:raw_iron"
+          ],
+          "tag_candidates": [
+            "c:raw_materials/iron"
+          ]
         }
       ],
       "catalysts": [
@@ -51,10 +67,31 @@
       "jei_slot_color": -6910797
     },
     {
+      "chance": 5.0E-4,
+      "items": [
+        {
+          "item_candidates": [
+            "create_rns:resonant_amethyst"
+          ],
+          "tag_candidates": []
+        }
+      ],
+      "catalysts": [
+        "resonance",
+        "overclock"
+      ],
+      "jei_slot_color": -8031553
+    },
+    {
       "chance": 0.005,
       "items": [
         {
-          "item": "minecraft:raw_iron_block"
+          "item_candidates": [
+            "minecraft:raw_iron_block"
+          ],
+          "tag_candidates": [
+            "c:storage_blocks/raw_iron"
+          ]
         }
       ],
       "catalysts": [
@@ -66,13 +103,22 @@
     {
       "items": [
         {
-          "item": "minecraft:tuff"
+          "item_candidates": [
+            "minecraft:tuff"
+          ],
+          "tag_candidates": []
         },
         {
-          "item": "minecraft:calcite"
+          "item_candidates": [
+            "minecraft:calcite"
+          ],
+          "tag_candidates": []
         },
         {
-          "item": "create:limestone"
+          "item_candidates": [
+            "create:limestone"
+          ],
+          "tag_candidates": []
         }
       ],
       "catalysts": [
@@ -84,16 +130,28 @@
       "chance": 0.3,
       "items": [
         {
-          "item": "create:crimsite"
+          "item_candidates": [
+            "create:crimsite"
+          ],
+          "tag_candidates": []
         },
         {
-          "item": "create:veridium"
+          "item_candidates": [
+            "create:veridium"
+          ],
+          "tag_candidates": []
         },
         {
-          "item": "create:asurine"
+          "item_candidates": [
+            "create:asurine"
+          ],
+          "tag_candidates": []
         },
         {
-          "item": "create:ochrum"
+          "item_candidates": [
+            "create:ochrum"
+          ],
+          "tag_candidates": []
         }
       ],
       "catalysts": [
@@ -106,13 +164,22 @@
       "chance": 0.15,
       "items": [
         {
-          "item": "minecraft:lapis_lazuli"
+          "item_candidates": [
+            "minecraft:lapis_lazuli"
+          ],
+          "tag_candidates": []
         },
         {
-          "item": "minecraft:amethyst_shard"
+          "item_candidates": [
+            "minecraft:amethyst_shard"
+          ],
+          "tag_candidates": []
         },
         {
-          "item": "minecraft:emerald"
+          "item_candidates": [
+            "minecraft:emerald"
+          ],
+          "tag_candidates": []
         }
       ],
       "catalysts": [
@@ -125,11 +192,17 @@
       "chance": 0.06,
       "items": [
         {
-          "item": "minecraft:redstone",
+          "item_candidates": [
+            "minecraft:redstone"
+          ],
+          "tag_candidates": [],
           "weight": 5
         },
         {
-          "item": "minecraft:diamond"
+          "item_candidates": [
+            "minecraft:diamond"
+          ],
+          "tag_candidates": []
         }
       ],
       "catalysts": [

@@ -23,12 +23,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class DynamicDatapack {
-    public static List<Pack> DATAPACKS = new ArrayList<>();
-    public static List<Pack> RESOURCE_PACKS = new ArrayList<>();
+    public static List<DynamicDatapack> DATAPACKS = new ArrayList<>();
+    public static List<DynamicDatapack> RESOURCE_PACKS = new ArrayList<>();
     private static final List<BuiltDynamicPack> PACK_SNAPSHOTS = new ArrayList<>();
 
     public static DynamicDatapack createDatapack(String id) {
@@ -99,7 +100,7 @@ public class DynamicDatapack {
     private boolean isRequired = true;
     private PackSource source = PackSource.BUILT_IN;
     private Pack.Position pos = Pack.Position.BOTTOM;
-    private final List<DatapackFile> files = new ArrayList<>();
+    private final List<Supplier<List<DatapackFile>>> contentSuppliers = new ArrayList<>();
 
     public DynamicDatapack title(Component title) {
         this.title = title;
@@ -126,22 +127,29 @@ public class DynamicDatapack {
         return this;
     }
 
-    public DynamicDatapack addContent(List<DatapackFile> files) {
-        this.files.addAll(files);
+    public DynamicDatapack addContent(Supplier<List<DatapackFile>> contentSupplier) {
+        this.contentSuppliers.add(contentSupplier);
         return this;
     }
 
-    public DynamicDatapack addContent(DatapackFile file) {
-        this.files.add(file);
+    public DynamicDatapack register() {
+        if (type == PackType.SERVER_DATA) DATAPACKS.add(this);
+        if (type == PackType.CLIENT_RESOURCES) RESOURCE_PACKS.add(this);
         return this;
+    }
+
+    public void registerSnapshots() {
+        PACK_SNAPSHOTS.add(snapshot());
     }
 
     public Pack build() {
         var resources = new DynamicDatapackResources(new PackLocationInfo(
                 id.toString(), title, source, Optional.empty()), description);
 
-        for (var file : files) {
-            resources.putJson(file.path, file.data);
+        for (var s : contentSuppliers) {
+            for (var file : s.get()) {
+                resources.putJson(file.path, file.data);
+            }
         }
 
         var pack = Pack.readMetaAndCreate(resources.location(), BuiltInPackSource.fixedResources(resources),
@@ -149,17 +157,6 @@ public class DynamicDatapack {
         assert pack != null;
 
         return pack;
-    }
-
-    public Pack buildAndRegister() {
-        var pack = build();
-        if (type == PackType.SERVER_DATA) DATAPACKS.add(pack);
-        if (type == PackType.CLIENT_RESOURCES) RESOURCE_PACKS.add(pack);
-        return pack;
-    }
-
-    public void registerSnapshots() {
-        PACK_SNAPSHOTS.add(snapshot());
     }
 
     private DynamicDatapack(ResourceLocation id, PackType type) {
@@ -170,7 +167,8 @@ public class DynamicDatapack {
 
     /// Used for dumping datapack contents for inspection
     private BuiltDynamicPack snapshot() {
-        var copiedFiles = files.stream()
+        var copiedFiles = contentSuppliers.stream()
+                .flatMap(s -> s.get().stream())
                 .map(f -> new DatapackFile(f.path, f.data.deepCopy()))
                 .toList();
 

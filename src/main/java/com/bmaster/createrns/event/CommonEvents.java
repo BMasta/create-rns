@@ -7,6 +7,7 @@ import com.bmaster.createrns.content.deposit.info.sync.FoundDepositDeltaS2CPaylo
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsClearS2CPayload;
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsSnapshotC2SPayload;
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsSnapshotS2CPayload;
+import com.bmaster.createrns.data.pack.MiningRecipeBuilder;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerC2SPayload;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerS2CPayload;
@@ -14,11 +15,15 @@ import com.bmaster.createrns.content.deposit.spec.DepositSpec;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositWorldgenProvider;
 import com.bmaster.createrns.data.pack.DynamicDatapack;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -40,13 +45,25 @@ public class CommonEvents {
     @SubscribeEvent
     public static void onAddPackFinders(AddPackFindersEvent e) {
         if (e.getPackType() == PackType.SERVER_DATA) {
-            for (var pack : DynamicDatapack.DATAPACKS) {
-                e.addRepositorySource(consumer -> consumer.accept(pack));
+            for (var ddp : DynamicDatapack.DATAPACKS) {
+                e.addRepositorySource(consumer -> consumer.accept(ddp.build()));
             }
         }
         if (e.getPackType() == PackType.CLIENT_RESOURCES) {
-            for (var pack : DynamicDatapack.RESOURCE_PACKS) {
-                e.addRepositorySource(consumer -> consumer.accept(pack));
+            for (var drp : DynamicDatapack.RESOURCE_PACKS) {
+                e.addRepositorySource(consumer -> consumer.accept(drp.build()));
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onBuildCreativeModeTabContents(BuildCreativeModeTabContentsEvent e) {
+        if (e.getTabKey() != RNSMisc.MAIN_TAB.getKey()) return;
+
+        for (var r : MiningRecipeBuilder.getRecipes()) {
+            var depItem = BuiltInRegistries.ITEM.get(r.recipe().depositBlockId());
+            if (!r.isEnabled().get()) {
+                e.remove(new ItemStack(depItem), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
             }
         }
     }

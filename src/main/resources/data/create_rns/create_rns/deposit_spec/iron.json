@@ -1,5 +1,5 @@
 {
-  "scanner_icon_item": "minecraft:raw_iron",
+  "scanner_icon_item_candidates": ["minecraft:raw_iron"],
   "map_icon_item": "create_rns:iron_deposit_block",
   "structure": "create_rns:deposit_iron"
 }

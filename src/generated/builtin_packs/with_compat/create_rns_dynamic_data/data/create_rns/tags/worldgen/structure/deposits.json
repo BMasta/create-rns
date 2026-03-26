@@ -5,6 +5,11 @@
     "create_rns:deposit_zinc",
     "create_rns:deposit_gold",
     "create_rns:deposit_redstone",
-    "create_rns:deposit_uranium"
+    "create_rns:deposit_tin",
+    "create_rns:deposit_lead",
+    "create_rns:deposit_nickel",
+    "create_rns:deposit_silver",
+    "create_rns:deposit_uranium",
+    "create_rns:deposit_thorium"
   ]
 }

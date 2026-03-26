@@ -4,35 +4,87 @@ import com.bmaster.createrns.CreateRNS;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.levelgen.structure.Structure;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Optional;
+import java.util.List;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public record DepositSpec(Item scannerIconItem, ItemStack mapIconItem, ResourceLocation structure) {
+public class DepositSpec {
     public static final Codec<DepositSpec> CODEC = RecordCodecBuilder.create(i -> i.group(
-            BuiltInRegistries.ITEM.byNameCodec().fieldOf("scanner_icon_item").forGetter(DepositSpec::scannerIconItem),
-            BuiltInRegistries.ITEM.byNameCodec().optionalFieldOf("map_icon_item")
-                    .forGetter(spec -> spec.mapIconItem.getItem() == spec.scannerIconItem
-                            ? Optional.empty()
-                            : Optional.of(spec.mapIconItem.getItem())),
-            ResourceLocation.CODEC.fieldOf("structure").forGetter(DepositSpec::structure)
-    ).apply(i, (scannerIconItem, mapIconItem, structure) ->
-            new DepositSpec(scannerIconItem, new ItemStack(mapIconItem.orElse(scannerIconItem)), structure)));
+            ResourceLocation.CODEC.listOf().fieldOf("scanner_icon_item_candidates")
+                    .orElse(List.of())
+                    .forGetter(ds -> ds.scannerIconItemRls),
+            TagKey.codec(Registries.ITEM).listOf().fieldOf("scanner_icon_tag_candidates")
+                    .orElse(List.of())
+                    .forGetter(ds -> ds.scannerIconTags),
+            BuiltInRegistries.ITEM.byNameCodec().fieldOf("map_icon_item")
+                    .forGetter(ds -> ds.mapIcon.getItem()),
+            ResourceLocation.CODEC.fieldOf("structure")
+                    .forGetter(ds -> ds.structure)
+    ).apply(i, DepositSpec::new));
 
     public static final ResourceKey<Registry<DepositSpec>> REGISTRY_KEY =
             ResourceKey.createRegistryKey(CreateRNS.asResource("deposit_spec"));
 
+    public final ResourceLocation structure;
+    protected final List<ResourceLocation> scannerIconItemRls;
+    protected final List<TagKey<Item>> scannerIconTags;
+    protected final ItemStack mapIcon;
+    protected Item scannerIcon = null;
+
+    public DepositSpec(
+            List<ResourceLocation> scannerIconItemRls, List<TagKey<Item>> scannerIconTags, Item mapIconItem,
+            ResourceLocation structure
+    ) {
+        this.scannerIconItemRls = scannerIconItemRls;
+        this.scannerIconTags = scannerIconTags;
+        this.structure = structure;
+        this.mapIcon = new ItemStack(mapIconItem);
+    }
+
     public ResourceKey<Structure> structureKey() {
         return ResourceKey.create(Registries.STRUCTURE, structure);
+    }
+
+    public boolean initialize(RegistryAccess access) {
+        if (scannerIconItemRls.isEmpty() && scannerIconTags.isEmpty()) {
+            throw new IllegalArgumentException("Deposit spec must define at least one scanner icon item or a tag");
+        }
+
+        for (var rl : scannerIconItemRls) {
+            scannerIcon = BuiltInRegistries.ITEM.getOptional(rl).orElse(null);
+            if (scannerIcon != null) return true;
+        }
+
+        for (var tag : scannerIconTags) {
+            // Pick the first item from the tag. "First" is determined by the order in which the items were tagged.
+            // Defaults to AIR of tag does not exist or does not contain any items.
+            var hs = access.lookupOrThrow(Registries.ITEM).get(tag).orElse(null);
+            scannerIcon = (hs != null) ? hs.stream().map(Holder::value).findFirst().orElse(null) : null;
+            if (scannerIcon != null) return true;
+        }
+
+        return false;
+    }
+
+    public @Nullable Item getIcon() {
+        return scannerIcon;
+    }
+
+    public ItemStack getMapIcon() {
+        return mapIcon;
     }
 }

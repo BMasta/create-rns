@@ -6,6 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -47,7 +48,8 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
     private final Block depositBlock;
     private final Block replacementBlock;
     private final DepositDurability dur;
-    private final List<Yield> yields;
+    private List<Yield> yields;
+    private boolean isInitialized = false;
 
     public MiningRecipe(Block depositBlock, Block replacementBlock, DepositDurability dur, List<Yield> yields) {
         this.depositBlock = depositBlock;
@@ -70,6 +72,16 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
 
     public DepositDurability getDurability() {
         return dur;
+    }
+
+    public boolean initialize(RegistryAccess access) {
+        if (!isInitialized) {
+            yields = yields.stream()
+                    .filter(y -> y.initialize(access))
+                    .toList();
+            isInitialized = true;
+        }
+        return !yields.isEmpty();
     }
 
     @Override

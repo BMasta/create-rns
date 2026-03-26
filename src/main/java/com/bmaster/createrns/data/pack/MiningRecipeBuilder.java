@@ -1,11 +1,9 @@
-package com.bmaster.createrns.content.deposit.mining.recipe;
+package com.bmaster.createrns.data.pack;
 
-import com.bmaster.createrns.data.pack.DynamicDatapackDepositEntry;
-import com.bmaster.createrns.data.pack.DynamicDatapackDepositEntry.DepositBlockBuildingContext;
-import com.bmaster.createrns.data.pack.DynamicDatapackDumpTool;
+import com.bmaster.createrns.content.deposit.mining.recipe.DepositDurability;
+import com.bmaster.createrns.data.pack.DepositBlockBuilder.DepositBlockBuildingContext;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.fml.ModList;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -13,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 @MethodsReturnNonnullByDefault
@@ -28,17 +27,13 @@ public class MiningRecipeBuilder {
         return Collections.unmodifiableList(RECIPES);
     }
 
-    private final ResourceLocation recipeId;
-    private final ResourceLocation depositBlockId;
+    private final DepositBlockBuildingContext ctx;
     private final List<YieldBuilder.ConfiguredYield> yields = new ArrayList<>();
 
     private @Nullable ResourceLocation replacementBlockId;
     private @Nullable DepositDurability durability;
-    private @Nullable String requiredModId;
 
-    public MiningRecipeBuilder requireMod(String modId) {
-        if (modId.isBlank()) throw new IllegalArgumentException("Required mod id cannot be blank");
-        requiredModId = modId;
+    public MiningRecipeBuilder compat() {
         return this;
     }
 
@@ -69,16 +64,21 @@ public class MiningRecipeBuilder {
         return transform.apply(this);
     }
 
+    public MiningRecipeBuilder transformIf(boolean condition, UnaryOperator<MiningRecipeBuilder> transform) {
+        if (!condition) return this;
+        return transform.apply(this);
+    }
+
     public void save() {
         if (yields.isEmpty()) throw new IllegalStateException("Mining recipe must define at least one yield");
 
         var candidate = new ConfiguredEntry(
-                recipeId,
-                requiredModId,
-                new ConfiguredRecipe(depositBlockId, replacementBlockId, durability, List.copyOf(yields))
+                ctx.depositBlockId(),
+                new ConfiguredRecipe(ctx.depositBlockId(), replacementBlockId, durability, List.copyOf(yields)),
+                ctx.isEnabled()
         );
         var existing = RECIPES.stream()
-                .filter(recipe -> recipe.recipeId().equals(recipeId))
+                .filter(recipe -> recipe.recipeId().equals(ctx.depositBlockId()))
                 .findFirst()
                 .orElse(null);
 
@@ -87,26 +87,16 @@ public class MiningRecipeBuilder {
             return;
         }
         if (!existing.equals(candidate)) {
-            throw new IllegalStateException("Conflicting dynamic mining recipe definition already exists: " + recipeId);
+            throw new IllegalStateException("Conflicting dynamic mining recipe definition already exists: " +
+                    ctx.depositBlockId());
         }
     }
 
     private MiningRecipeBuilder(DepositBlockBuildingContext ctx) {
-        this.recipeId = ctx.depositBlockId();
-        this.depositBlockId = ctx.depositBlockId();
-        this.requiredModId = ctx.requiredModId();
+        this.ctx = ctx;
     }
 
-    public record ConfiguredEntry(ResourceLocation recipeId, @Nullable String requiredModId, ConfiguredRecipe recipe) {
-        public boolean isEnabled() {
-            if (DynamicDatapackDepositEntry.dumpMode) {
-                var enabledMods = DynamicDatapackDumpTool.getEnabledMods();
-                return requiredModId == null || enabledMods == null || enabledMods.contains(requiredModId);
-            }
-
-            var modList = ModList.get();
-            return requiredModId == null || modList.isLoaded(requiredModId);
-        }
+    public record ConfiguredEntry(ResourceLocation recipeId, ConfiguredRecipe recipe, Supplier<Boolean> isEnabled) {
     }
 
     public record ConfiguredRecipe(
