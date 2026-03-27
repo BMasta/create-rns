@@ -16,7 +16,7 @@ import java.util.function.UnaryOperator;
 public class RNSPacks {
     public static final int DEFAULT_SEPARATION = 4;
     public static final int DEFAULT_SPACING = 24;
-    public static final int DEFAULT_NETHER_SEPARATION = 8;
+    public static final int DEFAULT_NETHER_SEPARATION = 2;
     public static final int DEFAULT_NETHER_SPACING = 8;
 
     public static final int SALT = 591646342;
