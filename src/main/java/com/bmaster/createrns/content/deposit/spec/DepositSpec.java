@@ -14,6 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.levelgen.structure.Structure;
 
 import javax.annotation.Nullable;
@@ -66,14 +67,15 @@ public class DepositSpec {
 
         for (var rl : scannerIconItemRls) {
             scannerIcon = BuiltInRegistries.ITEM.getOptional(rl).orElse(null);
+            if (scannerIcon == Items.AIR) scannerIcon = null;
             if (scannerIcon != null) return true;
         }
 
         for (var tag : scannerIconTags) {
             // Pick the first item from the tag. "First" is determined by the order in which the items were tagged.
-            // Defaults to AIR of tag does not exist or does not contain any items.
             var hs = access.lookupOrThrow(Registries.ITEM).get(tag).orElse(null);
             scannerIcon = (hs != null) ? hs.stream().map(Holder::value).findFirst().orElse(null) : null;
+            if (scannerIcon == Items.AIR) scannerIcon = null;
             if (scannerIcon != null) return true;
         }
 

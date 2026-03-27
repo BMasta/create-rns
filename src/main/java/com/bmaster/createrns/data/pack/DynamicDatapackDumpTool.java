@@ -18,20 +18,19 @@ public class DynamicDatapackDumpTool {
     private static boolean includeCompat = false;
 
     public static void main(String[] args) throws IOException {
-        var outputRoot = (args.length > 0)
-                ? Path.of(args[0])
-                : Path.of(DEFAULT_DUMP_PATH);
+        var outputRoot = (args.length > 0) ? Path.of(args[0]) : Path.of(DEFAULT_DUMP_PATH);
 
         DepositStructureBuilder.dumpMode = true;
         try {
             // This tool runs outside normal game bootstrap. Initialize SharedConstants so pack_format can be resolved.
             SharedConstants.tryDetectVersion();
             RNSDeposits.register();
+            RNSPacks.register();
 
             includeCompat = false;
-            dumpVariant(outputRoot.resolve(DEFAULT_VARIANT_PATH));
+            DynamicDatapack.dumpDatapacks(outputRoot.resolve(DEFAULT_VARIANT_PATH));
             includeCompat = true;
-            dumpVariant(outputRoot.resolve(WITH_COMPAT_VARIANT_PATH));
+            DynamicDatapack.dumpDatapacks(outputRoot.resolve(WITH_COMPAT_VARIANT_PATH));
         } finally {
             DepositStructureBuilder.dumpMode = false;
         }
@@ -39,18 +38,5 @@ public class DynamicDatapackDumpTool {
 
     public static boolean includeCompat() {
         return includeCompat;
-    }
-
-    private static void dumpVariant(Path outputDir) throws IOException {
-        DynamicDatapack.clearPackSnapshots();
-
-        // Registers in-memory pack definitions without requiring full NeoForge runtime bootstrap
-        RNSPacks.registerSnapshots();
-        DynamicDatapack.dumpRegisteredPacks(outputDir);
-
-        System.out.println("Dumped in-memory packs to " + outputDir.toAbsolutePath());
-        for (var def : DynamicDatapack.getPackSnapshots()) {
-            System.out.println("- " + def.id() + " [" + def.type() + "] " + def.files().size() + " file(s)");
-        }
     }
 }
