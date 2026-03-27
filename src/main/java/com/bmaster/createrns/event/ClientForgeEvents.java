@@ -5,8 +5,10 @@ import com.bmaster.createrns.RNSItems;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
 import com.bmaster.createrns.content.deposit.info.FoundDepositClientCache;
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsSnapshotC2SPacket;
+import com.bmaster.createrns.content.deposit.scanning.DepositIconsC2SPacket;
 import com.bmaster.createrns.content.deposit.mining.MinerEffectsGenerator;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler;
+import com.bmaster.createrns.content.deposit.spec.DepositSpecLookup;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
@@ -21,6 +23,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Map;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
@@ -38,6 +41,7 @@ public class ClientForgeEvents {
     @SubscribeEvent
     public static void onClientLogin(ClientPlayerNetworkEvent.LoggingIn e) {
         FoundDepositsSnapshotC2SPacket.send();
+        DepositIconsC2SPacket.send();
     }
 
     @SubscribeEvent
@@ -84,6 +88,7 @@ public class ClientForgeEvents {
     @SubscribeEvent
     public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut e) {
         FoundDepositClientCache.clear();
+        DepositSpecLookup.setScannerIcons(Map.of());
         DepositScannerClientHandler.clearState();
         DepositClaimerOutlineRenderer.clearOutline();
         MinerEffectsGenerator.clearState();

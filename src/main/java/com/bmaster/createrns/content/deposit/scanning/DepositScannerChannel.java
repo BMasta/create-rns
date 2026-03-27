@@ -15,7 +15,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class DepositScannerChannel {
-    private static final String PROTOCOL = "3";
+    private static final String PROTOCOL = "4";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, "deposit_scanner"),
             () -> PROTOCOL, PROTOCOL::equals, PROTOCOL::equals);
@@ -32,6 +32,12 @@ public class DepositScannerChannel {
 
         CHANNEL.registerMessage(next(), DepositScannerS2CPacket.class,
                 DepositScannerS2CPacket::encode, DepositScannerS2CPacket::decode, DepositScannerS2CPacket::handle);
+
+        CHANNEL.registerMessage(next(), DepositIconsC2SPacket.class,
+                DepositIconsC2SPacket::encode, DepositIconsC2SPacket::decode, DepositIconsC2SPacket::handle);
+
+        CHANNEL.registerMessage(next(), DepositIconsS2CPacket.class,
+                DepositIconsS2CPacket::encode, DepositIconsS2CPacket::decode, DepositIconsS2CPacket::handle);
 
         CHANNEL.registerMessage(next(), FoundDepositsSnapshotC2SPacket.class,
                 FoundDepositsSnapshotC2SPacket::encode, FoundDepositsSnapshotC2SPacket::decode,

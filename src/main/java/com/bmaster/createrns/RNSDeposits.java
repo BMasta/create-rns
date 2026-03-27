@@ -3,6 +3,7 @@ package com.bmaster.createrns;
 import com.bmaster.createrns.compat.Mods;
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.data.pack.DepositStructureBuilder;
+import com.bmaster.createrns.data.pack.DynamicDatapackContent.Dimension;
 import com.bmaster.createrns.data.pack.MiningRecipeBuilder;
 import com.bmaster.createrns.data.pack.YieldBuilder;
 import com.simibubi.create.Create;
@@ -53,6 +54,8 @@ public class RNSDeposits {
     public static final int COLOR_SHATTERING_RESONANCE = 0xFFBF7672;
     public static final int COLOR_FAINT_STABILIZING_RESONANCE = 0xFF8EA9B2;
     public static final int COLOR_STABILIZING_RESONANCE = 0xFF72ACBF;
+
+    //========================================= Vanilla + Create | Overworld =========================================//
 
     public static final BlockEntry<DepositBlock> IRON_DEPOSIT = DepositStructureBuilder
             .create("iron")
@@ -157,15 +160,9 @@ public class RNSDeposits {
                     .save())
             .register();
 
-    public static final BlockEntry<DepositBlock> DEPLETED_DEPOSIT = DepositStructureBuilder
-            .blockOnly("depleted_deposit_block")
-            .transform(depositBlockProperties(MapColor.COLOR_BLACK))
-            .recipe(id -> MiningRecipeBuilder.create(id)
-                    .yield(y -> y.item(List.of("cobblestone")))
-                    .save())
-            .register();
+    //============================================== Compat | Overworld ==============================================//
 
-    public static final @Nullable BlockEntry<DepositBlock> TIN_DEPOSIT = DepositStructureBuilder
+    public static final BlockEntry<DepositBlock> TIN_DEPOSIT = DepositStructureBuilder
             .create("tin")
             .enableWhenBlockPresent("tin_ore")
             .enableWhenBlockPresent("deepslate_tin_ore")
@@ -186,7 +183,7 @@ public class RNSDeposits {
                     .save())
             .register();
 
-    public static final @Nullable BlockEntry<DepositBlock> LEAD_DEPOSIT = DepositStructureBuilder
+    public static final BlockEntry<DepositBlock> LEAD_DEPOSIT = DepositStructureBuilder
             .create("lead")
             .enableWhenBlockPresent("lead_ore")
             .enableWhenBlockPresent("deepslate_lead_ore")
@@ -207,7 +204,7 @@ public class RNSDeposits {
                     .save())
             .register();
 
-    public static final @Nullable BlockEntry<DepositBlock> NICKEL_DEPOSIT = DepositStructureBuilder
+    public static final BlockEntry<DepositBlock> NICKEL_DEPOSIT = DepositStructureBuilder
             .create("nickel")
             .enableWhenBlockPresent("nickel_ore")
             .enableWhenBlockPresent("deepslate_nickel_ore")
@@ -227,13 +224,13 @@ public class RNSDeposits {
                     .save())
             .register();
 
-    public static final @Nullable BlockEntry<DepositBlock> SILVER_DEPOSIT = DepositStructureBuilder
+    public static final BlockEntry<DepositBlock> SILVER_DEPOSIT = DepositStructureBuilder
             .create("silver")
             .enableWhenBlockPresent("silver_ore")
             .enableWhenBlockPresent("deepslate_silver_ore")
             .transform(preciousDepositStructure(1))
             .block("silver_deposit_block")
-            .transform(depositBlockProperties(MapColor.SAND))
+            .transform(depositBlockProperties(MapColor.SNOW))
             .recipe(ctx -> MiningRecipeBuilder.create(ctx)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
@@ -247,7 +244,7 @@ public class RNSDeposits {
                     .save())
             .register();
 
-    public static final @Nullable BlockEntry<DepositBlock> URANIUM_DEPOSIT = DepositStructureBuilder
+    public static final BlockEntry<DepositBlock> URANIUM_DEPOSIT = DepositStructureBuilder
             .create("uranium")
             .enableWhenBlockPresent("uranium_ore")
             .enableWhenBlockPresent("deepslate_uranium_ore")
@@ -268,7 +265,7 @@ public class RNSDeposits {
                     .save())
             .register();
 
-    public static final @Nullable BlockEntry<DepositBlock> THORIUM_DEPOSIT = DepositStructureBuilder
+    public static final BlockEntry<DepositBlock> THORIUM_DEPOSIT = DepositStructureBuilder
             .create("thorium")
             .enableWhenBlockPresent("thorium_ore")
             .enableWhenBlockPresent("deepslate_thorium_ore")
@@ -285,6 +282,59 @@ public class RNSDeposits {
                                     List.of(Mods.NEW_AGE.ID + ":thorium"),
                                     List.of("forge:raw_materials/thorium")))))
                     .transform(sharedResonanceYields())
+                    .save())
+            .register();
+
+
+    //=========================================== Vanilla + Create | Nether ==========================================//
+
+    public static final BlockEntry<DepositBlock> QUARTZ_DEPOSIT = DepositStructureBuilder
+            .create("quartz")
+            .transform(bulkNetherDepositStructure(1))
+            .block("quartz_deposit_block")
+            .transform(depositBlockProperties(MapColor.QUARTZ))
+            .recipe(id -> MiningRecipeBuilder.create(id)
+                    .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
+                    .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
+                    .transform(baseYields(
+                            List.of(itemCandidates(CHANCE_NORMAL,
+                                    List.of("quartz"))),
+                            List.of(itemCandidates(CHANCE_NORMAL,
+                                    List.of("quartz"))),
+                            List.of(tagCandidates(CHANCE_NORMAL,
+                                    List.of("forge:gems/certus_quartz", "forge:gems/quartz")))))
+                    .transform(sharedResonanceYields())
+                    .save())
+            .register();
+
+    //================================================ Compat | Nether ===============================================//
+
+    public static final @Nullable BlockEntry<DepositBlock> COBALT_DEPOSIT = DepositStructureBuilder
+            .create("cobalt")
+            .enableWhenBlockPresent("cobalt_ore")
+            .transform(preciousNetherDepositStructure(1))
+            .block("cobalt_deposit_block")
+            .transform(depositBlockProperties(MapColor.LAPIS))
+            .recipe(ctx -> MiningRecipeBuilder.create(ctx)
+                    .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
+                    .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
+                    .transform(baseYields(
+                            List.of(),
+                            List.of(tagCandidates(CHANCE_NORMAL,
+                                    List.of("forge:nuggets/cobalt"))),
+                            List.of(tagCandidates(CHANCE_LOW,
+                                    List.of("forge:raw_materials/cobalt")))))
+                    .transform(sharedResonanceYields())
+                    .save())
+            .register();
+
+    //================================================================================================================//
+
+    public static final BlockEntry<DepositBlock> DEPLETED_DEPOSIT = DepositStructureBuilder
+            .blockOnly("depleted_deposit_block")
+            .transform(depositBlockProperties(MapColor.COLOR_BLACK))
+            .recipe(id -> MiningRecipeBuilder.create(id)
+                    .yield(y -> y.item(List.of("cobblestone")))
                     .save())
             .register();
 
@@ -328,6 +378,27 @@ public class RNSDeposits {
                 .nbt(DepositStructureBuilder.DEP_LARGE, 2);
     }
 
+    public static UnaryOperator<DepositStructureBuilder> bulkNetherDepositStructure(int weightMultiplier) {
+        return b -> b
+                .dimension(Dimension.NETHER)
+                .depth(67)
+                .depthDeviation(33)
+                .weight(50 * weightMultiplier)
+                .nbt(DepositStructureBuilder.DEP_MEDIUM, 70)
+                .nbt(DepositStructureBuilder.DEP_LARGE, 30);
+    }
+
+    public static UnaryOperator<DepositStructureBuilder> preciousNetherDepositStructure(int weightMultiplier) {
+        return b -> b
+                .dimension(Dimension.NETHER)
+                .depth(67)
+                .depthDeviation(33)
+                .weight(20 * weightMultiplier)
+                .nbt(DepositStructureBuilder.DEP_SMALL, 70)
+                .nbt(DepositStructureBuilder.DEP_MEDIUM, 28)
+                .nbt(DepositStructureBuilder.DEP_LARGE, 2);
+    }
+
     private static UnaryOperator<MiningRecipeBuilder> addYield(
             List<ItemAndTagCandidates> items, UnaryOperator<YieldBuilder> andThenApply
     ) {
@@ -346,6 +417,45 @@ public class RNSDeposits {
     ) {
         return b -> b
                 .yield(y -> y.item(List.of("cobblestone")))
+                .yield(y -> y
+                        .item(List.of(CreateRNS.ID + ":resonant_amethyst"))
+                        .chance(CHANCE_EXTREMELY_LOW)
+                        .catalyst(CATA_OVERCLOCK))
+                // T0
+                .transform(addYield(t0s, y -> y
+                        .compat()
+                        .catalyst(CATA_OVERCLOCK)))
+                // T1
+                .transform(addYield(t1s, y -> y
+                        .compat()
+                        .catalyst(CATA_FAINT_RESONANCE)
+                        .catalyst(CATA_OVERCLOCK)
+                        .jeiSlotColor(COLOR_FAINT_RESONANCE)))
+
+                .yield(y -> y
+                        .item(List.of(CreateRNS.ID + ":resonant_amethyst"))
+                        .chance(CHANCE_EXTREMELY_LOW)
+                        .catalyst(CATA_RESONANCE)
+                        .catalyst(CATA_OVERCLOCK)
+                        .jeiSlotColor(COLOR_RESONANCE))
+
+                // T2
+                .transform(addYield(t2s, y -> y
+                        .compat()
+                        .catalyst(CATA_RESONANCE)
+                        .catalyst(CATA_OVERCLOCK)
+                        .jeiSlotColor(COLOR_RESONANCE)));
+    }
+
+    private static UnaryOperator<MiningRecipeBuilder> baseNetherYields(
+            List<ItemAndTagCandidates> t0s, List<ItemAndTagCandidates> t1s, List<ItemAndTagCandidates> t2s
+    ) {
+        return b -> b
+                .yield(y -> y.item(List.of("netherrack")))
+                .yield(y -> y
+                        .item(List.of("soul_sand"))
+                        .item(List.of("soul_soil"))
+                        .item(List.of("magma_block")))
                 .yield(y -> y
                         .item(List.of(CreateRNS.ID + ":resonant_amethyst"))
                         .chance(CHANCE_EXTREMELY_LOW)

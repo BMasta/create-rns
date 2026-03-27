@@ -2,6 +2,7 @@ package com.bmaster.createrns;
 
 import com.bmaster.createrns.data.pack.DynamicDatapack;
 import com.bmaster.createrns.data.pack.DynamicDatapackContent;
+import com.bmaster.createrns.data.pack.DynamicDatapackContent.Dimension;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.repository.PackSource;
@@ -16,7 +17,6 @@ public class RNSPacks {
 
 
     public static final int SALT = 591646342;
-    public static final String DEP_SET_NAME = "deposits";
 
     public static DynamicDatapack MAIN_PACK;
     public static DynamicDatapack NO_DEPOSIT_PACK;
@@ -30,7 +30,8 @@ public class RNSPacks {
     private static DynamicDatapack createMainPack() {
         return DynamicDatapack.createDatapack("dynamic_data")
                 // Create a new biome tag that includes all biomes in which deposits should spawn
-                .addContent(DynamicDatapackContent.depositBiomeTag(false))
+                .addContent(DynamicDatapackContent.depositBiomeTag(Dimension.OVERWORLD, false))
+                .addContent(DynamicDatapackContent.depositBiomeTag(Dimension.NETHER, false))
                 // Create a structure tag for deposits. All deposits must be tagged with it.
                 .addContent(DynamicDatapackContent.depositStructureTag())
                 // Create dynamically registered mining recipes.
@@ -39,7 +40,9 @@ public class RNSPacks {
                 .addContent(DynamicDatapackContent.depositProcessorLists())
                 .addContent(DynamicDatapackContent.depositTemplatePools())
                 .addContent(DynamicDatapackContent.depositStructures())
-                .addContent(DynamicDatapackContent.depositStructureSet(DEP_SET_NAME,
+                .addContent(DynamicDatapackContent.depositStructureSet(Dimension.OVERWORLD,
+                        DEFAULT_SEPARATION, DEFAULT_SPACING, SALT))
+                .addContent(DynamicDatapackContent.depositStructureSet(Dimension.NETHER,
                         DEFAULT_SEPARATION, DEFAULT_SPACING, SALT));
     }
 
@@ -50,7 +53,8 @@ public class RNSPacks {
                 .optional()
                 .overwritesLoadedPacks()
                 // Generate an alternative version of the deposit biome tag that includes no biomes
-                .addContent(DynamicDatapackContent.depositBiomeTag(true));
+                .addContent(DynamicDatapackContent.depositBiomeTag(Dimension.OVERWORLD, true))
+                .addContent(DynamicDatapackContent.depositBiomeTag(Dimension.NETHER, true));
     }
 
     private static DynamicDatapack createDepositFrequencyPack(
@@ -64,7 +68,10 @@ public class RNSPacks {
                 .optional()
                 .overwritesLoadedPacks()
                 // Generate an alternative version of the deposit structure set with specified distribution parameters
-                .addContent(DynamicDatapackContent.depositStructureSet(DEP_SET_NAME, separation, spacing, SALT));
+                .addContent(DynamicDatapackContent.depositStructureSet(Dimension.OVERWORLD,
+                        separation, spacing, SALT))
+                .addContent(DynamicDatapackContent.depositStructureSet(Dimension.NETHER,
+                        separation, spacing, SALT));
     }
 
     public static void register() {

@@ -1,0 +1,18 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "separation": 3,
+    "spacing": 16,
+    "salt": 591646342
+  },
+  "structures": [
+    {
+      "structure": "create_rns:deposit_quartz",
+      "weight": 50
+    },
+    {
+      "structure": "create_rns:deposit_cobalt",
+      "weight": 20
+    }
+  ]
+}

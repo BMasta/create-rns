@@ -81,7 +81,7 @@ The runtime format is still the same JSON shown below, and datapacks can overrid
           // Optional.
           // Reserved for future tag-driven yield entries.
           // It is currently parsed and synchronized, but has no runtime effect yet.
-          "tag": "c:raw_materials/tin",
+          "tag": "forge:raw_materials/tin",
           // Optional (default 1)
           "weight": 4
         },
