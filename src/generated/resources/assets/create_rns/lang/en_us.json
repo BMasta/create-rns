@@ -1,4 +1,5 @@
 {
+  "block.create_rns.cobalt_deposit_block": "Cobalt Deposit Block",
   "block.create_rns.copper_deposit_block": "Copper Deposit Block",
   "block.create_rns.depleted_deposit_block": "Depleted Deposit Block",
   "block.create_rns.gold_deposit_block": "Gold Deposit Block",
@@ -8,6 +9,7 @@
   "block.create_rns.mine_head_part": "Mine Head Part",
   "block.create_rns.miner_bearing": "Miner Bearing",
   "block.create_rns.nickel_deposit_block": "Nickel Deposit Block",
+  "block.create_rns.quartz_deposit_block": "Quartz Deposit Block",
   "block.create_rns.redstone_deposit_block": "Redstone Deposit Block",
   "block.create_rns.resonance_buffer": "Resonance Buffer",
   "block.create_rns.resonator": "Resonator",

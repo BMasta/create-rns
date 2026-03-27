@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:jigsaw",
+  "biomes": "#create_rns:has_deposit_nether",
+  "max_distance_from_center": 80,
+  "start_height": {
+    "type": "minecraft:uniform",
+    "min_inclusive": {
+      "absolute": 34
+    },
+    "max_inclusive": {
+      "absolute": 100
+    }
+  },
+  "size": 1,
+  "spawn_overrides": {},
+  "start_pool": "create_rns:deposit_quartz/start",
+  "step": "underground_ores",
+  "terrain_adaptation": "none",
+  "use_expansion_hack": false
+}

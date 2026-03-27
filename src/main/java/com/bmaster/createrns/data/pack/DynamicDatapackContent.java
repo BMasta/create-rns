@@ -15,7 +15,22 @@ import java.util.function.Supplier;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class DynamicDatapackContent {
-    private static final String HAS_DEPOSIT_TAG_PATH = "%s/tags/worldgen/biome/has_deposit.json";
+    public enum Dimension {
+        OVERWORLD(""),
+        NETHER("nether");
+
+        private final String suffix;
+
+        Dimension(String suffix) {
+            this.suffix = suffix;
+        }
+
+        public String appendTo(String base) {
+            return (suffix.isEmpty()) ? base : base + "_" + suffix;
+        }
+    }
+
+    private static final String DEPOSIT_BIOME_TAG_PATH = "%s/tags/worldgen/biome/%s.json";
     private static final String DEPOSIT_STRUCTURE_TAG_PATH = "%s/tags/worldgen/structure/deposits.json";
     private static final String DEPOSIT_STRUCTURE_SET_PATH = "%s/worldgen/structure_set/%s.json";
     private static final String DEPOSIT_STRUCTURE_PATH = "%s/worldgen/structure/deposit_%s.json";
@@ -23,24 +38,32 @@ public class DynamicDatapackContent {
     private static final String DEPOSIT_PROCESSOR_LIST_PATH = "%s/worldgen/processor_list/%s.json";
     private static final String MINING_RECIPE_PATH = "%s/recipe/%s.json";
 
-    public static Supplier<List<DatapackFile>> depositBiomeTag(boolean disableGeneration) {
+    public static Supplier<List<DatapackFile>> depositBiomeTag(Dimension dimension, boolean disableGeneration) {
         return () -> {
             var values = new JsonArray();
             var root = new JsonObject();
-            if (!disableGeneration) {
-                values.add("#minecraft:is_forest");
-                values.add("#minecraft:is_jungle");
-                values.add("#minecraft:is_taiga");
-                values.add("#minecraft:is_badlands");
-                values.add("#minecraft:is_hill");
-                values.add("#minecraft:is_savanna");
-            } else {
+            if (disableGeneration) {
                 root.addProperty("replace", true);
+            } else {
+                switch (dimension) {
+                    case OVERWORLD -> {
+                        values.add("#minecraft:is_forest");
+                        values.add("#minecraft:is_jungle");
+                        values.add("#minecraft:is_taiga");
+                        values.add("#minecraft:is_badlands");
+                        values.add("#minecraft:is_hill");
+                        values.add("#minecraft:is_savanna");
+                    }
+                    case NETHER -> {
+                        values.add("#minecraft:is_nether");
+                    }
+                }
             }
 
             root.add("values", values);
 
-            return List.of(new DatapackFile(HAS_DEPOSIT_TAG_PATH.formatted(CreateRNS.ID), root));
+            return List.of(new DatapackFile(DEPOSIT_BIOME_TAG_PATH.formatted(
+                    CreateRNS.ID, dimension.appendTo("has_deposit")), root));
         };
     }
 
@@ -114,27 +137,48 @@ public class DynamicDatapackContent {
 
     public static Supplier<List<DatapackFile>> depositStructures() {
         return () -> {
-            var depositEntries = getEnabledDeposits();
-            var files = new ArrayList<DatapackFile>(depositEntries.size());
-            for (var def : depositEntries) {
-                var root = new JsonObject();
-                root.addProperty("type", "minecraft:jigsaw");
-                root.addProperty("biomes", "#" + CreateRNS.ID + ":has_deposit");
-                root.addProperty("max_distance_from_center", 80);
-                root.addProperty("project_start_to_heightmap", "OCEAN_FLOOR_WG");
-                root.addProperty("size", 1);
-                root.add("spawn_overrides", new JsonObject());
+            var files = new ArrayList<DatapackFile>();
+            for (var d : Dimension.values()) {
+                var depositEntries = getEnabledDeposits(d);
+                for (var def : depositEntries) {
+                    var root = new JsonObject();
+                    root.addProperty("type", "minecraft:jigsaw");
+                    root.addProperty("biomes", d.appendTo("#" + CreateRNS.ID + ":has_deposit"));
+                    root.addProperty("max_distance_from_center", 80);
 
-                var startHeight = new JsonObject();
-                startHeight.addProperty("absolute", -def.depth());
-                root.add("start_height", startHeight);
+                    switch (d) {
+                        case OVERWORLD -> {
+                            root.addProperty("project_start_to_heightmap", "OCEAN_FLOOR_WG");
+                        }
+                    }
 
-                root.addProperty("start_pool", CreateRNS.ID + ":deposit_" + def.name() + "/start");
-                root.addProperty("step", "underground_ores");
-                root.addProperty("terrain_adaptation", "none");
-                root.addProperty("use_expansion_hack", false);
+                    var startHeight = new JsonObject();
+                    int depth = switch(d) {
+                        case OVERWORLD -> -def.depth();
+                        case NETHER -> def.depth();
+                    };
+                    if (def.depthDeviation() == 0) {
+                        startHeight.addProperty("absolute", depth);
+                    } else {
+                        startHeight.addProperty("type", "minecraft:uniform");
+                        var min = new JsonObject();
+                        var max = new JsonObject();
+                        min.addProperty("absolute", depth - def.depthDeviation());
+                        max.addProperty("absolute", depth + def.depthDeviation());
+                        startHeight.add("min_inclusive", min);
+                        startHeight.add("max_inclusive", max);
+                    }
+                    root.add("start_height", startHeight);
 
-                files.add(new DatapackFile(DEPOSIT_STRUCTURE_PATH.formatted(CreateRNS.ID, def.name()), root));
+                    root.addProperty("size", 1);
+                    root.add("spawn_overrides", new JsonObject());
+                    root.addProperty("start_pool", CreateRNS.ID + ":deposit_" + def.name() + "/start");
+                    root.addProperty("step", "underground_ores");
+                    root.addProperty("terrain_adaptation", "none");
+                    root.addProperty("use_expansion_hack", false);
+
+                    files.add(new DatapackFile(DEPOSIT_STRUCTURE_PATH.formatted(CreateRNS.ID, def.name()), root));
+                }
             }
             return files;
         };
@@ -152,7 +196,9 @@ public class DynamicDatapackContent {
         };
     }
 
-    public static Supplier<List<DatapackFile>> depositStructureSet(String name, int separation, int spacing, int salt) {
+    public static Supplier<List<DatapackFile>> depositStructureSet(Dimension dimension,
+            int separation, int spacing, int salt
+    ) {
         return () -> {
             var root = new JsonObject();
 
@@ -164,7 +210,7 @@ public class DynamicDatapackContent {
             root.add("placement", placement);
 
             var structures = new JsonArray();
-            for (var def : getEnabledDeposits()) {
+            for (var def : getEnabledDeposits(dimension)) {
                 var e = new JsonObject();
                 e.addProperty("structure", CreateRNS.ID + ":deposit_" + def.name());
                 e.addProperty("weight", def.weight());
@@ -172,7 +218,8 @@ public class DynamicDatapackContent {
             }
             root.add("structures", structures);
 
-            return List.of(new DatapackFile(DEPOSIT_STRUCTURE_SET_PATH.formatted(CreateRNS.ID, name), root));
+            return List.of(new DatapackFile(DEPOSIT_STRUCTURE_SET_PATH.formatted(CreateRNS.ID,
+                    dimension.appendTo("deposits")), root));
         };
     }
 
@@ -257,6 +304,12 @@ public class DynamicDatapackContent {
 
     private static List<DepositStructureBuilder.ConfiguredEntry> getEnabledDeposits() {
         return DepositStructureBuilder.getDeposits().stream()
+                .filter(e -> e.isEnabled().get())
+                .toList();
+    }
+
+    private static List<DepositStructureBuilder.ConfiguredEntry> getEnabledDeposits(Dimension dimension) {
+        return DepositStructureBuilder.getDeposits(dimension).stream()
                 .filter(e -> e.isEnabled().get())
                 .toList();
     }

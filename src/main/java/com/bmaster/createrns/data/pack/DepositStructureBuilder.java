@@ -1,6 +1,8 @@
 package com.bmaster.createrns.data.pack;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.data.pack.DynamicDatapackContent.Dimension;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -8,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
@@ -21,7 +24,8 @@ public class DepositStructureBuilder {
     public static final ResourceLocation DEP_LARGE = CreateRNS.asResource("ore_deposit_large");
     public static boolean dumpMode = false;
 
-    private static final List<ConfiguredEntry> DEPOSITS = new ArrayList<>();
+    private static final Object2ObjectOpenHashMap<Dimension, List<ConfiguredEntry>> DEPOSITS =
+            new Object2ObjectOpenHashMap<>();
 
     public static DepositStructureBuilder create(String structureId) {
         return new DepositStructureBuilder(structureId);
@@ -32,18 +36,34 @@ public class DepositStructureBuilder {
     }
 
     public static List<ConfiguredEntry> getDeposits() {
-        return Collections.unmodifiableList(DEPOSITS);
+        return DEPOSITS.values().stream().flatMap(Collection::stream).toList();
+    }
+
+    public static List<ConfiguredEntry> getDeposits(Dimension dimension) {
+        return Collections.unmodifiableList(DEPOSITS.computeIfAbsent(dimension, d -> new ArrayList<>()));
     }
 
     private final String structureId;
     private final List<WeightedTemplate> weightedTemplates = new ArrayList<>();
     private final ObjectOpenHashSet<String> compatIndicatorBlocks = new ObjectOpenHashSet<>();
 
+    private Dimension dimension =  Dimension.OVERWORLD;
     private int depth = 8;
+    private int depthDeviation = 0;
     private int weight = 2;
+
+    public DepositStructureBuilder dimension(Dimension dimension) {
+        this.dimension = dimension;
+        return this;
+    }
 
     public DepositStructureBuilder depth(int depth) {
         this.depth = depth;
+        return this;
+    }
+
+    public DepositStructureBuilder depthDeviation(int delta) {
+        this.depthDeviation = delta;
         return this;
     }
 
@@ -81,14 +101,15 @@ public class DepositStructureBuilder {
         if (weightedTemplates.isEmpty()) {
             throw new IllegalStateException("At least one template must be configured before registering");
         }
-        var candidate = new ConfiguredEntry(structureId, depositBlock, depth, weight, List.copyOf(weightedTemplates),
-                isEnabled);
-        var existing = DEPOSITS.stream()
+        var candidate = new ConfiguredEntry(structureId, depositBlock, depth, depthDeviation, weight,
+                List.copyOf(weightedTemplates), isEnabled);
+        var deposits = DEPOSITS.computeIfAbsent(dimension, d -> new ArrayList<>());
+        var existing = deposits.stream()
                 .filter(d -> d.name().equals(structureId))
                 .findFirst()
                 .orElse(null);
         if (existing == null) {
-            DEPOSITS.add(candidate);
+            deposits.add(candidate);
         } else if (!existing.equals(candidate)) {
             throw new IllegalStateException("Conflicting dynamic deposit definition already exists: " + structureId);
         }
@@ -101,7 +122,7 @@ public class DepositStructureBuilder {
     }
 
     public record ConfiguredEntry(
-            String name, ResourceLocation depositBlock, int depth, int weight,
+            String name, ResourceLocation depositBlock, int depth, int depthDeviation, int weight,
             List<WeightedTemplate> weightedTemplates, Supplier<Boolean> isEnabled
     ) {
     }

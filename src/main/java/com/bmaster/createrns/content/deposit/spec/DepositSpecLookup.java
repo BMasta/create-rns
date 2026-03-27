@@ -1,7 +1,9 @@
 package com.bmaster.createrns.content.deposit.spec;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -9,8 +11,10 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,8 +29,11 @@ import java.util.stream.Collectors;
 public class DepositSpecLookup {
     private static Map<Item, DepositSpec> scannerIconToSpec;
     private static Map<ResourceKey<Structure>, DepositSpec> structureKeyToSpec;
-    private static List<Item> allIcons;
     private static Set<ResourceKey<Structure>> allStructureKeys;
+    // Server
+    private @Nullable static Map<ResourceKey<Level>, ArrayList<Item>> dimToIcons = null;
+    // Client
+    private static Map<ResourceKey<Level>, List<Item>> dimToIconsCached = Map.of();
 
     public static void build(RegistryAccess access) {
         var regEntries = access.registryOrThrow(DepositSpec.REGISTRY_KEY).entrySet();
@@ -51,9 +58,6 @@ public class DepositSpecLookup {
             }
             structureKeyToSpec.put(structureKey, spec);
         });
-
-        allIcons = scannerIconToSpec.keySet().stream()
-                .sorted(Comparator.comparing(BuiltInRegistries.ITEM::getKey)).toList();
 
         allStructureKeys = structureKeyToSpec.keySet().stream().collect(Collectors.toUnmodifiableSet());
     }
@@ -80,9 +84,34 @@ public class DepositSpecLookup {
         return Component.translatable(dRL.getNamespace() + ".structure." + dRL.getPath());
     }
 
-    public static List<Item> getAllScannerIcons(RegistryAccess access) {
-        if (allIcons == null) build(access);
-        return allIcons;
+    public static Map<ResourceKey<Level>, ArrayList<Item>> getScannerIcons(MinecraftServer server) {
+        if (dimToIcons != null) return dimToIcons;
+
+        if (allStructureKeys == null) build(server.registryAccess());
+        dimToIcons = new Object2ObjectOpenHashMap<>();
+        for (var sl : server.getAllLevels()) {
+            dimToIcons.put(sl.dimension(), allStructureKeys.stream()
+                    .filter(k -> {
+                        var structure = sl.registryAccess().registryOrThrow(Registries.STRUCTURE).getHolder(k).orElse(null);
+                        if (structure == null) return false;
+                        return !sl.getChunkSource().getGeneratorState().getPlacementsForStructure(structure).isEmpty();
+                    })
+                    .map(k -> structureKeyToSpec.get(k).getIcon())
+                    .collect(Collectors.toCollection(ArrayList::new)));
+        }
+        return dimToIcons;
+    }
+
+    public static List<Item> getScannerIcons(ClientLevel cl) {
+        return dimToIconsCached.getOrDefault(cl.dimension(), Collections.emptyList());
+    }
+
+    public static void setScannerIcons(Map<ResourceKey<Level>, ? extends List<Item>> icons) {
+        dimToIconsCached = icons.entrySet().stream()
+                .collect(Collectors.toUnmodifiableMap(
+                        Map.Entry::getKey,
+                        entry -> List.copyOf(entry.getValue())
+                ));
     }
 
     public static Predicate<Structure> isDeposit(RegistryAccess access) {
