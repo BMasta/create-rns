@@ -1,7 +1,5 @@
 {
   "values": [
-    "create_rns:deposit_quartz",
-    "create_rns:deposit_cobalt",
     "create_rns:deposit_iron",
     "create_rns:deposit_copper",
     "create_rns:deposit_zinc",
@@ -12,6 +10,8 @@
     "create_rns:deposit_nickel",
     "create_rns:deposit_silver",
     "create_rns:deposit_uranium",
-    "create_rns:deposit_thorium"
+    "create_rns:deposit_thorium",
+    "create_rns:deposit_quartz",
+    "create_rns:deposit_cobalt"
   ]
 }

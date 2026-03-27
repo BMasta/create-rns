@@ -1,10 +1,10 @@
 {
   "values": [
-    "create_rns:deposit_quartz",
     "create_rns:deposit_iron",
     "create_rns:deposit_copper",
     "create_rns:deposit_zinc",
     "create_rns:deposit_gold",
-    "create_rns:deposit_redstone"
+    "create_rns:deposit_redstone",
+    "create_rns:deposit_quartz"
   ]
 }

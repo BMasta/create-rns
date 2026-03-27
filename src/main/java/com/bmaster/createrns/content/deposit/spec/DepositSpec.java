@@ -79,22 +79,17 @@ public class DepositSpec {
         }
 
         for (var rl : scannerIconItemRls) {
-            CreateRNS.LOGGER.info("Resolving {}", rl);
             scannerIcon = ForgeRegistries.ITEMS.getValue(rl);
             // What the actual fuck forge, why would you return air with a nullable annotated return value??
             if (scannerIcon == Items.AIR) scannerIcon = null;
-            if (scannerIcon != null) CreateRNS.LOGGER.info("Success");
             if (scannerIcon != null) return true;
         }
 
         for (var tag : scannerIconTags) {
-            CreateRNS.LOGGER.info("Resolving {}", tag);
             // Pick the first item from the tag. "First" is determined by the order in which the items were tagged.
-            // Defaults to AIR of tag does not exist or does not contain any items.
             var hs = access.lookupOrThrow(Registries.ITEM).get(tag).orElse(null);
             scannerIcon = (hs != null) ? hs.stream().map(Holder::value).findFirst().orElse(null) : null;
             if (scannerIcon == Items.AIR) scannerIcon = null;
-            if (scannerIcon != null) CreateRNS.LOGGER.info("Success");
             if (scannerIcon != null) return true;
         }
 
