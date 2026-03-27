@@ -3,6 +3,7 @@ package com.bmaster.createrns.compat.map;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSGuiTextures;
 import com.bmaster.createrns.RNSItems;
+import com.bmaster.createrns.compat.Mods;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.simibubi.create.foundation.gui.RemovedGuiUtils;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -11,6 +12,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
 import java.util.List;
 
 @MethodsReturnNonnullByDefault
@@ -90,7 +92,19 @@ public class RNSMapToggleRenderer {
 
     public enum ToggleLocation {
         XAERO(3, 64, Anchor.LEFT, Anchor.BOTTOM),
-        JOURNEY(7, -50, Anchor.LEFT, Anchor.CENTER);
+        JOURNEY(7, -58, Anchor.LEFT, Anchor.CENTER);
+
+        private static List<ToggleLocation> inferredLocations = null;
+
+        public static List<ToggleLocation> infer() {
+            if (inferredLocations != null) return inferredLocations;
+
+            inferredLocations = new ArrayList<>();
+            if (Mods.XAERO.isLoaded()) inferredLocations.add(XAERO);
+            if (Mods.JOURNEY.isLoaded()) inferredLocations.add(JOURNEY);
+
+            return inferredLocations;
+        }
 
         public static final int TOGGLE_WIDTH = RNSGuiTextures.DEPOSIT_MAP_TOGGLE_BG.getWidth();
         public static final int TOGGLE_HEIGHT = RNSGuiTextures.DEPOSIT_MAP_TOGGLE_BG.getHeight();

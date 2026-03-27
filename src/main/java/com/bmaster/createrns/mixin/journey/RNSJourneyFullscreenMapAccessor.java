@@ -1,4 +1,4 @@
-package com.bmaster.createrns.mixin;
+package com.bmaster.createrns.mixin.journey;
 
 import com.bmaster.createrns.compat.map.RNSMapOverlayRenderer;
 import journeymap.client.api.model.IFullscreen;

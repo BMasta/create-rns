@@ -150,14 +150,13 @@ dependencies {
     implementation("io.github.llamalad7:mixinextras-forge:0.4.1")
 
     compileOnly(fg.deobf("curse.maven:journeymap-${project.journeymap_version}"))
-    compileOnly(fg.deobf("xaero.lib:xaerolib-forge-${minecraft_version}:${project.xaero_lib_version}"))
-    compileOnly(fg.deobf("xaero.minimap:xaerominimap-forge-${minecraft_version}:${project.xaero_minimap_version}"))
-    compileOnly(fg.deobf("xaero.map:xaeroworldmap-forge-${minecraft_version}:${project.xaero_worldmap_version}"))
+    compileOnly(fg.deobf("curse.maven:xaeros-world-map-${project.xaero_worldmap_version}"))
 
-//    runtimeOnly(fg.deobf("curse.maven:journeymap-${project.journeymap_version}"))
-    runtimeOnly(fg.deobf("xaero.lib:xaerolib-forge-${minecraft_version}:${project.xaero_lib_version}"))
-    runtimeOnly(fg.deobf("xaero.minimap:xaerominimap-forge-${minecraft_version}:${project.xaero_minimap_version}"))
-    runtimeOnly(fg.deobf("xaero.map:xaeroworldmap-forge-${minecraft_version}:${project.xaero_worldmap_version}"))
+    runtimeOnly(fg.deobf("curse.maven:journeymap-${project.journeymap_version}"))
+//    runtimeOnly(fg.deobf("xaero.lib:xaerolib-forge-${minecraft_version}:${project.xaero_worldmap_version_runtime}"))
+//    runtimeOnly(fg.deobf("xaero.minimap:xaerominimap-forge-${minecraft_version}:${project.xaero_minimap_version_runtime}"))
+//    runtimeOnly(fg.deobf("xaero.map:xaeroworldmap-forge-${minecraft_version}:${project.xaero_worldmap_version_runtime}"))
+//    runtimeOnly(fg.deobf("curse.maven:xaeros-world-map-${project.xaero_worldmap_version}"))
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

@@ -1,4 +1,4 @@
-package com.bmaster.createrns.mixin;
+package com.bmaster.createrns.mixin.xaero;
 
 import com.bmaster.createrns.compat.map.RNSMapOverlayRenderer;
 import org.spongepowered.asm.mixin.Mixin;

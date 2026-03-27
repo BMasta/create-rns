@@ -2,16 +2,17 @@
   "required": true,
   "minVersion": "0.8",
   "package": "com.bmaster.createrns.mixin",
+  "plugin": "com.bmaster.createrns.mixin.RNSMixinPlugin",
   "compatibilityLevel": "JAVA_17",
   "refmap": "create_rns.refmap.json",
   "mixins": [
     "ChunkGeneratorMixin"
   ],
   "client": [
-    "RNSJourneyFullscreenMapAccessor",
-    "RNSJourneyFullscreenMapMixin",
-    "RNSXaeroFullscreenMapAccessor",
-    "RNSXaeroFullscreenMapMixin"
+    "journey.RNSJourneyFullscreenMapAccessor",
+    "journey.RNSJourneyFullscreenMapMixin",
+    "xaero.RNSXaeroFullscreenMapAccessor",
+    "xaero.RNSXaeroFullscreenMapMixin"
   ],
   "injectors": {
     "defaultRequire": 1
