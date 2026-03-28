@@ -3,7 +3,7 @@
 This document covers what parts of Create: Rock & Stone are datapack-driven and can be overridden or extended.
 
 ## What You Can Override
-* Mining recipes (mining rewards, resource uses for finite deposits, what to replace with when depleted, how recipe is displayed in JEI).
+* Mining recipes (mining rewards, resource uses for finite deposits, what to replace with when depleted, how recipe is displayed in JEI and in EMI's JEI bridge when both mods are installed).
 * Catalysts (custom requirements for mining certain kinds of items from a deposit).
 * Deposit world generation (spawn rate, structure nbt, deposit scanner icon)
 
@@ -81,7 +81,8 @@ Path: `data/your_pack/recipe/tin_deposit_block.json`
       // Catalysts are defined separately (see example later in the doc) and can be referenced by name.
       "catalysts": ["overclock", "faint_resonance"],
       // Optional (default is standard background).
-      // All items that belong to this yield will have this background color in JEI.
+      // All items that belong to this yield will have this background color in JEI
+      // and in EMI's JEI bridge when both mods are installed.
       // The number can be obtained by converting an ARGB hex color into a decimal number.
       // Even though the expected value is ARGB, the alpha channel will be ignored.
       "jei_slot_color": -6910797

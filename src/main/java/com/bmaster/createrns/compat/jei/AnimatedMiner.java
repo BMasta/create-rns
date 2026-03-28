@@ -16,9 +16,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class AnimatedMiner extends AnimatedKinetics {
     private Block depositBlock;
+    private float scale = 14;
 
-    public void draw(GuiGraphics graphics, int xOffset, int yOffset, Block depositBlock) {
+    public void draw(GuiGraphics graphics, int xOffset, int yOffset, Block depositBlock, float scale) {
         this.depositBlock = depositBlock;
+        this.scale = scale;
         draw(graphics, xOffset, yOffset);
     }
 
@@ -26,12 +28,16 @@ public class AnimatedMiner extends AnimatedKinetics {
     @Deprecated
     @Override
     public void draw(GuiGraphics graphics, int xOffset, int yOffset) {
-        PoseStack matrixStack = graphics.pose();
-        matrixStack.pushPose();
-        matrixStack.translate(xOffset + 0.7, yOffset, 0);
-        matrixStack.mulPose(Axis.XP.rotationDegrees(-22.5f));
-        matrixStack.mulPose(Axis.YP.rotationDegrees(45f));
-        int scale = 16;
+        PoseStack pose = graphics.pose();
+        pose.pushPose();
+        double scaleOffset = 1 - scale;
+        pose.translate(xOffset + 0.2, yOffset - (6.5 * scaleOffset), 0);
+        pose.mulPose(Axis.XP.rotationDegrees(-22.5f));
+        pose.mulPose(Axis.YP.rotationDegrees(45f));
+
+        // Keep the miner centered horizontally when scaled, but anchor it at the top with extra clearance
+        pose.translate(0.5 * scaleOffset, 6 * scaleOffset, 3.5 * scaleOffset);
+
         float angle = getCurrentAngle() * 8;
 
         blockElement(AllPartialModels.SHAFT_HALF)
@@ -73,6 +79,6 @@ public class AnimatedMiner extends AnimatedKinetics {
             }
         }
 
-        matrixStack.popPose();
+        pose.popPose();
     }
 }

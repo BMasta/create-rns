@@ -23,6 +23,7 @@ repositories {
     maven { url = "https://maven.blamejared.com" } // JEI
     maven { url = 'https://www.cursemaven.com' }
     maven { url = "https://api.modrinth.com/maven" } // Jade
+    maven { url = "https://maven.terraformersmc.com/" } // EMI
 }
 
 base {
@@ -119,15 +120,17 @@ configurations {
 
 dependencies {
     compileOnly("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
-    localRuntime("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
     compileOnly("maven.modrinth:jade:${project.jade_version}")
-    localRuntime("maven.modrinth:jade:${project.jade_version}")
 
     implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
     implementation("net.createmod.ponder:Ponder-NeoForge-${minecraft_version}:${ponder_version}")
     compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
     runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
     implementation("com.tterrag.registrate:Registrate:${registrate_version}")
+
+    localRuntime("maven.modrinth:jade:${project.jade_version}")
+    localRuntime("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
+    localRuntime("dev.emi:emi-neoforge:${emi_version}+${minecraft_version}")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
@@ -138,6 +141,7 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             minecraft_version_range: minecraft_version_range,
             neo_version            : neo_version,
             loader_version_range   : loader_version_range,
+            emi_version            : emi_version,
             mod_id                 : mod_id,
             mod_name               : mod_name,
             mod_license            : mod_license,

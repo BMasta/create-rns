@@ -7,5 +7,6 @@
     "min_resonators": 2
   },
   "display_priority": 1003,
+  "representative_items": ["create_rns:stabilizing_resonator"],
   "hide_if_present": ["stabilizing_resonance"]
 }
