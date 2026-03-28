@@ -6,5 +6,6 @@
   "shattering_resonance": {
     "min_resonators": 4
   },
-  "display_priority": 1002
+  "display_priority": 1002,
+  "representative_items": ["create_rns:shattering_resonator"]
 }

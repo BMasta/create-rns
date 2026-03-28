@@ -4,9 +4,10 @@
   "optional": true,
   "fluid": {
     "consume": {
-      "id": "minecraft:lava",
-      "amount": 20
+      "FluidName": "minecraft:lava",
+      "Amount": 20
     }
   },
-  "display_priority": 1004
+  "display_priority": 1004,
+  "representative_items": ["minecraft:lava_bucket"]
 }

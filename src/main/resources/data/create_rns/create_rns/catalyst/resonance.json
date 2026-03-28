@@ -3,5 +3,6 @@
   "resonance": {
     "min_resonators": 4
   },
-  "display_priority": 1001
+  "display_priority": 1001,
+  "representative_items": ["create_rns:resonator"]
 }

@@ -81,7 +81,7 @@ Path: `data/your_pack/recipe/tin_deposit_block.json`
       // Catalysts are defined separately (see example later in the doc) and can be referenced by name.
       "catalysts": ["overclock", "faint_resonance"],
       // Optional (default is standard background).
-      // All items that belong to this yield will have this background color in JEI.
+      // All items that belong to this yield will have this background color in JEI
       // The number can be obtained by converting an ARGB hex color into a decimal number.
       // Even though the expected value is ARGB, the alpha channel will be ignored.
       "jei_slot_color": -6910797
@@ -106,6 +106,9 @@ Path: `data/your_pack/create_rns/catalyst/ultimate_resonance.json`
   // Optional (will be shown last by default).
   // Used to sort catalysts. Lower values appear first.
   "display_priority": 1004,
+  // Optional (default none).
+  // Bind specified items to this catalyst on the catalyst info JEI tab.
+  "representative_items": ["create_rns:resonator", "minecraft:lava_bucket"],
   // If any catalyst specified here is active, this catalyst will be hidden
   // in the goggle tooltip of the miner bearing.
   "hide_if_present": ["super_mega_ultimate_resonance"],

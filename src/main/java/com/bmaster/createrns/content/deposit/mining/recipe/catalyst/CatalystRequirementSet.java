@@ -11,6 +11,8 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.Item;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -33,6 +35,9 @@ public class CatalystRequirementSet {
             Codec.INT.fieldOf("display_priority")
                     .orElse(Integer.MAX_VALUE)
                     .forGetter(crs -> crs.displayPriority),
+            ForgeRegistries.ITEMS.getCodec().listOf().fieldOf("representative_items")
+                    .orElse(List.of())
+                    .forGetter(crs -> crs.representativeItems),
             Codec.STRING.listOf().fieldOf("hide_if_present")
                     .orElse(List.of())
                     .forGetter(crs -> crs.hideIfPresent),
@@ -53,6 +58,7 @@ public class CatalystRequirementSet {
     public final float chanceMult;
     public final boolean optional;
     public final int displayPriority;
+    public final List<Item> representativeItems;
     public List<String> hideIfPresent;
     public final List<CatalystRequirement> requirements = new ArrayList<>();
     protected final Optional<FluidCatalystRequirement> fluidCR;
@@ -61,14 +67,16 @@ public class CatalystRequirementSet {
     protected final Optional<StabilizingResonanceCatalystRequirement> stResCR;
 
     public CatalystRequirementSet(
-            String name, float chanceMult, boolean optional, int displayPriority, List<String> hideIfPresent,
-            Optional<FluidCatalystRequirement> fluidCR, Optional<ResonanceCatalystRequirement> resCR,
-            Optional<ShatteringResonanceCatalystRequirement> shResCR, Optional<StabilizingResonanceCatalystRequirement> stResCR
+            String name, float chanceMult, boolean optional, int displayPriority, List<Item> representativeItems,
+            List<String> hideIfPresent, Optional<FluidCatalystRequirement> fluidCR,
+            Optional<ResonanceCatalystRequirement> resCR, Optional<ShatteringResonanceCatalystRequirement> shResCR,
+            Optional<StabilizingResonanceCatalystRequirement> stResCR
     ) {
         this.name = name;
         this.chanceMult = chanceMult;
         this.optional = optional;
         this.displayPriority = displayPriority;
+        this.representativeItems = representativeItems;
         this.hideIfPresent = hideIfPresent;
         this.fluidCR = fluidCR;
         fluidCR.ifPresent(requirements::add);
