@@ -2,13 +2,14 @@
   "required": true,
   "minVersion": "0.8",
   "package": "com.bmaster.createrns.mixin",
+  "plugin": "com.bmaster.createrns.mixin.RNSMixinPlugin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ChunkGeneratorMixin"
   ],
   "client": [
-    "RNSXaeroFullscreenMapAccessor",
-    "RNSXaeroFullscreenMapMixin"
+    "xaero.RNSXaeroFullscreenMapAccessor",
+    "xaero.RNSXaeroFullscreenMapMixin"
   ],
   "injectors": {
     "defaultRequire": 1

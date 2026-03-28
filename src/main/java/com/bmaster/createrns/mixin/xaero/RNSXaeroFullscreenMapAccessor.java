@@ -1,30 +1,29 @@
-package com.bmaster.createrns.mixin;
+package com.bmaster.createrns.mixin.xaero;
 
 import com.bmaster.createrns.compat.map.RNSMapOverlayRenderer;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import xaero.map.MapProcessor;
+import xaero.map.gui.GuiMap;
 
-@Pseudo
-@Mixin(targets = "xaero.map.gui.GuiMap", remap = false)
+@Mixin(GuiMap.class)
 public interface RNSXaeroFullscreenMapAccessor extends RNSMapOverlayRenderer.Context {
     @Override
-    @Accessor("cameraX")
+    @Accessor(value = "cameraX", remap = false)
     double create_rns$getCameraX();
 
     @Override
-    @Accessor("cameraZ")
+    @Accessor(value = "cameraZ", remap = false)
     double create_rns$getCameraZ();
 
     @Override
-    @Accessor("scale")
+    @Accessor(value = "scale", remap = false)
     double create_rns$getScale();
 
     @Override
-    @Accessor("screenScale")
+    @Accessor(value = "screenScale", remap = false)
     double create_rns$getScreenScale();
 
-    @Accessor("mapProcessor")
+    @Accessor(value = "mapProcessor", remap = false)
     MapProcessor create_rns$getMapProcessor();
 }

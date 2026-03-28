@@ -7,7 +7,9 @@ public enum Mods {
     EMI("emi"),
     NEW_AGE("create_new_age"),
     NUCLEAR("createnuclear"),
-    AE2("ae2");
+    AE2("ae2"),
+    XAERO("xaeroworldmap"),
+    JOURNEY("journeymap");
 
     public final String ID;
 

@@ -136,8 +136,8 @@ dependencies {
     localRuntime("maven.modrinth:jade:${jade_version}+neoforge")
 
     localRuntime("maven.modrinth:journeymap:${journeymap_version}+neoforge")
-//    localRuntime("xaero.minimap:xaerominimap-neoforge-${minecraft_version}:${xaero_minimap_version}")
-//    localRuntime("xaero.map:xaeroworldmap-neoforge-${minecraft_version}:${xaero_worldmap_version}")
+    localRuntime("xaero.minimap:xaerominimap-neoforge-${minecraft_version}:${xaero_minimap_version}")
+    localRuntime("xaero.map:xaeroworldmap-neoforge-${minecraft_version}:${xaero_worldmap_version}")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

@@ -87,7 +87,7 @@ public class RNSMapToggleRenderer {
 
     public enum ToggleLocation {
         XAERO(3, 64, Anchor.LEFT, Anchor.BOTTOM),
-        JOURNEY(7, -50, Anchor.LEFT, Anchor.CENTER);
+        JOURNEY(7, -58, Anchor.LEFT, Anchor.CENTER);
 
         public static final int TOGGLE_WIDTH = RNSGuiTextures.DEPOSIT_MAP_TOGGLE_BG.getWidth();
         public static final int TOGGLE_HEIGHT = RNSGuiTextures.DEPOSIT_MAP_TOGGLE_BG.getHeight();
