@@ -1,8 +1,10 @@
 # Create: Rock & Stone <img src=".idea/icon.png" align="right" height="128" />
+<a margin="20px" href="https://modrinth.com/mod/create-rns"><img src="https://img.shields.io/modrinth/dt/create-rns?style=flat&logo=modrinth&logoColor=27292E&logoSize=10&label=%20&labelColor=1BD96A&color=27292E" alt="Modrinth"></a>&nbsp;&nbsp;
+<a href="https://www.curseforge.com/minecraft/mc-mods/create-rns"><img src="https://img.shields.io/curseforge/dt/1370563?style=flat&logo=curseforge&logoColor=27292E&label=%20&labelColor=EB622B&color=27292E" alt="CurseForge"></a>&nbsp;&nbsp;
+<a href="https://discord.gg/w6fEW9Y4SP"><img src="https://img.shields.io/badge/Discord-%20?style=flat&logo=discord&logoColor=27292E&labelColor=5662F6&color=27292E" alt="Discord"></a>
 
 **Create: Rock & Stone** aims to close the gap between Create and traditional factory game experience by bringing infinite mineable resource deposits into the world.
 Make your own massive drill and cash in on the bounties of nature!
-
 ![](docs/gallery/main_screenshot.png)
 
 ## FAQ
