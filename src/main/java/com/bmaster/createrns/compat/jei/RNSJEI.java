@@ -1,6 +1,7 @@
 package com.bmaster.createrns.compat.jei;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.RNSDeposits;
 import com.bmaster.createrns.RNSRecipeTypes;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
@@ -13,9 +14,11 @@ import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Comparator;
+import java.util.stream.Stream;
 
 @JeiPlugin
 @MethodsReturnNonnullByDefault
@@ -31,11 +34,22 @@ public class RNSJEI implements IModPlugin {
     @Override
     public void registerCategories(IRecipeCategoryRegistration reg) {
         reg.addRecipeCategories(new MiningRecipeCategory(reg.getJeiHelpers().getGuiHelper()));
-        reg.addRecipeCategories(new CatalystInfoCategory());
     }
 
     @Override
     public void registerRecipes(IRecipeRegistration reg) {
+        registerMiningRecipes(reg);
+        registerCatalystInfoPages(reg);
+    }
+
+    @Override
+    public void registerRecipeCatalysts(IRecipeCatalystRegistration reg) {
+        for (var cs : MiningRecipeCategory.CATALYSTS) {
+            reg.addRecipeCatalyst(cs.get(), MiningRecipeCategory.JEI_RECIPE_TYPE);
+        }
+    }
+
+    private static void registerMiningRecipes(IRecipeRegistration reg) {
         var level = Minecraft.getInstance().level;
         if (level == null) return;
 
@@ -47,22 +61,28 @@ public class RNSJEI implements IModPlugin {
                     .toList();
         }
         reg.addRecipes(MiningRecipeCategory.JEI_RECIPE_TYPE, recipes);
-
-        var crsRegistry = level.registryAccess().registryOrThrow(CatalystRequirementSet.REGISTRY_KEY);
-        var catalystInfoRecipes = crsRegistry.stream()
-                .sorted(Comparator.comparingInt(crs -> crs.displayPriority))
-                .toList();
-        reg.addRecipes(CatalystInfoCategory.JEI_RECIPE_TYPE, catalystInfoRecipes);
     }
 
-    @Override
-    public void registerRecipeCatalysts(IRecipeCatalystRegistration reg) {
-        for (var cs : MiningRecipeCategory.CATALYSTS) {
-            reg.addRecipeCatalyst(cs.get(), MiningRecipeCategory.JEI_RECIPE_TYPE);
-        }
+    private static void registerCatalystInfoPages(IRecipeRegistration reg) {
+        var level = Minecraft.getInstance().level;
+        if (level == null) return;
 
-        for (var cs : CatalystInfoCategory.CATALYSTS) {
-            reg.addRecipeCatalyst(cs.get(), CatalystInfoCategory.JEI_RECIPE_TYPE);
+        var crsRegistry = level.registryAccess().registryOrThrow(CatalystRequirementSet.REGISTRY_KEY);
+        var crsList = crsRegistry.stream()
+                .sorted(Comparator.comparingInt(crs -> crs.displayPriority))
+                .toList();
+        for (var crs : crsList) {
+            reg.addItemStackInfo(
+                    Stream.concat(Stream.of(RNSBlocks.MINER_BEARING.get().asItem(), RNSBlocks.MINE_HEAD.asItem()),
+                                    crs.representativeItems.stream())
+                            .distinct()
+                            .map(ItemStack::new)
+                            .toList(),
+                    crs.getNameComponent()
+                            .append("\n")
+                            .append(CreateRNS.translatable("catalyst." + crs.name + ".description"))
+                            .append("\n\n")
+            );
         }
     }
 }

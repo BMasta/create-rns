@@ -1,4 +1,22 @@
 # Implementation Details
+## Recipe Viewer Compat (JEI and EMI)
+* Player perspective: when JEI is installed on the client, mining recipes appear in a dedicated Mining category and catalyst descriptions appear as ingredient info pages on representative catalyst items instead of in a separate category.
+* Player perspective: when EMI is installed alongside JEI, EMI mirrors the mining category through its JEI bridge and converts JEI catalyst info pages into native EMI info recipes rather than relying on JEI extra widgets.
+* Player perspective: mining recipe pages show the mined deposit block, the possible outputs, and tooltip details explaining catalyst requirements plus group/item chance behavior.
+* Player perspective: resonance catalyst pages are attached to the relevant resonator blocks, while the fluid overclock page is attached to lava bucket as the representative lookup item for that fluid-only catalyst.
+* Edge behavior: when infinite deposits are enabled, the depleted-deposit mining recipe is hidden from both recipe viewers so the client UI matches current gameplay rules.
+* Core behavior: the mod ships a JEI plugin only, and EMI support is achieved by keeping that JEI content compatible with EMI's JEI bridge.
+* Core behavior: when EMI is loaded, the mining category stops relying on JEI's scroll-grid widget and instead assigns fixed slot positions so EMI's bridged slot overlay stays aligned.
+* Core behavior: the bridged EMI path may also use a different JEI background height and animated miner scale than plain JEI so the recipe stays inside EMI's available panel area, and the animated miner scales around a fixed assembly pivot so size changes do not shift it unpredictably.
+* Core behavior: mining output entries preserve per-yield background coloring and stochastic tooltip semantics across JEI and bridged EMI views.
+* Core behavior: catalyst info pages are derived from `CatalystRequirementSet` registry entries sorted by `display_priority`, and each entry is mapped to one or more representative ingredients based on the catalyst requirement type.
+* System interaction: JEI and bridged EMI both depend on the same mining recipe type, catalyst registry entries, and server config state, so display filtering and ordering stay aligned.
+* System interaction: viewer categories are workbench-style discovery surfaces only; they do not change mining logic, catalyst activation, or datapack loading behavior.
+* Data and assets: mining and catalyst content still comes from runtime recipe JSON and datapack registries, while JEI layout/render code remains code-defined.
+* Maintenance invariant: EMI-specific behavior should stay inside the JEI compat path unless the project intentionally reintroduces a separate native EMI plugin.
+* Maintenance invariant: catalyst viewer text should remain sourced from JEI/EMI info pages instead of JEI extra-text widgets, because EMI's JEI bridge does not reliably preserve those widgets for custom categories.
+* Known limitation: the bridge-safe EMI fallback is a fixed `3 x 6` grid, so datapack recipes with more than 18 visible outputs would need a follow-up layout strategy.
+
 ## Mine Head Multiblock
 * Player perspective: placing a mine head adjacent to the center block of a valid 3x3 iron-block pattern immediately forms the large mine head variant.
 * Player perspective: the large mine head orientation is derived from where the small mine head was placed relative to the iron pattern, and ignores the

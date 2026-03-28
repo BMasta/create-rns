@@ -3,10 +3,12 @@ package com.bmaster.createrns.compat.jei;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.RNSRecipeTypes;
+import com.bmaster.createrns.compat.Mods;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.content.deposit.mining.recipe.Yield;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSetLookup;
+import com.bmaster.createrns.util.FlexibleLayoutHelper;
 import com.bmaster.createrns.util.Utils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.simibubi.create.compat.jei.EmptyBackground;
@@ -52,9 +54,11 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
             () -> new ItemStack(RNSBlocks.STABILIZING_RESONATOR.get())
     );
 
+    private static final boolean EMI_LOADED = Mods.EMI.isLoaded();
+
     private static final Info<MiningRecipe> INFO = new Info<>(
             JEI_RECIPE_TYPE, CreateRNS.translatable("recipe.mining"),
-            new EmptyBackground(177, 115),
+            new EmptyBackground(177, 100),
             new ItemIcon(() -> new ItemStack(RNSBlocks.MINER_BEARING)),
             (() -> {
                 var level = Minecraft.getInstance().level;
@@ -67,8 +71,8 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
     private static final AnimatedMiner MINER = new AnimatedMiner();
 
     private static final String SCROLL_GROUP = "miner_yields";
-    private static final int YIELD_COLS = 3;
-    private static final int YIELD_ROWS = 6;
+    private static final int YIELD_COLS = 4;
+    private static final int YIELD_ROWS = 5;
 
     protected static IRecipeSlotRichTooltipCallback addStochasticTooltip(MinerOutput output) {
         return (view, tooltip) -> {
@@ -126,13 +130,28 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
         recipe.initialize((conn != null) ? conn.registryAccess() : RegistryAccess.EMPTY);
 
         // Mined deposit block
-        builder.addSlot(RecipeIngredientRole.INPUT, 43, 7) // Y=5 is level with the top of the yield grid
-                .setStandardSlotBackground()
+        builder.addSlot(RecipeIngredientRole.INPUT, 33, 7) // Y=5 is level with the top of the yield grid
+                .setBackground(SLOT, -1, -1)
                 .addItemStack(new ItemStack(recipe.getDepositBlock().asItem()));
 
         var slots = recipe.getYields().stream()
                 .flatMap(y -> y.items.stream().map(i -> new MinerOutput(y, i, 1)))
                 .collect(Collectors.toCollection(ArrayList::new));
+
+        if (EMI_LOADED) {
+            var layout = new FlexibleLayoutHelper(
+                    slots.size(), YIELD_ROWS, 18, 18, 0,
+                    FlexibleLayoutHelper.Anchor.CENTER, FlexibleLayoutHelper.Anchor.START);
+
+            for (var slot : slots) {
+                builder.addSlot(RecipeIngredientRole.OUTPUT, 124 + layout.getX(), 6 + layout.getY())
+                        .setBackground(slotBGs.computeIfAbsent(slot.bgColor, c -> new TintedDrawable(SLOT, c)), -1, -1)
+                        .addRichTooltipCallback(addStochasticTooltip(slot))
+                        .addItemStack(new ItemStack(slot.item, slot.count));
+                layout.next();
+            }
+            return;
+        }
 
         for (var slot : slots) {
             builder.addSlot(RecipeIngredientRole.OUTPUT)
@@ -145,15 +164,16 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
 
     @Override
     public void createRecipeExtras(IRecipeExtrasBuilder builder, MiningRecipe recipe, IFocusGroup focuses) {
+        if (EMI_LOADED) return;
         List<IRecipeSlotDrawable> scrollSlots = builder.getRecipeSlots().getSlots().stream()
                 .filter(s -> s.getSlotName().filter(SCROLL_GROUP::equals).isPresent())
                 .toList();
-        builder.addScrollGridWidget(scrollSlots, YIELD_COLS, YIELD_ROWS).setPosition(104, 4);
+        builder.addScrollGridWidget(scrollSlots, YIELD_COLS, YIELD_ROWS).setPosition(85, 4);
     }
 
     @Override
     public void draw(MiningRecipe r, IRecipeSlotsView rsv, GuiGraphics gui, double mX, double mY) {
-        MINER.draw(gui, 5, 55, r.getDepositBlock()); // 38 X diff between miner and input slot
+        MINER.draw(gui, 38, 45, r.getDepositBlock(), 13); // 38 X diff between miner and input slot
     }
 
     public static class TintedDrawable implements IDrawable {

@@ -1,8 +1,10 @@
 package com.bmaster.createrns.compat;
 
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.LoadingModList;
 
 public enum Mods {
+    EMI("emi"),
     NEW_AGE("create_new_age"),
     NUCLEAR("createnuclear"),
     AE2("ae2"),
@@ -16,6 +18,8 @@ public enum Mods {
     }
 
     public boolean isLoaded() {
-		return LoadingModList.get().getModFileById(ID) != null;
-	}
+        var modList = ModList.get();
+        if (modList != null) return modList.isLoaded(ID);
+        else return LoadingModList.get().getModFileById(ID) != null;
+    }
 }
