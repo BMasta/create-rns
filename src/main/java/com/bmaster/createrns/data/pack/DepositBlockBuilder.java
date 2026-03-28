@@ -41,7 +41,7 @@ public class DepositBlockBuilder {
     }
 
     /// Returns null only when in dump mode
-    public @Nullable BlockEntry<DepositBlock> register() {
+    public BlockEntry<DepositBlock> register() {
         if (delegate == null) return null;
         return delegate.register();
     }

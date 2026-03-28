@@ -86,6 +86,7 @@ All versions are defined in `gradle.properties`. Java version is 21.
 * Compat deposit blocks may skip runtime block/item registration entirely when their required mod is absent. `DepositBlockBuilder.registerOrNull()` is used for those cases, while `registerOrThrow()` is used for non-compat entries and for code paths that require the compat dependency to be present. Compat `BlockEntry` fields that use `registerOrNull()` must be treated as nullable.
 * Targeted vanilla integration points may be implemented via Mixins declared in `${mod_id}.mixins.json` when no stable mod API hook exists.
 * Compat plugins (JEI, Jade, optional Xaero and JourneyMap map integrations) live in a `compat/` package and are conditionally loaded when the respective mod is present.
+* EMI support currently goes through EMI's JEI bridge rather than a separate native EMI plugin; any EMI-specific adjustments therefore belong in the JEI compat code and should stay limited to bridge-safety behavior.
 * `neoforge.mods.toml` should declare optional client-side compat dependencies only for integrations the mod actually loads against at runtime.
 * Xaero World Map overlay experiments use client-only pseudo-mixins targeting `xaero.map.gui.GuiMap`, because Xaero World Map does not expose a stable public overlay hook for custom renderers.
 * Translation keys follow `create_rns.<category>.<key>` for mod content and the standard Minecraft pattern (`block.create_rns.*`, `item.create_rns.*`) for blocks/items.

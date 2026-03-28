@@ -24,6 +24,7 @@ repositories {
     maven { url = "https://chocolateminecraft.com/maven" } // Xaero's Minimap / World Map
     maven { url = 'https://www.cursemaven.com' }
     maven { url = "https://api.modrinth.com/maven" } // Jade
+    maven { url = "https://maven.terraformersmc.com/" } // EMI
 }
 
 base {
@@ -120,9 +121,9 @@ configurations {
 
 dependencies {
     compileOnly("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
-    compileOnly("maven.modrinth:jade:${project.jade_version}")
-    compileOnly("info.journeymap:journeymap-api-neoforge:${project.journeymap_api_version}")
-    compileOnly("xaero.map:xaeroworldmap-neoforge-${minecraft_version}:${project.xaero_worldmap_version}")
+    compileOnly("maven.modrinth:jade:${jade_version}+neoforge")
+    compileOnly("info.journeymap:journeymap-api-neoforge:${journeymap_api_version}")
+    compileOnly("xaero.map:xaeroworldmap-neoforge-${minecraft_version}:${xaero_worldmap_version}")
 
     implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
     implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
@@ -131,11 +132,12 @@ dependencies {
     implementation("com.tterrag.registrate:Registrate:${registrate_version}")
 
     localRuntime("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
-    localRuntime("maven.modrinth:jade:${project.jade_version}")
+//    localRuntime("dev.emi:emi-neoforge:${emi_version}+${minecraft_version}")
+    localRuntime("maven.modrinth:jade:${jade_version}+neoforge")
 
-    localRuntime("maven.modrinth:journeymap:${project.journeymap_version}")
-//    localRuntime("xaero.minimap:xaerominimap-neoforge-${minecraft_version}:${project.xaero_minimap_version}")
-//    localRuntime("xaero.map:xaeroworldmap-neoforge-${minecraft_version}:${project.xaero_worldmap_version}")
+    localRuntime("maven.modrinth:journeymap:${journeymap_version}+neoforge")
+//    localRuntime("xaero.minimap:xaerominimap-neoforge-${minecraft_version}:${xaero_minimap_version}")
+//    localRuntime("xaero.map:xaeroworldmap-neoforge-${minecraft_version}:${xaero_worldmap_version}")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
@@ -147,7 +149,12 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             neo_version            : neo_version,
             loader_version_range   : loader_version_range,
             jei_version            : jei_version,
+            emi_version            : emi_version,
             jade_version           : jade_version,
+            xaero_worldmap_version : xaero_worldmap_version,
+            xaero_minimap_version  : xaero_minimap_version,
+            journeymap_api_version : journeymap_api_version,
+            journeymap_version     : journeymap_version,
             mod_id                 : mod_id,
             mod_name               : mod_name,
             mod_license            : mod_license,
