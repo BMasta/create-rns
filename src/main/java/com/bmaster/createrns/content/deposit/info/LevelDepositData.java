@@ -59,6 +59,8 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
     public boolean removeCustomDeposit(CustomServerDepositLocation dep) {
         var set = customDeposits.get(dep.key.location());
         if (set == null) return false;
+        // Remove this deposit from found deposit cache of all clients
+        dep.setFound(level, false);
         boolean result = set.remove(dep);
         if (set.isEmpty()) customDeposits.remove(dep.key.location());
         return result;
