@@ -30,15 +30,9 @@ public class ResonanceBufferBlock extends Block implements IBE<ResonanceBufferBl
 
     public static final VoxelShape SHAPE = new AllShapes.Builder(
             // Top frame
-            Block.box(0, 13, 0, 16, 16, 3))
-            .add(Block.box(0, 13, 13, 16, 16, 16))
-            .add(Block.box(0, 13, 3, 3, 16, 13))
-            .add(Block.box(13, 13, 3, 16, 16, 13))
+            Block.box(0, 13, 0, 16, 16, 16))
             // Bottom frame
-            .add(Block.box(0, 0, 0, 16, 3, 3))
-            .add(Block.box(0, 0, 13, 16, 3, 16))
-            .add(Block.box(0, 0, 3, 3, 3, 13))
-            .add(Block.box(13, 0, 3, 16, 3, 13))
+            .add(Block.box(0, 0, 0, 16, 3, 16))
             // Vertical bars
             .add(Block.box(0, 3, 0, 3, 13, 3))
             .add(Block.box(0, 3, 13, 3, 13, 16))

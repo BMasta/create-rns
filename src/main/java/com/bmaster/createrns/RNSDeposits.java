@@ -1,5 +1,6 @@
 package com.bmaster.createrns;
 
+import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.compat.Mods;
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.data.pack.DepositStructureBuilder;
@@ -15,6 +16,7 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.material.MapColor;
 
 import javax.annotation.Nullable;
@@ -385,10 +387,11 @@ public class RNSDeposits {
                 .properties(p -> p
                         .mapColor(mapColor)
                         .strength(50.0F, 1200f)
+                        .sound(SoundType.DEEPSLATE)
                         .noLootTable())
                 .transform(pickaxeOnly())
                 .tag(BlockTags.NEEDS_DIAMOND_TOOL)
-                .tag(RNSTags.RNSBlockTags.DEPOSIT_BLOCKS)
+                .tag(RNSBlockTags.DEPOSIT_BLOCKS)
                 .item()
                 .build();
     }
