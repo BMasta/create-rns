@@ -39,6 +39,7 @@
 ## Miner Resonance Attachments (Contraption Composition and Mining Footprint)
 * Player perspective: resonance attachments are added by placing resonators and resonance buffers on the miner contraption.
 * Player perspective: resonators are face-attached components that can be placed on floor, wall, or ceiling surfaces.
+* Player perspective: face-attached miner components that use the shared attachment base, including mine heads and resonators, can now be placed into water and remain present as waterlogged blocks instead of being washed away.
 * Player perspective: resonance buffers are support components that increase resonator capacity while reducing mining footprint.
 * Gameplay outcome: attachment layout controls both catalyst availability and effective mining area, so contraption design
   directly affects throughput and coverage tradeoffs.
@@ -52,6 +53,7 @@
   behavior stay aligned with current contraption state.
 * System interaction: resonance, shattering resonance, and stabilizing resonance catalysts are detected from contraption block composition.
 * System interaction: fluid overclock catalyst handling composes with resonance catalysts on the same contraption.
+* System interaction: shared face-attached miner component placement now follows Create's standard waterlogging pattern, so thin attachment geometry no longer relies on occupying most of the voxel to survive in water.
 * Data and assets: attachment behavior is code-defined; visuals are driven by models, textures, and partial models.
 * Maintenance invariant: miner assembly and mining-area calculations must treat resonators and resonance buffers as the authoritative
   resonance attachment set.
