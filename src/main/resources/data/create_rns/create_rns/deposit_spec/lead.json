@@ -1,5 +1,0 @@
-{
-  "scanner_icon_tag_candidates": ["forge:raw_materials/lead", "forge:ores/lead", "forge:ingots/lead", "forge:nuggets/lead"],
-  "map_icon_item": "create_rns:lead_deposit_block",
-  "structure": "create_rns:deposit_lead"
-}

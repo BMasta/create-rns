@@ -9,10 +9,10 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -35,7 +35,7 @@ public class CatalystRequirementSet {
             Codec.INT.fieldOf("display_priority")
                     .orElse(Integer.MAX_VALUE)
                     .forGetter(crs -> crs.displayPriority),
-            BuiltInRegistries.ITEM.byNameCodec().listOf().fieldOf("representative_items")
+            ForgeRegistries.ITEMS.getCodec().listOf().fieldOf("representative_items")
                     .orElse(List.of())
                     .forGetter(crs -> crs.representativeItems),
             Codec.STRING.listOf().fieldOf("hide_if_present")

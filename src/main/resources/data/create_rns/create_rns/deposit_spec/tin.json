@@ -1,5 +1,0 @@
-{
-  "scanner_icon_tag_candidates": ["forge:raw_materials/tin", "forge:ores/tin", "forge:ingots/tin", "forge:nuggets/tin"],
-  "map_icon_item": "create_rns:tin_deposit_block",
-  "structure": "create_rns:deposit_tin"
-}

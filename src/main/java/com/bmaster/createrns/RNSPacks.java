@@ -30,6 +30,8 @@ public class RNSPacks {
             .addContent(DynamicDatapackContent.depositBiomeTag(Dimension.NETHER, false))
             // Create a structure tag for deposits. All deposits must be tagged with it.
             .addContent(DynamicDatapackContent.depositStructureTag())
+            // Create dynamically registered deposit specs.
+            .addContent(DynamicDatapackContent.depositSpecs())
             // Create dynamically registered mining recipes.
             .addContent(DynamicDatapackContent.miningRecipes())
             // Create deposit worldgen files
