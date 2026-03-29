@@ -1,5 +1,7 @@
 {
-  "scanner_icon_item_candidates": ["minecraft:redstone"],
+  "scanner_icon_item_candidates": [
+    "minecraft:redstone"
+  ],
   "map_icon_item": "create_rns:redstone_deposit_block",
   "structure": "create_rns:deposit_redstone"
 }

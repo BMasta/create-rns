@@ -62,13 +62,17 @@ public class DepositSpecLookup {
         allStructureKeys = structureKeyToSpec.keySet().stream().collect(Collectors.toUnmodifiableSet());
     }
 
-    public static ResourceKey<Structure> getStructureKey(RegistryAccess access, Item scannerIconItem) {
+    public static @Nullable ResourceKey<Structure> getStructureKey(RegistryAccess access, Item scannerIconItem) {
         if (scannerIconToSpec == null) build(access);
+        var spec = scannerIconToSpec.get(scannerIconItem);
+        if (spec == null) return null;
         return scannerIconToSpec.get(scannerIconItem).structureKey();
     }
 
     public static MutableComponent getDepositName(RegistryAccess access, Item scannerIconItem) {
-        return getDepositName(getStructureKey(access, scannerIconItem));
+        var key = getStructureKey(access, scannerIconItem);
+        if (key == null) return Component.empty();
+        return getDepositName(key);
     }
 
     public static @Nullable ItemStack getMapIcon(RegistryAccess access, ResourceKey<Structure> structureKey) {

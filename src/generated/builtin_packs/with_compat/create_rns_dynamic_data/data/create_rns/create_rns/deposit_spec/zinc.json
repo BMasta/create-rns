@@ -1,0 +1,7 @@
+{
+  "scanner_icon_item_candidates": [
+    "create:raw_zinc"
+  ],
+  "map_icon_item": "create_rns:zinc_deposit_block",
+  "structure": "create_rns:deposit_zinc"
+}

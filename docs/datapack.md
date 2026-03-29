@@ -10,7 +10,7 @@ This document covers what parts of Create: Rock & Stone are datapack-driven and 
 ## Default Configuration
 
 * Most resources are located in `src/main/resources` and `src/generated/resources`.
-* Default mining recipes and worldgen resources come from the mod's main built-in (in-memory) datapack.
+* Default mining recipes, deposit specs, and worldgen resources come from the mod's main built-in (in-memory) datapack.
 * Built-in datapacks are created dynamically based on which compatible mods are loaded.
 * Dumps of datapacks created when no compatible mods are loaded can be found in `src/generated/builtin_packs/default`.
 * Dumps of datapacks created when all compatible mods are loaded can be found in `src/generated/builtin_packs/with_compat`.
@@ -160,18 +160,21 @@ See `src/main/resources/data/create_rns/create_rns/catalyst` for examples.
 
 Path: `data/your_pack/create_rns/deposit_spec/tin.json`
 
-See `src/main/resources/data/create_rns/create_rns/deposit_spec` for examples.
+See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/create_rns/deposit_spec` for examples.
 
 ```json5
 {
-  // Binds the specified structure to an item/block icon.
-  // Used when selecting a Deposit Scanner target.
-  // Lang entry your_pack.structure.deposit_tin is used as a structure name.
-  "scanner_icon_item": "your_pack:raw_tin",
-  // Optional (defaults to scanner_icon_item).
-  // Defines which item icon is rendered on supported map overlays for found deposits.
-  "map_icon_item": "your_pack:raw_tin",
-  "structure": "your_pack:deposit_tin"
+  // Binds the spec to a structure id used by scanner discovery and display naming.
+  // Lang entry your_pack.structure.deposit_tin is used as the structure name.
+  "structure": "your_pack:deposit_tin",
+  // Item/block to render on a map for found deposits (if a map mod is installed).
+  "map_icon_item": "your_pack:tin_deposit_block",
+  // Either field is optional, but at least one item or tag must be specified.
+  // Item/Block to render when this deposit structure is selected in deposit scanner.
+  // Item candidates are tried in listed order until an existing item is found.
+  // Tag candidates are tried after items, in listed order. The first item in a tag becomes the scanner icon.
+  "scanner_icon_item_candidates": ["your_pack:raw_tin"],
+  "scanner_icon_tag_candidates": ["c:raw_materials/tin", "c:ores/tin"],
 }
 ```
 

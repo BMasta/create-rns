@@ -35,6 +35,10 @@ public class DepositScannerServerHandler {
         if (!(sp.level() instanceof ServerLevel sl)) return;
 
         var structKey = DepositSpecLookup.getStructureKey(sl.registryAccess(), icon);
+        if (structKey == null) {
+            PacketDistributor.sendToPlayer(sp, new DepositScannerS2CPayload(AntennaStatus.INACTIVE, MAX_PING_INTERVAL, false, rt));
+            return;
+        }
         if (rt == RequestType.DISCOVER) {
             CreateRNS.LOGGER.trace("[Scanner discover] Player {} searching for {}", sp.getScoreboardName(),
                     structKey.location());

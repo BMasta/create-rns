@@ -3,6 +3,7 @@ package com.bmaster.createrns;
 import com.bmaster.createrns.compat.Mods;
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.data.pack.DepositStructureBuilder;
+import com.bmaster.createrns.data.pack.DepositSpecBuilder;
 import com.bmaster.createrns.data.pack.DynamicDatapackContent.Dimension;
 import com.bmaster.createrns.data.pack.MiningRecipeBuilder;
 import com.bmaster.createrns.data.pack.YieldBuilder;
@@ -60,7 +61,7 @@ public class RNSDeposits {
     public static final BlockEntry<DepositBlock> IRON_DEPOSIT = DepositStructureBuilder
             .create("iron")
             .transform(bulkDepositStructure(2))
-            .block("iron_deposit_block")
+            .block()
             .transform(depositBlockProperties(MapColor.RAW_IRON))
             .recipe(id -> MiningRecipeBuilder.create(id)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
@@ -77,12 +78,15 @@ public class RNSDeposits {
                                     List.of("c:storage_blocks/raw_iron")))))
                     .transform(sharedResonanceYields())
                     .save())
+            .spec(ctx -> DepositSpecBuilder.create(ctx)
+                    .scannerIconVanillaItem("raw_iron")
+                    .save())
             .register();
 
     public static final BlockEntry<DepositBlock> COPPER_DEPOSIT = DepositStructureBuilder
             .create("copper")
             .transform(bulkDepositStructure(2))
-            .block("copper_deposit_block")
+            .block()
             .transform(depositBlockProperties(MapColor.COLOR_ORANGE))
             .recipe(id -> MiningRecipeBuilder.create(id)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
@@ -99,12 +103,15 @@ public class RNSDeposits {
                                     List.of("c:storage_blocks/raw_copper")))))
                     .transform(sharedResonanceYields())
                     .save())
+            .spec(ctx -> DepositSpecBuilder.create(ctx)
+                    .scannerIconVanillaItem("raw_copper")
+                    .save())
             .register();
 
     public static final BlockEntry<DepositBlock> ZINC_DEPOSIT = DepositStructureBuilder
             .create("zinc")
             .transform(preciousDepositStructure(2))
-            .block("zinc_deposit_block")
+            .block()
             .transform(depositBlockProperties(MapColor.GLOW_LICHEN))
             .recipe(id -> MiningRecipeBuilder.create(id)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
@@ -119,12 +126,15 @@ public class RNSDeposits {
                                     List.of("c:raw_materials/zinc")))))
                     .transform(sharedResonanceYields())
                     .save())
+            .spec(ctx -> DepositSpecBuilder.create(ctx)
+                    .scannerIconItem(Create.ID,"raw_zinc")
+                    .save())
             .register();
 
     public static final BlockEntry<DepositBlock> GOLD_DEPOSIT = DepositStructureBuilder
             .create("gold")
             .transform(preciousDepositStructure(2))
-            .block("gold_deposit_block")
+            .block()
             .transform(depositBlockProperties(MapColor.GOLD))
             .recipe(id -> MiningRecipeBuilder.create(id)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
@@ -139,12 +149,15 @@ public class RNSDeposits {
                                     List.of("c:raw_materials/gold")))))
                     .transform(sharedResonanceYields())
                     .save())
+            .spec(ctx -> DepositSpecBuilder.create(ctx)
+                    .scannerIconVanillaItem("raw_gold")
+                    .save())
             .register();
 
     public static final BlockEntry<DepositBlock> REDSTONE_DEPOSIT = DepositStructureBuilder
             .create("redstone")
             .transform(preciousDepositStructure(2))
-            .block("redstone_deposit_block")
+            .block()
             .transform(depositBlockProperties(MapColor.FIRE))
             .recipe(id -> MiningRecipeBuilder.create(id)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
@@ -158,6 +171,9 @@ public class RNSDeposits {
                                     List.of("c:dusts/redstone")))))
                     .transform(sharedResonanceYields())
                     .save())
+            .spec(ctx -> DepositSpecBuilder.create(ctx)
+                    .scannerIconVanillaItem("redstone")
+                    .save())
             .register();
 
     //============================================== Compat | Overworld ==============================================//
@@ -167,7 +183,7 @@ public class RNSDeposits {
             .enableWhenBlockPresent("tin_ore")
             .enableWhenBlockPresent("deepslate_tin_ore")
             .transform(bulkDepositStructure(1))
-            .block("tin_deposit_block")
+            .block()
             .transform(depositBlockProperties(MapColor.COLOR_BLUE))
             .recipe(ctx -> MiningRecipeBuilder.create(ctx)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
@@ -181,6 +197,9 @@ public class RNSDeposits {
                                     List.of("c:storage_blocks/raw_tin")))))
                     .transform(sharedResonanceYields())
                     .save())
+            .spec(ctx -> DepositSpecBuilder.create(ctx)
+                    .transform(scannerIconTagCandidates("tin"))
+                    .save())
             .register();
 
     public static final BlockEntry<DepositBlock> LEAD_DEPOSIT = DepositStructureBuilder
@@ -188,7 +207,7 @@ public class RNSDeposits {
             .enableWhenBlockPresent("lead_ore")
             .enableWhenBlockPresent("deepslate_lead_ore")
             .transform(semiPreciousDepositStructure(1))
-            .block("lead_deposit_block")
+            .block()
             .transform(depositBlockProperties(MapColor.COLOR_BLUE))
             .recipe(ctx -> MiningRecipeBuilder.create(ctx)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
@@ -202,6 +221,9 @@ public class RNSDeposits {
                                     List.of("c:storage_blocks/raw_lead")))))
                     .transform(sharedResonanceYields())
                     .save())
+            .spec(ctx -> DepositSpecBuilder.create(ctx)
+                    .transform(scannerIconTagCandidates("lead"))
+                    .save())
             .register();
 
     public static final BlockEntry<DepositBlock> NICKEL_DEPOSIT = DepositStructureBuilder
@@ -209,7 +231,7 @@ public class RNSDeposits {
             .enableWhenBlockPresent("nickel_ore")
             .enableWhenBlockPresent("deepslate_nickel_ore")
             .transform(semiPreciousDepositStructure(1))
-            .block("nickel_deposit_block")
+            .block()
             .transform(depositBlockProperties(MapColor.SAND))
             .recipe(ctx -> MiningRecipeBuilder.create(ctx)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
@@ -222,6 +244,9 @@ public class RNSDeposits {
                                     List.of("c:raw_materials/nickel")))))
                     .transform(sharedResonanceYields())
                     .save())
+            .spec(ctx -> DepositSpecBuilder.create(ctx)
+                    .transform(scannerIconTagCandidates("nickel"))
+                    .save())
             .register();
 
     public static final BlockEntry<DepositBlock> SILVER_DEPOSIT = DepositStructureBuilder
@@ -229,7 +254,7 @@ public class RNSDeposits {
             .enableWhenBlockPresent("silver_ore")
             .enableWhenBlockPresent("deepslate_silver_ore")
             .transform(preciousDepositStructure(1))
-            .block("silver_deposit_block")
+            .block()
             .transform(depositBlockProperties(MapColor.SNOW))
             .recipe(ctx -> MiningRecipeBuilder.create(ctx)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
@@ -242,6 +267,9 @@ public class RNSDeposits {
                                     List.of("c:raw_materials/silver")))))
                     .transform(sharedResonanceYields())
                     .save())
+            .spec(ctx -> DepositSpecBuilder.create(ctx)
+                    .transform(scannerIconTagCandidates("silver"))
+                    .save())
             .register();
 
     public static final BlockEntry<DepositBlock> URANIUM_DEPOSIT = DepositStructureBuilder
@@ -249,7 +277,7 @@ public class RNSDeposits {
             .enableWhenBlockPresent("uranium_ore")
             .enableWhenBlockPresent("deepslate_uranium_ore")
             .transform(preciousDepositStructure(1))
-            .block("uranium_deposit_block")
+            .block()
             .transform(depositBlockProperties(MapColor.COLOR_GREEN))
             .recipe(ctx -> MiningRecipeBuilder.create(ctx)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
@@ -263,6 +291,9 @@ public class RNSDeposits {
                                     List.of("c:raw_materials/uranium")))))
                     .transform(sharedResonanceYields())
                     .save())
+            .spec(ctx -> DepositSpecBuilder.create(ctx)
+                    .transform(scannerIconTagCandidates("uranium"))
+                    .save())
             .register();
 
     public static final BlockEntry<DepositBlock> THORIUM_DEPOSIT = DepositStructureBuilder
@@ -270,7 +301,7 @@ public class RNSDeposits {
             .enableWhenBlockPresent("thorium_ore")
             .enableWhenBlockPresent("deepslate_thorium_ore")
             .transform(preciousDepositStructure(1))
-            .block("thorium_deposit_block")
+            .block()
             .transform(depositBlockProperties(MapColor.COLOR_ORANGE))
             .recipe(ctx -> MiningRecipeBuilder.create(ctx)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
@@ -283,6 +314,10 @@ public class RNSDeposits {
                                     List.of("c:raw_materials/thorium")))))
                     .transform(sharedResonanceYields())
                     .save())
+            .spec(ctx -> DepositSpecBuilder.create(ctx)
+                    .scannerIconItem(Mods.NEW_AGE.ID, "thorium")
+                    .transform(scannerIconTagCandidates("thorium"))
+                    .save())
             .register();
 
 
@@ -291,7 +326,7 @@ public class RNSDeposits {
     public static final BlockEntry<DepositBlock> QUARTZ_DEPOSIT = DepositStructureBuilder
             .create("quartz")
             .transform(bulkNetherDepositStructure(1))
-            .block("quartz_deposit_block")
+            .block()
             .transform(depositBlockProperties(MapColor.QUARTZ))
             .recipe(id -> MiningRecipeBuilder.create(id)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
@@ -305,6 +340,9 @@ public class RNSDeposits {
                                     List.of("c:gems/certus_quartz", "c:gems/quartz")))))
                     .transform(sharedResonanceYields())
                     .save())
+            .spec(ctx -> DepositSpecBuilder.create(ctx)
+                    .scannerIconVanillaItem("quartz")
+                    .save())
             .register();
 
     //================================================ Compat | Nether ===============================================//
@@ -313,7 +351,7 @@ public class RNSDeposits {
             .create("cobalt")
             .enableWhenBlockPresent("cobalt_ore")
             .transform(preciousNetherDepositStructure(1))
-            .block("cobalt_deposit_block")
+            .block()
             .transform(depositBlockProperties(MapColor.LAPIS))
             .recipe(ctx -> MiningRecipeBuilder.create(ctx)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
@@ -326,12 +364,15 @@ public class RNSDeposits {
                                     List.of("c:raw_materials/cobalt")))))
                     .transform(sharedResonanceYields())
                     .save())
+            .spec(ctx -> DepositSpecBuilder.create(ctx)
+                    .transform(scannerIconTagCandidates("cobalt"))
+                    .save())
             .register();
 
     //================================================================================================================//
 
     public static final BlockEntry<DepositBlock> DEPLETED_DEPOSIT = DepositStructureBuilder
-            .blockOnly("depleted_deposit_block")
+            .blockOnly("depleted")
             .transform(depositBlockProperties(MapColor.COLOR_BLACK))
             .recipe(id -> MiningRecipeBuilder.create(id)
                     .yield(y -> y.item(List.of("cobblestone")))
@@ -397,6 +438,14 @@ public class RNSDeposits {
                 .nbt(DepositStructureBuilder.DEP_SMALL, 70)
                 .nbt(DepositStructureBuilder.DEP_MEDIUM, 28)
                 .nbt(DepositStructureBuilder.DEP_LARGE, 2);
+    }
+
+    private static UnaryOperator<DepositSpecBuilder> scannerIconTagCandidates(String material) {
+        return b -> b
+                .scannerIconCommonTag("raw_materials/" + material)
+                .scannerIconCommonTag("ores/" + material)
+                .scannerIconCommonTag("ingots/" + material)
+                .scannerIconCommonTag("nuggets/" + material);
     }
 
     private static UnaryOperator<MiningRecipeBuilder> addYield(

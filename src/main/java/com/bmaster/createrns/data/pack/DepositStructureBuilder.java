@@ -27,12 +27,12 @@ public class DepositStructureBuilder {
     private static final Object2ObjectOpenHashMap<Dimension, List<ConfiguredEntry>> DEPOSITS =
             new Object2ObjectOpenHashMap<>();
 
-    public static DepositStructureBuilder create(String structureId) {
-        return new DepositStructureBuilder(structureId);
+    public static DepositStructureBuilder create(String keyword) {
+        return new DepositStructureBuilder(keyword);
     }
 
-    public static DepositBlockBuilder blockOnly(String name) {
-        return new DepositBlockBuilder(name, () -> true);
+    public static DepositBlockBuilder blockOnly(String keyword) {
+        return new DepositBlockBuilder(new DepositBuildingContext(keyword));
     }
 
     public static List<ConfiguredEntry> getDeposits() {
@@ -43,11 +43,11 @@ public class DepositStructureBuilder {
         return Collections.unmodifiableList(DEPOSITS.computeIfAbsent(dimension, d -> new ArrayList<>()));
     }
 
-    private final String structureId;
+    private final DepositBuildingContext ctx;
     private final List<WeightedTemplate> weightedTemplates = new ArrayList<>();
     private final ObjectOpenHashSet<String> compatIndicatorBlocks = new ObjectOpenHashSet<>();
 
-    private Dimension dimension =  Dimension.OVERWORLD;
+    private Dimension dimension = Dimension.OVERWORLD;
     private int depth = 8;
     private int depthDeviation = 0;
     private int weight = 2;
@@ -88,37 +88,35 @@ public class DepositStructureBuilder {
         return transform.apply(this);
     }
 
-    public DepositBlockBuilder block(String name) {
-        var depositBlock = CreateRNS.asResource(name);
-        Supplier<Boolean> isEnabled;
+    public DepositBlockBuilder block() {
         if (dumpMode) {
-            isEnabled = () -> compatIndicatorBlocks.isEmpty() || DynamicDatapackDumpTool.includeCompat();
+            ctx.isEnabled = () -> compatIndicatorBlocks.isEmpty() || DynamicDatapackDumpTool.includeCompat();
         } else {
-            isEnabled = () -> BuiltInRegistries.BLOCK.keySet().stream().anyMatch(rl ->
+            ctx.isEnabled = () -> BuiltInRegistries.BLOCK.keySet().stream().anyMatch(rl ->
                     compatIndicatorBlocks.isEmpty() || compatIndicatorBlocks.contains(rl.getPath()));
         }
 
         if (weightedTemplates.isEmpty()) {
             throw new IllegalStateException("At least one template must be configured before registering");
         }
-        var candidate = new ConfiguredEntry(structureId, depositBlock, depth, depthDeviation, weight,
-                List.copyOf(weightedTemplates), isEnabled);
+        var candidate = new ConfiguredEntry(ctx.depositKeyword, ctx.depositBlockId(), depth, depthDeviation, weight,
+                List.copyOf(weightedTemplates), ctx.isEnabled);
         var deposits = DEPOSITS.computeIfAbsent(dimension, d -> new ArrayList<>());
         var existing = deposits.stream()
-                .filter(d -> d.name().equals(structureId))
+                .filter(d -> d.name().equals(ctx.depositKeyword))
                 .findFirst()
                 .orElse(null);
         if (existing == null) {
             deposits.add(candidate);
         } else if (!existing.equals(candidate)) {
-            throw new IllegalStateException("Conflicting dynamic deposit definition already exists: " + structureId);
+            throw new IllegalStateException("Conflicting dynamic deposit definition already exists: " + ctx.depositKeyword);
         }
 
-        return new DepositBlockBuilder(name, isEnabled);
+        return new DepositBlockBuilder(ctx);
     }
 
-    private DepositStructureBuilder(String structureId) {
-        this.structureId = structureId;
+    private DepositStructureBuilder(String keyword) {
+        ctx = new DepositBuildingContext(keyword);
     }
 
     public record ConfiguredEntry(
@@ -128,5 +126,27 @@ public class DepositStructureBuilder {
     }
 
     public record WeightedTemplate(ResourceLocation template, int weight) {}
+
+    public static class DepositBuildingContext {
+        public final String depositKeyword;
+        public Supplier<Boolean> isEnabled;
+
+        public DepositBuildingContext(String depositKeyword) {
+            this.depositKeyword = depositKeyword;
+            isEnabled = () -> true;
+        }
+
+        public ResourceLocation depositBlockId() {
+            return CreateRNS.asResource(depositKeyword + "_deposit_block");
+        }
+
+        public ResourceLocation depositStructureId() {
+            return CreateRNS.asResource("deposit_" + depositKeyword);
+        }
+
+        public ResourceLocation depositSpecId() {
+            return CreateRNS.asResource(depositKeyword);
+        }
+    }
 
 }

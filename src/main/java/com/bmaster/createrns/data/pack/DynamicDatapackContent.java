@@ -37,6 +37,8 @@ public class DynamicDatapackContent {
     private static final String DEPOSIT_TEMPLATE_POOL_PATH = "%s/worldgen/template_pool/deposit_%s/start.json";
     private static final String DEPOSIT_PROCESSOR_LIST_PATH = "%s/worldgen/processor_list/%s.json";
     private static final String MINING_RECIPE_PATH = "%s/recipe/%s.json";
+    private static final String DEPOSIT_SPEC_PATH = "%s/%s/%s.json";
+    private static final ResourceLocation DEPOSIT_SPEC_REGISTRY = CreateRNS.asResource("deposit_spec");
 
     public static Supplier<List<DatapackFile>> depositBiomeTag(Dimension dimension, boolean disableGeneration) {
         return () -> {
@@ -298,8 +300,47 @@ public class DynamicDatapackContent {
         };
     }
 
+    public static Supplier<List<DatapackFile>> depositSpecs() {
+        return () -> {
+            var specEntries = getEnabledSpecs();
+            var files = new ArrayList<DatapackFile>(specEntries.size());
+            for (var def : specEntries) {
+                var root = new JsonObject();
+
+                if (!def.spec().scannerIconItemCandidates().isEmpty()) {
+                    var itemCandidates = new JsonArray();
+                    for (var rl : def.spec().scannerIconItemCandidates()) {
+                        itemCandidates.add(rl.toString());
+                    }
+                    root.add("scanner_icon_item_candidates", itemCandidates);
+                }
+
+                if (!def.spec().scannerIconTagCandidates().isEmpty()) {
+                    var tagCandidates = new JsonArray();
+                    for (var tag : def.spec().scannerIconTagCandidates()) {
+                        tagCandidates.add(tag.location().toString());
+                    }
+                    root.add("scanner_icon_tag_candidates", tagCandidates);
+                }
+
+                root.addProperty("map_icon_item", def.spec().mapIconItemId().toString());
+                root.addProperty("structure", def.spec().structureId().toString());
+
+                var path = DEPOSIT_SPEC_PATH.formatted(def.specId().getNamespace(), CreateRNS.ID,
+                        DEPOSIT_SPEC_REGISTRY.getPath() + "/" + def.specId().getPath());
+                files.add(new DatapackFile(path, root));
+            }
+            return files;
+        };
+    }
+
     private static String processorName(ResourceLocation depositBlock) {
         return "replace_with_" + depositBlock.getNamespace() + "_" + depositBlock.getPath();
+    }
+
+    private static String depositSpecPath(ResourceLocation specId) {
+        return DEPOSIT_SPEC_PATH.formatted(specId.getNamespace(), DEPOSIT_SPEC_REGISTRY.getNamespace(),
+                DEPOSIT_SPEC_REGISTRY.getPath() + "/" + specId.getPath());
     }
 
     private static List<DepositStructureBuilder.ConfiguredEntry> getEnabledDeposits() {
@@ -316,6 +357,12 @@ public class DynamicDatapackContent {
 
     private static List<MiningRecipeBuilder.ConfiguredEntry> getEnabledRecipes() {
         return MiningRecipeBuilder.getRecipes().stream()
+                .filter(e -> e.isEnabled().get())
+                .toList();
+    }
+
+    private static List<DepositSpecBuilder.ConfiguredEntry> getEnabledSpecs() {
+        return DepositSpecBuilder.getSpecs().stream()
                 .filter(e -> e.isEnabled().get())
                 .toList();
     }

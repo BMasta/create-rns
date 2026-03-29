@@ -1,7 +1,7 @@
 package com.bmaster.createrns.data.pack;
 
 import com.bmaster.createrns.content.deposit.mining.recipe.DepositDurability;
-import com.bmaster.createrns.data.pack.DepositBlockBuilder.DepositBlockBuildingContext;
+import com.bmaster.createrns.data.pack.DepositStructureBuilder.DepositBuildingContext;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
 
@@ -19,7 +19,7 @@ import java.util.function.UnaryOperator;
 public class MiningRecipeBuilder {
     private static final List<ConfiguredEntry> RECIPES = new ArrayList<>();
 
-    public static MiningRecipeBuilder create(DepositBlockBuildingContext ctx) {
+    public static MiningRecipeBuilder create(DepositBuildingContext ctx) {
         return new MiningRecipeBuilder(ctx);
     }
 
@@ -27,7 +27,7 @@ public class MiningRecipeBuilder {
         return Collections.unmodifiableList(RECIPES);
     }
 
-    private final DepositBlockBuildingContext ctx;
+    private final DepositBuildingContext ctx;
     private final List<YieldBuilder.ConfiguredYield> yields = new ArrayList<>();
 
     private @Nullable ResourceLocation replacementBlockId;
@@ -75,7 +75,7 @@ public class MiningRecipeBuilder {
         var candidate = new ConfiguredEntry(
                 ctx.depositBlockId(),
                 new ConfiguredRecipe(ctx.depositBlockId(), replacementBlockId, durability, List.copyOf(yields)),
-                ctx.isEnabled()
+                ctx.isEnabled
         );
         var existing = RECIPES.stream()
                 .filter(recipe -> recipe.recipeId().equals(ctx.depositBlockId()))
@@ -92,7 +92,7 @@ public class MiningRecipeBuilder {
         }
     }
 
-    private MiningRecipeBuilder(DepositBlockBuildingContext ctx) {
+    private MiningRecipeBuilder(DepositBuildingContext ctx) {
         this.ctx = ctx;
     }
 
