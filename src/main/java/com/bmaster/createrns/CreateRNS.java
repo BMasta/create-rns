@@ -63,6 +63,7 @@ public class CreateRNS {
     public CreateRNS(ModContainer container, IEventBus modBus) {
         REGISTRATE.registerEventListeners(modBus);
         RNSMisc.register(modBus);
+        RNSStructures.register(modBus);
         RNSPartialModels.register();
         RNSParticleTypes.register(modBus);
         RNSTags.register();

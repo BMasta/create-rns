@@ -36,7 +36,6 @@ public class RNSPacks {
             .addContent(DynamicDatapackContent.miningRecipes())
             // Create deposit worldgen files
             .addContent(DynamicDatapackContent.depositProcessorLists())
-            .addContent(DynamicDatapackContent.depositTemplatePools())
             .addContent(DynamicDatapackContent.depositStructures())
             .addContent(DynamicDatapackContent.depositStructureSet(Dimension.OVERWORLD,
                     DEFAULT_SEPARATION, DEFAULT_SPACING, SALT))

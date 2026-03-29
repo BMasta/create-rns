@@ -92,7 +92,9 @@
 * Gameplay outcome: world seed and exploration route meaningfully affect which deposit types players find first, influencing mining progression and factory planning.
 * Core behavior: deposit generation is driven by structure-based worldgen with a shared placement policy plus per-type relative weighting.
 * Core behavior: the shared placement policy (including spread cadence controls) is configured through default registration definitions and emitted into the built-in pack output.
-* Core behavior: each deposit type selects from weighted structure templates and applies block replacement rules so shared templates can produce type-specific deposits.
+* Core behavior: generated deposit structures use the mod-owned `create_rns:deposit` structure type with a deposit-specific codec and a custom single-piece start-placement path instead of vanilla `minecraft:jigsaw`.
+* Core behavior: the codec hardcodes the shared deposit defaults (underground-ores step, no terrain adaptation, rigid single-piece placement, standard liquid settings), while deposit JSON still controls biome scope, weighted template selection, max-distance bound, and placement through `placement_strategy` plus `height`.
+* Core behavior: each deposit structure owns a weighted `structures` list of template ids plus processor-list ids; worldgen picks one entry and one rotation per start, then places that template directly through vanilla structure-piece/template plumbing.
 * Core behavior: deposit definitions may declare a required mod id; entries with unmet mod requirements are omitted from all generated deposit worldgen files, while compatible loaded mods automatically extend the shared deposit structure set instead of enabling a separate compat pack.
 * Core behavior: placement is constrained by biome eligibility and generation step settings, so deposits are injected into terrain generation rather than placed as ad-hoc runtime edits.
 * Edge behavior: disabling eligible biomes prevents new deposits from generating while preserving already-generated terrain.
@@ -101,11 +103,13 @@
 * System interaction: scanner search behavior assumes the worldgen placement model remains in the same general scale; major placement changes can require scanner tuning.
 * System interaction: found-state filtering applies during structure lookup so discovery can ignore already-discovered deposits without changing worldgen itself.
 * Data and assets: behavior is data-driven through generated worldgen JSON and structure templates, with additional built-in datapack content controlling biome eligibility.
+* Data and assets: deposit structure JSON now uses the mod-owned `create_rns:deposit` schema rather than vanilla jigsaw's full field set; the structure implementation translates `placement_strategy` and `height` into start coordinates, then resolves the selected template from the structure's own weighted `structures` list instead of a separate template-pool start file.
 * Data and assets: deposit type metadata for scanner selection is datapack-driven and must remain aligned with generated structure identities; compat expansion remains code-defined through deposit registration plus required-mod gating rather than through a separate built-in datapack.
 * Data and assets: default built-in-pack worldgen entries are sourced from per-deposit registration definitions;
   dump tooling uses an explicit dump-mode bootstrap path to materialize inspectable defaults outside game startup.
-* Maintenance invariant: structure templates must keep their agreed placeholder convention so replacement rules can reliably convert template blocks into deposit blocks.
+* Maintenance invariant: structure templates must keep their agreed placeholder convention so replacement rules can reliably convert template blocks into deposit blocks, and each `structures` entry's processor id must stay aligned with that placeholder contract.
 * Maintenance invariant: per-type worldgen entries, structure tags, and scanner target definitions must stay synchronized across code and datapack data.
+* Maintenance invariant: overworld strategy must continue to add `OCEAN_FLOOR_WG` projection while nether strategy must continue to use absolute start heights directly, unless deposit worldgen docs and generated defaults are updated together.
 * Known limitation: default spawn tuning is authored in code-backed built-in-pack definitions, so balancing changes currently require updating code inputs or overriding via datapack.
 
 ## Dynamic Mining Recipe Registration
