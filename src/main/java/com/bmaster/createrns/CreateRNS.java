@@ -64,11 +64,11 @@ public class CreateRNS {
     }
 
     public CreateRNS(FMLJavaModLoadingContext context) {
-        IEventBus modEventBus = context.getModEventBus();
-        REGISTRATE.registerEventListeners(modEventBus);
-        RNSMisc.register();
+        IEventBus modBus = context.getModEventBus();
+        REGISTRATE.registerEventListeners(modBus);
+        RNSMisc.register(modBus);
         RNSPartialModels.register();
-        RNSParticleTypes.register(modEventBus);
+        RNSParticleTypes.register(modBus);
         RNSTags.register();
         RNSMovementChecks.register();
         RNSDeposits.register();
@@ -80,8 +80,8 @@ public class CreateRNS {
         RNSPacks.register();
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> RNSPonderPlugin::register);
 
-        modEventBus.addListener(this::commonSetup);
-        modEventBus.addListener(RNSSoundEvents::register);
+        modBus.addListener(this::commonSetup);
+        modBus.addListener(RNSSoundEvents::register);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);

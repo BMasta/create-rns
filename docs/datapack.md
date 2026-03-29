@@ -184,13 +184,23 @@ Path: `data/your_pack/worldgen/structure/deposit_tin.json`.
 
 See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure` for examples.
 
-### 3. Template Pool Start
+Default deposit structures use `"type": "create_rns:deposit"`.
+This structure codec uses a deposit-specific schema rather than vanilla jigsaw's full field set.
+It currently expects:
+* `biomes`
+* optional `max_distance_from_center`
+* `placement_strategy` (`overworld` or `nether`)
+* `height`, which can be either a single int or an object `{ "min": ..., "max": ... }`
+* `structures`, a non-empty weighted list of:
+  * `id` - structure template id
+  * `weight` - positive selection weight
+  * `processor` - processor list id applied to the chosen template
 
-Path: `data/your_pack/worldgen/template_pool/deposit_tin/start.json`.
+`height` is translated internally into the structure's start Y logic.
+For `overworld`, the mod also applies `"project_start_to_heightmap": "OCEAN_FLOOR_WG"` internally.
+For `nether`, the height is treated as an absolute start height or absolute uniform range directly.
 
-See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/template_pool` for examples.
-
-### 4. Processor
+### 3. Processor
 The deposit nbt's contain deposits made of end stone.
 To convert it to your deposit blocks of choice, a custom processor is needed.
 
@@ -199,7 +209,7 @@ Path: `data/your_pack/worldgen/processor_list/replace_with_your_pack_tin_deposit
 See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/processor_list` for examples.
 
 
-### 5. Structure Set
+### 4. Structure Set
 
 Path: `data/your_pack/worldgen/structure_set/deposits.json`.
 
@@ -217,7 +227,7 @@ If other datapacks may also override `create_rns:deposits`, define a separate st
 See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure_set/deposits.json`
 for the default set.
 
-### 6. Structure Tag
+### 5. Structure Tag
 
 Path: `data/create_rns/tags/worldgen/structure/deposits.json`
 

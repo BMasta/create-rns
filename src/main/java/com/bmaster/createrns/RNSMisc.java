@@ -1,6 +1,7 @@
 package com.bmaster.createrns;
 
 import com.bmaster.createrns.content.deposit.info.IDepositIndex;
+import com.bmaster.createrns.content.deposit.worldgen.DepositStructure;
 import com.bmaster.createrns.infrastructure.command.DepositCommand;
 import com.bmaster.createrns.infrastructure.command.ScannerCommand;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -12,11 +13,13 @@ import net.createmod.catnip.lang.FontHelper;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -49,6 +52,14 @@ public class RNSMisc {
             .then(DepositCommand.CMD)
             .then(ScannerCommand.CMD);
 
-    public static void register() {
+    // Structure types
+    private static final DeferredRegister<StructureType<?>> STRUCTURE_TYPES =
+            DeferredRegister.create(Registries.STRUCTURE_TYPE, CreateRNS.ID);
+
+    public static final Supplier<StructureType<DepositStructure>> DEPOSIT_STRUCTURE = STRUCTURE_TYPES.register(
+            "deposit", () -> () -> DepositStructure.CODEC);
+
+    public static void register(IEventBus modBus) {
+        STRUCTURE_TYPES.register(modBus);
     }
 }

@@ -34,7 +34,6 @@ public class DynamicDatapackContent {
     private static final String DEPOSIT_STRUCTURE_TAG_PATH = "%s/tags/worldgen/structure/deposits.json";
     private static final String DEPOSIT_STRUCTURE_SET_PATH = "%s/worldgen/structure_set/%s.json";
     private static final String DEPOSIT_STRUCTURE_PATH = "%s/worldgen/structure/deposit_%s.json";
-    private static final String DEPOSIT_TEMPLATE_POOL_PATH = "%s/worldgen/template_pool/deposit_%s/start.json";
     private static final String DEPOSIT_PROCESSOR_LIST_PATH = "%s/worldgen/processor_list/%s.json";
     private static final String MINING_RECIPE_PATH = "%s/recipes/%s.json";
     private static final String DEPOSIT_SPEC_PATH = "%s/%s/%s.json";
@@ -110,34 +109,6 @@ public class DynamicDatapackContent {
         };
     }
 
-    public static Supplier<List<DatapackFile>> depositTemplatePools() {
-        return () -> {
-            var depositEntries = getEnabledDeposits();
-            var files = new ArrayList<DatapackFile>(depositEntries.size());
-            for (var def : depositEntries) {
-                var root = new JsonObject();
-                var elements = new JsonArray();
-
-                for (var tw : def.weightedTemplates()) {
-                    var weighted = new JsonObject();
-                    var element = new JsonObject();
-                    element.addProperty("element_type", "minecraft:single_pool_element");
-                    element.addProperty("location", tw.template().toString());
-                    element.addProperty("processors", CreateRNS.ID + ":" + processorName(def.depositBlock()));
-                    element.addProperty("projection", "rigid");
-                    weighted.add("element", element);
-                    weighted.addProperty("weight", tw.weight());
-                    elements.add(weighted);
-                }
-
-                root.add("elements", elements);
-                root.addProperty("fallback", "minecraft:empty");
-                files.add(new DatapackFile(DEPOSIT_TEMPLATE_POOL_PATH.formatted(CreateRNS.ID, def.name()), root));
-            }
-            return files;
-        };
-    }
-
     public static Supplier<List<DatapackFile>> depositStructures() {
         return () -> {
             var files = new ArrayList<DatapackFile>();
@@ -145,40 +116,35 @@ public class DynamicDatapackContent {
                 var depositEntries = getEnabledDeposits(d);
                 for (var def : depositEntries) {
                     var root = new JsonObject();
-                    root.addProperty("type", "minecraft:jigsaw");
+                    root.addProperty("type", CreateRNS.ID + ":deposit");
                     root.addProperty("biomes", d.appendTo("#" + CreateRNS.ID + ":has_deposit"));
-                    root.addProperty("max_distance_from_center", 80);
+                    root.addProperty("placement_strategy", switch (d) {
+                        case OVERWORLD -> "overworld";
+                        case NETHER -> "nether";
+                    });
 
-                    switch (d) {
-                        case OVERWORLD -> {
-                            root.addProperty("project_start_to_heightmap", "OCEAN_FLOOR_WG");
-                        }
-                    }
-
-                    var startHeight = new JsonObject();
-                    int depth = switch(d) {
+                    int height = switch(d) {
                         case OVERWORLD -> -def.depth();
                         case NETHER -> def.depth();
                     };
                     if (def.depthDeviation() == 0) {
-                        startHeight.addProperty("absolute", depth);
+                        root.addProperty("height", height);
                     } else {
-                        startHeight.addProperty("type", "minecraft:uniform");
-                        var min = new JsonObject();
-                        var max = new JsonObject();
-                        min.addProperty("absolute", depth - def.depthDeviation());
-                        max.addProperty("absolute", depth + def.depthDeviation());
-                        startHeight.add("min_inclusive", min);
-                        startHeight.add("max_inclusive", max);
+                        var heightRange = new JsonObject();
+                        heightRange.addProperty("min", height - def.depthDeviation());
+                        heightRange.addProperty("max", height + def.depthDeviation());
+                        root.add("height", heightRange);
                     }
-                    root.add("start_height", startHeight);
 
-                    root.addProperty("size", 1);
-                    root.add("spawn_overrides", new JsonObject());
-                    root.addProperty("start_pool", CreateRNS.ID + ":deposit_" + def.name() + "/start");
-                    root.addProperty("step", "underground_ores");
-                    root.addProperty("terrain_adaptation", "none");
-                    root.addProperty("use_expansion_hack", false);
+                    var structures = new JsonArray();
+                    for (var tw : def.weightedTemplates()) {
+                        var structure = new JsonObject();
+                        structure.addProperty("id", tw.template().toString());
+                        structure.addProperty("weight", tw.weight());
+                        structure.addProperty("processor", CreateRNS.ID + ":" + processorName(def.depositBlock()));
+                        structures.add(structure);
+                    }
+                    root.add("structures", structures);
 
                     files.add(new DatapackFile(DEPOSIT_STRUCTURE_PATH.formatted(CreateRNS.ID, def.name()), root));
                 }

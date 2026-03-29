@@ -1,20 +1,26 @@
 {
-  "type": "minecraft:jigsaw",
+  "type": "create_rns:deposit",
   "biomes": "#create_rns:has_deposit_nether",
-  "max_distance_from_center": 80,
-  "start_height": {
-    "type": "minecraft:uniform",
-    "min_inclusive": {
-      "absolute": 34
-    },
-    "max_inclusive": {
-      "absolute": 100
-    }
+  "placement_strategy": "nether",
+  "height": {
+    "min": 34,
+    "max": 100
   },
-  "size": 1,
-  "spawn_overrides": {},
-  "start_pool": "create_rns:deposit_cobalt/start",
-  "step": "underground_ores",
-  "terrain_adaptation": "none",
-  "use_expansion_hack": false
+  "structures": [
+    {
+      "id": "create_rns:ore_deposit_small",
+      "weight": 70,
+      "processor": "create_rns:replace_with_create_rns_cobalt_deposit_block"
+    },
+    {
+      "id": "create_rns:ore_deposit_medium",
+      "weight": 28,
+      "processor": "create_rns:replace_with_create_rns_cobalt_deposit_block"
+    },
+    {
+      "id": "create_rns:ore_deposit_large",
+      "weight": 2,
+      "processor": "create_rns:replace_with_create_rns_cobalt_deposit_block"
+    }
+  ]
 }

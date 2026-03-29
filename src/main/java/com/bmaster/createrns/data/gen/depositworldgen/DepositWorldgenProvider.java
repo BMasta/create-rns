@@ -52,9 +52,6 @@ public class DepositWorldgenProvider implements DataProvider {
             Path processorPath = dataRoot.resolve("worldgen/processor_list/" + procName.apply(dc.depositBlock) + ".json");
             futures.add(DataProvider.saveStable(cache, generateProcessor(dc), processorPath));
 
-            Path sStartPath = dataRoot.resolve("worldgen/template_pool/" + structName.apply(dc.name) + "/start.json");
-            futures.add(DataProvider.saveStable(cache, generateStartPool(dc), sStartPath));
-
             Path structurePath = dataRoot.resolve("worldgen/structure/" + structName.apply(dc.name) + ".json");
             futures.add(DataProvider.saveStable(cache, generateStructure(dc), structurePath));
         }
@@ -103,47 +100,22 @@ public class DepositWorldgenProvider implements DataProvider {
         return root;
     }
 
-    private JsonObject generateStartPool(Deposit conf) {
-
-        JsonArray elements = new JsonArray();
-        for (var nc : conf.nbts) {
-
-            JsonObject element = new JsonObject();
-            element.addProperty("element_type", "minecraft:single_pool_element");
-            element.addProperty("location", nc.loc.toString());
-            element.addProperty("processors", CreateRNS.ID + ":" + procName.apply(conf.depositBlock));
-            element.addProperty("projection", "rigid");
-
-            JsonObject weighted = new JsonObject();
-            weighted.add("element", element);
-            weighted.addProperty("weight", nc.weight);
-
-            elements.add(weighted);
-        }
-
-        JsonObject root = new JsonObject();
-        root.addProperty("fallback", "minecraft:empty");
-        root.add("elements", elements);
-
-        return root;
-    }
-
     private JsonObject generateStructure(Deposit conf) {
-        JsonObject startHeight = new JsonObject();
-        startHeight.addProperty("absolute", -conf.depth);
-
         JsonObject root = new JsonObject();
-        root.addProperty("type", "minecraft:jigsaw");
-        root.addProperty("start_pool", CreateRNS.ID + ":" + structName.apply(conf.name) + "/start");
-        root.addProperty("size", 1);
-        root.add("start_height", startHeight);
-        root.addProperty("project_start_to_heightmap", "OCEAN_FLOOR_WG");
-        root.addProperty("step", "underground_ores");
+        root.addProperty("type", CreateRNS.ID + ":deposit");
         root.addProperty("biomes", "#" + CreateRNS.ID + ":" + ALLOWED_BIOMES_TAG_PATH);
-        root.addProperty("terrain_adaptation", "none");
-        root.addProperty("max_distance_from_center", 80);
-        root.addProperty("use_expansion_hack", false);
-        root.add("spawn_overrides", new JsonObject());
+        root.addProperty("placement_strategy", "overworld");
+        root.addProperty("height", -conf.depth);
+
+        var structures = new JsonArray();
+        for (var nbt : conf.nbts) {
+            var structure = new JsonObject();
+            structure.addProperty("id", nbt.loc.toString());
+            structure.addProperty("weight", nbt.weight);
+            structure.addProperty("processor", CreateRNS.ID + ":" + procName.apply(conf.depositBlock));
+            structures.add(structure);
+        }
+        root.add("structures", structures);
 
         return root;
     }
