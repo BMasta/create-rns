@@ -2,24 +2,32 @@ package com.bmaster.createrns.data.pack;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.DepositBlock;
-import com.bmaster.createrns.data.pack.DepositStructureBuilder.DepositBuildingContext;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class DepositBlockBuilder {
+    public static boolean dumpMode = false;
+
+    public static DepositBlockBuilder create(String keyword) {
+        return new DepositBlockBuilder(new DepositBuildingContext(keyword));
+    }
+
     private final DepositBuildingContext ctx;
     private @Nullable BlockBuilder<DepositBlock, CreateRegistrate> delegate;
+    private final ObjectOpenHashSet<String> compatIndicatorBlocks = new ObjectOpenHashSet<>();
 
-    public DepositBlockBuilder(DepositBuildingContext ctx) {
-        this.ctx = ctx;
-        if (!DepositStructureBuilder.dumpMode) {
-            delegate = CreateRNS.REGISTRATE.block(ctx.depositKeyword + "_deposit_block", DepositBlock::new);
-        }
+    public DepositBlockBuilder enableWhenBlockPresent(String name) {
+        compatIndicatorBlocks.add(name);
+        return this;
     }
 
     public DepositBlockBuilder transform(
@@ -32,13 +40,8 @@ public class DepositBlockBuilder {
         return this;
     }
 
-    public DepositBlockBuilder recipe(Consumer<DepositBuildingContext> recipe) {
-        recipe.accept(ctx);
-        return this;
-    }
-
-    public DepositBlockBuilder spec(Consumer<DepositBuildingContext> spec) {
-        spec.accept(ctx);
+    public DepositBlockBuilder attach(Consumer<DepositBuildingContext> attachment) {
+        attachment.accept(ctx);
         return this;
     }
 
@@ -46,5 +49,38 @@ public class DepositBlockBuilder {
     public BlockEntry<DepositBlock> register() {
         if (delegate == null) return null;
         return delegate.register();
+    }
+
+    private DepositBlockBuilder(DepositBuildingContext ctx) {
+        this.ctx = ctx;
+        if (dumpMode) {
+            ctx.isEnabled = () -> compatIndicatorBlocks.isEmpty() || DynamicDatapackDumpTool.includeCompat();
+        } else {
+            delegate = CreateRNS.REGISTRATE.block(ctx.depositKeyword + "_deposit_block", DepositBlock::new);
+            ctx.isEnabled = () -> BuiltInRegistries.BLOCK.keySet().stream().anyMatch(rl ->
+                    compatIndicatorBlocks.isEmpty() || compatIndicatorBlocks.contains(rl.getPath()));
+        }
+    }
+
+    public static class DepositBuildingContext {
+        public final String depositKeyword;
+        public Supplier<Boolean> isEnabled;
+
+        public DepositBuildingContext(String depositKeyword) {
+            this.depositKeyword = depositKeyword;
+            isEnabled = () -> true;
+        }
+
+        public ResourceLocation depositBlockId() {
+            return CreateRNS.asResource(depositKeyword + "_deposit_block");
+        }
+
+        public ResourceLocation depositStructureId() {
+            return CreateRNS.asResource("deposit_" + depositKeyword);
+        }
+
+        public ResourceLocation depositSpecId() {
+            return CreateRNS.asResource(depositKeyword);
+        }
     }
 }

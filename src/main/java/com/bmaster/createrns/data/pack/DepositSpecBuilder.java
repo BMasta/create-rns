@@ -1,6 +1,6 @@
 package com.bmaster.createrns.data.pack;
 
-import com.bmaster.createrns.data.pack.DepositStructureBuilder.DepositBuildingContext;
+import com.bmaster.createrns.data.pack.DepositBlockBuilder.DepositBuildingContext;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;

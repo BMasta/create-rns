@@ -1,11 +1,10 @@
 package com.bmaster.createrns.data.pack;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.data.pack.DepositBlockBuilder.DepositBuildingContext;
 import com.bmaster.createrns.data.pack.DynamicDatapackContent.Dimension;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -22,17 +21,12 @@ public class DepositStructureBuilder {
     public static final ResourceLocation DEP_SMALL = CreateRNS.asResource("ore_deposit_small");
     public static final ResourceLocation DEP_MEDIUM = CreateRNS.asResource("ore_deposit_medium");
     public static final ResourceLocation DEP_LARGE = CreateRNS.asResource("ore_deposit_large");
-    public static boolean dumpMode = false;
 
     private static final Object2ObjectOpenHashMap<Dimension, List<ConfiguredEntry>> DEPOSITS =
             new Object2ObjectOpenHashMap<>();
 
-    public static DepositStructureBuilder create(String keyword) {
-        return new DepositStructureBuilder(keyword);
-    }
-
-    public static DepositBlockBuilder blockOnly(String keyword) {
-        return new DepositBlockBuilder(new DepositBuildingContext(keyword));
+    public static DepositStructureBuilder create(DepositBuildingContext ctx) {
+        return new DepositStructureBuilder(ctx);
     }
 
     public static List<ConfiguredEntry> getDeposits() {
@@ -45,7 +39,6 @@ public class DepositStructureBuilder {
 
     private final DepositBuildingContext ctx;
     private final List<WeightedTemplate> weightedTemplates = new ArrayList<>();
-    private final ObjectOpenHashSet<String> compatIndicatorBlocks = new ObjectOpenHashSet<>();
 
     private Dimension dimension = Dimension.OVERWORLD;
     private int depth = 8;
@@ -79,23 +72,11 @@ public class DepositStructureBuilder {
         return this;
     }
 
-    public DepositStructureBuilder enableWhenBlockPresent(String name) {
-        compatIndicatorBlocks.add(name);
-        return this;
-    }
-
     public DepositStructureBuilder transform(UnaryOperator<DepositStructureBuilder> transform) {
         return transform.apply(this);
     }
 
-    public DepositBlockBuilder block() {
-        if (dumpMode) {
-            ctx.isEnabled = () -> compatIndicatorBlocks.isEmpty() || DynamicDatapackDumpTool.includeCompat();
-        } else {
-            ctx.isEnabled = () -> BuiltInRegistries.BLOCK.keySet().stream().anyMatch(rl ->
-                    compatIndicatorBlocks.isEmpty() || compatIndicatorBlocks.contains(rl.getPath()));
-        }
-
+    public void save() {
         if (weightedTemplates.isEmpty()) {
             throw new IllegalStateException("At least one template must be configured before registering");
         }
@@ -111,12 +92,10 @@ public class DepositStructureBuilder {
         } else if (!existing.equals(candidate)) {
             throw new IllegalStateException("Conflicting dynamic deposit definition already exists: " + ctx.depositKeyword);
         }
-
-        return new DepositBlockBuilder(ctx);
     }
 
-    private DepositStructureBuilder(String keyword) {
-        ctx = new DepositBuildingContext(keyword);
+    private DepositStructureBuilder(DepositBuildingContext ctx) {
+        this.ctx = ctx;
     }
 
     public record ConfiguredEntry(
@@ -126,27 +105,5 @@ public class DepositStructureBuilder {
     }
 
     public record WeightedTemplate(ResourceLocation template, int weight) {}
-
-    public static class DepositBuildingContext {
-        public final String depositKeyword;
-        public Supplier<Boolean> isEnabled;
-
-        public DepositBuildingContext(String depositKeyword) {
-            this.depositKeyword = depositKeyword;
-            isEnabled = () -> true;
-        }
-
-        public ResourceLocation depositBlockId() {
-            return CreateRNS.asResource(depositKeyword + "_deposit_block");
-        }
-
-        public ResourceLocation depositStructureId() {
-            return CreateRNS.asResource("deposit_" + depositKeyword);
-        }
-
-        public ResourceLocation depositSpecId() {
-            return CreateRNS.asResource(depositKeyword);
-        }
-    }
 
 }
