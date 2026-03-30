@@ -155,8 +155,6 @@ public enum PlacementStrategy implements StringRepresentable {
                 }
             } while (false);
 
-//            CreateRNS.LOGGER.info("Found {}/{} bearing blocks -> {}", bearingBlocks, totalBlocks,
-//                    accepted ? "accepted" : "rejected");
             return accepted;
         }
 
