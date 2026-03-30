@@ -1,9 +1,9 @@
 {
   "scanner_icon_tag_candidates": [
-    "c:raw_materials/nickel",
-    "c:ores/nickel",
-    "c:ingots/nickel",
-    "c:nuggets/nickel"
+    "forge:raw_materials/nickel",
+    "forge:ores/nickel",
+    "forge:ingots/nickel",
+    "forge:nuggets/nickel"
   ],
   "map_icon_item": "create_rns:nickel_deposit_block",
   "structure": "create_rns:deposit_nickel"

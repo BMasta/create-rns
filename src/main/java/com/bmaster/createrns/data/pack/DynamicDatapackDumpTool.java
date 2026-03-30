@@ -20,7 +20,7 @@ public class DynamicDatapackDumpTool {
     public static void main(String[] args) throws IOException {
         var outputRoot = (args.length > 0) ? Path.of(args[0]) : Path.of(DEFAULT_DUMP_PATH);
 
-        DepositStructureBuilder.dumpMode = true;
+        DepositBlockBuilder.dumpMode = true;
         try {
             // This tool runs outside normal game bootstrap. Initialize SharedConstants so pack_format can be resolved.
             SharedConstants.tryDetectVersion();
@@ -32,7 +32,7 @@ public class DynamicDatapackDumpTool {
             includeCompat = true;
             DynamicDatapack.dumpDatapacks(outputRoot.resolve(WITH_COMPAT_VARIANT_PATH));
         } finally {
-            DepositStructureBuilder.dumpMode = false;
+            DepositBlockBuilder.dumpMode = false;
         }
     }
 
