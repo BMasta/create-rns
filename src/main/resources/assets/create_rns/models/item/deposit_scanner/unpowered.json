@@ -4,7 +4,7 @@
   "parent": "block/block",
   "render_type": "minecraft:translucent",
   "textures": {
-    "2": "create:item/linked_controller",
+    "2": "create_rns:item/deposit_scanner",
     "4": "create:block/nixie_tube"
   },
   "elements": [

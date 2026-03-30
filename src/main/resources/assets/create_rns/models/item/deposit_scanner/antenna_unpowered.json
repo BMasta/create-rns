@@ -4,8 +4,8 @@
   "parent": "block/block",
   "render_type": "minecraft:cutout",
   "textures": {
-    "0": "create:block/redstone_antenna",
-    "particle": "create:block/redstone_antenna"
+    "0": "create_rns:item/redstone_antenna",
+    "particle": "create_rns:item/redstone_antenna"
   },
   "elements": [
     {

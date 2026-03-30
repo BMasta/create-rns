@@ -2,6 +2,7 @@ package com.bmaster.createrns.content.deposit.scanning;
 
 import com.bmaster.createrns.RNSItems;
 import com.bmaster.createrns.RNSSoundEvents;
+import com.bmaster.createrns.content.deposit.scanning.DepositScannerItemRenderer.Roll;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerServerHandler.RequestType;
 import com.bmaster.createrns.content.deposit.spec.DepositSpecLookup;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -18,6 +19,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class DepositScannerClientHandler {
     public enum AntennaStatus {
         INACTIVE, LEFT_ACTIVE, RIGHT_ACTIVE, BOTH_ACTIVE
+    }
+
+    public enum HeightStatus {
+        UNKNOWN, BELOW, ABOVE, EQUAL
     }
 
     private static State state = new State();
@@ -39,6 +44,7 @@ public class DepositScannerClientHandler {
         if (p == null) return;
         state.depositFound = false;
         state.isTracking = false;
+        DepositScannerItemRenderer.setRoll(Roll.NONE);
         if (playSound) RNSSoundEvents.SCANNER_CLICK.playClient(p.level(), p.blockPosition());
     }
 
@@ -126,15 +132,18 @@ public class DepositScannerClientHandler {
         }
     }
 
-    protected static void processTrackingReply(AntennaStatus status, int interval, boolean found) {
+    protected static void processTrackingReply(
+            AntennaStatus antennaStatus, HeightStatus heightStatus, int interval, boolean found
+    ) {
         var p = Minecraft.getInstance().player;
         if (p == null || !p.level().isClientSide() || !state.isTracking) return;
-        if (status == AntennaStatus.INACTIVE) {
+        if (antennaStatus == AntennaStatus.INACTIVE) {
             cancelTracking(false);
             return;
         }
 
-        state.antennaStatus = status;
+        state.antennaStatus = antennaStatus;
+        state.heightStatus = heightStatus;
         state.pingInterval = interval;
 
         // Delay ping result processing so it can be synchronized with the renderer
@@ -156,11 +165,21 @@ public class DepositScannerClientHandler {
             // FWOOMP!
             RNSSoundEvents.DEPOSIT_FOUND.playClient(p.level(), p.blockPosition());
             DepositScannerItemRenderer.shakeItem();
+            DepositScannerItemRenderer.setRoll(Roll.SOLID);
             return;
         }
 
         // Render as powered for a brief moment
         DepositScannerItemRenderer.powerBriefly();
+
+        // Set scanner roll based on deposit height
+        DepositScannerItemRenderer.setRoll( switch (state.heightStatus) {
+            case UNKNOWN -> Roll.NONE;
+            case BELOW -> Roll.DOWN;
+            case ABOVE -> Roll.UP;
+            case EQUAL -> Roll.SOLID;
+        });
+
         // Play ding
         int max = DepositScannerServerHandler.MAX_PING_INTERVAL - DepositScannerServerHandler.MIN_PING_INTERVAL;
         float pitchMultiplier = 1 - ((float) (state.pingInterval - DepositScannerServerHandler.MIN_PING_INTERVAL) / max);
@@ -185,6 +204,7 @@ public class DepositScannerClientHandler {
 
     private static class State {
         private AntennaStatus antennaStatus = AntennaStatus.INACTIVE;
+        private HeightStatus heightStatus = HeightStatus.UNKNOWN;
         private int pingInterval = DepositScannerServerHandler.MAX_PING_INTERVAL;
         private int selectedIndex = 0;
         private int ticksSinceLastPing = pingInterval;

@@ -73,7 +73,7 @@ public class CommonEvents {
     @SubscribeEvent
     public static void onRegisterPayloadHandlers(final RegisterPayloadHandlersEvent event) {
         // set a network version string (optional but recommended)
-        PayloadRegistrar registrar = event.registrar("3");
+        PayloadRegistrar registrar = event.registrar("4");
 
         // Client->Server
         registrar.playToServer(
