@@ -3,8 +3,8 @@ package com.bmaster.createrns;
 import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.compat.Mods;
 import com.bmaster.createrns.content.deposit.DepositBlock;
-import com.bmaster.createrns.data.pack.DepositStructureBuilder;
 import com.bmaster.createrns.data.pack.DepositSpecBuilder;
+import com.bmaster.createrns.data.pack.DepositStructureBuilder;
 import com.bmaster.createrns.data.pack.DynamicDatapackContent.Dimension;
 import com.bmaster.createrns.data.pack.MiningRecipeBuilder;
 import com.bmaster.createrns.data.pack.YieldBuilder;
@@ -19,7 +19,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.material.MapColor;
 
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.function.Consumer;
@@ -349,7 +348,7 @@ public class RNSDeposits {
 
     //================================================ Compat | Nether ===============================================//
 
-    public static final @Nullable BlockEntry<DepositBlock> COBALT_DEPOSIT = DepositStructureBuilder
+    public static final BlockEntry<DepositBlock> COBALT_DEPOSIT = DepositStructureBuilder
             .create("cobalt")
             .enableWhenBlockPresent("cobalt_ore")
             .transform(preciousNetherDepositStructure(1))
@@ -426,7 +425,6 @@ public class RNSDeposits {
         return b -> b
                 .dimension(Dimension.NETHER)
                 .depth(4)
-//                .depthDeviation(33)
                 .weight(50 * weightMultiplier)
                 .nbt(DepositStructureBuilder.DEP_MEDIUM, 70)
                 .nbt(DepositStructureBuilder.DEP_LARGE, 30);
@@ -436,7 +434,6 @@ public class RNSDeposits {
         return b -> b
                 .dimension(Dimension.NETHER)
                 .depth(4)
-//                .depthDeviation(33)
                 .weight(20 * weightMultiplier)
                 .nbt(DepositStructureBuilder.DEP_SMALL, 70)
                 .nbt(DepositStructureBuilder.DEP_MEDIUM, 28)
