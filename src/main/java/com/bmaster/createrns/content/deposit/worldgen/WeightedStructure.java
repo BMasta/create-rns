@@ -12,12 +12,15 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProc
 import java.util.List;
 
 record WeightedStructure(ResourceLocation id, int weight, Holder<StructureProcessorList> processor) {
+    private static final Holder<StructureProcessorList> EMPTY_PROCESSOR_LIST = Holder.direct(new StructureProcessorList(List.of()));
+
     public static final Codec<WeightedStructure> CODEC = RecordCodecBuilder.create(i -> i.group(
                     ResourceLocation.CODEC.fieldOf("id")
                             .forGetter(WeightedStructure::id),
                     Codec.intRange(1, 150).fieldOf("weight")
                             .forGetter(WeightedStructure::weight),
                     StructureProcessorType.LIST_CODEC.fieldOf("processor")
+                            .orElse(EMPTY_PROCESSOR_LIST)
                             .forGetter(WeightedStructure::processor)
             )
             .apply(i, WeightedStructure::new));

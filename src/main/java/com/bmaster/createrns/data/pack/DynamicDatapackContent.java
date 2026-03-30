@@ -122,10 +122,7 @@ public class DynamicDatapackContent {
                         case NETHER -> "nether";
                     });
 
-                    int height = switch(d) {
-                        case OVERWORLD -> -def.depth();
-                        case NETHER -> def.depth();
-                    };
+                    int height = -def.depth();
                     if (def.depthDeviation() == 0) {
                         root.addProperty("height", height);
                     } else {

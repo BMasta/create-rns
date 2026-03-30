@@ -2,10 +2,7 @@
   "type": "create_rns:deposit",
   "biomes": "#create_rns:has_deposit_nether",
   "placement_strategy": "nether",
-  "height": {
-    "min": 34,
-    "max": 100
-  },
+  "height": -4,
   "structures": [
     {
       "id": "create_rns:ore_deposit_medium",

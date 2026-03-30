@@ -1,5 +1,6 @@
 package com.bmaster.createrns.content.deposit.worldgen;
 
+import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSStructures;
 import com.bmaster.createrns.util.Range;
 import com.mojang.serialization.MapCodec;
@@ -9,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.RegistryCodecs;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.levelgen.GenerationStep;
@@ -42,6 +44,8 @@ public class DepositStructure extends Structure {
             )
             .apply(i, DepositStructure::new));
 
+    private static float elapsedCounter = 0;
+
     private final HolderSet<Biome> biomes;
     private final List<WeightedStructure> structures;
     private final PlacementStrategy placementStrategy;
@@ -60,6 +64,8 @@ public class DepositStructure extends Structure {
     @Override
     public Optional<GenerationStub> findGenerationPoint(GenerationContext context) {
         var chunkPos = context.chunkPos();
+        CreateRNS.LOGGER.trace("Finding structure at {}", chunkPos);
+        long swStart = System.nanoTime();
 
         // Pick random structure rotation
         var rotation = Rotation.getRandom(context.random());
@@ -73,17 +79,30 @@ public class DepositStructure extends Structure {
 
         // Determine start position
         var worldgenContext = new WorldGenerationContext(context.chunkGenerator(), context.heightAccessor());
-        var startY = placementStrategy.getStartY(height, context.random(), worldgenContext);
-        var startPos = new BlockPos(chunkPos.getMinBlockX(), startY, chunkPos.getMinBlockZ());
+        var yOffset = placementStrategy.sampleYOffset(height, context.random(), worldgenContext);
 
         // Create structure piece
-        var piece = createPiece(context, element, rotation, startPos);
-        if (piece == null) return Optional.empty();
+        var piece = createPiece(context, chunkPos, element, rotation, yOffset);
+        if (piece == null) {
+            float delta = ((int) ((System.nanoTime() - swStart) / 10_000.0)) / 100f;
+            elapsedCounter += delta;
+            CreateRNS.LOGGER.trace("  -> rejected ({} ms | total {} ms)",
+                    ((int) (delta / 10_000.0)) / 100f,
+                    ((int) (elapsedCounter / 10_000.0)) / 100f);
+            return Optional.empty();
+        }
 
-        // Determine structure position
-        var structurePos = placementStrategy.getRepresentativePosition(piece, startPos);
+        // Determine representative structure position
+        var boundingBox = piece.getBoundingBox();
+        var center = boundingBox.getCenter();
+        var representativePos = new BlockPos(center.getX(), boundingBox.minY(), center.getZ());
 
-        return Optional.of(new GenerationStub(structurePos, builder -> builder.addPiece(piece)));
+        long delta = System.nanoTime() - swStart;
+        elapsedCounter += delta;
+        CreateRNS.LOGGER.trace("  -> accepted ({} ms | total {} ms)",
+                ((int) (delta / 10_000.0)) / 100f,
+                ((int) (elapsedCounter / 10_000.0)) / 100f);
+        return Optional.of(new GenerationStub(representativePos, builder -> builder.addPiece(piece)));
     }
 
     @Override
@@ -94,23 +113,24 @@ public class DepositStructure extends Structure {
     private static StructureSettings createSettings(HolderSet<Biome> biomes) {
         return new StructureSettings.Builder(biomes)
                 .spawnOverrides(Map.of())
-                .generationStep(GenerationStep.Decoration.UNDERGROUND_ORES)
+                .generationStep(GenerationStep.Decoration.STRONGHOLDS)
                 .terrainAdapation(TerrainAdjustment.NONE)
                 .build();
     }
 
     private @Nullable PoolElementStructurePiece createPiece(
-            GenerationContext context, StructurePoolElement element,
-            Rotation rotation, BlockPos startPos
+            GenerationContext context, ChunkPos chunkPos, StructurePoolElement element,
+            Rotation rotation, int yOffset
     ) {
+        var startPos = new BlockPos(chunkPos.getMinBlockX(), 0, chunkPos.getMinBlockZ());
         var boundingBox = element.getBoundingBox(context.structureTemplateManager(), startPos, rotation);
         var piece = new PoolElementStructurePiece(context.structureTemplateManager(), element, startPos,
-                element.getGroundLevelDelta(), rotation, boundingBox, LiquidSettings.APPLY_WATERLOGGING);
+                0, rotation, boundingBox, LiquidSettings.APPLY_WATERLOGGING);
 
-        var targetY = placementStrategy.getPlacementY(context, piece, startPos);
+        var targetY = placementStrategy.getPlacementBottomY(context, piece, yOffset);
         if (targetY.isEmpty()) return null;
 
-        var offsetY = targetY.getAsInt() - (boundingBox.minY() + piece.getGroundLevelDelta());
+        var offsetY = targetY.getAsInt() - (boundingBox.minY());
         piece.move(0, offsetY, 0);
         return piece;
     }

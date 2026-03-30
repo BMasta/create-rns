@@ -425,8 +425,8 @@ public class RNSDeposits {
     public static UnaryOperator<DepositStructureBuilder> bulkNetherDepositStructure(int weightMultiplier) {
         return b -> b
                 .dimension(Dimension.NETHER)
-                .depth(67)
-                .depthDeviation(33)
+                .depth(4)
+//                .depthDeviation(33)
                 .weight(50 * weightMultiplier)
                 .nbt(DepositStructureBuilder.DEP_MEDIUM, 70)
                 .nbt(DepositStructureBuilder.DEP_LARGE, 30);
@@ -435,8 +435,8 @@ public class RNSDeposits {
     public static UnaryOperator<DepositStructureBuilder> preciousNetherDepositStructure(int weightMultiplier) {
         return b -> b
                 .dimension(Dimension.NETHER)
-                .depth(67)
-                .depthDeviation(33)
+                .depth(4)
+//                .depthDeviation(33)
                 .weight(20 * weightMultiplier)
                 .nbt(DepositStructureBuilder.DEP_SMALL, 70)
                 .nbt(DepositStructureBuilder.DEP_MEDIUM, 28)
