@@ -184,21 +184,38 @@ Path: `data/your_pack/worldgen/structure/deposit_tin.json`.
 
 See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure` for examples.
 
-Default deposit structures use `"type": "create_rns:deposit"`.
-This structure codec uses a deposit-specific schema rather than vanilla jigsaw's full field set.
-It currently expects:
-* `biomes`
-* optional `max_distance_from_center`
-* `placement_strategy` (`overworld` or `nether`)
-* `height`, which can be either a single int or an object `{ "min": ..., "max": ... }`
-* `structures`, a non-empty weighted list of:
-  * `id` - structure template id
-  * `weight` - positive selection weight
-  * `processor` - processor list id applied to the chosen template
-
-`height` is translated internally into the structure's start Y logic.
-For `overworld`, the mod also applies `"project_start_to_heightmap": "OCEAN_FLOOR_WG"` internally.
-For `nether`, the height is treated as an absolute start height or absolute uniform range directly.
+```json5
+{
+  "type": "create_rns:deposit",
+  // This mod ships two biome tags: "has_deposit" and "has_deposit_nether", but any biome or biome tag is accepted.
+  "biomes": "#create_rns:has_deposit",
+  // Should be either "overworld" or "nether". This affects how deposits are placed in a target chunk.
+  "placement_strategy": "overworld",
+  // Y offset from the ground level to the top of the deposit.
+  "height": -8,
+  // or..
+  "height": {
+    "max": -8,
+    "min": -12,
+  },
+  // List of structure NBTs.
+  "structures": [
+    {
+      "id": "create_rns:ore_deposit_medium",
+      "weight": 70,
+      // Deposit NBTs shipped with this mod are generic.
+      // Processors allow you to replace the placeholder block to your deposit block of choice.
+      // If your custom deposit already uses the desired blocks, the processor can be skipped.
+      "processor": "your_pack:replace_with_your_pack_tin_deposit_block"
+    },
+    {
+      "id": "create_rns:ore_deposit_large",
+      "weight": 30,
+      "processor": "create_rns:replace_with_your_pack_tin_deposit_block"
+    }
+  ]
+}
+```
 
 ### 3. Processor
 The deposit nbt's contain deposits made of end stone.
