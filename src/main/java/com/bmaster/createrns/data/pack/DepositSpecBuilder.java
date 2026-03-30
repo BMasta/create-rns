@@ -40,7 +40,7 @@ public class DepositSpecBuilder {
     }
 
     public DepositSpecBuilder scannerIconCommonTag(String tagId) {
-        scannerIconTagCandidates.add(ResourceLocation.parse("c:" + tagId));
+        scannerIconTagCandidates.add(ResourceLocation.parse("forge:" + tagId));
         return this;
     }
 
