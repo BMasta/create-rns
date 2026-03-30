@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.scanning;
 
-import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.RNSPartialModels;
 import com.bmaster.createrns.util.Utils;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
@@ -25,22 +25,56 @@ import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.List;
 import java.util.Random;
 
 /// A humble rip-off of Create's linked controller
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer {
-    private static final PartialModel UNPOWERED = PartialModel.of(
-            CreateRNS.asResource("item/deposit_scanner/unpowered"));
-    private static final PartialModel POWERED = PartialModel.of(
-            CreateRNS.asResource("item/deposit_scanner/powered"));
-    private static final PartialModel ANTENNA_UNPOWERED = PartialModel.of(
-            CreateRNS.asResource("item/deposit_scanner/antenna_unpowered"));
-    private static final PartialModel ANTENNA_POWERED = PartialModel.of(
-            CreateRNS.asResource("item/deposit_scanner/antenna_powered"));
-    public static final PartialModel WHEEL = PartialModel.of(
-            CreateRNS.asResource("item/deposit_scanner/wheel"));
+    private static final List<PartialModel> rollModels = List.of(
+            RNSPartialModels.SCANNER_UNPOWERED,
+            RNSPartialModels.SCANNER_POWERED_1,
+            RNSPartialModels.SCANNER_POWERED_2,
+            RNSPartialModels.SCANNER_POWERED_3,
+            RNSPartialModels.SCANNER_POWERED_4,
+            RNSPartialModels.SCANNER_POWERED_5
+    );
+
+    public enum Roll {
+        NONE(0, 0),
+        DOWN(-1, rollModels.size() - 1),
+        UP(1, 0),
+        SOLID(0, 0);
+
+        private static final int TICKS_PER_ROLL = 2;
+
+        private final int step;
+        private int stage;
+        private int ticksSinceLastRoll = 0;
+
+        Roll(int step, int startStage) {
+            this.step = step;
+            this.stage = startStage;
+        }
+
+        public void advance() {
+            if (step == 0) return;
+            ticksSinceLastRoll++;
+            if (ticksSinceLastRoll < TICKS_PER_ROLL) return;
+            ticksSinceLastRoll = 0;
+            stage = (stage + step) % rollModels.size();
+            if (stage < 0) stage = rollModels.size() - 1;
+        }
+
+        public PartialModel getModel() {
+            return switch (this) {
+                case NONE -> RNSPartialModels.SCANNER_UNPOWERED;
+                case DOWN, UP -> rollModels.get(stage);
+                case SOLID -> RNSPartialModels.SCANNER_POWERED;
+            };
+        }
+    }
 
     private static final int JITTER_TICKS_PER_SHAKE = 20;
     private static final float JITTER_SCALE = 0.002f;
@@ -49,6 +83,7 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
     private static final LerpedFloat scrollProgress;
     private static final LerpedFloat ambientItemMovement;
     private static int poweredTicks = 0;
+    private static Roll roll = Roll.NONE;
 
     private static final LerpedFloat itemJitterX;
     private static final LerpedFloat itemJitterZ;
@@ -86,6 +121,8 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
         ambientItemMovement.tickChaser();
         itemJitterX.tickChaser();
         itemJitterZ.tickChaser();
+
+        roll.advance();
     }
 
     protected static void powerBriefly() {
@@ -102,6 +139,10 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
 
     protected static void shakeItem() {
         remainingJitterTicks = JITTER_TICKS_PER_SHAKE;
+    }
+
+    protected static void setRoll(Roll roll) {
+        DepositScannerItemRenderer.roll = roll;
     }
 
     protected static void resetWheel() {
@@ -172,7 +213,9 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
             dynamic = true;
         }
 
-        var dynamic_scanner_base = DepositScannerClientHandler.isTracking() ? POWERED.get() : UNPOWERED.get();
+        var dynamic_scanner_base = DepositScannerClientHandler.isTracking()
+                ? roll.getModel().get()
+                : RNSPartialModels.SCANNER_UNPOWERED.get();
         renderer.render(dynamic ? dynamic_scanner_base : model.getOriginalModel(), light);
         renderSelectedItem(ms, msr, buf, light, overlay, pt);
 
@@ -214,16 +257,16 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
 
         if (DepositScannerClientHandler.isDepositFound() || poweredTicks > 0) {
             partialAntenna1 = switch (DepositScannerClientHandler.getAntennaStatus()) {
-                case INACTIVE, RIGHT_ACTIVE -> ANTENNA_UNPOWERED;
-                case LEFT_ACTIVE, BOTH_ACTIVE -> ANTENNA_POWERED;
+                case INACTIVE, RIGHT_ACTIVE -> RNSPartialModels.ANTENNA_UNPOWERED;
+                case LEFT_ACTIVE, BOTH_ACTIVE -> RNSPartialModels.ANTENNA_POWERED;
             };
             partialAntenna2 = switch (DepositScannerClientHandler.getAntennaStatus()) {
-                case INACTIVE, LEFT_ACTIVE -> ANTENNA_UNPOWERED;
-                case RIGHT_ACTIVE, BOTH_ACTIVE -> ANTENNA_POWERED;
+                case INACTIVE, LEFT_ACTIVE -> RNSPartialModels.ANTENNA_UNPOWERED;
+                case RIGHT_ACTIVE, BOTH_ACTIVE -> RNSPartialModels.ANTENNA_POWERED;
             };
         } else {
-            partialAntenna1 = ANTENNA_UNPOWERED;
-            partialAntenna2 = ANTENNA_UNPOWERED;
+            partialAntenna1 = RNSPartialModels.ANTENNA_UNPOWERED;
+            partialAntenna2 = RNSPartialModels.ANTENNA_UNPOWERED;
         }
         renderer.render(partialAntenna1.get(), light);
         ms.translate(0, 0, -0.5f);
@@ -234,7 +277,7 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
     private static void renderWheel(PoseStack ms, PoseTransformStack msr, PartialItemModelRenderer renderer,
             int light, float partialTicks
     ) {
-        BakedModel wheel = WHEEL.get();
+        BakedModel wheel = RNSPartialModels.WHEEL.get();
 
         ms.pushPose();
         msr.rotateYDegrees(scrollProgress.getValue(partialTicks) % 360);

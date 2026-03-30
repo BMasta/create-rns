@@ -1,10 +1,10 @@
 {
   "parent": "create_rns:item/deposit_scanner/item",
   "textures": {
-    "2": "create:item/linked_controller",
-    "3": "create:block/redstone_antenna",
+    "2": "create_rns:item/deposit_scanner",
+    "3": "create_rns:item/redstone_antenna_powered",
     "4": "create:block/nixie_tube",
     "5": "create:block/cogwheel",
-    "particle": "create:item/linked_controller"
+    "particle": "create_rns:item/deposit_scanner"
   }
 }

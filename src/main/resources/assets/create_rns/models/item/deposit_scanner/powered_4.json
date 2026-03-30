@@ -1,7 +1,7 @@
 {
   "parent": "create_rns:item/deposit_scanner/unpowered",
   "textures": {
-    "2": "create_rns:item/deposit_scanner_powered",
+    "2": "create_rns:item/deposit_scanner_powered_4",
     "4": "create:block/nixie_tube"
   }
 }

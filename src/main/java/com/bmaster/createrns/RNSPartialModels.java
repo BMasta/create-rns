@@ -32,7 +32,27 @@ public class RNSPartialModels {
             CreateRNS.asResource("block/shattering_resonator/shard")),
 
     SHATTERING_RESONATOR_SHARD_ACTIVE = PartialModel.of(
-            CreateRNS.asResource("block/shattering_resonator/shard_active"));
+            CreateRNS.asResource("block/shattering_resonator/shard_active")),
+
+    SCANNER_UNPOWERED = PartialModel.of(CreateRNS.asResource("item/deposit_scanner/unpowered")),
+
+    SCANNER_POWERED_1 = PartialModel.of(CreateRNS.asResource("item/deposit_scanner/powered_1")),
+
+    SCANNER_POWERED_2 = PartialModel.of(CreateRNS.asResource("item/deposit_scanner/powered_2")),
+
+    SCANNER_POWERED_3 = PartialModel.of(CreateRNS.asResource("item/deposit_scanner/powered_3")),
+
+    SCANNER_POWERED_4 = PartialModel.of(CreateRNS.asResource("item/deposit_scanner/powered_4")),
+
+    SCANNER_POWERED_5 = PartialModel.of(CreateRNS.asResource("item/deposit_scanner/powered_5")),
+
+    SCANNER_POWERED = PartialModel.of(CreateRNS.asResource("item/deposit_scanner/powered")),
+
+    ANTENNA_UNPOWERED = PartialModel.of(CreateRNS.asResource("item/deposit_scanner/antenna_unpowered")),
+
+    ANTENNA_POWERED = PartialModel.of(CreateRNS.asResource("item/deposit_scanner/antenna_powered")),
+
+    WHEEL = PartialModel.of(CreateRNS.asResource("item/deposit_scanner/wheel"));
 
     public static void register() {
     }
