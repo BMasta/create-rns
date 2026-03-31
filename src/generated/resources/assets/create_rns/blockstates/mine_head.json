@@ -1,107 +1,213 @@
 {
   "variants": {
-    "face=ceiling,facing=east,size=large": {
+    "face=ceiling,facing=east,size=large,waterlogged=false": {
       "model": "create_rns:block/mine_head_large",
       "x": 180,
       "y": 270
     },
-    "face=ceiling,facing=east,size=small": {
+    "face=ceiling,facing=east,size=large,waterlogged=true": {
+      "model": "create_rns:block/mine_head_large",
+      "x": 180,
+      "y": 270
+    },
+    "face=ceiling,facing=east,size=small,waterlogged=false": {
       "model": "create_rns:block/mine_head",
       "x": 180,
       "y": 270
     },
-    "face=ceiling,facing=north,size=large": {
+    "face=ceiling,facing=east,size=small,waterlogged=true": {
+      "model": "create_rns:block/mine_head",
+      "x": 180,
+      "y": 270
+    },
+    "face=ceiling,facing=north,size=large,waterlogged=false": {
       "model": "create_rns:block/mine_head_large",
       "x": 180,
       "y": 180
     },
-    "face=ceiling,facing=north,size=small": {
+    "face=ceiling,facing=north,size=large,waterlogged=true": {
+      "model": "create_rns:block/mine_head_large",
+      "x": 180,
+      "y": 180
+    },
+    "face=ceiling,facing=north,size=small,waterlogged=false": {
       "model": "create_rns:block/mine_head",
       "x": 180,
       "y": 180
     },
-    "face=ceiling,facing=south,size=large": {
+    "face=ceiling,facing=north,size=small,waterlogged=true": {
+      "model": "create_rns:block/mine_head",
+      "x": 180,
+      "y": 180
+    },
+    "face=ceiling,facing=south,size=large,waterlogged=false": {
       "model": "create_rns:block/mine_head_large",
       "x": 180
     },
-    "face=ceiling,facing=south,size=small": {
+    "face=ceiling,facing=south,size=large,waterlogged=true": {
+      "model": "create_rns:block/mine_head_large",
+      "x": 180
+    },
+    "face=ceiling,facing=south,size=small,waterlogged=false": {
       "model": "create_rns:block/mine_head",
       "x": 180
     },
-    "face=ceiling,facing=west,size=large": {
+    "face=ceiling,facing=south,size=small,waterlogged=true": {
+      "model": "create_rns:block/mine_head",
+      "x": 180
+    },
+    "face=ceiling,facing=west,size=large,waterlogged=false": {
       "model": "create_rns:block/mine_head_large",
       "x": 180,
       "y": 90
     },
-    "face=ceiling,facing=west,size=small": {
+    "face=ceiling,facing=west,size=large,waterlogged=true": {
+      "model": "create_rns:block/mine_head_large",
+      "x": 180,
+      "y": 90
+    },
+    "face=ceiling,facing=west,size=small,waterlogged=false": {
       "model": "create_rns:block/mine_head",
       "x": 180,
       "y": 90
     },
-    "face=floor,facing=east,size=large": {
+    "face=ceiling,facing=west,size=small,waterlogged=true": {
+      "model": "create_rns:block/mine_head",
+      "x": 180,
+      "y": 90
+    },
+    "face=floor,facing=east,size=large,waterlogged=false": {
       "model": "create_rns:block/mine_head_large",
       "y": 90
     },
-    "face=floor,facing=east,size=small": {
+    "face=floor,facing=east,size=large,waterlogged=true": {
+      "model": "create_rns:block/mine_head_large",
+      "y": 90
+    },
+    "face=floor,facing=east,size=small,waterlogged=false": {
       "model": "create_rns:block/mine_head",
       "y": 90
     },
-    "face=floor,facing=north,size=large": {
+    "face=floor,facing=east,size=small,waterlogged=true": {
+      "model": "create_rns:block/mine_head",
+      "y": 90
+    },
+    "face=floor,facing=north,size=large,waterlogged=false": {
       "model": "create_rns:block/mine_head_large"
     },
-    "face=floor,facing=north,size=small": {
+    "face=floor,facing=north,size=large,waterlogged=true": {
+      "model": "create_rns:block/mine_head_large"
+    },
+    "face=floor,facing=north,size=small,waterlogged=false": {
       "model": "create_rns:block/mine_head"
     },
-    "face=floor,facing=south,size=large": {
+    "face=floor,facing=north,size=small,waterlogged=true": {
+      "model": "create_rns:block/mine_head"
+    },
+    "face=floor,facing=south,size=large,waterlogged=false": {
       "model": "create_rns:block/mine_head_large",
       "y": 180
     },
-    "face=floor,facing=south,size=small": {
+    "face=floor,facing=south,size=large,waterlogged=true": {
+      "model": "create_rns:block/mine_head_large",
+      "y": 180
+    },
+    "face=floor,facing=south,size=small,waterlogged=false": {
       "model": "create_rns:block/mine_head",
       "y": 180
     },
-    "face=floor,facing=west,size=large": {
+    "face=floor,facing=south,size=small,waterlogged=true": {
+      "model": "create_rns:block/mine_head",
+      "y": 180
+    },
+    "face=floor,facing=west,size=large,waterlogged=false": {
       "model": "create_rns:block/mine_head_large",
       "y": 270
     },
-    "face=floor,facing=west,size=small": {
+    "face=floor,facing=west,size=large,waterlogged=true": {
+      "model": "create_rns:block/mine_head_large",
+      "y": 270
+    },
+    "face=floor,facing=west,size=small,waterlogged=false": {
       "model": "create_rns:block/mine_head",
       "y": 270
     },
-    "face=wall,facing=east,size=large": {
+    "face=floor,facing=west,size=small,waterlogged=true": {
+      "model": "create_rns:block/mine_head",
+      "y": 270
+    },
+    "face=wall,facing=east,size=large,waterlogged=false": {
       "model": "create_rns:block/mine_head_large",
       "x": 90,
       "y": 90
     },
-    "face=wall,facing=east,size=small": {
+    "face=wall,facing=east,size=large,waterlogged=true": {
+      "model": "create_rns:block/mine_head_large",
+      "x": 90,
+      "y": 90
+    },
+    "face=wall,facing=east,size=small,waterlogged=false": {
       "model": "create_rns:block/mine_head",
       "x": 90,
       "y": 90
     },
-    "face=wall,facing=north,size=large": {
+    "face=wall,facing=east,size=small,waterlogged=true": {
+      "model": "create_rns:block/mine_head",
+      "x": 90,
+      "y": 90
+    },
+    "face=wall,facing=north,size=large,waterlogged=false": {
       "model": "create_rns:block/mine_head_large",
       "x": 90
     },
-    "face=wall,facing=north,size=small": {
+    "face=wall,facing=north,size=large,waterlogged=true": {
+      "model": "create_rns:block/mine_head_large",
+      "x": 90
+    },
+    "face=wall,facing=north,size=small,waterlogged=false": {
       "model": "create_rns:block/mine_head",
       "x": 90
     },
-    "face=wall,facing=south,size=large": {
+    "face=wall,facing=north,size=small,waterlogged=true": {
+      "model": "create_rns:block/mine_head",
+      "x": 90
+    },
+    "face=wall,facing=south,size=large,waterlogged=false": {
       "model": "create_rns:block/mine_head_large",
       "x": 90,
       "y": 180
     },
-    "face=wall,facing=south,size=small": {
+    "face=wall,facing=south,size=large,waterlogged=true": {
+      "model": "create_rns:block/mine_head_large",
+      "x": 90,
+      "y": 180
+    },
+    "face=wall,facing=south,size=small,waterlogged=false": {
       "model": "create_rns:block/mine_head",
       "x": 90,
       "y": 180
     },
-    "face=wall,facing=west,size=large": {
+    "face=wall,facing=south,size=small,waterlogged=true": {
+      "model": "create_rns:block/mine_head",
+      "x": 90,
+      "y": 180
+    },
+    "face=wall,facing=west,size=large,waterlogged=false": {
       "model": "create_rns:block/mine_head_large",
       "x": 90,
       "y": 270
     },
-    "face=wall,facing=west,size=small": {
+    "face=wall,facing=west,size=large,waterlogged=true": {
+      "model": "create_rns:block/mine_head_large",
+      "x": 90,
+      "y": 270
+    },
+    "face=wall,facing=west,size=small,waterlogged=false": {
+      "model": "create_rns:block/mine_head",
+      "x": 90,
+      "y": 270
+    },
+    "face=wall,facing=west,size=small,waterlogged=true": {
       "model": "create_rns:block/mine_head",
       "x": 90,
       "y": 270

@@ -1,11 +1,12 @@
 {
   "name": "faint_stabilizing_resonance",
-  "resonance": {
-    "min_resonators": 4
-  },
-  "stabilizing_resonance": {
-    "min_resonators": 2
-  },
+  "requirements": [
+    {
+      "type": "attachment",
+      "attachment": "create_rns:stabilizing_resonator",
+      "count": 2
+    }
+  ],
   "display_priority": 1003,
   "representative_items": ["create_rns:stabilizing_resonator"],
   "hide_if_present": ["stabilizing_resonance"]

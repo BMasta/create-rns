@@ -1,8 +1,12 @@
 {
   "name": "faint_resonance",
-  "resonance": {
-    "min_resonators": 2
-  },
+  "requirements": [
+    {
+      "type": "attachment",
+      "attachment": "#create_rns:resonator_attachments",
+      "count": 2
+    }
+  ],
   "display_priority": 1000,
   "representative_items": ["create_rns:resonator"],
   "hide_if_present": ["resonance"]

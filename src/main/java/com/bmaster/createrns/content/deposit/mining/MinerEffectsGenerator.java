@@ -115,7 +115,7 @@ public class MinerEffectsGenerator {
         if (be.miningBehaviour.process == null || be.miningBehaviour.equipment == null) return;
         var modifiers = EnumSet.noneOf(SoundModifier.class);
 
-        if (be.miningBehaviour.process.isResonanceActive()) modifiers.add(SoundModifier.RESONANCE);
+        if (be.miningBehaviour.equipment.isResonanceActive) modifiers.add(SoundModifier.RESONANCE);
         miners.put(be, modifiers);
     }
 

@@ -1,15 +1,13 @@
 package com.bmaster.createrns.content.deposit.mining.contraption.attachment;
 
 import com.bmaster.createrns.RNSBlocks;
+import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadSize;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferBlock;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.AttachmentCatalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.FluidCatalyst;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ResonanceCatalyst;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ShatteringResonanceCatalyst;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.StabilizingResonanceCatalyst;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
 import com.simibubi.create.infrastructure.config.AllConfigs;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -32,7 +30,7 @@ public class MinerEquipmentManager {
     public final BlockPos mineHeadPos;
     public final MineHeadSize mineHeadSize;
     public final ObjectOpenHashSet<Catalyst> catalysts = new ObjectOpenHashSet<>();
-    public final int bufferCount;
+    public final boolean isResonanceActive;
 
     protected final MinerBearingBlockEntity bearing;
     protected final BearingContraption contraption;
@@ -85,18 +83,16 @@ public class MinerEquipmentManager {
         this.mineHeadPos = mineHeadPos;
         this.mineHeadSize = mineHeadSize;
 
-        this.bufferCount = ResonanceBufferBlock.countInContraption(contraption);
-
-        var rc = ResonanceCatalyst.fromContraption(contraption);
-        if (rc != null) catalysts.add(rc);
-
-        var stc = ShatteringResonanceCatalyst.fromContraption(contraption);
-        if (stc != null) catalysts.add(stc);
-
-        var sbc = StabilizingResonanceCatalyst.fromContraption(contraption);
-        if (sbc != null) catalysts.add(sbc);
+        var attachments = AttachmentCatalyst.fromContraption(contraption);
+        boolean resonanceActive = false;
+        for (var a : attachments) {
+            if (a.attachmentBlock.defaultBlockState().is(RNSTags.RNSBlockTags.RESONATOR_ATTACHMENTS)) resonanceActive = true;
+        }
+        this.isResonanceActive = resonanceActive;
+        catalysts.addAll(attachments);
 
         var fluid = FluidCatalyst.fromContraption(contraption);
         if (fluid != null) catalysts.add(fluid);
+
     }
 }

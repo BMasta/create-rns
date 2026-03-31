@@ -1,6 +1,7 @@
 package com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer;
 
 import com.bmaster.createrns.RNSBlockEntities;
+import com.bmaster.createrns.RNSTags;
 import com.simibubi.create.AllShapes;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
 import com.simibubi.create.foundation.block.IBE;
@@ -21,7 +22,7 @@ public class ResonanceBufferBlock extends Block implements IBE<ResonanceBufferBl
     public static int countInContraption(BearingContraption contraption) {
         var count = 0;
         for (var info : contraption.getBlocks().values()) {
-            if (info.state().getBlock() instanceof ResonanceBufferBlock) {
+            if (info.state().is(RNSTags.RNSBlockTags.RES_BUFFER_ATTACHMENTS)) {
                 count++;
             }
         }

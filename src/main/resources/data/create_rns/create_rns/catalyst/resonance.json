@@ -1,8 +1,12 @@
 {
   "name": "resonance",
-  "resonance": {
-    "min_resonators": 4
-  },
+  "requirements": [
+    {
+      "type": "attachment",
+      "attachment": "#create_rns:resonator_attachments",
+      "count": 4
+    }
+  ],
   "display_priority": 1001,
   "representative_items": ["create_rns:resonator"]
 }

@@ -115,7 +115,7 @@ See `src/main/resources/data/create_rns/create_rns/catalyst` for examples.
 ```json5
 {
   // Used to reference this overclock in mining recipes.
-  "name": "ultimate_resonance",
+  "name": "i_am_rich",
   // Optional (default 100% aka no change).
   // When catalyst is active, the chance to mine a yield will be multiplied by this value.
   "chance_multiplier": 2.5,
@@ -126,31 +126,30 @@ See `src/main/resources/data/create_rns/create_rns/catalyst` for examples.
   "display_priority": 1004,
   // Optional (default none).
   // Bind specified items to this catalyst on the catalyst info JEI tab.
-  "representative_items": ["create_rns:resonator", "minecraft:lava_bucket"],
+  "representative_items": ["minecraft:netherite_block", "minecraft:lava_bucket"],
   // If any catalyst specified here is active, this catalyst will be hidden
   // in the goggle tooltip of the miner bearing.
-  "hide_if_present": ["super_mega_ultimate_resonance"],
-  // Optional.
-  "fluid": {
-    "consume": {
-      "id": "minecraft:lava",
-      // Will be consumed on every mine operation.
-      "amount": 40
+  "hide_if_present": ["i_am_ultra_rich"],
+  // List of requirements that must be met to activate this catalyst.
+  // Must contain at least one entry.
+  "requirements": [
+    {
+      "type": "fluid",
+      "consume": {
+        "FluidName": "minecraft:lava",
+        // Will be consumed on every mine operation.
+        "Amount": 40
+      }
     },
-  },
-  // Optional.
-  "resonance": {
-    // How many resonators of any type activate this catalyst.
-    "min_resonators": 4
-  },
-  // Optional.
-  "shattering_resonance": {
-    "min_resonators": 4
-  },
-  // Optional.
-  "stabilizing_resonance": {
-    "min_resonators": 4
-  },
+    {
+      "type": "attachment",
+      // Can be a block, a list of blocks, or a block tag.
+      // Each block must  be tagged with create_rns:miner_attachments to work properly.
+      "attachment": "minecraft:netherite_block",
+      // How many attachment blocks activate this catalyst.
+      "count": 16
+    }
+  ]
 }
 ```
 
