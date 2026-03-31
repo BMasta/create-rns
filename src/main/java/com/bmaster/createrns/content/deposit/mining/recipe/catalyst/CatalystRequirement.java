@@ -10,7 +10,7 @@ import java.util.Set;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public abstract class CatalystRequirement {
-    public static final Codec<CatalystRequirement> BASE_CODEC = CatalystRequirementType.CODEC.dispatch(
+    public static final Codec<CatalystRequirement> CODEC = CatalystRequirementType.CODEC.dispatch(
             "type",
             CatalystRequirement::type,
             CatalystRequirementType::codec

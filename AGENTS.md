@@ -28,6 +28,10 @@ All versions are defined in `gradle.properties`. Java version is 17.
 | Xaero's Minimap   | Soft | `xaero_minimap_version`  | Optional client waypoint integration surface used for deposit markers         |
 | Xaero's World Map | Soft | `xaero_worldmap_version` | Optional client map UI that displays Xaero waypoint data                      |
 
+## Architecture and Design
+* When Minecraft/loader codec behavior diverges between the 1.20.1 Forge backport and the 1.21.1 NeoForge branch, prefer mod-owned compatibility codecs over branch-specific datapack format forks.
+* Attachment catalyst holder sets use a shared compatibility codec so datapack authors can keep using a single block id, a list of block ids, or a block tag on both branches.
+
 ## Coding Style Guidelines
 * Preferred line length is 120 characters.
 * Class members are ordered in the following way (earlier rules take precedence):

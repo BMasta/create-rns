@@ -13,7 +13,9 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @ParametersAreNonnullByDefault
@@ -22,22 +24,17 @@ public class CatalystRequirementSet {
     public static final Codec<CatalystRequirementSet> CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.STRING.fieldOf("name")
                     .forGetter(crs -> crs.name),
-            Codec.floatRange(0f, Float.MAX_VALUE).fieldOf("chance_multiplier")
-                    .orElse(1f)
+            Codec.floatRange(0f, Float.MAX_VALUE).optionalFieldOf("chance_multiplier", 1f)
                     .forGetter(crs -> crs.chanceMult),
-            Codec.BOOL.fieldOf("optional")
-                    .orElse(false)
+            Codec.BOOL.optionalFieldOf("optional", false)
                     .forGetter(crs -> crs.optional),
-            Codec.INT.fieldOf("display_priority")
-                    .orElse(Integer.MAX_VALUE)
+            Codec.INT.optionalFieldOf("display_priority", Integer.MAX_VALUE)
                     .forGetter(crs -> crs.displayPriority),
-            ForgeRegistries.ITEMS.getCodec().listOf().fieldOf("representative_items")
-                    .orElse(List.of())
+            ForgeRegistries.ITEMS.getCodec().listOf().optionalFieldOf("representative_items", List.of())
                     .forGetter(crs -> crs.representativeItems),
-            Codec.STRING.listOf().fieldOf("hide_if_present")
-                    .orElse(List.of())
+            Codec.STRING.listOf().optionalFieldOf("hide_if_present", List.of())
                     .forGetter(crs -> crs.hideIfPresent),
-            CatalystRequirement.BASE_CODEC.listOf().fieldOf("requirements")
+            CatalystRequirement.CODEC.listOf().fieldOf("requirements")
                     .forGetter(crs -> crs.requirements)
     ).apply(i, CatalystRequirementSet::new));
 
@@ -110,7 +107,7 @@ public class CatalystRequirementSet {
         for (var cr : requirements) {
             boolean satisifed = false;
             if (cr.useCatalysts(catalysts, simulate)) {
-            for (var c : catalysts) {
+                for (var c : catalysts) {
                     satisifed = true;
                     break;
                 }

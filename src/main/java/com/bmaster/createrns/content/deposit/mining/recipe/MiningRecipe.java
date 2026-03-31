@@ -26,14 +26,14 @@ import java.util.List;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class MiningRecipe implements Recipe<Container> {
+    private static final DepositDurability DEFAULT_DURABILITY = new DepositDurability(0, 0, 0);
+
     public static final MapCodec<MiningRecipeHelper.SerializedRecipe> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
                     ForgeRegistries.BLOCKS.getCodec().fieldOf("deposit_block")
                             .forGetter(MiningRecipeHelper.SerializedRecipe::depositBlock),
-                    ForgeRegistries.BLOCKS.getCodec().fieldOf("replace_when_depleted")
-                            .orElse(Blocks.AIR)
+                    ForgeRegistries.BLOCKS.getCodec().optionalFieldOf("replace_when_depleted", Blocks.AIR)
                             .forGetter(MiningRecipeHelper.SerializedRecipe::replacementBlock),
-                    DepositDurability.CODEC.fieldOf("durability")
-                            .orElse(new DepositDurability(0, 0, 0))
+                    DepositDurability.CODEC.optionalFieldOf("durability", DEFAULT_DURABILITY)
                             .forGetter(MiningRecipeHelper.SerializedRecipe::dur),
                     Yield.CODEC.listOf().fieldOf("yields")
                             .forGetter(MiningRecipeHelper.SerializedRecipe::yields))
@@ -42,11 +42,9 @@ public class MiningRecipe implements Recipe<Container> {
     public static final MapCodec<MiningRecipeHelper.SerializedRecipe> STREAM_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
                     ForgeRegistries.BLOCKS.getCodec().fieldOf("deposit_block")
                             .forGetter(MiningRecipeHelper.SerializedRecipe::depositBlock),
-                    ForgeRegistries.BLOCKS.getCodec().fieldOf("replace_when_depleted")
-                            .orElse(Blocks.AIR)
+                    ForgeRegistries.BLOCKS.getCodec().optionalFieldOf("replace_when_depleted", Blocks.AIR)
                             .forGetter(MiningRecipeHelper.SerializedRecipe::replacementBlock),
-                    DepositDurability.STREAM_CODEC.fieldOf("durability")
-                            .orElse(new DepositDurability(0, 0, 0))
+                    DepositDurability.STREAM_CODEC.optionalFieldOf("durability", DEFAULT_DURABILITY)
                             .forGetter(MiningRecipeHelper.SerializedRecipe::dur),
                     Yield.STREAM_CODEC.listOf().fieldOf("yields")
                             .forGetter(MiningRecipeHelper.SerializedRecipe::yields))
@@ -60,7 +58,8 @@ public class MiningRecipe implements Recipe<Container> {
     private boolean isInitialized = false;
 
     public MiningRecipe(ResourceLocation id, Block depositBlock, Block replacementBlock, DepositDurability dur,
-            List<Yield> yields) {
+            List<Yield> yields
+    ) {
         this.id = id;
         this.depositBlock = depositBlock;
         this.replacementBlock = replacementBlock;

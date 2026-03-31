@@ -1,10 +1,10 @@
 package com.bmaster.createrns.content.deposit.mining.recipe.catalyst;
 
+import com.bmaster.createrns.util.ExtendedHomogenousList;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.HolderSet;
-import net.minecraft.core.RegistryCodecs;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.Block;
 
@@ -16,10 +16,9 @@ import java.util.Set;
 @MethodsReturnNonnullByDefault
 public class AttachmentCatalystRequirement extends CatalystRequirement {
     public static final Codec<AttachmentCatalystRequirement> CODEC = RecordCodecBuilder.create(i -> i.group(
-                    RegistryCodecs.homogeneousList(Registries.BLOCK).fieldOf("attachment")
-                                    .forGetter(c -> c.attachment),
-                    Codec.intRange(0, Integer.MAX_VALUE).fieldOf("count")
-                            .orElse(1)
+                    ExtendedHomogenousList.of(Registries.BLOCK).fieldOf("attachment")
+                            .forGetter(c -> c.attachment),
+                    Codec.intRange(0, Integer.MAX_VALUE).optionalFieldOf("count", 1)
                             .forGetter(c -> c.count))
             .apply(i, AttachmentCatalystRequirement::new));
 
