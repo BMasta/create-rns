@@ -12,7 +12,7 @@ the Miner Bearing. The resources that a miner can mine as well as its efficiency
 the so-called Catalysts.
 
 The current catalysts are:
-1. Various types of resonance - achieved by attaching a sufficient number of resonators to the miner contraption.
+1. Attachment-based catalysts - achieved by attaching a sufficient number of specific miner attachment blocks to the miner contraption. The default datapack uses this for the various resonance catalysts.
 2. Overclock - achieved by attaching a fluid container to the miner contraption and filling it with lava, which is then consumed as the miner is working. More catalysts may be added in the future.
 
 
@@ -80,6 +80,7 @@ All versions are defined in `gradle.properties`. Java version is 21.
 * Assets and data files are located in resources.
 * Resources in `src/generated/resources` are generated automatically using datagen and shouldn't be modified/added manually.
 * Data-driven design: catalysts, deposit specs, and miner specs are defined as JSON datapack registry entries, not hardcoded. This makes them extensible by modpacks without code changes.
+* Catalyst requirement registry entries serialize requirements as an ordered `requirements` list of tagged objects. Each entry declares a `type` discriminator (currently `fluid` or `attachment`) and the payload for that requirement type, so new requirement kinds only need a tagged codec and do not require reshaping the enclosing catalyst JSON.
 * In-memory pack outputs can be inspected via the Gradle task `dumpDynamicDatapacks`, which writes generated pack files to `src/generated/builtin_packs/default` and `src/generated/builtin_packs/with_compat`.
 * `dumpDynamicDatapacks` bootstraps dynamic built-in pack content through `RNSDeposits.register()` with `DepositStructureBuilder.dumpMode` enabled; in that mode deposit definitions stay centralized, Registrate block registration is skipped, and compat-gated dynamic entries (including deposit worldgen and code-registered mining recipes) are controlled by `DynamicDatapackDumpTool.getEnabledMods()` (`null` means include all compat-gated entries, otherwise the list acts as an allowlist of enabled mod ids). The dump tool emits both a no-compat pass and an all-compat pass by rebuilding pack snapshots separately for each variant.
 * Default mining recipes are registered in code and emitted into the main dynamic built-in pack. Mining recipe registration is colocated with deposit definitions in `RNSDeposits` through `DepositBlockBuilder.recipe(...)`, and compat-gated recipe emission follows the same mod-presence rules as compat deposit worldgen.

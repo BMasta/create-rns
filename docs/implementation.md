@@ -3,7 +3,7 @@
 * Player perspective: when JEI is installed on the client, mining recipes appear in a dedicated Mining category and catalyst descriptions appear as ingredient info pages on representative catalyst items instead of in a separate category.
 * Player perspective: when EMI is installed alongside JEI, EMI mirrors the mining category through its JEI bridge and converts JEI catalyst info pages into native EMI info recipes rather than relying on JEI extra widgets.
 * Player perspective: mining recipe pages show the mined deposit block, the possible outputs, and tooltip details explaining catalyst requirements plus group/item chance behavior.
-* Player perspective: resonance catalyst pages are attached to the relevant resonator blocks, while the fluid overclock page is attached to lava bucket as the representative lookup item for that fluid-only catalyst.
+* Player perspective: attachment-based catalyst pages are attached to the representative blocks configured by each catalyst entry, while the fluid overclock page is attached to lava bucket as the representative lookup item for that fluid-only catalyst.
 * Edge behavior: when infinite deposits are enabled, the depleted-deposit mining recipe is hidden from both recipe viewers so the client UI matches current gameplay rules.
 * Core behavior: the mod ships a JEI plugin only, and EMI support is achieved by keeping that JEI content compatible with EMI's JEI bridge.
 * Core behavior: when EMI is loaded, the mining category stops relying on JEI's scroll-grid widget and instead assigns fixed slot positions so EMI's bridged slot overlay stays aligned.
@@ -16,6 +16,16 @@
 * Maintenance invariant: EMI-specific behavior should stay inside the JEI compat path unless the project intentionally reintroduces a separate native EMI plugin.
 * Maintenance invariant: catalyst viewer text should remain sourced from JEI/EMI info pages instead of JEI extra-text widgets, because EMI's JEI bridge does not reliably preserve those widgets for custom categories.
 * Known limitation: the bridge-safe EMI fallback is a fixed `3 x 6` grid, so datapack recipes with more than 18 visible outputs would need a follow-up layout strategy.
+
+## Catalyst Requirement Sets
+* Player perspective: catalyst effects, stacking rules, and JEI info pages are unchanged; datapack-defined catalyst sets can combine fluid consumption with generic attachment-count checks on the same catalyst entry.
+* Core behavior: each catalyst set owns an ordered `requirements` list, and every element is a tagged requirement object with a `type` discriminator plus the payload fields for that requirement kind.
+* Core behavior: requirement evaluation now receives the full relevant catalyst collection at once, allowing one requirement to aggregate multiple catalyst instances of the same kind before deciding whether it is satisfied.
+* Core behavior: attachment requirements match miner attachment catalysts by block membership, sum all matching attachment counts across the provided catalyst collection, and succeed once the configured threshold is reached.
+* Core behavior: catalyst consumption still requires every requirement in the set to succeed unless the set is marked optional; non-consuming attachment requirements rely on the prior satisfaction pass and do not mutate catalyst state during use.
+* System interaction: mining logic, JEI catalyst info ordering, and contraption-derived catalyst detection continue to consume the same `CatalystRequirementSet.requirements` runtime list; the refactor changes both datapack JSON decoding and requirement-evaluation granularity.
+* Data and assets: catalyst set composition remains datapack-driven through the catalyst registry JSON; the tagged requirement type table and default attachment tags are code-defined.
+* Maintenance invariant: adding a new catalyst requirement type should only require registering a new tagged requirement codec and updating docs/default datapack data, not reshaping the `CatalystRequirementSet` codec again.
 
 ## Mine Head Multiblock
 * Player perspective: placing a mine head adjacent to the center block of a valid 3x3 iron-block pattern immediately forms the large mine head variant.
@@ -51,8 +61,8 @@
 * Edge behavior: additional buffers increase resonator capacity but do not stack further mining-radius penalties.
 * Edge behavior: changing mine head size or resonance attachment composition causes the miner spec to refresh so claim area and mining
   behavior stay aligned with current contraption state.
-* System interaction: resonance, shattering resonance, and stabilizing resonance catalysts are detected from contraption block composition.
-* System interaction: fluid overclock catalyst handling composes with resonance catalysts on the same contraption.
+* System interaction: miner attachment catalysts are detected by counting blocks in the shared miner-attachment tag set, and the default resonance catalyst entries are implemented as attachment-count requirements over resonator tags or specific resonator blocks.
+* System interaction: fluid overclock catalyst handling composes with attachment-based catalysts on the same contraption.
 * System interaction: shared face-attached miner component placement now follows Create's standard waterlogging pattern, so thin attachment geometry no longer relies on occupying most of the voxel to survive in water.
 * Data and assets: attachment behavior is code-defined; visuals are driven by models, textures, and partial models.
 * Maintenance invariant: miner assembly and mining-area calculations must treat resonators and resonance buffers as the authoritative

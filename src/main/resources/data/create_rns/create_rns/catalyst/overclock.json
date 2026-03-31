@@ -2,12 +2,15 @@
   "name": "overclock",
   "chance_multiplier": 2.0,
   "optional": true,
-  "fluid": {
-    "consume": {
-      "id": "minecraft:lava",
-      "amount": 20
+  "requirements": [
+    {
+      "type": "fluid",
+      "consume": {
+        "id": "minecraft:lava",
+        "amount": 20
+      }
     }
-  },
+  ],
   "display_priority": 1004,
   "representative_items": ["minecraft:lava_bucket"]
 }

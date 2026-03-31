@@ -1,9 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.recipe.catalyst;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ResonanceCatalystRequirement;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.ShatteringResonanceCatalystRequirement;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.resonance.StabilizingResonanceCatalystRequirement;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -21,7 +18,6 @@ import java.util.stream.Collectors;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class CatalystRequirementSet {
     public static final Codec<CatalystRequirementSet> CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.STRING.fieldOf("name")
@@ -41,14 +37,8 @@ public class CatalystRequirementSet {
             Codec.STRING.listOf().fieldOf("hide_if_present")
                     .orElse(List.of())
                     .forGetter(crs -> crs.hideIfPresent),
-            FluidCatalystRequirement.CODEC.optionalFieldOf("fluid")
-                    .forGetter(crs -> crs.fluidCR),
-            ResonanceCatalystRequirement.CODEC.optionalFieldOf("resonance")
-                    .forGetter(crs -> crs.resCR),
-            ShatteringResonanceCatalystRequirement.CODEC.optionalFieldOf("shattering_resonance")
-                    .forGetter(crs -> crs.shResCR),
-            StabilizingResonanceCatalystRequirement.CODEC.optionalFieldOf("stabilizing_resonance")
-                    .forGetter(crs -> crs.stResCR)
+            CatalystRequirement.CODEC.listOf().fieldOf("requirements")
+                    .forGetter(crs -> crs.requirements)
     ).apply(i, CatalystRequirementSet::new));
 
     public static final ResourceKey<Registry<CatalystRequirementSet>> REGISTRY_KEY =
@@ -59,33 +49,21 @@ public class CatalystRequirementSet {
     public final boolean optional;
     public final int displayPriority;
     public final List<Item> representativeItems;
-    public List<String> hideIfPresent;
-    public final List<CatalystRequirement> requirements = new ArrayList<>();
-    protected final Optional<FluidCatalystRequirement> fluidCR;
-    protected final Optional<ResonanceCatalystRequirement> resCR;
-    protected final Optional<ShatteringResonanceCatalystRequirement> shResCR;
-    protected final Optional<StabilizingResonanceCatalystRequirement> stResCR;
+    public final List<String> hideIfPresent;
+    public final List<CatalystRequirement> requirements;
 
     public CatalystRequirementSet(
             String name, float chanceMult, boolean optional, int displayPriority, List<Item> representativeItems,
-            List<String> hideIfPresent, Optional<FluidCatalystRequirement> fluidCR,
-            Optional<ResonanceCatalystRequirement> resCR, Optional<ShatteringResonanceCatalystRequirement> shResCR,
-            Optional<StabilizingResonanceCatalystRequirement> stResCR
+            List<String> hideIfPresent, List<CatalystRequirement> requirements
     ) {
+        if (requirements.isEmpty()) throw new IllegalArgumentException("Catalyst must have at least one requirement");
         this.name = name;
         this.chanceMult = chanceMult;
         this.optional = optional;
         this.displayPriority = displayPriority;
         this.representativeItems = representativeItems;
         this.hideIfPresent = hideIfPresent;
-        this.fluidCR = fluidCR;
-        fluidCR.ifPresent(requirements::add);
-        this.resCR = resCR;
-        resCR.ifPresent(requirements::add);
-        this.shResCR = shResCR;
-        shResCR.ifPresent(requirements::add);
-        this.stResCR = stResCR;
-        stResCR.ifPresent(requirements::add);
+        this.requirements = requirements;
     }
 
     /* Returns a list of catalysts that satisfy any requirement in this set */
@@ -93,7 +71,7 @@ public class CatalystRequirementSet {
         return catalysts.stream()
                 .filter(c -> {
                     for (var cr : requirements) {
-                        if (cr.isSatisfiedBy(c)) return true;
+                        if (cr.relevantCatalystTypes().contains(c.getClass())) return true;
                     }
                     return false;
                 }).collect(Collectors.toCollection(ObjectOpenHashSet::new));
@@ -104,14 +82,7 @@ public class CatalystRequirementSet {
     public boolean isSatisfiableOrOptional(Set<Catalyst> catalysts) {
         if (optional) return true;
         for (var cr : requirements) {
-            boolean satisfied = false;
-            for (var c : catalysts) {
-                if (cr.isSatisfiedBy(c)) {
-                    satisfied = true;
-                    break;
-                }
-            }
-            if (!satisfied) return false;
+            if (!cr.isSatisfiedBy(catalysts)) return false;
         }
         return true;
     }
@@ -138,8 +109,8 @@ public class CatalystRequirementSet {
         boolean allSatisfied = true;
         for (var cr : requirements) {
             boolean satisifed = false;
+            if (cr.useCatalysts(catalysts, simulate)) {
             for (var c : catalysts) {
-                if (cr.useCatalyst(c, simulate)) {
                     satisifed = true;
                     break;
                 }

@@ -1,5 +1,6 @@
 package com.bmaster.createrns;
 
+import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadPartBlock;
@@ -135,6 +136,7 @@ public class RNSBlocks {
             .blockstate((c, p) ->
                     p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
             .onRegister(movementBehaviour(new ResonanceBufferMovementBehaviour()))
+            .tag(RNSBlockTags.RES_BUFFER_ATTACHMENTS)
             .item()
             .model(AssetLookup::customItemModel)
             .build()
@@ -151,6 +153,8 @@ public class RNSBlocks {
                 .blockstate((c, p) ->
                         p.horizontalFaceBlock(c.get(), AssetLookup.partialBaseModel(c, p)))
                 .onRegister(movementBehaviour(new ResonatorMovementBehaviour()))
+                .tag(RNSBlockTags.MINER_ATTACHMENTS)
+                .tag(RNSBlockTags.RESONATOR_ATTACHMENTS)
                 .item()
                 .model(AssetLookup::customItemModel)
                 .build();

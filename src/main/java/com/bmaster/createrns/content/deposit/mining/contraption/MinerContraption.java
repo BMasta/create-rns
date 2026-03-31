@@ -1,9 +1,8 @@
 package com.bmaster.createrns.content.deposit.mining.contraption;
 
 import com.bmaster.createrns.RNSBlocks;
+import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadBlock;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferBlock;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.AbstractResonatorBlock;
 import com.bmaster.createrns.util.Utils;
 import com.simibubi.create.content.contraptions.AssemblyException;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
@@ -74,9 +73,11 @@ public class MinerContraption extends BearingContraption {
                     throw new RNSAssemblyException("minehead_not_aligned");
                 }
                 mineHeadPos = pos;
-            } else if (b instanceof AbstractResonatorBlock) {
+            }
+            if (bs.is(RNSBlockTags.RESONATOR_ATTACHMENTS)) {
                 resonatorCount++;
-            } else if (b instanceof ResonanceBufferBlock) {
+            }
+            if (bs.is(RNSBlockTags.RES_BUFFER_ATTACHMENTS)) {
                 bufferCount++;
             }
         }
