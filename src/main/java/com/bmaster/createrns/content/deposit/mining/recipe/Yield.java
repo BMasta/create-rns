@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.recipe;
 
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
+import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSetLookup;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -29,15 +29,13 @@ import java.util.Optional;
 @ParametersAreNonnullByDefault
 public class Yield {
     public static final Codec<Yield> CODEC = RecordCodecBuilder.create(i -> i.group(
-                    Codec.floatRange(0, 1).fieldOf("chance")
-                            .orElse(1f)
+                    Codec.floatRange(0, 1).optionalFieldOf("chance", 1f)
                             .forGetter(y -> y.chance),
                     WeightedItem.CODEC.listOf().fieldOf("items")
                             .forGetter(y -> y.items),
                     Codec.STRING.listOf().optionalFieldOf("catalysts")
                             .forGetter(y -> (!y.crsNames.isEmpty()) ? Optional.of(y.crsNames) : Optional.empty()),
-                    ExtraCodecs.ARGB_COLOR_CODEC.fieldOf("jei_slot_color")
-                            .orElse(0)
+                    ExtraCodecs.ARGB_COLOR_CODEC.optionalFieldOf("jei_slot_color", 0)
                             .forGetter(y -> y.slotColor))
             .apply(i, Yield::new));
 
@@ -56,10 +54,6 @@ public class Yield {
     public final int slotColor;
 
     private int totalWeight = 0;
-
-    public List<CatalystRequirementSet> getCatalystRequirements(RegistryAccess access) {
-        return crsNames.stream().map(crsName -> CatalystRequirementSetLookup.get(access, crsName)).toList();
-    }
 
     public int getTotalWeight() {
         if (totalWeight == 0) {
@@ -89,7 +83,20 @@ public class Yield {
         items = items.stream()
                 .filter(wi -> wi.initialize(access))
                 .toList();
-        return !items.isEmpty();
+        if (items.isEmpty()) return false;
+        if (crsNames.isEmpty()) return true;
+
+        CatalystRequirementSetLookup.build(access);
+        for (var crsName : crsNames) {
+            try {
+                CatalystRequirementSetLookup.get(access, crsName);
+            } catch (RuntimeException e) {
+                CreateRNS.LOGGER.error("Yield references unknown catalyst requirement set \"{}\"", crsName);
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
@@ -110,14 +117,11 @@ public class Yield {
         protected @Nullable Item item;
 
         public static final Codec<WeightedItem> CODEC = RecordCodecBuilder.create(i -> i.group(
-                        ResourceLocation.CODEC.listOf().fieldOf("item_candidates")
-                                .orElse(List.of())
+                        ResourceLocation.CODEC.listOf().optionalFieldOf("item_candidates", List.of())
                                 .forGetter(wi -> wi.itemRls),
-                        TagKey.codec(Registries.ITEM).listOf().fieldOf("tag_candidates")
-                                .orElse(List.of())
+                        TagKey.codec(Registries.ITEM).listOf().optionalFieldOf("tag_candidates", List.of())
                                 .forGetter(wi -> wi.tags),
-                        Codec.intRange(1, Integer.MAX_VALUE).fieldOf("weight")
-                                .orElse(1)
+                        Codec.intRange(1, Integer.MAX_VALUE).optionalFieldOf("weight", 1)
                                 .forGetter(wi -> wi.weight))
                 .apply(i, WeightedItem::new));
 
@@ -158,6 +162,8 @@ public class Yield {
                 if (item != null) return true;
             }
 
+            CreateRNS.LOGGER.error("Failed to resolve weighted item from item candidates {} and tag candidates {}",
+                    itemRls, tags);
             return false;
         }
 

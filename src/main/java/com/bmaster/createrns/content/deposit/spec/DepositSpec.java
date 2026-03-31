@@ -25,11 +25,9 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 public class DepositSpec {
     public static final Codec<DepositSpec> CODEC = RecordCodecBuilder.create(i -> i.group(
-            ResourceLocation.CODEC.listOf().fieldOf("scanner_icon_item_candidates")
-                    .orElse(List.of())
+            ResourceLocation.CODEC.listOf().optionalFieldOf("scanner_icon_item_candidates", List.of())
                     .forGetter(ds -> ds.scannerIconItemRls),
-            TagKey.codec(Registries.ITEM).listOf().fieldOf("scanner_icon_tag_candidates")
-                    .orElse(List.of())
+            TagKey.codec(Registries.ITEM).listOf().optionalFieldOf("scanner_icon_tag_candidates", List.of())
                     .forGetter(ds -> ds.scannerIconTags),
             BuiltInRegistries.ITEM.byNameCodec().fieldOf("map_icon_item")
                     .forGetter(ds -> ds.mapIcon.getItem()),

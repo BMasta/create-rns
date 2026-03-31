@@ -94,6 +94,8 @@ All versions are defined in `gradle.properties`. Java version is 21.
 * Xaero World Map overlay experiments use client-only pseudo-mixins targeting `xaero.map.gui.GuiMap`, because Xaero World Map does not expose a stable public overlay hook for custom renderers.
 * Translation keys follow `create_rns.<category>.<key>` for mod content and the standard Minecraft pattern (`block.create_rns.*`, `item.create_rns.*`) for blocks/items.
 * When creating translatable components for mod-owned keys (`create_rns.*`), prefer `CreateRNS.translatable(...)` over direct `Component.translatable(...)` calls.
+* Plain JVM tests live in `src/test/java`. Registry-backed codec tests should prefer a shared compatibility helper that builds a `HolderLookup.Provider`/serialization context from built-in registries, so version-sensitive 1.20.1 vs 1.21.1 registry bootstrap differences stay isolated to one place instead of being duplicated across tests.
+* Defaulted codec fields should prefer `optionalFieldOf(..., default)` over `fieldOf(...).orElse(default)` so omitted datapack properties still use defaults while malformed present values surface codec errors instead of silently falling back.
 * Releases are published through the manual GitHub Actions workflow (`.github/workflows/release.yml`).
 * Release workflow inputs are `bump_type` (`patch`, `minor`, `major`, `custom`) and `custom_version` (required when `bump_type`
   is `custom`).

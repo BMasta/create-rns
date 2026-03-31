@@ -19,8 +19,7 @@ public class AttachmentCatalystRequirement extends CatalystRequirement {
     public static final MapCodec<AttachmentCatalystRequirement> MAP_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
                     RegistryCodecs.homogeneousList(Registries.BLOCK).fieldOf("attachment")
                                     .forGetter(c -> c.attachment),
-                    Codec.intRange(0, Integer.MAX_VALUE).fieldOf("count")
-                            .orElse(1)
+                    Codec.intRange(0, Integer.MAX_VALUE).optionalFieldOf("count", 1)
                             .forGetter(c -> c.count))
             .apply(i, AttachmentCatalystRequirement::new));
 

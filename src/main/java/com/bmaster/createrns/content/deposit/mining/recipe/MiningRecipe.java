@@ -25,17 +25,17 @@ import java.util.List;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class MiningRecipe implements Recipe<SingleRecipeInput> {
+    private static final DepositDurability DEFAULT_DURABILITY = new DepositDurability(0, 0, 0);
+
     public static final MapCodec<MiningRecipe> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
                     BuiltInRegistries.BLOCK.byNameCodec().fieldOf("deposit_block")
                             .forGetter(MiningRecipe::getDepositBlock),
-                    BuiltInRegistries.BLOCK.byNameCodec().fieldOf("replace_when_depleted")
-                            .orElse(Blocks.AIR)
+                    BuiltInRegistries.BLOCK.byNameCodec().optionalFieldOf("replace_when_depleted", Blocks.AIR)
                             .forGetter(MiningRecipe::getReplacementBlock),
-                    DepositDurability.CODEC.fieldOf("durability")
-                            .orElse(new DepositDurability(0, 0, 0))
+                    DepositDurability.CODEC.optionalFieldOf("durability", DEFAULT_DURABILITY)
                             .forGetter(MiningRecipe::getDurability),
                     Yield.CODEC.listOf().fieldOf("yields")
-                            .forGetter((r) -> r.yields))
+                            .forGetter(MiningRecipe::getYields))
             .apply(i, MiningRecipe::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, MiningRecipe> STREAM_CODEC = StreamCodec.composite(

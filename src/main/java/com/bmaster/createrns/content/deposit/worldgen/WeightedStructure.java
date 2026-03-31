@@ -19,8 +19,7 @@ record WeightedStructure(ResourceLocation id, int weight, Holder<StructureProces
                             .forGetter(WeightedStructure::id),
                     Codec.intRange(1, 150).fieldOf("weight")
                             .forGetter(WeightedStructure::weight),
-                    StructureProcessorType.LIST_CODEC.fieldOf("processor")
-                            .orElse(EMPTY_PROCESSOR_LIST)
+                    StructureProcessorType.LIST_CODEC.optionalFieldOf("processor", EMPTY_PROCESSOR_LIST)
                             .forGetter(WeightedStructure::processor)
             )
             .apply(i, WeightedStructure::new));
