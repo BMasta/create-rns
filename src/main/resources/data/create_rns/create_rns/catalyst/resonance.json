@@ -3,7 +3,7 @@
   "requirements": [
     {
       "type": "attachment",
-      "attachment": "#create_rns:resonance_attachments",
+      "attachment": "#create_rns:resonator_attachments",
       "count": 4
     }
   ],
