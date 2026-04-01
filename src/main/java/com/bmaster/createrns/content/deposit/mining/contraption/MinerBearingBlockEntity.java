@@ -13,7 +13,6 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -30,7 +29,6 @@ public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity implem
     public MinerBearingBlockEntity(BlockEntityType<MinerBearingBlockEntity> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
-
 
     @Override
     public void invalidate() {
@@ -87,11 +85,6 @@ public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity implem
         super.addBehaviours(behaviours);
         miningBehaviour = new ContraptionMiningBehaviour(this);
         behaviours.add(miningBehaviour);
-    }
-
-    @Override
-    protected void read(CompoundTag compound, boolean clientPacket) {
-        super.read(compound, clientPacket);
     }
 
     @Override

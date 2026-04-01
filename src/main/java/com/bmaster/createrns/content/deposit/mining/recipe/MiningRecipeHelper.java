@@ -15,7 +15,6 @@ import net.minecraft.world.level.block.Block;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 @ParametersAreNonnullByDefault
@@ -66,12 +65,13 @@ public class MiningRecipeHelper {
     }
 
     private static <T> T getOrThrow(DataResult<T> result, Function<String, RuntimeException> exceptionFactory) {
-        var error = new AtomicReference<>("Unknown codec error");
-        var parsed = result.resultOrPartial(error::set);
-        if (parsed.isPresent()) {
-            return parsed.get();
-        }
-        throw exceptionFactory.apply(error.get());
+        var error = result.error().orElse(null);
+        if (error != null) throw exceptionFactory.apply(error.message());
+
+        var parsed = result.result().orElse(null);
+        if (parsed != null) return parsed;
+
+        throw exceptionFactory.apply("Unknown codec error");
     }
 
     public record SerializedRecipe(

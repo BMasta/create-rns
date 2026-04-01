@@ -1,4 +1,12 @@
 # Create: Rock & Stone
+**************************************IMPORTANT**************************************
+DO NOT TRY TO EXECUTE THE FOLLOWING GRADLE TASKS YOURSELF UNDER ANY CIRCUMSTANCES:
+* runClient
+* runServer
+* runGameTestServer
+
+IF ANY OF THESE ARE NEEDED FOR TESTING, ASK TO DO IT FOR YOU.
+*************************************************************************************
 
 ## Project Description
 This branch targets Minecraft 1.20.1 on Forge and serves as the backport line for Create: Rock & Stone.
@@ -9,7 +17,6 @@ Backport work in this branch should prioritize:
 1. Porting new gameplay features from main with equivalent player-facing behavior.
 2. Adapting implementation details to Forge/Create 1.20.1 API differences without changing feature intent.
 3. Keeping data formats, progression expectations, and cross-system interactions as consistent as possible with main.
-
 
 ## Dependencies
 

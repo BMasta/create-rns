@@ -1,4 +1,4 @@
-package com.bmaster.createrns.testutil;
+package com.bmaster.createrns.util;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
@@ -18,7 +18,7 @@ public class LogCapture implements AutoCloseable {
 
     private LogCapture(String loggerName) {
         logger = (Logger) LogManager.getLogger(loggerName);
-        appender = new AbstractAppender("create-rns-test-log-capture", null, PatternLayout.createDefaultLayout(),
+        appender = new AbstractAppender("create-rns-gametest-log-capture", null, PatternLayout.createDefaultLayout(),
                 false, Property.EMPTY_ARRAY) {
             @Override
             public void append(LogEvent event) {

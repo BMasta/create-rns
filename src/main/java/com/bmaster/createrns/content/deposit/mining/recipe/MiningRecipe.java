@@ -1,6 +1,7 @@
 package com.bmaster.createrns.content.deposit.mining.recipe;
 
 import com.bmaster.createrns.RNSRecipeTypes;
+import com.bmaster.createrns.util.StrictOptionalField;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -27,13 +28,15 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 public class MiningRecipe implements Recipe<Container> {
     private static final DepositDurability DEFAULT_DURABILITY = new DepositDurability(0, 0, 0);
+    private static final MapCodec<DepositDurability> DURABILITY_FIELD_CODEC =
+            StrictOptionalField.of("durability", DepositDurability.CODEC, DEFAULT_DURABILITY);
 
     public static final MapCodec<MiningRecipeHelper.SerializedRecipe> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
                     ForgeRegistries.BLOCKS.getCodec().fieldOf("deposit_block")
                             .forGetter(MiningRecipeHelper.SerializedRecipe::depositBlock),
                     ForgeRegistries.BLOCKS.getCodec().optionalFieldOf("replace_when_depleted", Blocks.AIR)
                             .forGetter(MiningRecipeHelper.SerializedRecipe::replacementBlock),
-                    DepositDurability.CODEC.optionalFieldOf("durability", DEFAULT_DURABILITY)
+                    DURABILITY_FIELD_CODEC
                             .forGetter(MiningRecipeHelper.SerializedRecipe::dur),
                     Yield.CODEC.listOf().fieldOf("yields")
                             .forGetter(MiningRecipeHelper.SerializedRecipe::yields))
