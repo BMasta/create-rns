@@ -2,6 +2,7 @@ package com.bmaster.createrns.content.deposit.mining.recipe;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSetLookup;
+import com.bmaster.createrns.util.StrictOptionalField;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -25,24 +26,24 @@ import java.util.Optional;
 @ParametersAreNonnullByDefault
 public class Yield {
     public static final Codec<Yield> CODEC = RecordCodecBuilder.create(i -> i.group(
-                    Codec.floatRange(0, 1).optionalFieldOf("chance", 1f)
+                    StrictOptionalField.of("chance", Codec.floatRange(0, 1), 1f)
                             .forGetter(y -> y.chance),
                     WeightedItem.CODEC.listOf().fieldOf("items")
                             .forGetter(y -> y.items),
-                    Codec.STRING.listOf().optionalFieldOf("catalysts")
+                    StrictOptionalField.of("catalysts", Codec.STRING.listOf())
                             .forGetter(y -> (!y.crsNames.isEmpty()) ? Optional.of(y.crsNames) : Optional.empty()),
-                    Codec.INT.optionalFieldOf("jei_slot_color", 0)
+                    StrictOptionalField.of("jei_slot_color", Codec.INT, 0)
                             .forGetter(y -> y.slotColor))
             .apply(i, Yield::new));
 
     public static final Codec<Yield> STREAM_CODEC = RecordCodecBuilder.create(i -> i.group(
-                    Codec.FLOAT.optionalFieldOf("chance", 1f)
+                    StrictOptionalField.of("chance", Codec.FLOAT, 1f)
                             .forGetter(y -> y.chance),
                     WeightedItem.STREAM_CODEC.listOf().fieldOf("items")
                             .forGetter(y -> y.items),
-                    Codec.STRING.listOf().optionalFieldOf("catalysts")
+                    StrictOptionalField.of("catalysts", Codec.STRING.listOf())
                             .forGetter(y -> (!y.crsNames.isEmpty()) ? Optional.of(y.crsNames) : Optional.empty()),
-                    Codec.INT.optionalFieldOf("jei_slot_color", 0)
+                    StrictOptionalField.of("jei_slot_color", Codec.INT, 0)
                             .forGetter(y -> y.slotColor))
             .apply(i, Yield::new));
 
@@ -99,20 +100,20 @@ public class Yield {
 
     public static class WeightedItem {
         public static final Codec<WeightedItem> CODEC = RecordCodecBuilder.create(i -> i.group(
-                        ResourceLocation.CODEC.listOf().optionalFieldOf("item_candidates", List.of())
+                        StrictOptionalField.of("item_candidates", ResourceLocation.CODEC.listOf(), List.of())
                                 .forGetter(wi -> wi.itemRls),
-                        TagKey.codec(Registries.ITEM).listOf().optionalFieldOf("tag_candidates", List.of())
+                        StrictOptionalField.of("tag_candidates", TagKey.codec(Registries.ITEM).listOf(), List.of())
                                 .forGetter(wi -> wi.tags),
-                        Codec.intRange(1, Integer.MAX_VALUE).optionalFieldOf("weight", 1)
+                        StrictOptionalField.of("weight", Codec.intRange(1, Integer.MAX_VALUE), 1)
                                 .forGetter(wi -> wi.weight))
                 .apply(i, WeightedItem::new));
 
         public static final Codec<WeightedItem> STREAM_CODEC = RecordCodecBuilder.create(i -> i.group(
-                        ResourceLocation.CODEC.listOf().optionalFieldOf("item_candidates", List.of())
+                        StrictOptionalField.of("item_candidates", ResourceLocation.CODEC.listOf(), List.of())
                                 .forGetter(wi -> wi.itemRls),
-                        TagKey.codec(Registries.ITEM).listOf().optionalFieldOf("tag_candidates", List.of())
+                        StrictOptionalField.of("tag_candidates", TagKey.codec(Registries.ITEM).listOf(), List.of())
                                 .forGetter(wi -> wi.tags),
-                        Codec.INT.optionalFieldOf("weight", 1)
+                        StrictOptionalField.of("weight", Codec.INT, 1)
                                 .forGetter(wi -> wi.weight))
                 .apply(i, WeightedItem::new));
 

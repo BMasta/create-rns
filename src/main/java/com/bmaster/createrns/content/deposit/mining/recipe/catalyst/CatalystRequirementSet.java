@@ -1,6 +1,7 @@
 package com.bmaster.createrns.content.deposit.mining.recipe.catalyst;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.util.StrictOptionalField;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -24,15 +25,15 @@ public class CatalystRequirementSet {
     public static final Codec<CatalystRequirementSet> CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.STRING.fieldOf("name")
                     .forGetter(crs -> crs.name),
-            Codec.floatRange(0f, Float.MAX_VALUE).optionalFieldOf("chance_multiplier", 1f)
+            StrictOptionalField.of("chance_multiplier", Codec.floatRange(0f, Float.MAX_VALUE), 1f)
                     .forGetter(crs -> crs.chanceMult),
-            Codec.BOOL.optionalFieldOf("optional", false)
+            StrictOptionalField.of("optional", Codec.BOOL, false)
                     .forGetter(crs -> crs.optional),
-            Codec.INT.optionalFieldOf("display_priority", Integer.MAX_VALUE)
+            StrictOptionalField.of("display_priority", Codec.INT, Integer.MAX_VALUE)
                     .forGetter(crs -> crs.displayPriority),
-            ForgeRegistries.ITEMS.getCodec().listOf().optionalFieldOf("representative_items", List.of())
+            StrictOptionalField.of("representative_items", ForgeRegistries.ITEMS.getCodec().listOf(), List.of())
                     .forGetter(crs -> crs.representativeItems),
-            Codec.STRING.listOf().optionalFieldOf("hide_if_present", List.of())
+            StrictOptionalField.of("hide_if_present", Codec.STRING.listOf(), List.of())
                     .forGetter(crs -> crs.hideIfPresent),
             CatalystRequirement.CODEC.listOf().fieldOf("requirements")
                     .forGetter(crs -> crs.requirements)

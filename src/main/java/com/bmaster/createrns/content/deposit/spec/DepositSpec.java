@@ -1,6 +1,7 @@
 package com.bmaster.createrns.content.deposit.spec;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.util.StrictOptionalField;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -40,9 +41,9 @@ public class DepositSpec {
     );
 
     public static final Codec<DepositSpec> CODEC = RecordCodecBuilder.create(i -> i.group(
-            ITEM_CANDIDATES_CODEC.optionalFieldOf("scanner_icon_item_candidates", List.of())
+            StrictOptionalField.of("scanner_icon_item_candidates", ITEM_CANDIDATES_CODEC, List.of())
                     .forGetter(ds -> ds.scannerIconItemRls),
-            TAG_CANDIDATES_CODEC.optionalFieldOf("scanner_icon_tag_candidates", List.of())
+            StrictOptionalField.of("scanner_icon_tag_candidates", TAG_CANDIDATES_CODEC, List.of())
                     .forGetter(ds -> ds.scannerIconTags),
             ForgeRegistries.ITEMS.getCodec().fieldOf("map_icon_item")
                     .forGetter(ds -> ds.mapIcon.getItem()),

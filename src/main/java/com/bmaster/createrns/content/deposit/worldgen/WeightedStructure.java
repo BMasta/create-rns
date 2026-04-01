@@ -1,5 +1,6 @@
 package com.bmaster.createrns.content.deposit.worldgen;
 
+import com.bmaster.createrns.util.StrictOptionalField;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Holder;
@@ -18,7 +19,7 @@ record WeightedStructure(ResourceLocation id, int weight, Holder<StructureProces
                             .forGetter(WeightedStructure::id),
                     Codec.intRange(1, 150).fieldOf("weight")
                             .forGetter(WeightedStructure::weight),
-                    StructureProcessorType.LIST_CODEC.optionalFieldOf("processor", EMPTY_PROCESSOR_LIST)
+                    StrictOptionalField.of("processor", StructureProcessorType.LIST_CODEC, EMPTY_PROCESSOR_LIST)
                             .forGetter(WeightedStructure::processor)
             )
             .apply(i, WeightedStructure::new));

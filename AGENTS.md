@@ -38,6 +38,7 @@ All versions are defined in `gradle.properties`. Java version is 17.
 ## Architecture and Design
 * When Minecraft/loader codec behavior diverges between the 1.20.1 Forge backport and the 1.21.1 NeoForge branch, prefer mod-owned compatibility codecs over branch-specific datapack format forks.
 * Attachment catalyst holder sets use a shared compatibility codec so datapack authors can keep using a single block id, a list of block ids, or a block tag on both branches.
+* Defaulted optional datapack fields should use the mod-owned `StrictOptionalField` helper instead of vanilla `optionalFieldOf`, so omitted fields still default while malformed present values fail codec validation on Forge 1.20.1.
 
 ## Coding Style Guidelines
 * Preferred line length is 120 characters.
