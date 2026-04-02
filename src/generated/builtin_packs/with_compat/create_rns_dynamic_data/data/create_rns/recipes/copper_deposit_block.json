@@ -40,7 +40,7 @@
             "create:copper_nugget"
           ],
           "tag_candidates": [
-            "c:nuggets/copper"
+            "forge:nuggets/copper"
           ]
         }
       ],
