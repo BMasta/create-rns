@@ -105,7 +105,7 @@ public class MiningProcess {
                 if (chance <= 0f) continue;
                 var y = ys.get(i);
                 for (var wi : ys.get(i).items) {
-                    rates.addTo(wi.getItem(), minesPerHour * wi.weight / y.getTotalWeight() * chance);
+                    rates.addTo(wi.item, minesPerHour * wi.weight / y.getTotalWeight() * chance);
                 }
             }
         }

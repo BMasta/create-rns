@@ -242,7 +242,7 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
             var conn = Minecraft.getInstance().getConnection();
             var access = (conn != null) ? conn.registryAccess() : RegistryAccess.EMPTY;
 
-            this.item = wItem.getItem();
+            this.item = wItem.item;
             this.count = count;
             this.itemsInGroup = yield.items.size();
             this.weightRatio = (float) wItem.weight / yield.getTotalWeight();

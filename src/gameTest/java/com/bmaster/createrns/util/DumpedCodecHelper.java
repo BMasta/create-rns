@@ -1,5 +1,6 @@
 package com.bmaster.createrns.util;
 
+import com.bmaster.createrns.util.codec.ItemWithFallbacks;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -8,13 +9,14 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -117,6 +119,16 @@ public class DumpedCodecHelper {
         }
     }
 
+    public static void assertItemWithFallbackFieldsResolve(
+            GameTestHelper helper, List<Path> files, String fieldName, String resourceType
+    ) {
+        var access = helper.getLevel().registryAccess();
+        for (var path : files) {
+            var root = readJson(path);
+            assertItemWithFallbackFieldsResolve(helper, access, root, path, "$", fieldName, resourceType);
+        }
+    }
+
     private static Path builtinPacksRoot() {
         var cwd = Path.of("").toAbsolutePath().normalize();
         for (var current = cwd; current != null; current = current.getParent()) {
@@ -161,6 +173,49 @@ public class DumpedCodecHelper {
         }
     }
 
+    private static void assertItemWithFallbackFieldsResolve(
+            GameTestHelper helper, RegistryAccess access, JsonElement element, Path file, String path,
+            String fieldName, String resourceType
+    ) {
+        if (element.isJsonObject()) {
+            var object = element.getAsJsonObject();
+            if (object.has(fieldName)) {
+                var compat = object.has("compat")
+                        && object.get("compat").isJsonPrimitive()
+                        && object.getAsJsonPrimitive("compat").isBoolean()
+                        && object.get("compat").getAsBoolean();
+                var codec = compat ? ItemWithFallbacks.LENIENT_CODEC : ItemWithFallbacks.STRICT_CODEC;
+                var parseResult = codec.parse(CodecHelper.json(), object.get(fieldName));
+                var parsed = parseResult.result().orElse(null);
+                helper.assertTrue(parsed != null,
+                        "Expected " + resourceType + " item fallback parse success at " + file + " " + path + "."
+                                + fieldName + ", got: " + message(parseResult));
+                helper.assertTrue(parsed != null && parsed.resolve(access, compat),
+                        "Expected " + resourceType + " item fallback to resolve at " + file + " " + path + "."
+                                + fieldName);
+                if (!compat && parsed != null) {
+                    helper.assertTrue(parsed.item != Items.AIR,
+                            "Expected " + resourceType + " strict item fallback to resolve to a non-air item at "
+                                    + file + " " + path + "." + fieldName);
+                }
+            }
+
+            for (var entry : object.entrySet()) {
+                assertItemWithFallbackFieldsResolve(helper, access, entry.getValue(), file, path + "." + entry.getKey(),
+                        fieldName, resourceType);
+            }
+            return;
+        }
+
+        if (!element.isJsonArray()) return;
+
+        var array = element.getAsJsonArray();
+        for (int i = 0; i < array.size(); i++) {
+            assertItemWithFallbackFieldsResolve(helper, access, array.get(i), file, path + "[" + i + "]",
+                    fieldName, resourceType);
+        }
+    }
+
     private static void assertItemCandidatesResolve(
             GameTestHelper helper, JsonElement element, Path file, String path, String candidateType,
             Set<ResourceLocation> allowedUnresolvedItems
@@ -173,7 +228,8 @@ public class DumpedCodecHelper {
                     "Expected " + candidateType + " item candidate to be a string at " + file + " " + path);
 
             var id = parseResourceLocation(candidate.getAsString(), file, path);
-            var item = BuiltInRegistries.ITEM.getOptional(id).orElse(Items.AIR);
+            var item = ForgeRegistries.ITEMS.getValue(id);
+            if (item == null) item = Items.AIR;
             if (allowedUnresolvedItems.contains(id)) continue;
             helper.assertTrue(item != Items.AIR,
                     "Expected " + candidateType + " item candidate " + id + " to resolve at " + file + " " + path);

@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.worldgen;
 
-import com.bmaster.createrns.util.Range;
+import com.bmaster.createrns.util.codec.Range;
 import com.mojang.serialization.Codec;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.tags.BlockTags;

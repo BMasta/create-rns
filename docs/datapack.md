@@ -72,24 +72,26 @@ The runtime format is still the same JSON shown below, and datapacks can overrid
       // Optional (default 100%).
       "chance": 0.35,
       "items": [
-        // Will be selected 80% of the time.
         {
-          // Optional.
-          // Either item or tag must be specified.
-          // If both are present, item is prioritized, and tag is used as a fallback.
           "item": "your_pack:raw_tin",
-          // Optional.
-          // Reserved for future tag-driven yield entries.
-          // It is currently parsed and synchronized, but has no runtime effect yet.
-          "tag": "forge:raw_materials/tin",
           // Optional (default 1)
-          "weight": 4
+          // Will be selected 6/(6+2+2)*100% = 60% of the time.
+          "weight": 6
         },
-        // Will be selected 20% of the time.
         {
-          "item": "your_pack:raw_rich_tin",
-          "weight": 1
-        }
+          // When tag is specified, the first item in the tag in selected.
+          "item": "#forge:raw_materials/raw_tin",
+          "weight": 2
+        },
+        {
+          // Optional (default false).
+          // Whether to suppress errors if item fails to resolve.
+          // Useful for compat items that may or may not be present.
+          "compat":  true,
+          // Can also be a list of items and item tags. The item is resolved in the order the entries are specified.
+          "item": ["your_pack:raw_tin", "#forge:raw_rich_tin", "minecraft:raw_iron"],
+          "weight": 2
+        },
       ],
       // Optional (default none).
       // Catalysts are specific requirements needed to mine this yield.

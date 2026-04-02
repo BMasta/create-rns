@@ -3,20 +3,17 @@ package com.bmaster.createrns.content.deposit.mining.recipe;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSetLookup;
 import com.bmaster.createrns.util.StrictOptionalField;
+import com.bmaster.createrns.util.codec.ItemWithFallbacks;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.registries.ForgeRegistries;
 
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,13 +62,13 @@ public class Yield {
     }
 
     public Item roll(RandomSource rng) {
-        Item result = items.get(items.size() - 1).getItem();
+        Item result = items.get(items.size() - 1).item;
         float threshold = rng.nextFloat();
         float accChance = 0;
         for (var t : items) {
             accChance += (float) t.weight / getTotalWeight();
             if (accChance > threshold) {
-                result = t.getItem();
+                result = t.item;
                 if (result != Items.AIR) break;
             }
         }
@@ -99,61 +96,48 @@ public class Yield {
     }
 
     public static class WeightedItem {
-        public static final Codec<WeightedItem> CODEC = RecordCodecBuilder.create(i -> i.group(
-                        StrictOptionalField.of("item_candidates", ResourceLocation.CODEC.listOf(), List.of())
-                                .forGetter(wi -> wi.itemRls),
-                        StrictOptionalField.of("tag_candidates", TagKey.codec(Registries.ITEM).listOf(), List.of())
-                                .forGetter(wi -> wi.tags),
-                        StrictOptionalField.of("weight", Codec.intRange(1, Integer.MAX_VALUE), 1)
-                                .forGetter(wi -> wi.weight))
-                .apply(i, WeightedItem::new));
-
-        public static final Codec<WeightedItem> STREAM_CODEC = RecordCodecBuilder.create(i -> i.group(
-                        StrictOptionalField.of("item_candidates", ResourceLocation.CODEC.listOf(), List.of())
-                                .forGetter(wi -> wi.itemRls),
-                        StrictOptionalField.of("tag_candidates", TagKey.codec(Registries.ITEM).listOf(), List.of())
-                                .forGetter(wi -> wi.tags),
-                        StrictOptionalField.of("weight", Codec.INT, 1)
-                                .forGetter(wi -> wi.weight))
-                .apply(i, WeightedItem::new));
+        public static final int DEFAULT_WEIGHT = 1;
+        private static final MapCodec<ItemWithFallbacks> STRICT_ITEM_FIELD = ItemWithFallbacks.STRICT_CODEC.fieldOf("item");
+        private static final MapCodec<ItemWithFallbacks> LENIENT_ITEM_FIELD = ItemWithFallbacks.LENIENT_CODEC.fieldOf("item");
 
         public final int weight;
-        protected final List<ResourceLocation> itemRls;
-        protected final List<TagKey<Item>> tags;
-        protected @Nullable Item item;
+        public final boolean compat;
+        public Item item;
+        protected final ItemWithFallbacks itemData;
 
-        public WeightedItem(List<ResourceLocation> itemRls, List<TagKey<Item>> tags, int weight) {
-            if (itemRls.isEmpty() && tags.isEmpty()) {
-                throw new IllegalArgumentException("Weighted item must define at least an item or a tag");
-            }
-            this.itemRls = itemRls;
-            this.tags = tags;
+        public static final Codec<WeightedItem> CODEC = RecordCodecBuilder.<WeightedItem>mapCodec(i -> i.group(
+                                StrictOptionalField.of("compat", Codec.BOOL, false)
+                                        .forGetter((WeightedItem wi) -> wi.compat),
+                                StrictOptionalField.of("weight", Codec.intRange(1, Integer.MAX_VALUE), DEFAULT_WEIGHT)
+                                        .forGetter((WeightedItem wi) -> wi.weight))
+                        .apply(i, (compat, weight) -> new WeightedItem(ItemWithFallbacks.EMPTY, compat, weight)))
+                .dependent(
+                        LENIENT_ITEM_FIELD,
+                        wi -> Pair.of(wi.itemData, wi.compat ? LENIENT_ITEM_FIELD : STRICT_ITEM_FIELD),
+                        (wi, itemData) -> new WeightedItem(itemData, wi.compat, wi.weight)
+                )
+                .codec();
+
+        public static final Codec<WeightedItem> STREAM_CODEC = RecordCodecBuilder.create(i -> i.group(
+                        LENIENT_ITEM_FIELD
+                                .forGetter(wi -> wi.itemData),
+                        StrictOptionalField.of("compat", Codec.BOOL, false)
+                                .forGetter((WeightedItem wi) -> wi.compat),
+                        StrictOptionalField.of("weight", Codec.INT, DEFAULT_WEIGHT)
+                                .forGetter((WeightedItem wi) -> wi.weight))
+                .apply(i, WeightedItem::new));
+
+        public WeightedItem(ItemWithFallbacks itemData, boolean compat, int weight) {
+            this.itemData = itemData;
+            this.compat = compat;
+            this.item = itemData.item;
             this.weight = weight;
         }
 
         public boolean initialize(RegistryAccess access) {
-            if (item != null) return true;
-
-            for (var rl : itemRls) {
-                item = ForgeRegistries.ITEMS.getValue(rl);
-                if (item != null && item != Items.AIR) return true;
-            }
-
-            for (var tag : tags) {
-                // Pick the first item from the tag. "First" is determined by the order in which the items were tagged.
-                // Defaults to AIR of tag does not exist or does not contain any items.
-                var hs = access.lookupOrThrow(Registries.ITEM).get(tag).orElse(null);
-                item = (hs != null) ? hs.stream().map(Holder::value).findFirst().orElse(null) : null;
-                if (item != null) return true;
-            }
-
-            CreateRNS.LOGGER.error("Failed to resolve weighted item from item candidates {} and tag candidates {}",
-                    itemRls, tags);
-            return false;
-        }
-
-        public Item getItem() {
-            return (item != null) ? item : Items.AIR;
+            if (!itemData.resolve(access, compat)) return false;
+            item = itemData.item;
+            return item != Items.AIR;
         }
     }
 
