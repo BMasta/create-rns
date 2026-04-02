@@ -66,15 +66,12 @@ public class RNSDeposits {
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
                     .transform(baseYields(
-                            List.of(itemAndTagCandidates(CHANCE_NORMAL,
-                                    List.of("iron_nugget"),
-                                    List.of("c:nuggets/iron"))),
-                            List.of(itemAndTagCandidates(CHANCE_LOW,
-                                    List.of("raw_iron"),
-                                    List.of("c:raw_materials/iron"))),
-                            List.of(itemAndTagCandidates(CHANCE_VERY_LOW,
-                                    List.of("raw_iron_block"),
-                                    List.of("c:storage_blocks/raw_iron")))))
+                            List.of(itemCandidates(CHANCE_NORMAL,
+                                    List.of("iron_nugget"))),
+                            List.of(itemCandidates(CHANCE_LOW,
+                                    List.of("raw_iron"))),
+                            List.of(itemCandidates(CHANCE_VERY_LOW,
+                                    List.of("raw_iron_block")))))
                     .transform(sharedResonanceYields())
                     .save())
             .attach(ctx -> DepositSpecBuilder.create(ctx)
@@ -98,12 +95,10 @@ public class RNSDeposits {
                             List.of(itemAndTagCandidates(CHANCE_NORMAL,
                                     List.of(Create.ID + ":copper_nugget"),
                                     List.of("c:nuggets/copper"))),
-                            List.of(itemAndTagCandidates(CHANCE_LOW,
-                                    List.of("raw_copper"),
-                                    List.of("c:raw_materials/copper"))),
-                            List.of(itemAndTagCandidates(CHANCE_VERY_LOW,
-                                    List.of("raw_copper_block"),
-                                    List.of("c:storage_blocks/raw_copper")))))
+                            List.of(itemCandidates(CHANCE_LOW,
+                                    List.of("raw_copper"))),
+                            List.of(itemCandidates(CHANCE_VERY_LOW,
+                                    List.of("raw_copper_block")))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -146,12 +141,10 @@ public class RNSDeposits {
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
                     .transform(baseYields(
                             List.of(),
-                            List.of(itemAndTagCandidates(CHANCE_NORMAL,
-                                    List.of("gold_nugget"),
-                                    List.of("c:nuggets/gold"))),
-                            List.of(itemAndTagCandidates(CHANCE_LOW,
-                                    List.of("raw_gold"),
-                                    List.of("c:raw_materials/gold")))))
+                            List.of(itemCandidates(CHANCE_NORMAL,
+                                    List.of("gold_nugget"))),
+                            List.of(itemCandidates(CHANCE_LOW,
+                                    List.of("raw_gold")))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -174,7 +167,7 @@ public class RNSDeposits {
                                     List.of(CreateRNS.ID + ":redstone_small_dust"))),
                             List.of(itemAndTagCandidates(CHANCE_LOW,
                                     List.of("redstone"),
-                                    List.of("c:dusts/redstone")))))
+                                    List.of()))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -592,6 +585,18 @@ public class RNSDeposits {
                 .yield(shatteringResonanceYield())
                 .yield(faintStabilizingResonanceYield())
                 .yield(stabilizingResonanceYield());
+    }
+
+    private static String nuggetTag(String keyword) {
+        return "c:nuggets/" + keyword;
+    }
+
+    private static String rawMaterialTag(String keyword) {
+        return "c:raw_materials/" + keyword;
+    }
+
+    private static String rawBlockTag(String keyword) {
+        return "c:storage_blocks/raw_" + keyword;
     }
 
     private static ItemAndTagCandidates itemCandidates(float chance, List<String> items) {

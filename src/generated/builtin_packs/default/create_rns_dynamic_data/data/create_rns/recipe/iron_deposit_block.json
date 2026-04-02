@@ -39,9 +39,7 @@
           "item_candidates": [
             "minecraft:iron_nugget"
           ],
-          "tag_candidates": [
-            "c:nuggets/iron"
-          ]
+          "tag_candidates": []
         }
       ],
       "catalysts": [
@@ -55,9 +53,7 @@
           "item_candidates": [
             "minecraft:raw_iron"
           ],
-          "tag_candidates": [
-            "c:raw_materials/iron"
-          ]
+          "tag_candidates": []
         }
       ],
       "catalysts": [
@@ -89,9 +85,7 @@
           "item_candidates": [
             "minecraft:raw_iron_block"
           ],
-          "tag_candidates": [
-            "c:storage_blocks/raw_iron"
-          ]
+          "tag_candidates": []
         }
       ],
       "catalysts": [
