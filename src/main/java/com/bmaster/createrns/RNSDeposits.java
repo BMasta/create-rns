@@ -94,7 +94,7 @@ public class RNSDeposits {
                     .transform(baseYields(
                             List.of(itemAndTagCandidates(CHANCE_NORMAL,
                                     List.of(Create.ID + ":copper_nugget"),
-                                    List.of("c:nuggets/copper"))),
+                                    List.of(nuggetTag("copper")))),
                             List.of(itemCandidates(CHANCE_LOW,
                                     List.of("raw_copper"))),
                             List.of(itemCandidates(CHANCE_VERY_LOW,
@@ -119,10 +119,10 @@ public class RNSDeposits {
                             List.of(),
                             List.of(itemAndTagCandidates(CHANCE_NORMAL,
                                     List.of(Create.ID + ":zinc_nugget"),
-                                    List.of("c:nuggets/zinc"))),
+                                    List.of(nuggetTag("zinc")))),
                             List.of(itemAndTagCandidates(CHANCE_LOW,
                                     List.of(Create.ID + ":raw_zinc"),
-                                    List.of("c:raw_materials/zinc")))))
+                                    List.of(rawMaterialTag("zinc"))))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -190,11 +190,11 @@ public class RNSDeposits {
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
                     .transform(baseYields(
                             List.of(tagCandidates(CHANCE_NORMAL,
-                                    List.of("c:nuggets/tin"))),
+                                    List.of(nuggetTag("tin")))),
                             List.of(tagCandidates(CHANCE_LOW,
-                                    List.of("c:raw_materials/tin"))),
+                                    List.of(rawMaterialTag("tin")))),
                             List.of(tagCandidates(CHANCE_VERY_LOW,
-                                    List.of("c:storage_blocks/raw_tin")))))
+                                    List.of(rawBlockTag("tin"))))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -215,11 +215,11 @@ public class RNSDeposits {
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
                     .transform(baseYields(
                             List.of(tagCandidates(CHANCE_NORMAL,
-                                    List.of("c:nuggets/lead"))),
+                                    List.of(nuggetTag("lead")))),
                             List.of(tagCandidates(CHANCE_LOW,
-                                    List.of("c:raw_materials/lead"))),
+                                    List.of(rawMaterialTag("lead")))),
                             List.of(tagCandidates(CHANCE_VERY_LOW,
-                                    List.of("c:storage_blocks/raw_lead")))))
+                                    List.of(rawBlockTag("lead"))))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -241,9 +241,9 @@ public class RNSDeposits {
                     .transform(baseYields(
                             List.of(),
                             List.of(tagCandidates(CHANCE_NORMAL,
-                                    List.of("c:nuggets/nickel"))),
+                                    List.of(nuggetTag("nickel")))),
                             List.of(tagCandidates(CHANCE_LOW,
-                                    List.of("c:raw_materials/nickel")))))
+                                    List.of(rawMaterialTag("nickel"))))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -265,9 +265,9 @@ public class RNSDeposits {
                     .transform(baseYields(
                             List.of(),
                             List.of(tagCandidates(CHANCE_NORMAL,
-                                    List.of("c:nuggets/silver"))),
+                                    List.of(nuggetTag("silver")))),
                             List.of(tagCandidates(CHANCE_LOW,
-                                    List.of("c:raw_materials/silver")))))
+                                    List.of(rawMaterialTag("silver"))))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -290,9 +290,9 @@ public class RNSDeposits {
                             List.of(),
                             List.of(itemAndTagCandidates(CHANCE_NORMAL,
                                     List.of(Mods.NUCLEAR.ID + ":uranium_powder"),
-                                    List.of("c:nuggets/uranium"))),
+                                    List.of(nuggetTag("uranium")))),
                             List.of(tagCandidates(CHANCE_LOW,
-                                    List.of("c:raw_materials/uranium")))))
+                                    List.of(rawMaterialTag("uranium"))))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -317,7 +317,7 @@ public class RNSDeposits {
                             List.of(),
                             List.of(itemAndTagCandidates(CHANCE_LOW,
                                     List.of(Mods.NEW_AGE.ID + ":thorium"),
-                                    List.of("c:raw_materials/thorium")))))
+                                    List.of(rawMaterialTag("thorium"))))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -342,7 +342,7 @@ public class RNSDeposits {
                             List.of(itemCandidates(CHANCE_NORMAL,
                                     List.of("quartz"))),
                             List.of(tagCandidates(CHANCE_NORMAL,
-                                    List.of("c:gems/certus_quartz", "c:gems/quartz")))))
+                                    List.of(gemTag("certus_quartz"), gemTag("quartz"))))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -365,9 +365,9 @@ public class RNSDeposits {
                     .transform(baseYields(
                             List.of(),
                             List.of(tagCandidates(CHANCE_NORMAL,
-                                    List.of("c:nuggets/cobalt"))),
+                                    List.of(nuggetTag("cobalt")))),
                             List.of(tagCandidates(CHANCE_LOW,
-                                    List.of("c:raw_materials/cobalt")))))
+                                    List.of(rawMaterialTag("cobalt"))))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -597,6 +597,10 @@ public class RNSDeposits {
 
     private static String rawBlockTag(String keyword) {
         return "c:storage_blocks/raw_" + keyword;
+    }
+
+    private static String gemTag(String keyword) {
+        return "c:gems/" + keyword;
     }
 
     private static ItemAndTagCandidates itemCandidates(float chance, List<String> items) {
