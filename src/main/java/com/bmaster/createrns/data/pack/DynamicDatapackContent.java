@@ -1,6 +1,7 @@
 package com.bmaster.createrns.data.pack;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.content.deposit.mining.recipe.Yield.WeightedItem;
 import com.bmaster.createrns.data.pack.DynamicDatapack.DatapackFile;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -217,23 +218,25 @@ public class DynamicDatapackContent {
 
                     var items = new JsonArray();
                     for (var item : yield.items()) {
+                        var candidateIds = item.candidateIds().stream()
+                                .map(c -> c.contains(":") ? c : "minecraft:" + c)
+                                .toList();
                         var itemJson = new JsonObject();
 
                         // Item candidates
-                        var icArr = new JsonArray();
-                        for (var ic : item.itemIds()) {
-                            icArr.add(ic.toString());
+                        if (candidateIds.size() == 1) {
+                            itemJson.addProperty("item", candidateIds.getFirst());
+                        } else {
+                            var icArr = new JsonArray();
+                            for (var ic : candidateIds) {
+                                icArr.add(ic);
+                            }
+                            itemJson.add("item", icArr);
                         }
-                        itemJson.add("item_candidates", icArr);
 
-                        // Tag candidates
-                        var tcArr = new JsonArray();
-                        for (var tc : item.tagIds()) {
-                            tcArr.add(tc.toString());
+                        if (item.weight() != WeightedItem.DEFAULT_WEIGHT) {
+                            itemJson.addProperty("weight", item.weight());
                         }
-                        itemJson.add("tag_candidates", tcArr);
-
-                        if (item.weight() != 1) itemJson.addProperty("weight", item.weight());
                         items.add(itemJson);
                     }
                     yieldJson.add("items", items);
@@ -299,11 +302,6 @@ public class DynamicDatapackContent {
 
     private static String processorName(ResourceLocation depositBlock) {
         return "replace_with_" + depositBlock.getNamespace() + "_" + depositBlock.getPath();
-    }
-
-    private static String depositSpecPath(ResourceLocation specId) {
-        return DEPOSIT_SPEC_PATH.formatted(specId.getNamespace(), DEPOSIT_SPEC_REGISTRY.getNamespace(),
-                DEPOSIT_SPEC_REGISTRY.getPath() + "/" + specId.getPath());
     }
 
     private static List<DepositStructureBuilder.ConfiguredEntry> getEnabledDeposits() {

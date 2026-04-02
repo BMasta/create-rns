@@ -5,6 +5,7 @@ import com.bmaster.createrns.compat.Mods;
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.data.pack.*;
 import com.bmaster.createrns.data.pack.DynamicDatapackContent.Dimension;
+import com.bmaster.createrns.data.pack.YieldBuilder.ConfiguredWeightedItem;
 import com.simibubi.create.Create;
 import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.util.entry.BlockEntry;
@@ -66,12 +67,9 @@ public class RNSDeposits {
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
                     .transform(baseYields(
-                            List.of(itemCandidates(CHANCE_NORMAL,
-                                    List.of("iron_nugget"))),
-                            List.of(itemCandidates(CHANCE_LOW,
-                                    List.of("raw_iron"))),
-                            List.of(itemCandidates(CHANCE_VERY_LOW,
-                                    List.of("raw_iron_block")))))
+                            y -> y.chance(CHANCE_NORMAL).item("iron_nugget"),
+                            y -> y.chance(CHANCE_LOW).item("raw_iron"),
+                            y -> y.chance(CHANCE_VERY_LOW).item("raw_iron_block")))
                     .transform(sharedResonanceYields())
                     .save())
             .attach(ctx -> DepositSpecBuilder.create(ctx)
@@ -92,13 +90,11 @@ public class RNSDeposits {
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
                     .transform(baseYields(
-                            List.of(itemAndTagCandidates(CHANCE_NORMAL,
-                                    List.of(Create.ID + ":copper_nugget"),
-                                    List.of(nuggetTag("copper")))),
-                            List.of(itemCandidates(CHANCE_LOW,
-                                    List.of("raw_copper"))),
-                            List.of(itemCandidates(CHANCE_VERY_LOW,
-                                    List.of("raw_copper_block")))))
+                            y -> y.chance(CHANCE_NORMAL).item(List.of(
+                                    Create.ID + ":copper_nugget",
+                                    nuggetTag("copper"))),
+                            y -> y.chance(CHANCE_LOW).item("raw_copper"),
+                            y -> y.chance(CHANCE_VERY_LOW).item("raw_copper_block")))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -116,13 +112,13 @@ public class RNSDeposits {
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
                     .transform(baseYields(
-                            List.of(),
-                            List.of(itemAndTagCandidates(CHANCE_NORMAL,
-                                    List.of(Create.ID + ":zinc_nugget"),
-                                    List.of(nuggetTag("zinc")))),
-                            List.of(itemAndTagCandidates(CHANCE_LOW,
-                                    List.of(Create.ID + ":raw_zinc"),
-                                    List.of(rawMaterialTag("zinc"))))))
+                            y -> y,
+                            y -> y.chance(CHANCE_NORMAL).item(List.of(
+                                    Create.ID + ":zinc_nugget",
+                                    nuggetTag("zinc"))),
+                            y -> y.chance(CHANCE_LOW).item(List.of(
+                                    Create.ID + ":raw_zinc",
+                                    rawMaterialTag("zinc")))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -140,11 +136,9 @@ public class RNSDeposits {
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
                     .transform(baseYields(
-                            List.of(),
-                            List.of(itemCandidates(CHANCE_NORMAL,
-                                    List.of("gold_nugget"))),
-                            List.of(itemCandidates(CHANCE_LOW,
-                                    List.of("raw_gold")))))
+                            y -> y,
+                            y -> y.chance(CHANCE_NORMAL).item("gold_nugget"),
+                            y -> y.chance(CHANCE_LOW).item("raw_gold")))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -162,12 +156,9 @@ public class RNSDeposits {
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
                     .transform(baseYields(
-                            List.of(),
-                            List.of(itemCandidates(CHANCE_NORMAL,
-                                    List.of(CreateRNS.ID + ":redstone_small_dust"))),
-                            List.of(itemAndTagCandidates(CHANCE_LOW,
-                                    List.of("redstone"),
-                                    List.of()))))
+                            y -> y,
+                            y -> y.chance(CHANCE_NORMAL).item(CreateRNS.ID + ":redstone_small_dust"),
+                            y -> y.chance(CHANCE_LOW).item("redstone")))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -189,12 +180,9 @@ public class RNSDeposits {
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
                     .transform(baseYields(
-                            List.of(tagCandidates(CHANCE_NORMAL,
-                                    List.of(nuggetTag("tin")))),
-                            List.of(tagCandidates(CHANCE_LOW,
-                                    List.of(rawMaterialTag("tin")))),
-                            List.of(tagCandidates(CHANCE_VERY_LOW,
-                                    List.of(rawBlockTag("tin"))))))
+                            y -> y.chance(CHANCE_NORMAL).compatItem(nuggetTag("tin")),
+                            y -> y.chance(CHANCE_LOW).compatItem(rawMaterialTag("tin")),
+                            y -> y.chance(CHANCE_VERY_LOW).compatItem(rawBlockTag("tin"))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -214,12 +202,9 @@ public class RNSDeposits {
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
                     .transform(baseYields(
-                            List.of(tagCandidates(CHANCE_NORMAL,
-                                    List.of(nuggetTag("lead")))),
-                            List.of(tagCandidates(CHANCE_LOW,
-                                    List.of(rawMaterialTag("lead")))),
-                            List.of(tagCandidates(CHANCE_VERY_LOW,
-                                    List.of(rawBlockTag("lead"))))))
+                            y -> y.chance(CHANCE_NORMAL).compatItem(nuggetTag("lead")),
+                            y -> y.chance(CHANCE_LOW).compatItem(rawMaterialTag("lead")),
+                            y -> y.chance(CHANCE_VERY_LOW).compatItem(rawBlockTag("lead"))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -239,11 +224,9 @@ public class RNSDeposits {
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
                     .transform(baseYields(
-                            List.of(),
-                            List.of(tagCandidates(CHANCE_NORMAL,
-                                    List.of(nuggetTag("nickel")))),
-                            List.of(tagCandidates(CHANCE_LOW,
-                                    List.of(rawMaterialTag("nickel"))))))
+                            y -> y,
+                            y -> y.chance(CHANCE_NORMAL).compatItem(nuggetTag("nickel")),
+                            y -> y.chance(CHANCE_LOW).compatItem(rawMaterialTag("nickel"))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -263,11 +246,9 @@ public class RNSDeposits {
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
                     .transform(baseYields(
-                            List.of(),
-                            List.of(tagCandidates(CHANCE_NORMAL,
-                                    List.of(nuggetTag("silver")))),
-                            List.of(tagCandidates(CHANCE_LOW,
-                                    List.of(rawMaterialTag("silver"))))))
+                            y -> y,
+                            y -> y.chance(CHANCE_NORMAL).compatItem(nuggetTag("silver")),
+                            y -> y.chance(CHANCE_LOW).compatItem(rawMaterialTag("silver"))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -287,12 +268,11 @@ public class RNSDeposits {
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
                     .transform(baseYields(
-                            List.of(),
-                            List.of(itemAndTagCandidates(CHANCE_NORMAL,
-                                    List.of(Mods.NUCLEAR.ID + ":uranium_powder"),
-                                    List.of(nuggetTag("uranium")))),
-                            List.of(tagCandidates(CHANCE_LOW,
-                                    List.of(rawMaterialTag("uranium"))))))
+                            y -> y,
+                            y -> y.chance(CHANCE_NORMAL).compatItem(List.of(
+                                    Mods.NUCLEAR.ID + ":uranium_powder",
+                                    nuggetTag("uranium"))),
+                            y -> y.chance(CHANCE_LOW).compatItem(rawMaterialTag("uranium"))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -313,11 +293,11 @@ public class RNSDeposits {
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
                     .transform(baseYields(
-                            List.of(),
-                            List.of(),
-                            List.of(itemAndTagCandidates(CHANCE_LOW,
-                                    List.of(Mods.NEW_AGE.ID + ":thorium"),
-                                    List.of(rawMaterialTag("thorium"))))))
+                            y -> y,
+                            y -> y,
+                            y -> y.chance(CHANCE_NORMAL).compatItem(List.of(
+                                    Mods.NEW_AGE.ID + ":thorium",
+                                    rawMaterialTag("thorium")))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -337,12 +317,11 @@ public class RNSDeposits {
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
                     .transform(baseYields(
-                            List.of(itemCandidates(CHANCE_NORMAL,
-                                    List.of("quartz"))),
-                            List.of(itemCandidates(CHANCE_NORMAL,
-                                    List.of("quartz"))),
-                            List.of(tagCandidates(CHANCE_NORMAL,
-                                    List.of(gemTag("certus_quartz"), gemTag("quartz"))))))
+                            y -> y.chance(CHANCE_NORMAL).item("quartz"),
+                            y -> y.chance(CHANCE_NORMAL).item("quartz"),
+                            y -> y.chance(CHANCE_NORMAL).item(List.of(
+                                    gemTag("certus_quartz"),
+                                    "quartz"))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -363,11 +342,9 @@ public class RNSDeposits {
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
                     .transform(baseYields(
-                            List.of(),
-                            List.of(tagCandidates(CHANCE_NORMAL,
-                                    List.of(nuggetTag("cobalt")))),
-                            List.of(tagCandidates(CHANCE_LOW,
-                                    List.of(rawMaterialTag("cobalt"))))))
+                            y -> y,
+                            y -> y.chance(CHANCE_NORMAL).compatItem(nuggetTag("cobalt")),
+                            y -> y.chance(CHANCE_LOW).compatItem(rawMaterialTag("cobalt"))))
                     .transform(sharedResonanceYields())
                     .save())
             .register();
@@ -451,55 +428,54 @@ public class RNSDeposits {
     }
 
     private static UnaryOperator<MiningRecipeBuilder> addYield(
-            List<ItemAndTagCandidates> items, UnaryOperator<YieldBuilder> andThenApply
+            List<ConfiguredWeightedItem> items, UnaryOperator<YieldBuilder> andThenApply
     ) {
         if (items.isEmpty()) return y -> y;
         return b -> b.yield(y -> {
             var yld = y;
-            for (var it : items) {
-                yld = yld.itemAndTag(it.items(), it.tags()).chance(it.chance());
+            for (var item : items) {
+                if (item.compat()) {
+                    yld = yld.compatItem(item.candidateIds());
+                } else {
+                    yld = yld.item(item.candidateIds());
+                }
             }
             andThenApply.apply(yld);
         });
     }
 
     private static UnaryOperator<MiningRecipeBuilder> baseYields(
-            List<ItemAndTagCandidates> t0s, List<ItemAndTagCandidates> t1s, List<ItemAndTagCandidates> t2s
+            UnaryOperator<YieldBuilder> t0, UnaryOperator<YieldBuilder> t1, UnaryOperator<YieldBuilder> t2
     ) {
         return b -> b
                 .yield(y -> y.item(List.of("cobblestone")))
                 .yield(y -> y
-                        .item(List.of(CreateRNS.ID + ":resonant_amethyst"))
+                        .item(CreateRNS.ID + ":resonant_amethyst")
                         .chance(CHANCE_EXTREMELY_LOW)
                         .catalyst(CATA_OVERCLOCK))
                 // T0
-                .transform(addYield(t0s, y -> y
-                        .compat()
-                        .catalyst(CATA_OVERCLOCK)))
+                .yield(y -> t0.apply(y)
+                        .catalyst(CATA_OVERCLOCK))
                 // T1
-                .transform(addYield(t1s, y -> y
-                        .compat()
+                .yield(y -> t1.apply(y)
                         .catalyst(CATA_FAINT_RESONANCE)
                         .catalyst(CATA_OVERCLOCK)
-                        .jeiSlotColor(COLOR_FAINT_RESONANCE)))
-
+                        .jeiSlotColor(COLOR_FAINT_RESONANCE))
                 .yield(y -> y
-                        .item(List.of(CreateRNS.ID + ":resonant_amethyst"))
+                        .item(CreateRNS.ID + ":resonant_amethyst")
                         .chance(CHANCE_EXTREMELY_LOW)
                         .catalyst(CATA_RESONANCE)
                         .catalyst(CATA_OVERCLOCK)
                         .jeiSlotColor(COLOR_RESONANCE))
-
                 // T2
-                .transform(addYield(t2s, y -> y
-                        .compat()
+                .yield(y -> t2.apply(y)
                         .catalyst(CATA_RESONANCE)
                         .catalyst(CATA_OVERCLOCK)
-                        .jeiSlotColor(COLOR_RESONANCE)));
+                        .jeiSlotColor(COLOR_RESONANCE));
     }
 
     private static UnaryOperator<MiningRecipeBuilder> baseNetherYields(
-            List<ItemAndTagCandidates> t0s, List<ItemAndTagCandidates> t1s, List<ItemAndTagCandidates> t2s
+            UnaryOperator<YieldBuilder> t0, UnaryOperator<YieldBuilder> t1, UnaryOperator<YieldBuilder> t2
     ) {
         return b -> b
                 .yield(y -> y.item(List.of("netherrack")))
@@ -512,16 +488,13 @@ public class RNSDeposits {
                         .chance(CHANCE_EXTREMELY_LOW)
                         .catalyst(CATA_OVERCLOCK))
                 // T0
-                .transform(addYield(t0s, y -> y
-                        .compat()
-                        .catalyst(CATA_OVERCLOCK)))
+                .yield(y -> t0.apply(y)
+                        .catalyst(CATA_OVERCLOCK))
                 // T1
-                .transform(addYield(t1s, y -> y
-                        .compat()
+                .yield(y -> t1.apply(y)
                         .catalyst(CATA_FAINT_RESONANCE)
                         .catalyst(CATA_OVERCLOCK)
-                        .jeiSlotColor(COLOR_FAINT_RESONANCE)))
-
+                        .jeiSlotColor(COLOR_FAINT_RESONANCE))
                 .yield(y -> y
                         .item(List.of(CreateRNS.ID + ":resonant_amethyst"))
                         .chance(CHANCE_EXTREMELY_LOW)
@@ -530,11 +503,10 @@ public class RNSDeposits {
                         .jeiSlotColor(COLOR_RESONANCE))
 
                 // T2
-                .transform(addYield(t2s, y -> y
-                        .compat()
+                .yield(y -> t2.apply(y)
                         .catalyst(CATA_RESONANCE)
                         .catalyst(CATA_OVERCLOCK)
-                        .jeiSlotColor(COLOR_RESONANCE)));
+                        .jeiSlotColor(COLOR_RESONANCE));
     }
 
     private static Consumer<YieldBuilder> faintShatteringResonanceYield() {
@@ -588,39 +560,19 @@ public class RNSDeposits {
     }
 
     private static String nuggetTag(String keyword) {
-        return "c:nuggets/" + keyword;
+        return "#c:nuggets/" + keyword;
     }
 
     private static String rawMaterialTag(String keyword) {
-        return "c:raw_materials/" + keyword;
+        return "#c:raw_materials/" + keyword;
     }
 
     private static String rawBlockTag(String keyword) {
-        return "c:storage_blocks/raw_" + keyword;
+        return "#c:storage_blocks/raw_" + keyword;
     }
 
     private static String gemTag(String keyword) {
-        return "c:gems/" + keyword;
-    }
-
-    private static ItemAndTagCandidates itemCandidates(float chance, List<String> items) {
-        return new ItemAndTagCandidates(items, List.of(), chance);
-    }
-
-    private static ItemAndTagCandidates tagCandidates(float chance, List<String> tags) {
-        return new ItemAndTagCandidates(List.of(), tags, chance);
-    }
-
-    private static ItemAndTagCandidates itemAndTagCandidates(float chance, List<String> items, List<String> tags) {
-        return new ItemAndTagCandidates(items, tags, chance);
-    }
-
-    private record ItemAndTagCandidates(List<String> items, List<String> tags, float chance) {
-        private ItemAndTagCandidates {
-            if (items.isEmpty() && tags.isEmpty()) {
-                throw new IllegalArgumentException("ItemAndTag must define at least one of item or tag");
-            }
-        }
+        return "#c:gems/" + keyword;
     }
 
     public static void register() {

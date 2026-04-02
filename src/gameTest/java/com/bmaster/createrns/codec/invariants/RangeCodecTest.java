@@ -2,7 +2,7 @@ package com.bmaster.createrns.codec.invariants;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.util.CodecHelper;
-import com.bmaster.createrns.util.Range;
+import com.bmaster.createrns.util.codec.Range;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -23,11 +23,11 @@ public class RangeCodecTest {
     @GameTest(template = "empty16x16")
     public void flexibleCodecRejectsInvertedRange(GameTestHelper helper) {
         CodecHelper.assertFails(helper, Range.FLEXIBLE_CODEC, CodecHelper.json(), """
-                        {
-                          "min": 7,
-                          "max": 3
-                        }
-                        """, "Range min must not exceed max");
+                {
+                  "min": 7,
+                  "max": 3
+                }
+                """, "Range min must not exceed max");
         helper.succeed();
     }
 }

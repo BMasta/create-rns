@@ -2,7 +2,7 @@ package com.bmaster.createrns.content.deposit.worldgen;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSStructures;
-import com.bmaster.createrns.util.Range;
+import com.bmaster.createrns.util.codec.Range;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;

@@ -91,7 +91,7 @@
 * System interaction: scanner discovery can run under a scanner-only locate context consumed by a `ChunkGenerator` mixin hook, allowing
   structure candidates to be filtered (for example, already found deposits) without changing vanilla locate traversal order.
 * System interaction: scanner structure-search region radius is inferred from the structure set spacing value computed on server startup from the loaded deposit structure-set placement.
-* Data and assets: target types are data-driven via `deposit_spec` datapack entries (`scanner_icon_item`, optional `map_icon_item`, and `structure`), not hardcoded.
+* Data and assets: target types are data-driven via `deposit_spec` datapack entries (`scanner_icon_item_candidates`, optional `scanner_icon_tag_candidates`, optional `map_icon_item`, and `structure`), not hardcoded.
 * Data and assets: scanner visuals/sounds are client assets; authoritative target selection and found-state mutation are server-side.
 * Maintenance invariant: tracking depends on a prior discovery cache entry and should remain cheap (no structure search per ping).
 * Known limitation: request handling assumes selected scanner icon maps to a valid deposit spec; invalid icon payloads are not defensively handled.
@@ -143,6 +143,18 @@
 * Maintenance invariant: compat gating for dynamic mining recipes must stay aligned with the same mod-presence and dump-mode checks used by other dynamic built-in pack entries.
 * Maintenance invariant: optional codec fields that supply defaults should continue using strict optional-field decoding so omitted fields default normally while malformed present values still fail reloads.
 * Known limitation: compat recipe ids that reference optional-mod items or blocks are not compile-time validated against those mods unless the integration dependency is added locally for testing.
+
+## Mining Output Item Fallback Resolution
+* Player perspective: datapack mining outputs can still provide ordered fallback item candidates, including item tags, so a deposit can prefer a shared tag and fall back to a concrete item when needed.
+* Edge behavior: fallback entries are not considered resolved at raw codec-parse time; both direct item ids and tag-backed entries stay pending until live registry resolution runs.
+* Edge behavior: strict fallback resolution logs an error line for every attempted candidate that fails, then the owning weighted item or yield is discarded if nothing resolves.
+* Core behavior: `ItemWithFallbacks` preserves the authored fallback list exactly as datapack data, and `resolve(...)` walks that list in order against the current live item registry plus loaded item-tag contents.
+* Core behavior: yield initialization resolves each weighted item's fallback list in order against live registry data, then discards weighted items that still end up as air.
+* System interaction: this resolution step depends on the same recipe/yield initialization path already used for catalyst requirement validation, so tag-backed outputs and catalyst-backed outputs become usable at the same lifecycle stage.
+* System interaction: built-in pack validation for dumped mining recipes must exercise fallback resolution or recipe initialization in addition to codec round-trip checks, otherwise unresolved strict candidates can slip through dump tests unnoticed.
+* Data and assets: fallback ordering remains authored in mining recipe JSON through the existing weighted-item `item` field; no datapack schema changes are required.
+* Maintenance invariant: `ItemWithFallbacks` must preserve the original fallback entry list through codec decode and network sync, because late resolution depends on the untouched candidate order for both item ids and tags.
+* Maintenance invariant: fallback resolution must continue to use live `RegistryAccess` rather than early built-in tag state, otherwise datapack items or tags can appear missing during game startup or reload.
 
 ## Dynamic Deposit Spec Registration
 * Player perspective: scanner target icons and supported map-overlay icons are still driven by `deposit_spec` datapack entries, but the mod's default deposit specs now come from the built-in dynamic datapack instead of handwritten resource files.

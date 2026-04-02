@@ -1,4 +1,4 @@
-package com.bmaster.createrns.util;
+package com.bmaster.createrns.util.codec;
 
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;

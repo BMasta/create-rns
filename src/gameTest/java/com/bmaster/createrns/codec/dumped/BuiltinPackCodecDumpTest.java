@@ -6,23 +6,18 @@ import com.bmaster.createrns.content.deposit.spec.DepositSpec;
 import com.bmaster.createrns.content.deposit.worldgen.DepositStructure;
 import com.bmaster.createrns.util.CodecHelper;
 import com.bmaster.createrns.util.DumpedCodecHelper;
+import com.mojang.serialization.DataResult;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagFile;
 import net.minecraft.world.level.levelgen.structure.StructureSet;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-import java.util.Set;
-
 @GameTestHolder(CreateRNS.ID)
 @PrefixGameTestTemplate(false)
 public class BuiltinPackCodecDumpTest {
-    private static final Set<ResourceLocation> ALLOWED_UNRESOLVED_RECIPE_TAG_CANDIDATES =
-            Set.of(ResourceLocation.parse("c:gems/certus_quartz"));
-
     @GameTest(template = "empty16x16")
     public void defaultDumpedMiningRecipesRoundTrip(GameTestHelper helper) {
         var files = DumpedCodecHelper.findJsonFiles(helper,
@@ -30,10 +25,19 @@ public class BuiltinPackCodecDumpTest {
         DumpedCodecHelper.assertRoundTrips(helper, files, MiningRecipe.CODEC.codec(),
                 CodecHelper.registries(helper), "dumped mining recipe", json -> {
                     DumpedCodecHelper.stripRootField(json, "type");
-                    return DumpedCodecHelper.stripEmptyFields(json, "item_candidates", "tag_candidates");
+                    return json;
                 });
-        DumpedCodecHelper.assertItemAndTagCandidatesResolve(helper, files, "item_candidates", "tag_candidates",
-                "mining recipe", Set.of(), ALLOWED_UNRESOLVED_RECIPE_TAG_CANDIDATES);
+        DumpedCodecHelper.assertItemWithFallbackFieldsResolve(helper, files, "item", "dumped mining recipe");
+        for (var path : files) {
+            var root = DumpedCodecHelper.readJson(path);
+            var parseResult = MiningRecipe.CODEC.codec().parse(CodecHelper.registries(helper), root);
+            var recipe = parseResult.result().orElse(null);
+            helper.assertTrue(recipe != null,
+                    "Expected dumped mining recipe parse success for " + path + ", got: "
+                            + parseResult.error().map(DataResult.Error::message).orElse("unknown codec error"));
+            helper.assertTrue(recipe != null && recipe.initialize(helper.getLevel().registryAccess()),
+                    "Expected dumped mining recipe to initialize successfully for " + path);
+        }
         helper.succeed();
     }
 

@@ -33,10 +33,6 @@ public class MiningRecipeBuilder {
     private @Nullable ResourceLocation replacementBlockId;
     private @Nullable DepositDurability durability;
 
-    public MiningRecipeBuilder compat() {
-        return this;
-    }
-
     public MiningRecipeBuilder replaceWhenDepleted(String blockId) {
         replacementBlockId = ResourceLocation.parse(blockId);
         return this;
@@ -56,6 +52,8 @@ public class MiningRecipeBuilder {
     public MiningRecipeBuilder yield(Consumer<YieldBuilder> yield) {
         var builder = new YieldBuilder();
         yield.accept(builder);
+        // Skip adding an empty yield
+        if (builder.items.isEmpty()) return this;
         yields.add(builder.build());
         return this;
     }

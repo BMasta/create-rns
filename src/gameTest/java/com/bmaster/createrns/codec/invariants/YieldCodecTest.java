@@ -4,6 +4,7 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.mining.recipe.Yield;
 import com.bmaster.createrns.util.CodecHelper;
 import com.bmaster.createrns.util.LogCapture;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -25,27 +26,36 @@ public class YieldCodecTest {
         var weightedItem = CodecHelper.assertParses(helper, Yield.WeightedItem.CODEC,
                 CodecHelper.json(), """
                         {
-                          "item_candidates": ["minecraft:diamond"],
+                          "item": "minecraft:diamond",
                           "weight": 5
                         }
                         """, "weighted item");
 
         helper.assertValueEqual(weightedItem.weight, 5, "weighted item weight");
+        CodecHelper.assertSame(helper, Items.AIR, weightedItem.item,
+                "Direct weighted items should stay unresolved until initialization");
         helper.assertTrue(weightedItem.initialize(helper.getLevel().registryAccess()),
-                "Weighted item should initialize from an item candidate");
-        CodecHelper.assertSame(helper, Items.DIAMOND, weightedItem.getItem(), "resolved weighted item");
+                "Direct weighted items should initialize against live registry data");
+        CodecHelper.assertSame(helper, Items.DIAMOND, weightedItem.item, "resolved weighted item");
         helper.succeed();
     }
 
     @GameTest(template = "empty16x16")
-    public void weightedItemRejectsMissingCandidates(GameTestHelper helper) {
-        CodecHelper.assertFails(helper, Yield.WeightedItem.CODEC, CodecHelper.json(), """
+    public void weightedItemRejectsUnresolvableStrictItem(GameTestHelper helper) {
+        var weightedItem = CodecHelper.assertParses(helper, Yield.WeightedItem.CODEC,
+                CodecHelper.json(), """
                         {
-                          "item_candidates": [],
-                          "tag_candidates": [],
+                          "item": "create_rns:definitely_missing_item",
                           "weight": 1
                         }
-                        """, "Weighted item must define at least an item or a tag");
+                        """, "strict weighted item");
+
+        try (var logs = LogCapture.capture(CreateRNS.LOGGER.getName())) {
+            helper.assertFalse(weightedItem.initialize(helper.getLevel().registryAccess()),
+                    "Strict weighted items should fail initialization when no candidates resolve");
+            helper.assertTrue(logs.contains("Could not resolve item \"create_rns:definitely_missing_item\""),
+                    "Missing strict weighted items should log the unresolved candidate");
+        }
         helper.succeed();
     }
 
@@ -54,38 +64,36 @@ public class YieldCodecTest {
         var weightedItem = CodecHelper.assertParses(helper, Yield.WeightedItem.CODEC,
                 CodecHelper.json(), """
                         {
-                          "tag_candidates": ["minecraft:planks"],
+                          "item": "#minecraft:planks",
                           "weight": 2
                         }
                         """, "tag-backed weighted item");
 
+        CodecHelper.assertSame(helper, Items.AIR, weightedItem.item,
+                "Tag-backed weighted items should stay unresolved until initialization");
         helper.assertTrue(weightedItem.initialize(helper.getLevel().registryAccess()),
-                "Weighted item should initialize from live item tag contents");
-        helper.assertTrue(weightedItem.getItem().builtInRegistryHolder().is(PLANKS_TAG),
+                "Tag-backed weighted items should initialize against live registry data");
+        helper.assertTrue(BuiltInRegistries.ITEM.wrapAsHolder(weightedItem.item).is(PLANKS_TAG),
                 "Resolved weighted item should come from the live planks tag");
-        helper.assertTrue(weightedItem.getItem() != Items.AIR,
+        helper.assertTrue(weightedItem.item != Items.AIR,
                 "Resolved weighted item from a live tag should not fall back to air");
         helper.succeed();
     }
 
     @GameTest(template = "empty16x16")
-    public void weightedItemLogsErrorWhenCandidatesDoNotResolve(GameTestHelper helper) {
+    public void compatWeightedItemAllowsMissingCandidates(GameTestHelper helper) {
         var weightedItem = CodecHelper.assertParses(helper, Yield.WeightedItem.CODEC,
                 CodecHelper.json(), """
                         {
-                          "item_candidates": ["create_rns:definitely_missing_item"],
+                          "item": "create_rns:definitely_missing_item",
+                          "compat": true,
                           "weight": 1
                         }
-                        """, "unresolvable weighted item");
+                        """, "compat weighted item");
 
-        try (var logs = LogCapture.capture(CreateRNS.LOGGER.getName())) {
-            helper.assertFalse(weightedItem.initialize(helper.getLevel().registryAccess()),
-                    "Weighted item initialization should fail when no candidates resolve");
-            helper.assertTrue(logs.contains("Failed to resolve weighted item"),
-                    "Unresolvable weighted items should emit a stable error log");
-            helper.assertTrue(logs.contains("create_rns:definitely_missing_item"),
-                    "Weighted item failure logs should include the missing candidate id");
-        }
+        helper.assertTrue(weightedItem.compat, "Compat weighted item should preserve the compat flag");
+        CodecHelper.assertSame(helper, Items.AIR, weightedItem.item,
+                "Compat weighted item should fall back to air when unresolved");
         helper.succeed();
     }
 
@@ -95,7 +103,7 @@ public class YieldCodecTest {
                         {
                           "items": [
                             {
-                              "item_candidates": ["minecraft:diamond"],
+                              "item": "minecraft:diamond",
                               "weight": 2
                             }
                           ],
@@ -111,7 +119,7 @@ public class YieldCodecTest {
         helper.assertValueEqual(yield.slotColor, 0, "yield slot color");
         helper.assertTrue(yield.initialize(helper.getLevel().registryAccess()),
                 "Yield initialization should succeed when referenced catalysts exist in the live registry");
-        CodecHelper.assertSame(helper, Items.DIAMOND, yield.items.getFirst().getItem(),
+        CodecHelper.assertSame(helper, Items.DIAMOND, yield.items.getFirst().item,
                 "initialized yield item");
         helper.succeed();
     }
@@ -122,11 +130,12 @@ public class YieldCodecTest {
                         {
                           "items": [
                             {
-                              "item_candidates": ["create_rns:definitely_missing_item"],
+                              "item": "create_rns:definitely_missing_item",
+                              "compat": true,
                               "weight": 1
                             },
                             {
-                              "tag_candidates": ["minecraft:planks"],
+                              "item": "#minecraft:planks",
                               "weight": 3
                             }
                           ]
@@ -136,7 +145,7 @@ public class YieldCodecTest {
         helper.assertTrue(yield.initialize(helper.getLevel().registryAccess()),
                 "Yield initialization should keep any weighted items that resolve");
         helper.assertValueEqual(yield.items.size(), 1, "remaining weighted item count");
-        helper.assertTrue(yield.items.getFirst().getItem().builtInRegistryHolder().is(PLANKS_TAG),
+        helper.assertTrue(BuiltInRegistries.ITEM.wrapAsHolder(yield.items.getFirst().item).is(PLANKS_TAG),
                 "Remaining weighted item should come from the live planks tag");
         helper.succeed();
     }
@@ -147,7 +156,7 @@ public class YieldCodecTest {
                         {
                           "items": [
                             {
-                              "item_candidates": ["minecraft:diamond"],
+                              "item": "minecraft:diamond",
                               "weight": 1
                             }
                           ],
@@ -172,11 +181,12 @@ public class YieldCodecTest {
                         {
                           "items": [
                             {
+                              "item": [],
                               "weight": 1
                             }
                           ]
                         }
-                        """, "Weighted item must define at least an item or a tag");
+                        """, "No items or item tags specified");
         helper.succeed();
     }
 }
