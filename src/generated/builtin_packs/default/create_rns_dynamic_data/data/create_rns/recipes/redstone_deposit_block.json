@@ -71,9 +71,7 @@
           "item_candidates": [
             "minecraft:redstone"
           ],
-          "tag_candidates": [
-            "forge:dusts/redstone"
-          ]
+          "tag_candidates": []
         }
       ],
       "catalysts": [

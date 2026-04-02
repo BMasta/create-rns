@@ -39,9 +39,7 @@
           "item_candidates": [
             "minecraft:gold_nugget"
           ],
-          "tag_candidates": [
-            "forge:nuggets/gold"
-          ]
+          "tag_candidates": []
         }
       ],
       "catalysts": [
@@ -73,9 +71,7 @@
           "item_candidates": [
             "minecraft:raw_gold"
           ],
-          "tag_candidates": [
-            "forge:raw_materials/gold"
-          ]
+          "tag_candidates": []
         }
       ],
       "catalysts": [

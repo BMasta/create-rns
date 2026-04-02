@@ -40,7 +40,7 @@
             "create:copper_nugget"
           ],
           "tag_candidates": [
-            "forge:nuggets/copper"
+            "c:nuggets/copper"
           ]
         }
       ],
@@ -55,9 +55,7 @@
           "item_candidates": [
             "minecraft:raw_copper"
           ],
-          "tag_candidates": [
-            "forge:raw_materials/copper"
-          ]
+          "tag_candidates": []
         }
       ],
       "catalysts": [
@@ -89,9 +87,7 @@
           "item_candidates": [
             "minecraft:raw_copper_block"
           ],
-          "tag_candidates": [
-            "forge:storage_blocks/raw_copper"
-          ]
+          "tag_candidates": []
         }
       ],
       "catalysts": [
