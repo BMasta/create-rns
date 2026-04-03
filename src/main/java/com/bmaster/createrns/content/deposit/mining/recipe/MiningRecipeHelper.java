@@ -10,7 +10,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -75,11 +77,12 @@ public class MiningRecipeHelper {
     }
 
     public record SerializedRecipe(
-            Block depositBlock, Block replacementBlock, DepositDurability dur, List<Yield> yields
+            Block depositBlock, ResourceKey<Level> dimension, Block replacementBlock, DepositDurability dur, List<Yield> yields
     ) {
         public static SerializedRecipe fromRecipe(MiningRecipe recipe) {
             return new SerializedRecipe(
                     recipe.getDepositBlock(),
+                    recipe.getDimension(),
                     recipe.getReplacementBlock(),
                     recipe.getDurability(),
                     recipe.getYields()
@@ -87,7 +90,7 @@ public class MiningRecipeHelper {
         }
 
         public MiningRecipe toRecipe(ResourceLocation id) {
-            return new MiningRecipe(id, depositBlock, replacementBlock, dur, yields);
+            return new MiningRecipe(id, depositBlock, dimension, replacementBlock, dur, yields);
         }
     }
 }

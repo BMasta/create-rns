@@ -2,22 +2,27 @@ package com.bmaster.createrns.compat.jei;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSBlocks;
-import com.bmaster.createrns.RNSDeposits;
 import com.bmaster.createrns.RNSRecipeTypes;
+import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
+import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
-import com.bmaster.createrns.infrastructure.ServerConfig;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Comparator;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @JeiPlugin
@@ -26,6 +31,8 @@ import java.util.stream.Stream;
 public class RNSJEI implements IModPlugin {
     public static final ResourceLocation ID = CreateRNS.asResource("jei_plugin");
 
+    private static Object2ObjectOpenHashMap<ResourceKey<Level>, MiningRecipeCategory> categories;
+
     @Override
     public ResourceLocation getPluginUid() {
         return ID;
@@ -33,7 +40,29 @@ public class RNSJEI implements IModPlugin {
 
     @Override
     public void registerCategories(IRecipeCategoryRegistration reg) {
-        reg.addRecipeCategories(new MiningRecipeCategory(reg.getJeiHelpers().getGuiHelper()));
+        var level = Minecraft.getInstance().level;
+        if (level == null) {
+            categories = new Object2ObjectOpenHashMap<>();
+            return;
+        }
+
+        categories = MiningRecipeLookup.getAllRelevantDimensions(level).stream().collect(Collectors.toMap(
+                d -> d,
+                d -> {
+                    var dimRL = d.location();
+                    var dimSuffix = (d == Level.OVERWORLD ? "" : "_" + dimRL.getNamespace() + "_" + dimRL.getPath());
+                    return new MiningRecipeCategory(
+                            reg.getJeiHelpers().getGuiHelper(),
+                            RecipeType.create(CreateRNS.ID, "mining" + dimSuffix, MiningRecipe.class));
+                },
+                (o, n) -> o,
+                Object2ObjectOpenHashMap::new
+        ));
+
+        for (var category : categories.values()) {
+            reg.addRecipeCategories(category);
+        }
+
     }
 
     @Override
@@ -44,8 +73,10 @@ public class RNSJEI implements IModPlugin {
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration reg) {
-        for (var cs : MiningRecipeCategory.CATALYSTS) {
-            reg.addRecipeCatalyst(cs.get(), MiningRecipeCategory.JEI_RECIPE_TYPE);
+        for (var category : categories.values()) {
+            for (var cs : MiningRecipeCategory.CATALYSTS) {
+                reg.addRecipeCatalyst(cs.get(), category.getRecipeType());
+            }
         }
     }
 
@@ -54,13 +85,13 @@ public class RNSJEI implements IModPlugin {
         if (level == null) return;
 
         var recipes = level.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.MINING_RECIPE_TYPE.get());
-        // Hide depleted deposit recipe when infinite deposits are configured
-        if (ServerConfig.INFINITE_DEPOSITS.get()) {
-            recipes = recipes.stream()
-                    .filter(r -> r.getDepositBlock() != RNSDeposits.DEPLETED_DEPOSIT.get())
-                    .toList();
+        for (var e : categories.object2ObjectEntrySet()) {
+            var dim = e.getKey();
+            var category = e.getValue();
+            reg.addRecipes(category.getRecipeType(), recipes.stream()
+                    .filter(r -> r.getDimension() == dim)
+                    .toList());
         }
-        reg.addRecipes(MiningRecipeCategory.JEI_RECIPE_TYPE, recipes);
     }
 
     private static void registerCatalystInfoPages(IRecipeRegistration reg) {

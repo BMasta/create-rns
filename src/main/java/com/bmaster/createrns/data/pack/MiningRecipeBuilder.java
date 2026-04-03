@@ -30,8 +30,14 @@ public class MiningRecipeBuilder {
     private final DepositBuildingContext ctx;
     private final List<YieldBuilder.ConfiguredYield> yields = new ArrayList<>();
 
+    private ResourceLocation dimension = ResourceLocation.withDefaultNamespace("overworld");
     private @Nullable ResourceLocation replacementBlockId;
     private @Nullable DepositDurability durability;
+
+    public MiningRecipeBuilder dimension(String dimension) {
+        this.dimension = ResourceLocation.parse(dimension);
+        return this;
+    }
 
     public MiningRecipeBuilder replaceWhenDepleted(String blockId) {
         replacementBlockId = ResourceLocation.parse(blockId);
@@ -72,7 +78,7 @@ public class MiningRecipeBuilder {
 
         var candidate = new ConfiguredEntry(
                 ctx.depositBlockId(),
-                new ConfiguredRecipe(ctx.depositBlockId(), replacementBlockId, durability, List.copyOf(yields)),
+                new ConfiguredRecipe(ctx.depositBlockId(), dimension, replacementBlockId, durability, List.copyOf(yields)),
                 ctx.isEnabled
         );
         var existing = RECIPES.stream()
@@ -80,11 +86,9 @@ public class MiningRecipeBuilder {
                 .findFirst()
                 .orElse(null);
 
-        if (existing == null) {
+        if (existing == null || !existing.recipe.dimension.equals(dimension)) {
             RECIPES.add(candidate);
-            return;
-        }
-        if (!existing.equals(candidate)) {
+        } else if (existing != null) {
             throw new IllegalStateException("Conflicting dynamic mining recipe definition already exists: " +
                     ctx.depositBlockId());
         }
@@ -99,6 +103,7 @@ public class MiningRecipeBuilder {
 
     public record ConfiguredRecipe(
             ResourceLocation depositBlockId,
+            ResourceLocation dimension,
             @Nullable ResourceLocation replacementBlockId,
             @Nullable DepositDurability durability,
             List<YieldBuilder.ConfiguredYield> yields

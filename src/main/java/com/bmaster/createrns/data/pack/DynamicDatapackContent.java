@@ -26,6 +26,10 @@ public class DynamicDatapackContent {
             this.suffix = suffix;
         }
 
+        public String getSuffix() {
+            return suffix;
+        }
+
         public String appendTo(String base) {
             return (suffix.isEmpty()) ? base : base + "_" + suffix;
         }
@@ -195,9 +199,17 @@ public class DynamicDatapackContent {
             var recipeEntries = getEnabledRecipes();
             var files = new ArrayList<DatapackFile>(recipeEntries.size());
             for (var def : recipeEntries) {
+                var dim = def.recipe().dimension();
+                var filename = def.recipeId().getPath();
+                boolean isOverworld = dim.toString().equals("minecraft:overworld");
+                if (!isOverworld) filename += "_" + dim.getPath();
                 var root = new JsonObject();
+
                 root.addProperty("type", CreateRNS.ID + ":mining");
                 root.addProperty("deposit_block", def.recipe().depositBlockId().toString());
+                if (!isOverworld) {
+                    root.addProperty("dimension", dim.toString());
+                }
 
                 if (def.recipe().replacementBlockId() != null) {
                     root.addProperty("replace_when_depleted", def.recipe().replacementBlockId().toString());
@@ -258,7 +270,7 @@ public class DynamicDatapackContent {
                 root.add("yields", yields);
 
                 files.add(new DatapackFile(
-                        MINING_RECIPE_PATH.formatted(def.recipeId().getNamespace(), def.recipeId().getPath()),
+                        MINING_RECIPE_PATH.formatted(def.recipeId().getNamespace(), filename),
                         root
                 ));
             }

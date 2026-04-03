@@ -44,8 +44,6 @@ import java.util.stream.Collectors;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
-    public static final RecipeType<MiningRecipe> JEI_RECIPE_TYPE = RecipeType.create(
-            CreateRNS.ID, "mining", MiningRecipe.class);
     public static final List<Supplier<? extends ItemStack>> CATALYSTS = List.of(
             () -> new ItemStack(RNSBlocks.MINER_BEARING.get()),
             () -> new ItemStack(RNSBlocks.MINE_HEAD.get()),
@@ -56,23 +54,25 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
 
     private static final boolean EMI_LOADED = Mods.EMI.isLoaded();
 
-    private static final Info<MiningRecipe> INFO = new Info<>(
-            JEI_RECIPE_TYPE, CreateRNS.translatable("recipe.mining"),
-            new EmptyBackground(177, 100),
-            new ItemIcon(() -> new ItemStack(RNSBlocks.MINER_BEARING)),
-            (() -> {
-                var level = Minecraft.getInstance().level;
-                if (level == null) return List.of();
-                return level.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.MINING_RECIPE_TYPE.get());
-            }),
-            CATALYSTS
-    );
-
     private static final AnimatedMiner MINER = new AnimatedMiner();
 
     private static final String SCROLL_GROUP = "miner_yields";
     private static final int YIELD_COLS = 4;
     private static final int YIELD_ROWS = 5;
+
+    private static Info<MiningRecipe> getInfo(RecipeType<MiningRecipe> recipeType) {
+        return new Info<>(
+                recipeType, CreateRNS.translatable("jei.title." + recipeType.getUid().getPath()),
+                new EmptyBackground(177, 100),
+                new ItemIcon(() -> new ItemStack(RNSBlocks.MINER_BEARING)),
+                (() -> {
+                    var level = Minecraft.getInstance().level;
+                    if (level == null) return List.of();
+                    return level.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.MINING_RECIPE_TYPE.get());
+                }),
+                CATALYSTS
+        );
+    }
 
     protected static IRecipeSlotRichTooltipCallback addStochasticTooltip(MinerOutput output) {
         return (view, tooltip) -> {
@@ -117,8 +117,8 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
 
     IDrawable SLOT;
 
-    public MiningRecipeCategory(IGuiHelper gui) {
-        super(INFO);
+    public MiningRecipeCategory(IGuiHelper gui, RecipeType<MiningRecipe> recipeType) {
+        super(getInfo(recipeType));
         SLOT = gui.getSlotDrawable();
     }
 
