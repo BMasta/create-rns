@@ -12,6 +12,7 @@ import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
@@ -136,6 +137,15 @@ public class RNSDeposits {
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
                     .transform(baseYields(
+                            y -> y,
+                            y -> y.chance(CHANCE_NORMAL).item("gold_nugget"),
+                            y -> y.chance(CHANCE_LOW).item("raw_gold")))
+                    .transform(sharedResonanceYields())
+                    .save())
+            .attach(id -> MiningRecipeBuilder.create(id)
+                    .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
+                    .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
+                    .transform(baseNetherYields(
                             y -> y,
                             y -> y.chance(CHANCE_NORMAL).item("gold_nugget"),
                             y -> y.chance(CHANCE_LOW).item("raw_gold")))
@@ -316,7 +326,7 @@ public class RNSDeposits {
             .attach(id -> MiningRecipeBuilder.create(id)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
-                    .transform(baseYields(
+                    .transform(baseNetherYields(
                             y -> y.chance(CHANCE_NORMAL).item("quartz"),
                             y -> y.chance(CHANCE_NORMAL).item("quartz"),
                             y -> y.chance(CHANCE_NORMAL).item(List.of(
@@ -341,7 +351,7 @@ public class RNSDeposits {
             .attach(ctx -> MiningRecipeBuilder.create(ctx)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
                     .durability(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_SPREAD)
-                    .transform(baseYields(
+                    .transform(baseNetherYields(
                             y -> y,
                             y -> y.chance(CHANCE_NORMAL).compatItem(nuggetTag("cobalt")),
                             y -> y.chance(CHANCE_LOW).compatItem(rawMaterialTag("cobalt"))))
@@ -478,6 +488,7 @@ public class RNSDeposits {
             UnaryOperator<YieldBuilder> t0, UnaryOperator<YieldBuilder> t1, UnaryOperator<YieldBuilder> t2
     ) {
         return b -> b
+                .dimension(Level.NETHER)
                 .yield(y -> y.item(List.of("netherrack")))
                 .yield(y -> y
                         .item(List.of("soul_sand"))

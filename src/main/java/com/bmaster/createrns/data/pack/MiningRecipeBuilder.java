@@ -3,7 +3,9 @@ package com.bmaster.createrns.data.pack;
 import com.bmaster.createrns.content.deposit.mining.recipe.DepositDurability;
 import com.bmaster.createrns.data.pack.DepositBlockBuilder.DepositBuildingContext;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -30,8 +32,14 @@ public class MiningRecipeBuilder {
     private final DepositBuildingContext ctx;
     private final List<YieldBuilder.ConfiguredYield> yields = new ArrayList<>();
 
+    private ResourceKey<Level> dimension = Level.OVERWORLD;
     private @Nullable ResourceLocation replacementBlockId;
     private @Nullable DepositDurability durability;
+
+    public MiningRecipeBuilder dimension(ResourceKey<Level> dimension) {
+        this.dimension = dimension;
+        return this;
+    }
 
     public MiningRecipeBuilder replaceWhenDepleted(String blockId) {
         replacementBlockId = ResourceLocation.parse(blockId);
@@ -72,7 +80,7 @@ public class MiningRecipeBuilder {
 
         var candidate = new ConfiguredEntry(
                 ctx.depositBlockId(),
-                new ConfiguredRecipe(ctx.depositBlockId(), replacementBlockId, durability, List.copyOf(yields)),
+                new ConfiguredRecipe(ctx.depositBlockId(), dimension, replacementBlockId, durability, List.copyOf(yields)),
                 ctx.isEnabled
         );
         var existing = RECIPES.stream()
@@ -80,11 +88,9 @@ public class MiningRecipeBuilder {
                 .findFirst()
                 .orElse(null);
 
-        if (existing == null) {
+        if (existing == null || !existing.recipe.dimension.location().equals(dimension.location())) {
             RECIPES.add(candidate);
-            return;
-        }
-        if (!existing.equals(candidate)) {
+        } else if (existing != null) {
             throw new IllegalStateException("Conflicting dynamic mining recipe definition already exists: " +
                     ctx.depositBlockId());
         }
@@ -99,6 +105,7 @@ public class MiningRecipeBuilder {
 
     public record ConfiguredRecipe(
             ResourceLocation depositBlockId,
+            ResourceKey<Level> dimension,
             @Nullable ResourceLocation replacementBlockId,
             @Nullable DepositDurability durability,
             List<YieldBuilder.ConfiguredYield> yields

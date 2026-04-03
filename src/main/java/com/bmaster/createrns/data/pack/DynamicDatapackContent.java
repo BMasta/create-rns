@@ -7,6 +7,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
@@ -24,6 +25,10 @@ public class DynamicDatapackContent {
 
         Dimension(String suffix) {
             this.suffix = suffix;
+        }
+
+        public String getSuffix() {
+            return suffix;
         }
 
         public String appendTo(String base) {
@@ -194,9 +199,16 @@ public class DynamicDatapackContent {
             var recipeEntries = getEnabledRecipes();
             var files = new ArrayList<DatapackFile>(recipeEntries.size());
             for (var def : recipeEntries) {
+                var dim = def.recipe().dimension();
+                var filename = def.recipeId().getPath();
+                if (!dim.equals(Level.OVERWORLD)) filename += "_" + dim.location().getPath();
                 var root = new JsonObject();
+
                 root.addProperty("type", CreateRNS.ID + ":mining");
                 root.addProperty("deposit_block", def.recipe().depositBlockId().toString());
+                if (dim != Level.OVERWORLD) {
+                    root.addProperty("dimension", dim.location().toString());
+                }
 
                 if (def.recipe().replacementBlockId() != null) {
                     root.addProperty("replace_when_depleted", def.recipe().replacementBlockId().toString());
@@ -257,7 +269,7 @@ public class DynamicDatapackContent {
                 root.add("yields", yields);
 
                 files.add(new DatapackFile(
-                        MINING_RECIPE_PATH.formatted(def.recipeId().getNamespace(), def.recipeId().getPath()),
+                        MINING_RECIPE_PATH.formatted(def.recipeId().getNamespace(), filename),
                         root
                 ));
             }

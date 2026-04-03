@@ -12,6 +12,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
@@ -30,6 +31,8 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
     public static final MapCodec<MiningRecipe> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
                     BuiltInRegistries.BLOCK.byNameCodec().fieldOf("deposit_block")
                             .forGetter(MiningRecipe::getDepositBlock),
+                    ResourceKey.codec(Registries.DIMENSION).optionalFieldOf("dimension", Level.OVERWORLD)
+                            .forGetter(MiningRecipe::getDimension),
                     BuiltInRegistries.BLOCK.byNameCodec().optionalFieldOf("replace_when_depleted", Blocks.AIR)
                             .forGetter(MiningRecipe::getReplacementBlock),
                     DepositDurability.CODEC.optionalFieldOf("durability", DEFAULT_DURABILITY)
@@ -40,19 +43,25 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
 
     public static final StreamCodec<RegistryFriendlyByteBuf, MiningRecipe> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.registry(Registries.BLOCK), r -> r.depositBlock,
+            ResourceKey.streamCodec(Registries.DIMENSION), r -> r.dimension,
             ByteBufCodecs.registry(Registries.BLOCK), r -> r.replacementBlock,
             DepositDurability.STREAM_CODEC, r -> r.dur,
             ByteBufCodecs.collection(ArrayList::new, Yield.STREAM_CODEC), r -> new ArrayList<>(r.yields),
             MiningRecipe::new);
 
     private final Block depositBlock;
+    private final ResourceKey<Level> dimension;
     private final Block replacementBlock;
     private final DepositDurability dur;
     private List<Yield> yields;
     private boolean isInitialized = false;
 
-    public MiningRecipe(Block depositBlock, Block replacementBlock, DepositDurability dur, List<Yield> yields) {
+    public MiningRecipe(
+            Block depositBlock, ResourceKey<Level> dimension, Block replacementBlock,
+            DepositDurability dur, List<Yield> yields
+    ) {
         this.depositBlock = depositBlock;
+        this.dimension = dimension;
         this.replacementBlock = replacementBlock;
         this.dur = dur;
         this.yields = yields;
@@ -72,6 +81,10 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
 
     public DepositDurability getDurability() {
         return dur;
+    }
+
+    public ResourceKey<Level> getDimension() {
+        return dimension;
     }
 
     public boolean initialize(RegistryAccess access) {

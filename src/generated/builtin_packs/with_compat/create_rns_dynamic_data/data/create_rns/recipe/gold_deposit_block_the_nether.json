@@ -1,6 +1,7 @@
 {
   "type": "create_rns:mining",
-  "deposit_block": "create_rns:quartz_deposit_block",
+  "deposit_block": "create_rns:gold_deposit_block",
+  "dimension": "minecraft:the_nether",
   "replace_when_depleted": "create_rns:depleted_deposit_block",
   "durability": {
     "core": 200000,
@@ -11,7 +12,20 @@
     {
       "items": [
         {
-          "item": "minecraft:cobblestone"
+          "item": "minecraft:netherrack"
+        }
+      ]
+    },
+    {
+      "items": [
+        {
+          "item": "minecraft:soul_sand"
+        },
+        {
+          "item": "minecraft:soul_soil"
+        },
+        {
+          "item": "minecraft:magma_block"
         }
       ]
     },
@@ -30,18 +44,7 @@
       "chance": 0.5,
       "items": [
         {
-          "item": "minecraft:quartz"
-        }
-      ],
-      "catalysts": [
-        "overclock"
-      ]
-    },
-    {
-      "chance": 0.5,
-      "items": [
-        {
-          "item": "minecraft:quartz"
+          "item": "minecraft:gold_nugget"
         }
       ],
       "catalysts": [
@@ -64,13 +67,10 @@
       "jei_slot_color": -8031553
     },
     {
-      "chance": 0.5,
+      "chance": 0.05,
       "items": [
         {
-          "item": [
-            "#c:gems/certus_quartz",
-            "minecraft:quartz"
-          ]
+          "item": "minecraft:raw_gold"
         }
       ],
       "catalysts": [
