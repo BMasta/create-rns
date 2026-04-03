@@ -92,7 +92,7 @@
 * System interaction: scanner discovery can run under a scanner-only locate context consumed by a `ChunkGenerator` mixin hook, allowing
   structure candidates to be filtered (for example, already found deposits) without changing vanilla locate traversal order.
 * System interaction: scanner structure-search region radius is inferred from the structure set spacing value computed on server startup from the loaded deposit structure-set placement.
-* Data and assets: target types are data-driven via `deposit_spec` datapack entries (`scanner_icon_item_candidates`, optional `scanner_icon_tag_candidates`, optional `map_icon_item`, and `structure`), not hardcoded.
+* Data and assets: target types are data-driven via `deposit_spec` datapack entries (`scanner_icon_item`, `map_icon_item`, and `structure`), not hardcoded. Both icon fields use the shared ordered item-fallback format, so each one may be authored as either a single item id or a fallback list containing item ids and item tags.
 * Data and assets: scanner visuals/sounds are client assets; authoritative target selection and found-state mutation are server-side.
 * Maintenance invariant: tracking depends on a prior discovery cache entry and should remain cheap (no structure search per ping).
 * Known limitation: request handling assumes selected scanner icon maps to a valid deposit spec; invalid icon payloads are not defensively handled.
@@ -133,7 +133,7 @@
 * Edge behavior: weighted item entries log an error and are discarded when none of their item or tag candidates resolves to a real item, and yields fail initialization if any referenced catalyst name does not resolve to a loaded catalyst entry.
 * Edge behavior: compat-gated mining recipes follow the same runtime-vs-dump enable rules as compat deposit worldgen, so default built-in-pack dumps exclude them while compat-enabled dumps include them.
 * Core behavior: code-defined mining recipes are registered as immutable configured entries through `MiningRecipeBuilder`, with recipe ids derived from their deposit block ids.
-* Core behavior: registration is colocated with deposit definitions through `DepositBlockBuilder.recipe(...)`, so a deposit block and its dynamic mining recipe can stay authored in the same chain.
+* Core behavior: registration is colocated with deposit definitions through the shared `DepositBlockBuilder.attach(...)` builder chain plus `MiningRecipeBuilder`, so a deposit block and its dynamic mining recipe can stay authored in the same chain.
 * Core behavior: the main built-in dynamic datapack serializes enabled configured mining recipes into normal `recipe/*.json` files at pack-build time, leaving recipe loading itself to vanilla recipe handling.
 * Core behavior: yield initialization now validates catalyst-name references against the loaded `CatalystRequirementSet` registry before the yield becomes usable, so typoed catalyst names cannot silently survive until runtime consumption.
 * System interaction: builder-defined recipe emission is independent from Registrate recipe generation and does not go through `RNSRecipes`; the shared bootstrap path is `RNSDeposits.register()` in both game runtime and dump tooling.
@@ -161,7 +161,7 @@
 * Player perspective: scanner target icons and supported map-overlay icons are still driven by `deposit_spec` datapack entries, but the mod's default deposit specs now come from the built-in dynamic datapack instead of handwritten resource files.
 * Player perspective: compat deposit types contribute their scanner/map metadata automatically when the corresponding deposit is enabled, and disappear from defaults when that compat deposit is absent.
 * Core behavior: code-defined deposit specs are registered as immutable configured entries through `DepositSpecBuilder`, with spec ids derived from the deposit structure registration chain and map icons defaulting to the deposit block item unless overridden.
-* Core behavior: registration is colocated with deposit definitions through `DepositBlockBuilder.spec(...)`, so worldgen structure identity, scanner icon candidates, and map icon metadata stay authored in the same chain.
+* Core behavior: registration is colocated with deposit definitions through the shared `DepositBlockBuilder.attach(...)` builder chain plus `DepositSpecBuilder`, so worldgen structure identity, scanner icon fallback candidates, and map icon metadata stay authored in the same chain.
 * System interaction: scanner selection, discovery naming, and map overlay item rendering continue to resolve through the `DepositSpec` datapack registry and `DepositSpecLookup`; this feature changes how default JSON is authored and emitted, not how lookup works at runtime.
 * System interaction: compat-gated deposit specs must stay aligned with the same enable checks used by compat deposit worldgen and mining recipes so scanner targets never outlive their corresponding structures.
 * Data and assets: runtime behavior remains datapack-driven; the main built-in dynamic datapack now serializes enabled configured deposit specs into normal registry JSON files at pack-build time.

@@ -7,6 +7,7 @@ import com.bmaster.createrns.content.deposit.spec.DepositSpec;
 import com.bmaster.createrns.content.deposit.worldgen.DepositStructure;
 import com.bmaster.createrns.util.CodecHelper;
 import com.bmaster.createrns.util.DumpedCodecHelper;
+import com.mojang.serialization.DataResult;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.tags.TagFile;
@@ -49,8 +50,20 @@ public class BuiltinPackCodecDumpTest {
         DumpedCodecHelper.assertRoundTrips(helper, files, DepositSpec.CODEC,
                 CodecHelper.registries(helper), "dumped deposit spec",
                 DumpedCodecHelper::identity);
-        DumpedCodecHelper.assertItemAndTagCandidatesResolve(helper, files, "scanner_icon_item_candidates",
-                "scanner_icon_tag_candidates", "deposit spec");
+        DumpedCodecHelper.assertItemWithFallbackFieldsResolve(helper, files, "scanner_icon_item",
+                "dumped deposit spec");
+        DumpedCodecHelper.assertItemWithFallbackFieldsResolve(helper, files, "map_icon_item",
+                "dumped deposit spec");
+        for (var path : files) {
+            var root = DumpedCodecHelper.readJson(path);
+            var parseResult = DepositSpec.CODEC.parse(CodecHelper.registries(helper), root);
+            var spec = parseResult.result().orElse(null);
+            helper.assertTrue(spec != null,
+                    "Expected dumped deposit spec parse success for " + path + ", got: "
+                            + parseResult.error().map(error -> error.message()).orElse("unknown codec error"));
+            helper.assertTrue(spec != null && spec.initialize(helper.getLevel().registryAccess()),
+                    "Expected dumped deposit spec to initialize successfully for " + path);
+        }
         helper.succeed();
     }
 

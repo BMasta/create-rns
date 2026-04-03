@@ -73,7 +73,7 @@ public class RNSDeposits {
                     .transform(sharedResonanceYields())
                     .save())
             .attach(ctx -> DepositSpecBuilder.create(ctx)
-                    .scannerIconVanillaItem("raw_iron")
+                    .scannerIconItem("raw_iron")
                     .save())
             .register();
 
@@ -84,7 +84,7 @@ public class RNSDeposits {
                     .transform(bulkDepositStructure(2))
                     .save())
             .attach(ctx -> DepositSpecBuilder.create(ctx)
-                    .scannerIconVanillaItem("raw_copper")
+                    .scannerIconItem("raw_copper")
                     .save())
             .attach(ctx -> MiningRecipeBuilder.create(ctx)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
@@ -106,7 +106,7 @@ public class RNSDeposits {
                     .transform(preciousDepositStructure(2))
                     .save())
             .attach(ctx -> DepositSpecBuilder.create(ctx)
-                    .scannerIconItem(Create.ID, "raw_zinc")
+                    .scannerIconItem(Create.ID + ":raw_zinc")
                     .save())
             .attach(id -> MiningRecipeBuilder.create(id)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
@@ -130,7 +130,7 @@ public class RNSDeposits {
                     .transform(preciousDepositStructure(2))
                     .save())
             .attach(ctx -> DepositSpecBuilder.create(ctx)
-                    .scannerIconVanillaItem("raw_gold")
+                    .scannerIconItem("raw_gold")
                     .save())
             .attach(id -> MiningRecipeBuilder.create(id)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
@@ -150,7 +150,7 @@ public class RNSDeposits {
                     .transform(preciousDepositStructure(2))
                     .save())
             .attach(ctx -> DepositSpecBuilder.create(ctx)
-                    .scannerIconVanillaItem("redstone")
+                    .scannerIconItem("redstone")
                     .save())
             .attach(id -> MiningRecipeBuilder.create(id)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
@@ -286,7 +286,7 @@ public class RNSDeposits {
                     .transform(preciousDepositStructure(1))
                     .save())
             .attach(ctx -> DepositSpecBuilder.create(ctx)
-                    .scannerIconItem(Mods.NEW_AGE.ID, "thorium")
+                    .scannerIconItem(Mods.NEW_AGE.ID + ":thorium")
                     .transform(scannerIconTagCandidates("thorium"))
                     .save())
             .attach(ctx -> MiningRecipeBuilder.create(ctx)
@@ -311,7 +311,7 @@ public class RNSDeposits {
                     .transform(bulkNetherDepositStructure(1))
                     .save())
             .attach(ctx -> DepositSpecBuilder.create(ctx)
-                    .scannerIconVanillaItem("quartz")
+                    .scannerIconItem("quartz")
                     .save())
             .attach(id -> MiningRecipeBuilder.create(id)
                     .replaceWhenDepleted(CreateRNS.ID + ":depleted_deposit_block")
@@ -421,10 +421,10 @@ public class RNSDeposits {
 
     private static UnaryOperator<DepositSpecBuilder> scannerIconTagCandidates(String material) {
         return b -> b
-                .scannerIconCommonTag("raw_materials/" + material)
-                .scannerIconCommonTag("ores/" + material)
-                .scannerIconCommonTag("ingots/" + material)
-                .scannerIconCommonTag("nuggets/" + material);
+                .scannerIconItem("#forge:raw_materials/" + material)
+                .scannerIconItem("#forge:ores/" + material)
+                .scannerIconItem("#forge:ingots/" + material)
+                .scannerIconItem("#forge:nuggets/" + material);
     }
 
     private static UnaryOperator<MiningRecipeBuilder> addYield(

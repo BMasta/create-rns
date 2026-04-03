@@ -273,25 +273,35 @@ public class DynamicDatapackContent {
             var files = new ArrayList<DatapackFile>(specEntries.size());
             for (var def : specEntries) {
                 var root = new JsonObject();
+                var spec = def.spec();
 
-                if (!def.spec().scannerIconItemCandidates().isEmpty()) {
-                    var itemCandidates = new JsonArray();
-                    for (var rl : def.spec().scannerIconItemCandidates()) {
-                        itemCandidates.add(rl.toString());
+                var scannerIconCandidates = spec.scannerIconCandidates().stream()
+                        .map(c -> c.contains(":") ? c : "minecraft:" + c)
+                        .toList();
+                if (scannerIconCandidates.size() == 1) {
+                    root.addProperty("scanner_icon_item", scannerIconCandidates.get(0));
+                } else {
+                    var candidates = new JsonArray();
+                    for (var id : scannerIconCandidates) {
+                        candidates.add(id);
                     }
-                    root.add("scanner_icon_item_candidates", itemCandidates);
+                    root.add("scanner_icon_item", candidates);
                 }
 
-                if (!def.spec().scannerIconTagCandidates().isEmpty()) {
-                    var tagCandidates = new JsonArray();
-                    for (var tag : def.spec().scannerIconTagCandidates()) {
-                        tagCandidates.add(tag.toString());
+                var mapIconCandidates = spec.mapIconCandidates().stream()
+                        .map(c -> c.contains(":") ? c : "minecraft:" + c)
+                        .toList();
+                if (mapIconCandidates.size() == 1) {
+                    root.addProperty("map_icon_item", mapIconCandidates.get(0));
+                } else {
+                    var candidates = new JsonArray();
+                    for (var id : mapIconCandidates) {
+                        candidates.add(id);
                     }
-                    root.add("scanner_icon_tag_candidates", tagCandidates);
+                    root.add("map_icon_item", candidates);
                 }
 
-                root.addProperty("map_icon_item", def.spec().mapIconItemId().toString());
-                root.addProperty("structure", def.spec().structureId().toString());
+                root.addProperty("structure", spec.structureId().toString());
 
                 var path = DEPOSIT_SPEC_PATH.formatted(def.specId().getNamespace(), CreateRNS.ID,
                         DEPOSIT_SPEC_REGISTRY.getPath() + "/" + def.specId().getPath());

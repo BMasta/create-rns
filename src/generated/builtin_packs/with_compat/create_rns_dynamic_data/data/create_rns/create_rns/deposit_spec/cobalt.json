@@ -1,9 +1,9 @@
 {
-  "scanner_icon_tag_candidates": [
-    "forge:raw_materials/cobalt",
-    "forge:ores/cobalt",
-    "forge:ingots/cobalt",
-    "forge:nuggets/cobalt"
+  "scanner_icon_item": [
+    "#forge:raw_materials/cobalt",
+    "#forge:ores/cobalt",
+    "#forge:ingots/cobalt",
+    "#forge:nuggets/cobalt"
   ],
   "map_icon_item": "create_rns:cobalt_deposit_block",
   "structure": "create_rns:deposit_cobalt"
