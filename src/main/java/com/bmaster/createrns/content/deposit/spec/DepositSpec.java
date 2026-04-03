@@ -1,17 +1,15 @@
 package com.bmaster.createrns.content.deposit.spec;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.util.codec.ItemWithFallbacks;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -19,18 +17,15 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.List;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class DepositSpec {
     public static final Codec<DepositSpec> CODEC = RecordCodecBuilder.create(i -> i.group(
-            ResourceLocation.CODEC.listOf().optionalFieldOf("scanner_icon_item_candidates", List.of())
-                    .forGetter(ds -> ds.scannerIconItemRls),
-            TagKey.codec(Registries.ITEM).listOf().optionalFieldOf("scanner_icon_tag_candidates", List.of())
-                    .forGetter(ds -> ds.scannerIconTags),
-            BuiltInRegistries.ITEM.byNameCodec().fieldOf("map_icon_item")
-                    .forGetter(ds -> ds.mapIcon.getItem()),
+            ItemWithFallbacks.STRICT_CODEC.fieldOf("scanner_icon_item")
+                    .forGetter(ds -> ds.scannerIconItemData),
+            ItemWithFallbacks.STRICT_CODEC.fieldOf("map_icon_item")
+                    .forGetter(ds -> ds.mapIconItemData),
             ResourceLocation.CODEC.fieldOf("structure")
                     .forGetter(ds -> ds.structure)
     ).apply(i, DepositSpec::new));
@@ -39,19 +34,16 @@ public class DepositSpec {
             ResourceKey.createRegistryKey(CreateRNS.asResource("deposit_spec"));
 
     public final ResourceLocation structure;
-    protected final List<ResourceLocation> scannerIconItemRls;
-    protected final List<TagKey<Item>> scannerIconTags;
-    protected final ItemStack mapIcon;
-    protected Item scannerIcon = null;
+    protected final ItemWithFallbacks scannerIconItemData;
+    protected final ItemWithFallbacks mapIconItemData;
+    protected ItemStack mapIcon;
 
     public DepositSpec(
-            List<ResourceLocation> scannerIconItemRls, List<TagKey<Item>> scannerIconTags, Item mapIconItem,
-            ResourceLocation structure
+            ItemWithFallbacks scannerIconItemData, ItemWithFallbacks mapIconItemData, ResourceLocation structure
     ) {
-        this.scannerIconItemRls = scannerIconItemRls;
-        this.scannerIconTags = scannerIconTags;
         this.structure = structure;
-        this.mapIcon = new ItemStack(mapIconItem);
+        this.scannerIconItemData = scannerIconItemData;
+        this.mapIconItemData = mapIconItemData;
     }
 
     public ResourceKey<Structure> structureKey() {
@@ -59,29 +51,14 @@ public class DepositSpec {
     }
 
     public boolean initialize(RegistryAccess access) {
-        if (scannerIconItemRls.isEmpty() && scannerIconTags.isEmpty()) {
-            throw new IllegalArgumentException("Deposit spec must define at least one scanner icon item or a tag");
-        }
-
-        for (var rl : scannerIconItemRls) {
-            scannerIcon = BuiltInRegistries.ITEM.getOptional(rl).orElse(null);
-            if (scannerIcon == Items.AIR) scannerIcon = null;
-            if (scannerIcon != null) return true;
-        }
-
-        for (var tag : scannerIconTags) {
-            // Pick the first item from the tag. "First" is determined by the order in which the items were tagged.
-            var hs = access.lookupOrThrow(Registries.ITEM).get(tag).orElse(null);
-            scannerIcon = (hs != null) ? hs.stream().map(Holder::value).findFirst().orElse(null) : null;
-            if (scannerIcon == Items.AIR) scannerIcon = null;
-            if (scannerIcon != null) return true;
-        }
-
-        return false;
+        if (!scannerIconItemData.resolve(access, false)) return false;
+        if (!mapIconItemData.resolve(access, false)) return false;
+        this.mapIcon = new ItemStack(mapIconItemData.item);
+        return scannerIconItemData.item != Items.AIR && mapIconItemData.item != Items.AIR;
     }
 
-    public @Nullable Item getIcon() {
-        return scannerIcon;
+    public @Nullable Item getScannerIcon() {
+        return (scannerIconItemData.item != Items.AIR) ? scannerIconItemData.item : null;
     }
 
     public ItemStack getMapIcon() {

@@ -168,14 +168,14 @@ See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create
   // Binds the spec to a structure id used by scanner discovery and display naming.
   // Lang entry your_pack.structure.deposit_tin is used as the structure name.
   "structure": "your_pack:deposit_tin",
+  // Item/Block to render when this deposit structure is selected in deposit scanner.
+  "scanner_icon_item": "your_pack:raw_tin",
+  // ..or
+  "scanner_icon_item": "#c:raw_materials/tin",
+  // ..or (item is resolved in the order the entries are specified)
+  "scanner_icon_item": ["your_pack:raw_tin", "#c:raw_materials/tin", "your_pack:tin_ore"],
   // Item/block to render on a map for found deposits (if a map mod is installed).
   "map_icon_item": "your_pack:tin_deposit_block",
-  // Either field is optional, but at least one item or tag must be specified.
-  // Item/Block to render when this deposit structure is selected in deposit scanner.
-  // Item candidates are tried in listed order until an existing item is found.
-  // Tag candidates are tried after items, in listed order. The first item in a tag becomes the scanner icon.
-  "scanner_icon_item_candidates": ["your_pack:raw_tin"],
-  "scanner_icon_tag_candidates": ["c:raw_materials/tin", "c:ores/tin"],
 }
 ```
 

@@ -2,10 +2,7 @@ package com.bmaster.createrns.data.pack;
 
 import com.bmaster.createrns.data.pack.DepositBlockBuilder.DepositBuildingContext;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.Item;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
@@ -28,32 +25,15 @@ public class DepositSpecBuilder {
     }
 
     private final DepositBuildingContext ctx;
-    private final List<ResourceLocation> scannerIconItemCandidates = new ArrayList<>();
-    private final List<TagKey<Item>> scannerIconTagCandidates = new ArrayList<>();
+    private final List<String> scannerIconItemCandidates = new ArrayList<>();
 
-    public DepositSpecBuilder scannerIconVanillaItem(String name) {
-        if (name.contains(":")) throw new IllegalArgumentException("Item name cannot contain namespace");
-        scannerIconItemCandidates.add(ResourceLocation.parse(name));
+    public DepositSpecBuilder scannerIconItem(String candidateId) {
+        scannerIconItemCandidates.add(candidateId);
         return this;
     }
 
-    public DepositSpecBuilder scannerIconItem(String namespace, String name) {
-        scannerIconItemCandidates.add(ResourceLocation.parse(namespace + ":" + name));
-        return this;
-    }
-
-    public DepositSpecBuilder scannerIconCommonTag(String tagId) {
-        scannerIconTagCandidates.add(TagKey.create(Registries.ITEM, ResourceLocation.parse("c:" + tagId)));
-        return this;
-    }
-
-    public DepositSpecBuilder scannerIconVanillaTag(String tagId) {
-        scannerIconTagCandidates.add(TagKey.create(Registries.ITEM, ResourceLocation.parse(tagId)));
-        return this;
-    }
-
-    public DepositSpecBuilder scannerIconTag(String namespace, String tagId) {
-        scannerIconTagCandidates.add(TagKey.create(Registries.ITEM, ResourceLocation.parse(namespace + ":" + tagId)));
+    public DepositSpecBuilder scannerIconItem(List<String> candidateIds) {
+        scannerIconItemCandidates.addAll(candidateIds);
         return this;
     }
 
@@ -62,16 +42,15 @@ public class DepositSpecBuilder {
     }
 
     public void save() {
-        if (scannerIconItemCandidates.isEmpty() && scannerIconTagCandidates.isEmpty()) {
-            throw new IllegalStateException("Deposit spec must define at least one scanner icon item or tag");
+        if (scannerIconItemCandidates.isEmpty()) {
+            throw new IllegalStateException("Deposit spec must define a scanner icon");
         }
 
         var candidate = new ConfiguredEntry(
                 ctx.depositSpecId(),
                 new ConfiguredSpec(
                         List.copyOf(scannerIconItemCandidates),
-                        List.copyOf(scannerIconTagCandidates),
-                        ctx.depositBlockId(),
+                        List.of(ctx.depositBlockId().toString()),
                         ctx.depositStructureId()
                 ),
                 ctx.isEnabled
@@ -99,9 +78,8 @@ public class DepositSpecBuilder {
     }
 
     public record ConfiguredSpec(
-            List<ResourceLocation> scannerIconItemCandidates,
-            List<TagKey<Item>> scannerIconTagCandidates,
-            ResourceLocation mapIconItemId,
+            List<String> scannerIconCandidates,
+            List<String> mapIconCandidates,
             ResourceLocation structureId
     ) {
     }

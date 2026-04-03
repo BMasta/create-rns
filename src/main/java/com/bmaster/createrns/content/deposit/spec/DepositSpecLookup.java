@@ -44,7 +44,7 @@ public class DepositSpecLookup {
             var spec = e.getValue();
             spec.initialize(access);
 
-            var scannerIcon = spec.getIcon();
+            var scannerIcon = spec.getScannerIcon();
             if (scannerIcon != null && BuiltInRegistries.ITEM.getKeyOrNull(scannerIcon) != null) {
                 if (scannerIconToSpec.containsKey(scannerIcon)) {
                     throw new KeyAlreadyExistsException("Found multiple deposit specs with the same scanner icon");
@@ -100,7 +100,7 @@ public class DepositSpecLookup {
                         if (structure == null) return false;
                         return !sl.getChunkSource().getGeneratorState().getPlacementsForStructure(structure).isEmpty();
                     })
-                    .map(k -> structureKeyToSpec.get(k).getIcon())
+                    .map(k -> structureKeyToSpec.get(k).getScannerIcon())
                     .collect(Collectors.toCollection(ArrayList::new)));
         }
         return dimToIcons;

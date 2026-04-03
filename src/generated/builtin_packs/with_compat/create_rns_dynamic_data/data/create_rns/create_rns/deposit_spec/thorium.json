@@ -1,12 +1,10 @@
 {
-  "scanner_icon_item_candidates": [
-    "create_new_age:thorium"
-  ],
-  "scanner_icon_tag_candidates": [
-    "c:raw_materials/thorium",
-    "c:ores/thorium",
-    "c:ingots/thorium",
-    "c:nuggets/thorium"
+  "scanner_icon_item": [
+    "create_new_age:thorium",
+    "#c:raw_materials/thorium",
+    "#c:ores/thorium",
+    "#c:ingots/thorium",
+    "#c:nuggets/thorium"
   ],
   "map_icon_item": "create_rns:thorium_deposit_block",
   "structure": "create_rns:deposit_thorium"
