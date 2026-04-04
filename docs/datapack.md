@@ -1,11 +1,11 @@
-# Creating a Datapack
+# Creating a Datapack - 1.0.x - MC 1.20.1
 
 This document covers what parts of Create: Rock & Stone are datapack-driven and can be overridden or extended.
 
 ## What You Can Override
 * Mining recipes (mining rewards, resource uses for finite deposits, what to replace with when depleted, how recipe is displayed in JEI).
 * Catalysts (custom requirements for mining certain kinds of items from a deposit).
-* Deposit world generation (spawn rate, structure nbt, deposit scanner icon)
+* Deposit world generation (spawn rate, structure nbt, deposit scanner icon).
 
 ## Default Configuration
 
@@ -27,7 +27,7 @@ and tweak the separation and spacing.
 
 ## Mining Recipe
 
-Path: `data/your_pack/recipe/tin_deposit_block.json`
+Path: `data/create_rns/recipe/tin_deposit_block.json`
 
 ```json5
 {
@@ -92,7 +92,7 @@ Path: `data/your_pack/recipe/tin_deposit_block.json`
 
 ## Catalyst
 
-Path: `data/your_pack/create_rns/catalyst/ultimate_resonance.json`
+Path: `data/create_rns/create_rns/catalyst/ultimate_resonance.json`
 
 ```json5
 {
@@ -140,7 +140,7 @@ Path: `data/your_pack/create_rns/catalyst/ultimate_resonance.json`
 
 ### 1. Deposit Spec
 
-Path: `data/your_pack/create_rns/deposit_spec/tin.json`
+Path: `data/create_rns/create_rns/deposit_spec/tin.json`
 
 ```json5
 {
@@ -154,13 +154,13 @@ Path: `data/your_pack/create_rns/deposit_spec/tin.json`
 
 ### 2. Structure
 
-Path: `data/your_pack/worldgen/structure/deposit_tin.json`.
+Path: `data/create_rns/worldgen/structure/deposit_tin.json`.
 
 See `src/generated/create_rns_dynamic_data/data/create_rns/worldgen/structure` for examples.
 
 ### 3. Template Pool Start
 
-Path: `data/your_pack/worldgen/template_pool/deposit_tin/start.json`.
+Path: `data/create_rns/worldgen/template_pool/deposit_tin/start.json`.
 
 See `src/generated/create_rns_dynamic_data/data/create_rns/worldgen/template_pool` for examples.
 
@@ -168,14 +168,14 @@ See `src/generated/create_rns_dynamic_data/data/create_rns/worldgen/template_poo
 The deposit nbt's contain deposits made of end stone.
 To convert it to your deposit blocks of choice, a custom processor is needed.
 
-Path: `data/your_pack/worldgen/processor_list/replace_with_your_pack_tin_deposit_block.json`
+Path: `data/create_rns/worldgen/processor_list/replace_with_your_pack_tin_deposit_block.json`
 
 See `src/generated/create_rns_dynamic_data/data/create_rns/worldgen/processor_list` for examples.
 
 
 ### 5. Structure Set
 
-Path: `data/your_pack/worldgen/structure_set/deposits.json`.
+Path: `data/create_rns/worldgen/structure_set/deposits.json`.
 
 The `deposits` structure set contains all deposit structures so they share the same distribution logic.
 `structure_set` files do not support partial appends (`replace: false` style behavior).
