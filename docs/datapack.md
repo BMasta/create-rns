@@ -1,11 +1,14 @@
-# Creating a Datapack
+# Creating a Datapack - UNRELEASED
 
 This document covers what parts of Create: Rock & Stone are datapack-driven and can be overridden or extended.
+
+_**The following content is for the unreleased version of the mod. Click [here](https://github.com/BMasta/create-rns/blob/main/docs/datapack.md)
+to see this doc for released versions.**_
 
 ## What You Can Override
 * Mining recipes (mining rewards, resource uses for finite deposits, what to replace with when depleted, how recipe is displayed in JEI).
 * Catalysts (custom requirements for mining certain kinds of items from a deposit).
-* Deposit world generation (spawn rate, structure nbt, deposit scanner icon, map overlay icon)
+* Deposit world generation (spawn rate, structure nbt, deposit scanner icon, map overlay icon).
 
 ## Default Configuration
 
@@ -25,13 +28,13 @@ Deposit spawn rate is influenced by these parameters:
 
 See https://minecraft.fandom.com/wiki/Custom_structure for more details.
 
-Easiest solution that works in most cases - copy the default structure set from
-`src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure_set/deposits.json`
-and tweak the separation and spacing.
+Easiest solution that works in most cases - copy the default structure set from \
+`src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure_set/deposits.json` \
+Remove the deposits you don't want, then tweak the separation and spacing.
 
 ## Mining Recipe
 
-Path: `data/your_pack/recipe/tin_deposit_block.json`
+Path: `data/create_rns/recipe/tin_deposit_block.json`
 
 See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/recipe` for examples.
 
@@ -114,7 +117,7 @@ The runtime format is still the same JSON shown below, and datapacks can overrid
 
 ## Catalyst
 
-Path: `data/your_pack/create_rns/catalyst/ultimate_resonance.json`
+Path: `data/create_rns/create_rns/catalyst/ultimate_resonance.json`
 
 See `src/main/resources/data/create_rns/create_rns/catalyst` for examples.
 
@@ -163,7 +166,7 @@ See `src/main/resources/data/create_rns/create_rns/catalyst` for examples.
 
 ### 1. Deposit Spec
 
-Path: `data/your_pack/create_rns/deposit_spec/tin.json`
+Path: `data/create_rns/create_rns/deposit_spec/tin.json`
 
 See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/create_rns/deposit_spec` for examples.
 
@@ -188,7 +191,7 @@ See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create
 
 ### 2. Structure
 
-Path: `data/your_pack/worldgen/structure/deposit_tin.json`.
+Path: `data/create_rns/worldgen/structure/deposit_tin.json`.
 
 See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure` for examples.
 
@@ -229,14 +232,14 @@ See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create
 The deposit nbt's contain deposits made of end stone.
 To convert it to your deposit blocks of choice, a custom processor is needed.
 
-Path: `data/your_pack/worldgen/processor_list/replace_with_your_pack_tin_deposit_block.json`
+Path: `data/create_rns/worldgen/processor_list/replace_with_your_pack_tin_deposit_block.json`
 
 See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/processor_list` for examples.
 
 
 ### 4. Structure Set
 
-Path: `data/your_pack/worldgen/structure_set/deposits.json`.
+Path: `data/create_rns/worldgen/structure_set/deposits.json`.
 
 The `deposits` structure set contains all deposit structures so they share the same distribution logic.
 `structure_set` files do not support partial appends (`replace: false` style behavior).
