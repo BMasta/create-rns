@@ -42,8 +42,12 @@ The runtime format is still the same JSON shown below, and datapacks can overrid
 {
   "type": "create_rns:mining",
   // Deposit blocks must be tagged with #create_rns:deposit_blocks to work properly.
-  // Only one recipe per block is allowed.
+  // Only one recipe with the same deposit block and dimension is allowed.
   "deposit_block": "your_pack:tin_deposit_block",
+  // Optional (default "minecraft:overworld")
+  // This recipe will be prioritized by deposits in specified dimension. 
+  // Additionally, it will show in a special dimension-specific tab in JEI.
+  "dimension": "minecraft:the_nether",
   // Optional (default minecraft:air).
   // When finite deposits are enabled and the deposit block runs out of resources, it will be
   // replaced with this block. This block does not have to be tagged as a deposit block.
@@ -165,9 +169,12 @@ See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create
 
 ```json5
 {
-  // Binds the spec to a structure id used by scanner discovery and display naming.
+  // Binds this spec to a structure id.
   // Lang entry your_pack.structure.deposit_tin is used as the structure name.
   "structure": "your_pack:deposit_tin",
+  // Optional (default minecraft:overworld)
+  // Should match the dimension of the deposit structure.
+  "dimension": "minecraft:the_nether",
   // Item/Block to render when this deposit structure is selected in deposit scanner.
   "scanner_icon_item": "your_pack:raw_tin",
   // ..or

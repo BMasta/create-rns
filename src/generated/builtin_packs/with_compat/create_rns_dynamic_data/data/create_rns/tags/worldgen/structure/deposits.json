@@ -4,6 +4,7 @@
     "create_rns:deposit_copper",
     "create_rns:deposit_zinc",
     "create_rns:deposit_gold",
+    "create_rns:deposit_nether_gold",
     "create_rns:deposit_redstone",
     "create_rns:deposit_tin",
     "create_rns:deposit_lead",
@@ -11,7 +12,7 @@
     "create_rns:deposit_silver",
     "create_rns:deposit_uranium",
     "create_rns:deposit_thorium",
-    "create_rns:deposit_quartz",
-    "create_rns:deposit_cobalt"
+    "create_rns:deposit_nether_quartz",
+    "create_rns:deposit_nether_cobalt"
   ]
 }

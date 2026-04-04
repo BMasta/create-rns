@@ -37,7 +37,7 @@ public class DepositScannerServerHandler {
     public static void processScanRequest(ServerPlayer sp, Item icon, RequestType rt) {
         if (!(sp.level() instanceof ServerLevel sl)) return;
 
-        var structKey = DepositSpecLookup.getStructureKey(sl.registryAccess(), icon);
+        var structKey = DepositSpecLookup.getStructureKey(sl, icon);
         if (structKey == null) {
             PacketDistributor.sendToPlayer(sp, new DepositScannerS2CPayload(
                     AntennaStatus.INACTIVE, HeightStatus.UNKNOWN, MAX_PING_INTERVAL, false, rt));

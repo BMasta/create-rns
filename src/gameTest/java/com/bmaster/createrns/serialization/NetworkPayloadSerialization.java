@@ -2,8 +2,6 @@ package com.bmaster.createrns.serialization;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.info.sync.*;
-import com.bmaster.createrns.content.deposit.scanning.DepositIconsC2SPayload;
-import com.bmaster.createrns.content.deposit.scanning.DepositIconsS2CPayload;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerC2SPayload;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler.AntennaStatus;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler.HeightStatus;
@@ -25,9 +23,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.network.connection.ConnectionType;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @GameTestHolder(CreateRNS.ID)
 @PrefixGameTestTemplate(false)
@@ -91,23 +87,6 @@ public class NetworkPayloadSerialization {
         helper.assertValueEqual(restoredC2s.rt(), RequestType.TRACK, "scanner request type");
         helper.assertValueEqual(roundTrip(DepositScannerS2CPayload.STREAM_CODEC, s2c, level.registryAccess()), s2c,
                 "restored scanner reply payload");
-        helper.succeed();
-    }
-
-    @GameTest(template = "empty16x16")
-    public void depositIconsPayloadsRoundTrip(GameTestHelper helper) {
-        var level = helper.getLevel();
-        var icons = new DepositIconsS2CPayload(Map.of(
-                level.dimension(), new ArrayList<>(List.of(Items.RAW_IRON, Items.REDSTONE))
-        ));
-
-        helper.assertValueEqual(roundTrip(DepositIconsS2CPayload.STREAM_CODEC, icons, level.registryAccess()), icons,
-                "restored deposit icons payload");
-        helper.assertTrue(
-                roundTrip(DepositIconsC2SPayload.STREAM_CODEC, DepositIconsC2SPayload.INSTANCE, level.registryAccess())
-                        == DepositIconsC2SPayload.INSTANCE,
-                "Deposit icon request payload should round-trip to its singleton instance"
-        );
         helper.succeed();
     }
 

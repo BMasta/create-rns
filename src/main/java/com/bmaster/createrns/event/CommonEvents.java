@@ -7,8 +7,6 @@ import com.bmaster.createrns.content.deposit.info.sync.FoundDepositDeltaS2CPaylo
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsClearS2CPayload;
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsSnapshotC2SPayload;
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsSnapshotS2CPayload;
-import com.bmaster.createrns.content.deposit.scanning.DepositIconsC2SPayload;
-import com.bmaster.createrns.content.deposit.scanning.DepositIconsS2CPayload;
 import com.bmaster.createrns.data.pack.MiningRecipeBuilder;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerC2SPayload;
@@ -73,18 +71,13 @@ public class CommonEvents {
     @SubscribeEvent
     public static void onRegisterPayloadHandlers(final RegisterPayloadHandlersEvent event) {
         // set a network version string (optional but recommended)
-        PayloadRegistrar registrar = event.registrar("4");
+        PayloadRegistrar registrar = event.registrar("5");
 
         // Client->Server
         registrar.playToServer(
                 DepositScannerC2SPayload.TYPE,
                 DepositScannerC2SPayload.STREAM_CODEC,
                 DepositScannerC2SPayload::handle
-        );
-        registrar.playToServer(
-                DepositIconsC2SPayload.TYPE,
-                DepositIconsC2SPayload.STREAM_CODEC,
-                DepositIconsC2SPayload::handle
         );
         registrar.playToServer(
                 FoundDepositsSnapshotC2SPayload.TYPE,
@@ -97,11 +90,6 @@ public class CommonEvents {
                 DepositScannerS2CPayload.TYPE,
                 DepositScannerS2CPayload.STREAM_CODEC,
                 DepositScannerS2CPayload::handle
-        );
-        registrar.playToClient(
-                DepositIconsS2CPayload.TYPE,
-                DepositIconsS2CPayload.STREAM_CODEC,
-                DepositIconsS2CPayload::handle
         );
         registrar.playToClient(
                 FoundDepositsSnapshotS2CPayload.TYPE,

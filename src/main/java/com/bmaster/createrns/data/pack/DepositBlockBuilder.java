@@ -75,8 +75,8 @@ public class DepositBlockBuilder {
             return CreateRNS.asResource(depositKeyword + "_deposit_block");
         }
 
-        public ResourceLocation depositStructureId() {
-            return CreateRNS.asResource("deposit_" + depositKeyword);
+        public ResourceLocation depositStructureId(DepositDimension dimension) {
+            return CreateRNS.asResource("deposit_" + dimension.prefix() + depositKeyword);
         }
 
         public ResourceLocation depositSpecId() {

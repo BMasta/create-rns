@@ -7,12 +7,12 @@
   },
   "structures": [
     {
-      "structure": "create_rns:deposit_quartz",
-      "weight": 50
+      "structure": "create_rns:deposit_nether_gold",
+      "weight": 100
     },
     {
-      "structure": "create_rns:deposit_cobalt",
-      "weight": 20
+      "structure": "create_rns:deposit_nether_quartz",
+      "weight": 50
     }
   ]
 }

@@ -1,17 +1,12 @@
 package com.bmaster.createrns.content.deposit.spec;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -20,57 +15,59 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.management.openmbean.KeyAlreadyExistsException;
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class DepositSpecLookup {
-    private static Map<Item, DepositSpec> scannerIconToSpec;
+    private static Map<Item, Map<ResourceKey<Level>, DepositSpec>> scannerIconToDimToSpec;
     private static Map<ResourceKey<Structure>, DepositSpec> structureKeyToSpec;
-    private static Set<ResourceKey<Structure>> allStructureKeys;
-    // Server
-    private @Nullable static Map<ResourceKey<Level>, ArrayList<Item>> dimToIcons = null;
-    // Client
-    private static Map<ResourceKey<Level>, List<Item>> dimToIconsCached = Map.of();
+    private static Map<ResourceKey<Level>,List<Item>> dimToScannerIcons;
 
     public static void build(RegistryAccess access) {
         var regEntries = access.registryOrThrow(DepositSpec.REGISTRY_KEY).entrySet();
 
-        scannerIconToSpec = new HashMap<>(regEntries.size());
-        structureKeyToSpec = new HashMap<>(regEntries.size());
+        scannerIconToDimToSpec = new HashMap<>();
+        structureKeyToSpec = HashMap.newHashMap(regEntries.size());
+        dimToScannerIcons = new HashMap<>();
         regEntries.forEach(e -> {
             var spec = e.getValue();
             spec.initialize(access);
 
             var scannerIcon = spec.getScannerIcon();
-            if (scannerIcon != null && BuiltInRegistries.ITEM.getKeyOrNull(scannerIcon) != null) {
-                if (scannerIconToSpec.containsKey(scannerIcon)) {
-                    throw new KeyAlreadyExistsException("Found multiple deposit specs with the same scanner icon");
-                }
-                scannerIconToSpec.put(scannerIcon, spec);
+            if (scannerIcon == null) return;
+
+            var dimSpecs = scannerIconToDimToSpec.computeIfAbsent(scannerIcon, ignored -> new HashMap<>());
+            if (dimSpecs.containsKey(spec.dimension)) {
+                throw new KeyAlreadyExistsException("Found deposit spec with the same scanner icon: " + scannerIcon +
+                        " (" + spec.dimension.location() + ")");
             }
+            dimSpecs.put(spec.dimension, spec);
 
             var structureKey = spec.structureKey();
             if (structureKeyToSpec.containsKey(structureKey)) {
-                throw new KeyAlreadyExistsException("Found multiple deposit specs with the same structure");
+                throw new KeyAlreadyExistsException("Found deposit spec with the same structure: " + spec.structure);
             }
             structureKeyToSpec.put(structureKey, spec);
+            dimToScannerIcons.computeIfAbsent(spec.dimension, ignored -> new ArrayList<>())
+                    .add(scannerIcon);
         });
-
-        allStructureKeys = structureKeyToSpec.keySet().stream().collect(Collectors.toUnmodifiableSet());
     }
 
-    public static @Nullable ResourceKey<Structure> getStructureKey(RegistryAccess access, Item scannerIconItem) {
-        if (scannerIconToSpec == null) build(access);
-        var spec = scannerIconToSpec.get(scannerIconItem);
+    public static @Nullable ResourceKey<Structure> getStructureKey(Level l, Item scannerIconItem) {
+        if (scannerIconToDimToSpec == null) build(l.registryAccess());
+        var dimSpecs = scannerIconToDimToSpec.get(scannerIconItem);
+        if (dimSpecs == null) return null;
+        var spec = dimSpecs.get(l.dimension());
         if (spec == null) return null;
-        return scannerIconToSpec.get(scannerIconItem).structureKey();
+        return spec.structureKey();
     }
 
-    public static MutableComponent getDepositName(RegistryAccess access, Item scannerIconItem) {
-        var key = getStructureKey(access, scannerIconItem);
+    public static MutableComponent getDepositName(Level l, Item scannerIconItem) {
+        var key = getStructureKey(l, scannerIconItem);
         if (key == null) return Component.empty();
         return getDepositName(key);
     }
@@ -88,41 +85,8 @@ public class DepositSpecLookup {
         return Component.translatable(dRL.getNamespace() + ".structure." + dRL.getPath());
     }
 
-    public static Map<ResourceKey<Level>, ArrayList<Item>> getScannerIcons(MinecraftServer server) {
-        if (dimToIcons != null) return dimToIcons;
-
-        if (allStructureKeys == null) build(server.registryAccess());
-        dimToIcons = new Object2ObjectOpenHashMap<>();
-        for (var sl : server.getAllLevels()) {
-            dimToIcons.put(sl.dimension(), allStructureKeys.stream()
-                    .filter(k -> {
-                        var structure = sl.registryAccess().registryOrThrow(Registries.STRUCTURE).getHolder(k).orElse(null);
-                        if (structure == null) return false;
-                        return !sl.getChunkSource().getGeneratorState().getPlacementsForStructure(structure).isEmpty();
-                    })
-                    .map(k -> structureKeyToSpec.get(k).getScannerIcon())
-                    .collect(Collectors.toCollection(ArrayList::new)));
-        }
-        return dimToIcons;
-    }
-
-    public static List<Item> getScannerIcons(ClientLevel cl) {
-        return dimToIconsCached.getOrDefault(cl.dimension(), Collections.emptyList());
-    }
-
-    public static void setScannerIcons(Map<ResourceKey<Level>, ? extends List<Item>> icons) {
-        dimToIconsCached = icons.entrySet().stream()
-                .collect(Collectors.toUnmodifiableMap(
-                        Map.Entry::getKey,
-                        entry -> List.copyOf(entry.getValue())
-                ));
-    }
-
-    public static Predicate<Structure> isDeposit(RegistryAccess access) {
-        if (allStructureKeys == null) build(access);
-        var reg = access.registryOrThrow(Registries.STRUCTURE);
-
-        return (Structure checkedStructure) ->
-                reg.getResourceKey(checkedStructure).filter(allStructureKeys::contains).isPresent();
+    public static List<Item> getScannerIcons(Level l) {
+        if (dimToScannerIcons == null) build(l.registryAccess());
+        return dimToScannerIcons.get(l.dimension());
     }
 }

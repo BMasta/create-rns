@@ -1,0 +1,22 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "separation": 2,
+    "spacing": 6,
+    "salt": 781087034
+  },
+  "structures": [
+    {
+      "structure": "create_rns:deposit_nether_gold",
+      "weight": 100
+    },
+    {
+      "structure": "create_rns:deposit_nether_quartz",
+      "weight": 50
+    },
+    {
+      "structure": "create_rns:deposit_nether_cobalt",
+      "weight": 20
+    }
+  ]
+}
