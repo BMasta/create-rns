@@ -22,6 +22,12 @@ public class AttachmentCatalystRequirement extends CatalystRequirement {
                     StrictOptionalField.of("count", Codec.intRange(0, Integer.MAX_VALUE), 1)
                             .forGetter(c -> c.count))
             .apply(i, AttachmentCatalystRequirement::new));
+    public static final Codec<AttachmentCatalystRequirement> STREAM_CODEC = RecordCodecBuilder.create(i -> i.group(
+                    ExtendedHomogenousList.networkOf(Registries.BLOCK).fieldOf("attachment")
+                            .forGetter(c -> c.attachment),
+                    StrictOptionalField.of("count", Codec.INT, 1)
+                            .forGetter(c -> c.count))
+            .apply(i, AttachmentCatalystRequirement::new));
 
     protected static final Set<Class<? extends Catalyst>> RELEVANT_CATALYST_TYPES = Set.of(AttachmentCatalyst.class);
 

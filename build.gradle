@@ -174,7 +174,7 @@ dependencies {
     compileOnly(fg.deobf("curse.maven:journeymap-${journeymap_version}"))
     compileOnly(fg.deobf("curse.maven:xaeros-world-map-${xaero_worldmap_version}"))
 
-    runtimeOnly(fg.deobf("dev.emi:emi-forge:${emi_version}+${minecraft_version}"))
+//    runtimeOnly(fg.deobf("dev.emi:emi-forge:${emi_version}+${minecraft_version}"))
     runtimeOnly(fg.deobf("curse.maven:journeymap-${journeymap_version}"))
     runtimeOnly(fg.deobf("curse.maven:xaeros-world-map-${xaero_worldmap_version}"))
 }

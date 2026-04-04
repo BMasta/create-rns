@@ -1,15 +1,20 @@
 package com.bmaster.createrns.codec.invariants;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.AttachmentCatalyst;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.AttachmentCatalystRequirement;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.FluidCatalystRequirement;
 import com.bmaster.createrns.util.CodecHelper;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
+
+import java.util.List;
 
 @GameTestHolder(CreateRNS.ID)
 @PrefixGameTestTemplate(false)
@@ -54,6 +59,56 @@ public class CatalystRequirementSetCodecTest {
                 "representative fluid requirement fluid");
         CodecHelper.assertValueEqual(helper, fluidRequirement.fluidStack.getAmount(), 20,
                 "representative fluid requirement amount");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty16x16")
+    public void networkCodecFlattensAttachmentTags(GameTestHelper helper) {
+        var requirementSet = CodecHelper.assertParses(helper, CatalystRequirementSet.CODEC,
+                CodecHelper.registries(helper), """
+                        {
+                          "name": "resonance",
+                          "requirements": [
+                            {
+                              "type": "attachment",
+                              "attachment": "#minecraft:planks",
+                              "count": 2
+                            }
+                          ]
+                        }
+                        """, "tag-backed catalyst requirement set");
+
+        var encodedResult = CatalystRequirementSet.STREAM_CODEC.encodeStart(CodecHelper.registries(helper), requirementSet);
+        var error = encodedResult.error().orElse(null);
+        helper.assertTrue(error == null,
+                "Expected catalyst requirement set network encode success, got: "
+                        + ((error != null) ? error.message() : "unknown codec error"));
+        var encoded = encodedResult.result().orElse(null);
+        helper.assertTrue(encoded != null, "Expected catalyst requirement set network encode result");
+
+        var attachment = encoded.getAsJsonObject()
+                .getAsJsonArray("requirements").get(0).getAsJsonObject()
+                .get("attachment");
+        helper.assertTrue(attachment.isJsonArray(),
+                "Network-encoded attachment requirement should flatten tags into direct block ids");
+
+        var restoredResult = CatalystRequirementSet.STREAM_CODEC.parse(CodecHelper.registries(helper), encoded);
+        var restoredError = restoredResult.error().orElse(null);
+        helper.assertTrue(restoredError == null,
+                "Expected catalyst requirement set network decode success, got: "
+                        + ((restoredError != null) ? restoredError.message() : "unknown codec error"));
+        var restored = restoredResult.result().orElse(null);
+        helper.assertTrue(restored != null, "Expected restored catalyst requirement set");
+        CodecHelper.assertValueEqual(helper, restored.requirements.size(), 1, "restored requirement count");
+
+        var attachmentRequirement = CodecHelper.assertInstanceOf(helper, AttachmentCatalystRequirement.class,
+                restored.requirements.get(0), "restored network catalyst requirement");
+        helper.assertTrue(attachmentRequirement.attachment.unwrapKey().isEmpty(),
+                "Network-decoded attachment requirement should not require a live tag binding");
+        helper.assertTrue(attachmentRequirement.isSatisfiedBy(List.of(new AttachmentCatalyst(Blocks.OAK_PLANKS, 2))),
+                "Flattened network attachment requirement should still match tag members");
+        helper.assertFalse(attachmentRequirement.isSatisfiedBy(List.of(new AttachmentCatalyst(Blocks.STONE, 2))),
+                "Flattened network attachment requirement should still reject non-members");
         helper.succeed();
     }
 

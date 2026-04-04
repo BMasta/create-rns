@@ -38,6 +38,22 @@ public class CatalystRequirementSet {
             CatalystRequirement.CODEC.listOf().fieldOf("requirements")
                     .forGetter(crs -> crs.requirements)
     ).apply(i, CatalystRequirementSet::new));
+    public static final Codec<CatalystRequirementSet> STREAM_CODEC = RecordCodecBuilder.create(i -> i.group(
+            Codec.STRING.fieldOf("name")
+                    .forGetter(crs -> crs.name),
+            StrictOptionalField.of("chance_multiplier", Codec.FLOAT, 1f)
+                    .forGetter(crs -> crs.chanceMult),
+            StrictOptionalField.of("optional", Codec.BOOL, false)
+                    .forGetter(crs -> crs.optional),
+            StrictOptionalField.of("display_priority", Codec.INT, Integer.MAX_VALUE)
+                    .forGetter(crs -> crs.displayPriority),
+            StrictOptionalField.of("representative_items", ForgeRegistries.ITEMS.getCodec().listOf(), List.of())
+                    .forGetter(crs -> crs.representativeItems),
+            StrictOptionalField.of("hide_if_present", Codec.STRING.listOf(), List.of())
+                    .forGetter(crs -> crs.hideIfPresent),
+            CatalystRequirement.STREAM_CODEC.listOf().fieldOf("requirements")
+                    .forGetter(crs -> crs.requirements)
+    ).apply(i, CatalystRequirementSet::new));
 
     public static final ResourceKey<Registry<CatalystRequirementSet>> REGISTRY_KEY =
             ResourceKey.createRegistryKey(CreateRNS.asResource("catalyst"));
