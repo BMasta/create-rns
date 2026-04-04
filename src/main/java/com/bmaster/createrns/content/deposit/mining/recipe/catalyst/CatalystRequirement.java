@@ -15,6 +15,11 @@ public abstract class CatalystRequirement {
             CatalystRequirement::type,
             CatalystRequirementType::codec
     );
+    public static final Codec<CatalystRequirement> STREAM_CODEC = CatalystRequirementType.STREAM_CODEC.dispatch(
+            "type",
+            CatalystRequirement::type,
+            CatalystRequirementType::streamCodec
+    );
 
     public abstract CatalystRequirementType<?> type();
 

@@ -25,6 +25,15 @@ public class ExtendedHomogenousList {
 
     // Keep holder-set authoring stable across 1.20 and 1.21 by accepting a single id, a list of ids, or a tag.
     public static <T> Codec<HolderSet<T>> of(ResourceKey<? extends Registry<T>> registryKey) {
+        return codec(registryKey, true);
+    }
+
+    // Tags do not reliably survive custom datapack registry sync on Forge 1.20, so flatten them for network use.
+    public static <T> Codec<HolderSet<T>> networkOf(ResourceKey<? extends Registry<T>> registryKey) {
+        return codec(registryKey, false);
+    }
+
+    private static <T> Codec<HolderSet<T>> codec(ResourceKey<? extends Registry<T>> registryKey, boolean preserveTags) {
         var sourceCodec = Codec.either(
                 tagKeyCodec(registryKey),
                 Codec.either(ResourceLocation.CODEC, ResourceLocation.CODEC.listOf())
@@ -39,7 +48,7 @@ public class ExtendedHomogenousList {
 
             @Override
             public <U> DataResult<U> encode(HolderSet<T> input, DynamicOps<U> ops, U prefix) {
-                return encodeSource(input).flatMap(source -> sourceCodec.encode(source, ops, prefix));
+                return encodeSource(input, preserveTags).flatMap(source -> sourceCodec.encode(source, ops, prefix));
             }
         };
     }
@@ -97,8 +106,14 @@ public class ExtendedHomogenousList {
     }
 
     private static <T> DataResult<Either<TagKey<T>, Either<ResourceLocation, List<ResourceLocation>>>> encodeSource(
-            HolderSet<T> holderSet
+            HolderSet<T> holderSet, boolean preserveTags
     ) {
+        if (!preserveTags) {
+            return holdersToIds(holderSet).map(ids -> (ids.size() == 1)
+                    ? Either.right(Either.left(ids.get(0)))
+                    : Either.right(Either.right(ids)));
+        }
+
         return holderSet.unwrap().map(
                 tagKey -> DataResult.success(Either.left(tagKey)),
                 holders -> holdersToIds(holders).map(ids -> (ids.size() == 1)
@@ -107,8 +122,8 @@ public class ExtendedHomogenousList {
         );
     }
 
-    private static <T> DataResult<List<ResourceLocation>> holdersToIds(List<Holder<T>> holders) {
-        var ids = new ArrayList<ResourceLocation>(holders.size());
+    private static <T> DataResult<List<ResourceLocation>> holdersToIds(Iterable<Holder<T>> holders) {
+        var ids = new ArrayList<ResourceLocation>();
         for (var holder : holders) {
             var key = holder.unwrapKey().orElse(null);
             if (key == null) {
