@@ -28,15 +28,15 @@ Deposit spawn rate is influenced by these parameters:
 
 See https://minecraft.fandom.com/wiki/Custom_structure for more details.
 
-Easiest solution that works in most cases - copy the default structure set from \
-`src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure_set/deposits.json` \
-Remove the deposits you don't want, then tweak the separation and spacing.
+Easiest solution that works in most cases - copy the [default structure sets](
+../src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure_set),
+remove the deposits you don't want, then tweak the separation and spacing.
 
 ## Mining Recipe
 
 Path: `data/create_rns/recipe/tin_deposit_block.json`
 
-See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/recipe` for examples.
+See [default recipes](../src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/recipes) for reference.
 
 Default mining recipes shipped by the mod are authored in code and emitted into the mod's main built-in datapack.
 The runtime format is still the same JSON shown below, and datapacks can override the recipe by providing a file with the same recipe id.
@@ -119,7 +119,7 @@ The runtime format is still the same JSON shown below, and datapacks can overrid
 
 Path: `data/create_rns/create_rns/catalyst/ultimate_resonance.json`
 
-See `src/main/resources/data/create_rns/create_rns/catalyst` for examples.
+See [default catalysts](../src/main/resources/data/create_rns/create_rns/catalyst) for reference.
 
 ```json5
 {
@@ -168,7 +168,7 @@ See `src/main/resources/data/create_rns/create_rns/catalyst` for examples.
 
 Path: `data/create_rns/create_rns/deposit_spec/tin.json`
 
-See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/create_rns/deposit_spec` for examples.
+See [default deposit specs](../src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/create_rns/deposit_spec) for reference.
 
 ```json5
 {
@@ -193,7 +193,7 @@ See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create
 
 Path: `data/create_rns/worldgen/structure/deposit_tin.json`.
 
-See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure` for examples.
+See [default structures](../src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure) for reference.
 
 ```json5
 {
@@ -234,7 +234,7 @@ To convert it to your deposit blocks of choice, a custom processor is needed.
 
 Path: `data/create_rns/worldgen/processor_list/replace_with_your_pack_tin_deposit_block.json`
 
-See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/processor_list` for examples.
+See [default processors](../src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/processor_list) for reference.
 
 
 ### 4. Structure Set
@@ -252,14 +252,14 @@ Copy the default file and add all extra deposit structures from your modpack to 
 2. Create your own structure set (recommended when pack priority is uncertain).
 If other datapacks may also override `create_rns:deposits`, define a separate structure set in your own namespace/path and put your custom deposits there.
 
-See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure_set/deposits.json`
+See [default structure sets](../src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure_set/deposits.json)
 for the default set.
 
 ### 5. Structure Tag
 
 Path: `data/create_rns/tags/worldgen/structure/deposits.json`
 
-See `src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/tags/worldgen/structure/deposits.json` for the default tag.
+See [default structure tag](../src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/tags/worldgen/structure/deposits.json) for reference.
 
 ```json5
 {
