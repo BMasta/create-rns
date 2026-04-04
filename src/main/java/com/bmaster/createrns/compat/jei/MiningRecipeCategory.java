@@ -25,7 +25,6 @@ import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
-import net.createmod.catnip.lang.LangBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
@@ -38,7 +37,6 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -85,34 +83,13 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
                         .component());
             }
 
-            // If yield contains more than one item, print how many items are in the same group
-            if (output.itemsInGroup > 1) {
-                tooltip.add(CreateRNS.lang().translate("jei.item_in_group", output.itemsInGroup).component());
-            }
-
             // No tooltips needed. Item is always mined.
             if (output.chance * output.weightRatio == 1) return;
 
-            Function<LangBuilder, LangBuilder> forGroup = l -> output.weightRatio == 1 ? l :
-                    l.space().translate("jei.for_group");
-            Function<LangBuilder, LangBuilder> forItem = l ->
-                    l.space().translate("jei.for_item");
-
-            var minChanceGroup = Utils.fancyChanceArg(output.chance).style(ChatFormatting.GOLD);
             var minChanceItem = Utils.fancyChanceArg(output.chance * output.weightRatio).style(ChatFormatting.GOLD);
-
-            // Min chance for group
-            tooltip.add(forGroup.apply(CreateRNS.lang()
-                    .translate("jei.chance", minChanceGroup)
-                    .style(ChatFormatting.GRAY)).component());
-
-            // Group/item chances are equivalent
-            if (output.weightRatio == 1) return;
-
-            // Min chance for item
-            tooltip.add(forItem.apply(CreateRNS.lang()
+            tooltip.add(CreateRNS.lang()
                     .translate("jei.chance", minChanceItem)
-                    .style(ChatFormatting.GRAY)).component());
+                    .style(ChatFormatting.GRAY).component());
         };
     }
 
