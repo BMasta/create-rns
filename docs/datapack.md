@@ -1,9 +1,6 @@
-# Creating a Datapack - UNRELEASED
+# Creating a Datapack - 1.1.x - MC 1.20.1
 
 This document covers what parts of Create: Rock & Stone are datapack-driven and can be overridden or extended.
-
-_**The following content is for the unreleased version of the mod. Click [here](https://github.com/BMasta/create-rns/blob/main/docs/datapack.md)
-to see this doc for released versions.**_
 
 ## What You Can Override
 * Mining recipes (mining rewards, resource uses for finite deposits, what to replace with when depleted, how recipe is displayed in JEI).
