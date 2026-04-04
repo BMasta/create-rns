@@ -197,7 +197,7 @@ public class DepositScannerClientHandler {
         var selectedItem = getSelectedItem();
         if (selectedItem == null) return;
 
-        player.displayClientMessage(DepositSpecLookup.getDepositName(player.level().registryAccess(),
+        player.displayClientMessage(DepositSpecLookup.getDepositName(player.level(),
                 selectedItem.getItem()), true);
     }
 

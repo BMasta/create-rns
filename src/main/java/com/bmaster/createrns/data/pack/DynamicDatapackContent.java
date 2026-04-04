@@ -16,25 +16,6 @@ import java.util.function.Supplier;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class DynamicDatapackContent {
-    public enum Dimension {
-        OVERWORLD(""),
-        NETHER("nether");
-
-        private final String suffix;
-
-        Dimension(String suffix) {
-            this.suffix = suffix;
-        }
-
-        public String getSuffix() {
-            return suffix;
-        }
-
-        public String appendTo(String base) {
-            return (suffix.isEmpty()) ? base : base + "_" + suffix;
-        }
-    }
-
     private static final String DEPOSIT_BIOME_TAG_PATH = "%s/tags/worldgen/biome/%s.json";
     private static final String DEPOSIT_STRUCTURE_TAG_PATH = "%s/tags/worldgen/structure/deposits.json";
     private static final String DEPOSIT_STRUCTURE_SET_PATH = "%s/worldgen/structure_set/%s.json";
@@ -42,10 +23,13 @@ public class DynamicDatapackContent {
     private static final String DEPOSIT_PROCESSOR_LIST_PATH = "%s/worldgen/processor_list/%s.json";
     private static final String MINING_RECIPE_PATH = "%s/recipes/%s.json";
     private static final String DEPOSIT_SPEC_PATH = "%s/%s/%s.json";
+
+    private static final String BIOME_TAG_PREFIX = "has_deposit";
+
     private static final ResourceLocation DEPOSIT_SPEC_REGISTRY = ResourceLocation.fromNamespaceAndPath(
             CreateRNS.ID, "deposit_spec");
 
-    public static Supplier<List<DatapackFile>> depositBiomeTag(Dimension dimension, boolean disableGeneration) {
+    public static Supplier<List<DatapackFile>> depositBiomeTag(DepositDimension dimension, boolean disableGeneration) {
         return () -> {
             var values = new JsonArray();
             var root = new JsonObject();
@@ -70,13 +54,13 @@ public class DynamicDatapackContent {
             root.add("values", values);
 
             return List.of(new DatapackFile(DEPOSIT_BIOME_TAG_PATH.formatted(
-                    CreateRNS.ID, dimension.appendTo("has_deposit")), root));
+                    CreateRNS.ID, BIOME_TAG_PREFIX + dimension.suffix()), root));
         };
     }
 
     public static Supplier<List<DatapackFile>> depositProcessorLists() {
         return () -> {
-            var depositEntries = getEnabledDeposits();
+            var depositEntries = DepositStructureBuilder.getEnabledDeposits();
             var files = new ArrayList<DatapackFile>(depositEntries.size());
             for (var def : depositEntries) {
                 var root = new JsonObject();
@@ -97,7 +81,7 @@ public class DynamicDatapackContent {
                 rule.add("location_predicate", locationPredicate);
 
                 var outputState = new JsonObject();
-                outputState.addProperty("Name", def.depositBlock().toString());
+                outputState.addProperty("Name", def.structure().depositBlock().toString());
                 rule.add("output_state", outputState);
 
                 rules.add(rule);
@@ -106,7 +90,7 @@ public class DynamicDatapackContent {
                 root.add("processors", processors);
 
                 files.add(new DatapackFile(
-                        DEPOSIT_PROCESSOR_LIST_PATH.formatted(CreateRNS.ID, processorName(def.depositBlock())),
+                        DEPOSIT_PROCESSOR_LIST_PATH.formatted(CreateRNS.ID, processorName(def.structure().depositBlock())),
                         root
                 ));
             }
@@ -117,39 +101,35 @@ public class DynamicDatapackContent {
     public static Supplier<List<DatapackFile>> depositStructures() {
         return () -> {
             var files = new ArrayList<DatapackFile>();
-            for (var d : Dimension.values()) {
-                var depositEntries = getEnabledDeposits(d);
-                for (var def : depositEntries) {
-                    var root = new JsonObject();
-                    root.addProperty("type", CreateRNS.ID + ":deposit");
-                    root.addProperty("biomes", d.appendTo("#" + CreateRNS.ID + ":has_deposit"));
-                    root.addProperty("placement_strategy", switch (d) {
-                        case OVERWORLD -> "overworld";
-                        case NETHER -> "nether";
-                    });
+            var depositEntries = DepositStructureBuilder.getEnabledDeposits();
+            for (var def : depositEntries) {
+                var filename = def.structure().dimension().prefix() + def.name();
+                var root = new JsonObject();
+                root.addProperty("type", CreateRNS.ID + ":deposit");
+                root.addProperty("biomes", "#" + CreateRNS.ID + ":" + BIOME_TAG_PREFIX + def.structure().dimension().suffix());
+                root.addProperty("placement_strategy", def.structure().dimension().placement().getSerializedName());
 
-                    int height = -def.depth();
-                    if (def.depthDeviation() == 0) {
-                        root.addProperty("height", height);
-                    } else {
-                        var heightRange = new JsonObject();
-                        heightRange.addProperty("min", height - def.depthDeviation());
-                        heightRange.addProperty("max", height + def.depthDeviation());
-                        root.add("height", heightRange);
-                    }
-
-                    var structures = new JsonArray();
-                    for (var tw : def.weightedTemplates()) {
-                        var structure = new JsonObject();
-                        structure.addProperty("id", tw.template().toString());
-                        structure.addProperty("weight", tw.weight());
-                        structure.addProperty("processor", CreateRNS.ID + ":" + processorName(def.depositBlock()));
-                        structures.add(structure);
-                    }
-                    root.add("structures", structures);
-
-                    files.add(new DatapackFile(DEPOSIT_STRUCTURE_PATH.formatted(CreateRNS.ID, def.name()), root));
+                int height = -def.structure().depth();
+                if (def.structure().depthDeviation() == 0) {
+                    root.addProperty("height", height);
+                } else {
+                    var heightRange = new JsonObject();
+                    heightRange.addProperty("min", height - def.structure().depthDeviation());
+                    heightRange.addProperty("max", height + def.structure().depthDeviation());
+                    root.add("height", heightRange);
                 }
+
+                var structures = new JsonArray();
+                for (var tw : def.structure().weightedTemplates()) {
+                    var structure = new JsonObject();
+                    structure.addProperty("id", tw.template().toString());
+                    structure.addProperty("weight", tw.weight());
+                    structure.addProperty("processor", CreateRNS.ID + ":" + processorName(def.structure().depositBlock()));
+                    structures.add(structure);
+                }
+                root.add("structures", structures);
+
+                files.add(new DatapackFile(DEPOSIT_STRUCTURE_PATH.formatted(CreateRNS.ID, filename), root));
             }
             return files;
         };
@@ -159,16 +139,16 @@ public class DynamicDatapackContent {
         return () -> {
             var root = new JsonObject();
             var values = new JsonArray();
-            for (var def : getEnabledDeposits()) {
-                values.add(CreateRNS.ID + ":deposit_" + def.name());
+            for (var def : DepositStructureBuilder.getEnabledDeposits()) {
+                values.add(CreateRNS.ID + ":deposit_" + def.structure().dimension().prefix() + def.name());
             }
             root.add("values", values);
             return List.of(new DatapackFile(DEPOSIT_STRUCTURE_TAG_PATH.formatted(CreateRNS.ID), root));
         };
     }
 
-    public static Supplier<List<DatapackFile>> depositStructureSet(Dimension dimension,
-            int separation, int spacing, int salt
+    public static Supplier<List<DatapackFile>> depositStructureSet(
+            DepositDimension dimension, int separation, int spacing, int salt
     ) {
         return () -> {
             var root = new JsonObject();
@@ -181,49 +161,48 @@ public class DynamicDatapackContent {
             root.add("placement", placement);
 
             var structures = new JsonArray();
-            for (var def : getEnabledDeposits(dimension)) {
+            for (var def : DepositStructureBuilder.getEnabledDeposits(dimension)) {
                 var e = new JsonObject();
-                e.addProperty("structure", CreateRNS.ID + ":deposit_" + def.name());
-                e.addProperty("weight", def.weight());
+                e.addProperty("structure", CreateRNS.ID +
+                        ":deposit_" + def.structure().dimension().prefix() + def.name());
+                e.addProperty("weight", def.structure().weight());
                 structures.add(e);
             }
             root.add("structures", structures);
 
             return List.of(new DatapackFile(DEPOSIT_STRUCTURE_SET_PATH.formatted(CreateRNS.ID,
-                    dimension.appendTo("deposits")), root));
+                    dimension.prefix() + "deposits"), root));
         };
     }
 
     public static Supplier<List<DatapackFile>> miningRecipes() {
         return () -> {
-            var recipeEntries = getEnabledRecipes();
-            var files = new ArrayList<DatapackFile>(recipeEntries.size());
-            for (var def : recipeEntries) {
-                var dim = def.recipe().dimension();
-                var filename = def.recipeId().getPath();
-                boolean isOverworld = dim.toString().equals("minecraft:overworld");
-                if (!isOverworld) filename += "_" + dim.getPath();
+            var recipes = MiningRecipeBuilder.getEnabledRecipes();
+            var files = new ArrayList<DatapackFile>(recipes.size());
+            for (var r : recipes) {
+                var dim = r.recipe().dimension();
+                var filename = r.recipe().dimension().prefix() + r.recipeId().getPath();
                 var root = new JsonObject();
 
                 root.addProperty("type", CreateRNS.ID + ":mining");
-                root.addProperty("deposit_block", def.recipe().depositBlockId().toString());
-                if (!isOverworld) {
-                    root.addProperty("dimension", dim.toString());
+                root.addProperty("deposit_block", r.recipe().depositBlockId().toString());
+                if (dim != DepositDimension.OVERWORLD) {
+                    root.addProperty("dimension", dim.levelDimension().toString());
                 }
 
-                if (def.recipe().replacementBlockId() != null) {
-                    root.addProperty("replace_when_depleted", def.recipe().replacementBlockId().toString());
+                if (r.recipe().replacementBlockId() != null) {
+                    root.addProperty("replace_when_depleted", r.recipe().replacementBlockId().toString());
                 }
-                if (def.recipe().durability() != null) {
+                if (r.recipe().durability() != null) {
                     var durability = new JsonObject();
-                    durability.addProperty("core", def.recipe().durability().core());
-                    durability.addProperty("edge", def.recipe().durability().edge());
-                    durability.addProperty("random_spread", def.recipe().durability().randomSpread());
+                    durability.addProperty("core", r.recipe().durability().core());
+                    durability.addProperty("edge", r.recipe().durability().edge());
+                    durability.addProperty("random_spread", r.recipe().durability().randomSpread());
                     root.add("durability", durability);
                 }
 
                 var yields = new JsonArray();
-                for (var yield : def.recipe().yields()) {
+                for (var yield : r.recipe().yields()) {
                     var yieldJson = new JsonObject();
                     if (yield.chance() != 1) {
                         yieldJson.addProperty("chance", yield.chance());
@@ -270,7 +249,7 @@ public class DynamicDatapackContent {
                 root.add("yields", yields);
 
                 files.add(new DatapackFile(
-                        MINING_RECIPE_PATH.formatted(def.recipeId().getNamespace(), filename),
+                        MINING_RECIPE_PATH.formatted(r.recipeId().getNamespace(), filename),
                         root
                 ));
             }
@@ -281,9 +260,10 @@ public class DynamicDatapackContent {
 
     public static Supplier<List<DatapackFile>> depositSpecs() {
         return () -> {
-            var specEntries = getEnabledSpecs();
+            var specEntries = DepositSpecBuilder.getEnabledSpecs();
             var files = new ArrayList<DatapackFile>(specEntries.size());
             for (var def : specEntries) {
+                var filename = def.dimension().prefix() + def.specId().getPath();
                 var root = new JsonObject();
                 var spec = def.spec();
 
@@ -315,8 +295,12 @@ public class DynamicDatapackContent {
 
                 root.addProperty("structure", spec.structureId().toString());
 
+                if (def.dimension() != DepositDimension.OVERWORLD) {
+                    root.addProperty("dimension", def.dimension().levelDimension().toString());
+                }
+
                 var path = DEPOSIT_SPEC_PATH.formatted(def.specId().getNamespace(), CreateRNS.ID,
-                        DEPOSIT_SPEC_REGISTRY.getPath() + "/" + def.specId().getPath());
+                        DEPOSIT_SPEC_REGISTRY.getPath() + "/" + filename);
                 files.add(new DatapackFile(path, root));
             }
             return files;
@@ -325,29 +309,5 @@ public class DynamicDatapackContent {
 
     private static String processorName(ResourceLocation depositBlock) {
         return "replace_with_" + depositBlock.getNamespace() + "_" + depositBlock.getPath();
-    }
-
-    private static List<DepositStructureBuilder.ConfiguredEntry> getEnabledDeposits() {
-        return DepositStructureBuilder.getDeposits().stream()
-                .filter(e -> e.isEnabled().get())
-                .toList();
-    }
-
-    private static List<DepositStructureBuilder.ConfiguredEntry> getEnabledDeposits(Dimension dimension) {
-        return DepositStructureBuilder.getDeposits(dimension).stream()
-                .filter(e -> e.isEnabled().get())
-                .toList();
-    }
-
-    private static List<MiningRecipeBuilder.ConfiguredEntry> getEnabledRecipes() {
-        return MiningRecipeBuilder.getRecipes().stream()
-                .filter(e -> e.isEnabled().get())
-                .toList();
-    }
-
-    private static List<DepositSpecBuilder.ConfiguredEntry> getEnabledSpecs() {
-        return DepositSpecBuilder.getSpecs().stream()
-                .filter(e -> e.isEnabled().get())
-                .toList();
     }
 }

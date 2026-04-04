@@ -6,7 +6,6 @@ import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -20,12 +19,18 @@ public class DepositSpecBuilder {
         return new DepositSpecBuilder(ctx);
     }
 
-    public static List<ConfiguredEntry> getSpecs() {
-        return Collections.unmodifiableList(SPECS);
+    public static List<ConfiguredEntry> getEnabledSpecs() {
+        return SPECS.stream().filter(s -> s.isEnabled.get()).toList();
     }
 
     private final DepositBuildingContext ctx;
     private final List<String> scannerIconItemCandidates = new ArrayList<>();
+    private DepositDimension dimension = DepositDimension.OVERWORLD;
+
+    public DepositSpecBuilder dimension(DepositDimension dimension) {
+        this.dimension = dimension;
+        return this;
+    }
 
     public DepositSpecBuilder scannerIconItem(String candidateId) {
         scannerIconItemCandidates.add(candidateId);
@@ -45,36 +50,24 @@ public class DepositSpecBuilder {
         if (scannerIconItemCandidates.isEmpty()) {
             throw new IllegalStateException("Deposit spec must define a scanner icon");
         }
-
-        var candidate = new ConfiguredEntry(
-                ctx.depositSpecId(),
-                new ConfiguredSpec(
-                        List.copyOf(scannerIconItemCandidates),
-                        List.of(ctx.depositBlockId().toString()),
-                        ctx.depositStructureId()
-                ),
-                ctx.isEnabled
-        );
-        var existing = SPECS.stream()
-                .filter(spec -> spec.specId().equals(ctx.depositSpecId()))
-                .findFirst()
-                .orElse(null);
-
-        if (existing == null) {
-            SPECS.add(candidate);
-            return;
+        for (var existing : SPECS) {
+            if (existing.spec.structureId == ctx.depositStructureId(dimension)) {
+                throw new IllegalStateException("Conflicting deposit spec entry already exists: " +
+                        ctx.depositStructureId(dimension));
+            }
         }
-        if (!existing.equals(candidate)) {
-            throw new IllegalStateException("Conflicting dynamic deposit spec definition already exists: " +
-                    ctx.depositSpecId());
-        }
+        var entry = new ConfiguredEntry(ctx.depositSpecId(), dimension, ctx.isEnabled, new ConfiguredSpec(
+                List.copyOf(scannerIconItemCandidates), List.of(ctx.depositBlockId().toString()), ctx.depositStructureId(dimension)));
+        SPECS.add(entry);
     }
 
     private DepositSpecBuilder(DepositBuildingContext ctx) {
         this.ctx = ctx;
     }
 
-    public record ConfiguredEntry(ResourceLocation specId, ConfiguredSpec spec, Supplier<Boolean> isEnabled) {
+    public record ConfiguredEntry(
+            ResourceLocation specId, DepositDimension dimension, Supplier<Boolean> isEnabled, ConfiguredSpec spec
+    ) {
     }
 
     public record ConfiguredSpec(

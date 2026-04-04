@@ -1,6 +1,7 @@
 package com.bmaster.createrns.content.deposit.spec;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.util.StrictOptionalField;
 import com.bmaster.createrns.util.codec.ItemWithFallbacks;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -13,6 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.Structure;
 
 import javax.annotation.Nullable;
@@ -27,23 +29,28 @@ public class DepositSpec {
             ItemWithFallbacks.STRICT_CODEC.fieldOf("map_icon_item")
                     .forGetter(ds -> ds.mapIconItemData),
             ResourceLocation.CODEC.fieldOf("structure")
-                    .forGetter(ds -> ds.structure)
+                    .forGetter(ds -> ds.structure),
+            StrictOptionalField.of("dimension", ResourceKey.codec(Registries.DIMENSION), Level.OVERWORLD)
+                    .forGetter(ds -> ds.dimension)
     ).apply(i, DepositSpec::new));
 
     public static final ResourceKey<Registry<DepositSpec>> REGISTRY_KEY =
             ResourceKey.createRegistryKey(CreateRNS.asResource("deposit_spec"));
 
     public final ResourceLocation structure;
+    public final ResourceKey<Level> dimension;
     protected final ItemWithFallbacks scannerIconItemData;
     protected final ItemWithFallbacks mapIconItemData;
     protected ItemStack mapIcon;
 
     public DepositSpec(
-            ItemWithFallbacks scannerIconItemData, ItemWithFallbacks mapIconItemData, ResourceLocation structure
+            ItemWithFallbacks scannerIconItemData, ItemWithFallbacks mapIconItemData, ResourceLocation structure,
+            ResourceKey<Level> dimension
     ) {
         this.structure = structure;
         this.scannerIconItemData = scannerIconItemData;
         this.mapIconItemData = mapIconItemData;
+        this.dimension = dimension;
     }
 
     public ResourceKey<Structure> structureKey() {

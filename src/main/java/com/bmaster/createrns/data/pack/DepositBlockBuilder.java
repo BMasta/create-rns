@@ -75,8 +75,8 @@ public class DepositBlockBuilder {
             return ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, depositKeyword + "_deposit_block");
         }
 
-        public ResourceLocation depositStructureId() {
-            return ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, "deposit_" + depositKeyword);
+        public ResourceLocation depositStructureId(DepositDimension dimension) {
+            return ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, "deposit_" + dimension.prefix() + depositKeyword);
         }
 
         public ResourceLocation depositSpecId() {

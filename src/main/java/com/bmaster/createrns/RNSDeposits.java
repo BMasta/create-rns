@@ -4,7 +4,6 @@ import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.compat.Mods;
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.data.pack.*;
-import com.bmaster.createrns.data.pack.DynamicDatapackContent.Dimension;
 import com.bmaster.createrns.data.pack.YieldBuilder.ConfiguredWeightedItem;
 import com.simibubi.create.Create;
 import com.tterrag.registrate.builders.BlockBuilder;
@@ -129,7 +128,14 @@ public class RNSDeposits {
             .attach(ctx -> DepositStructureBuilder.create(ctx)
                     .transform(preciousDepositStructure(2))
                     .save())
+            .attach(ctx -> DepositStructureBuilder.create(ctx)
+                    .transform(bulkNetherDepositStructure(2))
+                    .save())
             .attach(ctx -> DepositSpecBuilder.create(ctx)
+                    .scannerIconItem("raw_gold")
+                    .save())
+            .attach(ctx -> DepositSpecBuilder.create(ctx)
+                    .dimension(DepositDimension.NETHER)
                     .scannerIconItem("raw_gold")
                     .save())
             .attach(id -> MiningRecipeBuilder.create(id)
@@ -320,6 +326,7 @@ public class RNSDeposits {
                     .transform(bulkNetherDepositStructure(1))
                     .save())
             .attach(ctx -> DepositSpecBuilder.create(ctx)
+                    .dimension(DepositDimension.NETHER)
                     .scannerIconItem("quartz")
                     .save())
             .attach(id -> MiningRecipeBuilder.create(id)
@@ -345,6 +352,7 @@ public class RNSDeposits {
                     .transform(preciousNetherDepositStructure(1))
                     .save())
             .attach(ctx -> DepositSpecBuilder.create(ctx)
+                    .dimension(DepositDimension.NETHER)
                     .transform(scannerIconTagCandidates("cobalt"))
                     .save())
             .attach(ctx -> MiningRecipeBuilder.create(ctx)
@@ -385,6 +393,7 @@ public class RNSDeposits {
 
     public static UnaryOperator<DepositStructureBuilder> bulkDepositStructure(int weightMultiplier) {
         return b -> b
+                .dimension(DepositDimension.OVERWORLD)
                 .depth(8)
                 .weight(50 * weightMultiplier)
                 .nbt(DepositStructureBuilder.DEP_MEDIUM, 70)
@@ -393,6 +402,7 @@ public class RNSDeposits {
 
     public static UnaryOperator<DepositStructureBuilder> semiPreciousDepositStructure(int weightMultiplier) {
         return b -> b
+                .dimension(DepositDimension.OVERWORLD)
                 .depth(10)
                 .weight(35 * weightMultiplier)
                 .nbt(DepositStructureBuilder.DEP_SMALL, 30)
@@ -402,6 +412,7 @@ public class RNSDeposits {
 
     public static UnaryOperator<DepositStructureBuilder> preciousDepositStructure(int weightMultiplier) {
         return b -> b
+                .dimension(DepositDimension.OVERWORLD)
                 .depth(12)
                 .weight(20 * weightMultiplier)
                 .nbt(DepositStructureBuilder.DEP_SMALL, 70)
@@ -411,7 +422,7 @@ public class RNSDeposits {
 
     public static UnaryOperator<DepositStructureBuilder> bulkNetherDepositStructure(int weightMultiplier) {
         return b -> b
-                .dimension(Dimension.NETHER)
+                .dimension(DepositDimension.NETHER)
                 .depth(4)
                 .weight(50 * weightMultiplier)
                 .nbt(DepositStructureBuilder.DEP_MEDIUM, 70)
@@ -420,7 +431,7 @@ public class RNSDeposits {
 
     public static UnaryOperator<DepositStructureBuilder> preciousNetherDepositStructure(int weightMultiplier) {
         return b -> b
-                .dimension(Dimension.NETHER)
+                .dimension(DepositDimension.NETHER)
                 .depth(4)
                 .weight(20 * weightMultiplier)
                 .nbt(DepositStructureBuilder.DEP_SMALL, 70)
@@ -457,6 +468,7 @@ public class RNSDeposits {
             UnaryOperator<YieldBuilder> t0, UnaryOperator<YieldBuilder> t1, UnaryOperator<YieldBuilder> t2
     ) {
         return b -> b
+                .dimension(DepositDimension.OVERWORLD)
                 .yield(y -> y.item(List.of("cobblestone")))
                 .yield(y -> y
                         .item(CreateRNS.ID + ":resonant_amethyst")
@@ -487,7 +499,7 @@ public class RNSDeposits {
             UnaryOperator<YieldBuilder> t0, UnaryOperator<YieldBuilder> t1, UnaryOperator<YieldBuilder> t2
     ) {
         return b -> b
-                .dimension("minecraft:the_nether")
+                .dimension(DepositDimension.NETHER)
                 .yield(y -> y.item(List.of("netherrack")))
                 .yield(y -> y
                         .item(List.of("soul_sand"))

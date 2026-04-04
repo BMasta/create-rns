@@ -6,5 +6,6 @@
     "#forge:nuggets/cobalt"
   ],
   "map_icon_item": "create_rns:cobalt_deposit_block",
-  "structure": "create_rns:deposit_cobalt"
+  "structure": "create_rns:deposit_nether_cobalt",
+  "dimension": "minecraft:the_nether"
 }

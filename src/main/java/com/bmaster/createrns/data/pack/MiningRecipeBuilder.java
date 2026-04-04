@@ -27,15 +27,19 @@ public class MiningRecipeBuilder {
         return Collections.unmodifiableList(RECIPES);
     }
 
+    public static List<ConfiguredEntry> getEnabledRecipes() {
+        return RECIPES.stream().filter(r -> r.isEnabled.get()).toList();
+    }
+
     private final DepositBuildingContext ctx;
     private final List<YieldBuilder.ConfiguredYield> yields = new ArrayList<>();
 
-    private ResourceLocation dimension = ResourceLocation.withDefaultNamespace("overworld");
+    private DepositDimension dimension = DepositDimension.OVERWORLD;
     private @Nullable ResourceLocation replacementBlockId;
     private @Nullable DepositDurability durability;
 
-    public MiningRecipeBuilder dimension(String dimension) {
-        this.dimension = ResourceLocation.parse(dimension);
+    public MiningRecipeBuilder dimension(DepositDimension dimension) {
+        this.dimension = dimension;
         return this;
     }
 
@@ -68,42 +72,29 @@ public class MiningRecipeBuilder {
         return transform.apply(this);
     }
 
-    public MiningRecipeBuilder transformIf(boolean condition, UnaryOperator<MiningRecipeBuilder> transform) {
-        if (!condition) return this;
-        return transform.apply(this);
-    }
-
     public void save() {
         if (yields.isEmpty()) throw new IllegalStateException("Mining recipe must define at least one yield");
-
-        var candidate = new ConfiguredEntry(
-                ctx.depositBlockId(),
-                new ConfiguredRecipe(ctx.depositBlockId(), dimension, replacementBlockId, durability, List.copyOf(yields)),
-                ctx.isEnabled
-        );
-        var existing = RECIPES.stream()
-                .filter(recipe -> recipe.recipeId().equals(ctx.depositBlockId()))
-                .findFirst()
-                .orElse(null);
-
-        if (existing == null || !existing.recipe.dimension.equals(dimension)) {
-            RECIPES.add(candidate);
-        } else if (existing != null) {
-            throw new IllegalStateException("Conflicting dynamic mining recipe definition already exists: " +
-                    ctx.depositBlockId());
+        for (var existing : RECIPES) {
+            if (ctx.depositBlockId() == existing.recipe.depositBlockId && dimension == existing.recipe.dimension) {
+                throw new IllegalStateException("Conflicting mining recipe entry already exists: " +
+                        ctx.depositBlockId() + " (" + dimension.getSerializedName() + ")");
+            }
         }
+        var entry = new ConfiguredEntry(ctx.depositBlockId(), ctx.isEnabled, new ConfiguredRecipe(
+                ctx.depositBlockId(), dimension, replacementBlockId, durability, List.copyOf(yields)));
+        RECIPES.add(entry);
     }
 
     private MiningRecipeBuilder(DepositBuildingContext ctx) {
         this.ctx = ctx;
     }
 
-    public record ConfiguredEntry(ResourceLocation recipeId, ConfiguredRecipe recipe, Supplier<Boolean> isEnabled) {
+    public record ConfiguredEntry(ResourceLocation recipeId, Supplier<Boolean> isEnabled, ConfiguredRecipe recipe) {
     }
 
     public record ConfiguredRecipe(
             ResourceLocation depositBlockId,
-            ResourceLocation dimension,
+            DepositDimension dimension,
             @Nullable ResourceLocation replacementBlockId,
             @Nullable DepositDurability durability,
             List<YieldBuilder.ConfiguredYield> yields
