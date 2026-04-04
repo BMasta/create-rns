@@ -15,7 +15,7 @@
     "subtitle": "subtitle.create_rns.scanner_scroll",
     "sounds": [
       {
-        "name": "create:scroll_value",
+        "name": "minecraft:note/hat",
         "type": "file",
         "volume": 0.3,
         "pitch": 2.0
@@ -27,7 +27,7 @@
     "subtitle": "subtitle.create_rns.scanner_click",
     "sounds": [
       {
-        "name": "create:scroll_value",
+        "name": "minecraft:note/hat",
         "type": "file",
         "volume": 1.25,
         "pitch": 1.5

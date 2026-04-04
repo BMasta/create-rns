@@ -5,8 +5,10 @@ import com.bmaster.createrns.content.deposit.mining.contraption.attachment.mineh
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadRenderer;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferRenderer;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferVisual;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ResonatorBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ResonatorRenderer;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ResonatorVisual;
 import com.simibubi.create.content.contraptions.bearing.BearingRenderer;
 import com.simibubi.create.content.contraptions.bearing.BearingVisual;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
@@ -32,6 +34,7 @@ public class RNSBlockEntities {
 
     public static final BlockEntityEntry<ResonatorBlockEntity> RESONATOR = CreateRNS.REGISTRATE
             .blockEntity("resonator", ResonatorBlockEntity::new)
+            .visual(() -> ResonatorVisual::new)
             .validBlocks(RNSBlocks.RESONATOR)
             .validBlocks(RNSBlocks.SHATTERING_RESONATOR)
             .validBlocks(RNSBlocks.STABILIZING_RESONATOR)
@@ -40,6 +43,7 @@ public class RNSBlockEntities {
 
     public static final BlockEntityEntry<ResonanceBufferBlockEntity> RESONANCE_BUFFER = CreateRNS.REGISTRATE
             .blockEntity("resonance_buffer", ResonanceBufferBlockEntity::new)
+            .visual(() -> ResonanceBufferVisual::new)
             .validBlocks(RNSBlocks.RESONANCE_BUFFER)
             .renderer(() -> ResonanceBufferRenderer::new)
             .register();
