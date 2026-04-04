@@ -4,6 +4,8 @@ This document covers what parts of Create: Rock & Stone are datapack-driven and 
 
 _**The following content is for the unreleased version of the mod. See this doc for released versions below:**_
 
+#### [1.1.x - MC 1.21.1](https://github.com/BMasta/create-rns/blob/1.21-1.1.x/docs/datapack.md)
+#### [1.1.x - MC 1.20.1](https://github.com/BMasta/create-rns/blob/1.20-1.1.x/docs/datapack.md)
 #### [1.0.x - MC 1.21.1](https://github.com/BMasta/create-rns/blob/1.21-1.0.x/docs/datapack.md)
 #### [1.0.x - MC 1.20.1](https://github.com/BMasta/create-rns/blob/1.20-1.0.x/docs/datapack.md)
 
