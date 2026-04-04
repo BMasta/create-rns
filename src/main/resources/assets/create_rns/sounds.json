@@ -4,7 +4,7 @@
     "sounds": [
       {
         "name": "create:fwoomp",
-        "type": "event",
+        "type": "file",
         "volume": 1.0,
         "pitch": 2.0
       }
@@ -15,8 +15,8 @@
     "subtitle": "subtitle.create_rns.scanner_scroll",
     "sounds": [
       {
-        "name": "create:scroll_value",
-        "type": "event",
+        "name": "minecraft:note/hat",
+        "type": "file",
         "volume": 0.3,
         "pitch": 2.0
       }
@@ -27,8 +27,8 @@
     "subtitle": "subtitle.create_rns.scanner_click",
     "sounds": [
       {
-        "name": "create:scroll_value",
-        "type": "event",
+        "name": "minecraft:note/hat",
+        "type": "file",
         "volume": 1.25,
         "pitch": 1.5
       }
@@ -51,7 +51,7 @@
     "sounds": [
       {
         "name": "create:desk_bell",
-        "type": "event",
+        "type": "file",
         "volume": 0.3,
         "pitch": 1.0
       }
@@ -62,7 +62,7 @@
     "sounds": [
       {
         "name": "create:desk_bell",
-        "type": "event",
+        "type": "file",
         "volume": 0.3,
         "pitch": 1.5
       }
@@ -73,9 +73,9 @@
     "subtitle": "subtitle.create_rns.scanner_discovery_success",
     "sounds": [
       {
-        "name": "minecraft:block.amethyst_block.chime",
-        "type": "event",
-        "volume": 1.0,
+        "name": "minecraft:block/amethyst/shimmer",
+        "type": "file",
+        "volume": 1.3,
         "pitch": 1.1
       }
     ]
@@ -86,7 +86,7 @@
     "sounds": [
       {
         "name": "create:confirm_2",
-        "type": "event",
+        "type": "file",
         "volume": 0.8,
         "pitch": 1.0
       }
