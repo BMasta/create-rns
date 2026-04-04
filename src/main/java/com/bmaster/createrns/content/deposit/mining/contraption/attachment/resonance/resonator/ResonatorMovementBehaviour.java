@@ -2,8 +2,11 @@ package com.bmaster.createrns.content.deposit.mining.contraption.attachment.reso
 
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.ParticleEmittingMovementBehaviour;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
+import com.simibubi.create.content.contraptions.render.ActorVisual;
 import com.simibubi.create.content.contraptions.render.ContraptionMatrices;
 import com.simibubi.create.foundation.virtualWorld.VirtualRenderWorld;
+import dev.engine_room.flywheel.api.visualization.VisualizationContext;
+import dev.engine_room.flywheel.api.visualization.VisualizationManager;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.Direction;
@@ -12,6 +15,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
@@ -29,10 +33,18 @@ public class ResonatorMovementBehaviour extends ParticleEmittingMovementBehaviou
     }
 
     @Override
-    @OnlyIn(value = Dist.CLIENT)
-    public void renderInContraption(MovementContext context, VirtualRenderWorld renderWorld,
-            ContraptionMatrices matrices, MultiBufferSource buffer
+    public @Nullable ActorVisual createVisual(
+            VisualizationContext visualizationContext, VirtualRenderWorld simulationWorld, MovementContext movementContext
     ) {
+        return new ResonatorActorVisual(visualizationContext, simulationWorld, movementContext);
+    }
+
+    @Override
+    @OnlyIn(value = Dist.CLIENT)
+    public void renderInContraption(
+            MovementContext context, VirtualRenderWorld renderWorld, ContraptionMatrices matrices, MultiBufferSource buffer
+    ) {
+        if (VisualizationManager.supportsVisualization(context.world)) return;
         ResonatorRenderer.renderInContraption(context, matrices, buffer, isActive(context));
     }
 }
