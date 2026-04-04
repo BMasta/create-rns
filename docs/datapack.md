@@ -1,11 +1,11 @@
-# Creating a Datapack
+# Creating a Datapack - 1.0.x - MC 1.21.1
 
 This document covers what parts of Create: Rock & Stone are datapack-driven and can be overridden or extended.
 
 ## What You Can Override
-* Mining recipes (mining rewards, resource uses for finite deposits, what to replace with when depleted, how recipe is displayed in JEI and in EMI's JEI bridge when both mods are installed).
+* Mining recipes (mining rewards, resource uses for finite deposits, what to replace with when depleted, how recipe is displayed in JEI).
 * Catalysts (custom requirements for mining certain kinds of items from a deposit).
-* Deposit world generation (spawn rate, structure nbt, deposit scanner icon)
+* Deposit world generation (spawn rate, structure nbt, deposit scanner icon).
 
 ## Default Configuration
 
@@ -107,6 +107,9 @@ Path: `data/your_pack/create_rns/catalyst/ultimate_resonance.json`
   // Optional (will be shown last by default).
   // Used to sort catalysts. Lower values appear first.
   "display_priority": 1004,
+  // Optional (default none).
+  // Bind specified items to this catalyst on the catalyst info JEI tab.
+  "representative_items": ["create_rns:resonator"],
   // If any catalyst specified here is active, this catalyst will be hidden
   // in the goggle tooltip of the miner bearing.
   "hide_if_present": ["super_mega_ultimate_resonance"],
