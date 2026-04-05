@@ -3,19 +3,21 @@ package com.bmaster.createrns.content.deposit.mining;
 import com.bmaster.createrns.RNSSoundEvents;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlockEntity;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadSize;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 
 @OnlyIn(Dist.CLIENT)
 @MethodsReturnNonnullByDefault
@@ -26,7 +28,7 @@ public class MinerEffectsGenerator {
     }
 
     protected static final int SOUND_SEQUENCE_INTERVAL = 4;
-    protected static final Object2ObjectOpenHashMap<MinerBearingBlockEntity, EnumSet<SoundModifier>> miners = new Object2ObjectOpenHashMap<>();
+    protected static final ObjectOpenHashSet<MinerBearingBlockEntity> miners = new ObjectOpenHashSet<>();
     protected static int lastPlayed = 0;
 
     @SuppressWarnings("DataFlowIssue")
@@ -37,23 +39,29 @@ public class MinerEffectsGenerator {
         var p = instance.player;
         if (instance.isPaused() || p == null || lastPlayed < SOUND_SEQUENCE_INTERVAL) return;
 
-        miners.object2ObjectEntrySet().stream()
-                .filter(e -> {
-                    var miner = e.getKey();
+        miners.stream()
+                .filter(miner -> {
                     if (miner.miningBehaviour.equipment == null) return false;
+                    if (miner.miningBehaviour.process == null) return false;
                     return miner.miningBehaviour.isMining();
                 })
-                .min(Comparator.comparing(e ->
-                        e.getKey().miningBehaviour.equipment.mineHeadPos.distSqr(p.blockPosition())))
-                .ifPresent(e -> {
-                    var miner = e.getKey();
+                .min(Comparator.comparing(miner ->
+                        miner.miningBehaviour.equipment.mineHeadPos.distSqr(p.blockPosition()))
+                )
+                .ifPresent(miner -> {
                     var mineHeadPos = miner.miningBehaviour.equipment.mineHeadPos;
-                    var modifiers = e.getValue();
+                    var crsList = miner.miningBehaviour.process.getLastSatisfiedCRSes();
                     float pitch = 0.5f + Math.min(1, Math.abs(miner.getTheoreticalSpeed()) / 256f) / 2;
                     RNSSoundEvents.MINING.playClient(p.level(), mineHeadPos, 1, pitch, false);
-                    if (modifiers.contains(SoundModifier.RESONANCE)) {
-                        RNSSoundEvents.MINING_RESONANCE_ACCENT.playClient(p.level(), mineHeadPos, 1, pitch, false);
+                    if (miner.miningBehaviour.equipment.mineHeadSize == MineHeadSize.LARGE) {
+                        RNSSoundEvents.MINING_LARGE_HEAD_ACCENT.playClient(p.level(), mineHeadPos, 1, pitch, false);
                     }
+                    crsList.stream()
+                            .map(crs -> crs.sound)
+                            .filter(Objects::nonNull)
+                            .distinct()
+                            .forEach(s -> miner.getLevel().playLocalSound(
+                                    mineHeadPos, s, SoundSource.AMBIENT, 1, pitch, false));
                 });
         lastPlayed = 0;
     }
@@ -113,10 +121,7 @@ public class MinerEffectsGenerator {
 
     protected void refreshSound() {
         if (be.miningBehaviour.process == null || be.miningBehaviour.equipment == null) return;
-        var modifiers = EnumSet.noneOf(SoundModifier.class);
-
-        if (be.miningBehaviour.equipment.isResonanceActive) modifiers.add(SoundModifier.RESONANCE);
-        miners.put(be, modifiers);
+        miners.add(be);
     }
 
     protected void refreshParticles() {

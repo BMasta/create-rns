@@ -64,12 +64,8 @@ public class MineHeadBlock extends FaceAttachedMinerComponentBlock implements IB
 
     @Override
     protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
-        int mineHeadCount = switch (state.getValue(SIZE)) {
-            case SMALL -> 1;
-            case LARGE -> 0;
-        };
-        if (mineHeadCount == 0) return List.of();
-        return List.of(new ItemStack(RNSBlocks.MINE_HEAD.get(), mineHeadCount));
+        if (state.getValue(SIZE) == MineHeadSize.SMALL) return List.of(new ItemStack(RNSBlocks.MINE_HEAD.get()));
+        return List.of();
     }
 
     @Override
@@ -77,7 +73,7 @@ public class MineHeadBlock extends FaceAttachedMinerComponentBlock implements IB
         if (!level.isClientSide && !movedByPiston && !state.is(newState.getBlock()) &&
                 !newState.is(Blocks.IRON_BLOCK) && !newState.is(RNSBlocks.MINE_HEAD_PART.get())) {
             // Trigger multiblock removal
-            MineHeadMultiblock.breakMultiblock(level, pos, state, pos);
+            MineHeadMultiblock.breakMultiblock(level, pos, state);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }

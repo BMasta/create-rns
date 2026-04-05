@@ -138,6 +138,30 @@
       }
     ]
   },
+  "mining_large_head_accent": {
+    "replace": false,
+    "subtitle": "subtitle.create_rns.mining_large_head_accent",
+    "sounds": [
+      {
+        "name": "minecraft:block.basalt.break",
+        "type": "event",
+        "volume": 0.5,
+        "pitch": 0.6
+      }
+    ]
+  },
+  "mining_overclocked_accent": {
+    "replace": false,
+    "subtitle": "subtitle.create_rns.mining_overclocked_accent",
+    "sounds": [
+      {
+        "name": "create:cardboard_bonk",
+        "type": "event",
+        "volume": 1,
+        "pitch": 0.55
+      }
+    ]
+  },
   "mined": {
     "replace": false,
     "subtitle": "subtitle.create_rns.mined",

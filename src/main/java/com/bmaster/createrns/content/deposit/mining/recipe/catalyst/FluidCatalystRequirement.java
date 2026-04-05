@@ -3,8 +3,6 @@ package com.bmaster.createrns.content.deposit.mining.recipe.catalyst;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
@@ -19,11 +17,6 @@ public class FluidCatalystRequirement extends CatalystRequirement {
                     FluidStack.CODEC.fieldOf("consume")
                             .forGetter(c -> c.fluidStack))
             .apply(i, FluidCatalystRequirement::new));
-
-    public static final StreamCodec<RegistryFriendlyByteBuf, FluidCatalystRequirement> STREAM_CODEC = StreamCodec.composite(
-            FluidStack.STREAM_CODEC, cr -> cr.fluidStack,
-            FluidCatalystRequirement::new
-    );
 
     protected static final Set<Class<? extends Catalyst>> RELEVANT_CATALYST_TYPES = Set.of(FluidCatalyst.class);
 

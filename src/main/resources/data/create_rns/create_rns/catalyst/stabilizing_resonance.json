@@ -8,5 +8,6 @@
     }
   ],
   "display_priority": 1003,
-  "representative_items": ["create_rns:stabilizing_resonator"]
+  "representative_items": ["create_rns:stabilizing_resonator"],
+  "play_when_active": {"sound_id": "create_rns:mining_resonance_accent"}
 }

@@ -4,7 +4,6 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.RNSDeposits;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ShatteringResonatorBlock;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystUsageStats;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.bmaster.createrns.util.MinerSetup;
 import com.bmaster.createrns.util.MinerSetupBuilder;
@@ -26,8 +25,6 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-
-import java.util.stream.Collectors;
 
 @SuppressWarnings("DataFlowIssue")
 @GameTestHolder(CreateRNS.ID)
@@ -128,9 +125,7 @@ public class MinerMiningBehaviourGameTest {
         });
 
         h.runAtTickTime(ticksToMine + 1, () -> {
-            var process = miner.process();
-            var aggStats = process.innerProcesses.stream().map(p -> p.catStats).collect(Collectors.toSet());
-            var activeCRSes = CatalystUsageStats.getLastSatisfiedCRSes(aggStats);
+            var activeCRSes = miner.process().getLastSatisfiedCRSes();
             h.assertTrue(activeCRSes.size() == 2, "Unexpected number of active catalysts: " +
                     activeCRSes.size() + "(2 expected)");
             h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.name.equals("faint_resonance")),
@@ -173,9 +168,7 @@ public class MinerMiningBehaviourGameTest {
         });
 
         h.runAtTickTime(ticksToMine + 1, () -> {
-            var process = miner.process();
-            var aggStats = process.innerProcesses.stream().map(p -> p.catStats).collect(Collectors.toSet());
-            var activeCRSes = CatalystUsageStats.getLastSatisfiedCRSes(aggStats);
+            var activeCRSes = miner.process().getLastSatisfiedCRSes();
             h.assertTrue(activeCRSes.size() == 4, "Unexpected number of active catalysts: " +
                     activeCRSes.size() + "(4 expected)");
             h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.name.equals("faint_resonance")),
@@ -213,9 +206,7 @@ public class MinerMiningBehaviourGameTest {
         });
 
         h.runAtTickTime(ticksToMine + 1, () -> {
-            var process = miner.process();
-            var aggStats = process.innerProcesses.stream().map(p -> p.catStats).collect(Collectors.toSet());
-            var activeCRSes = CatalystUsageStats.getLastSatisfiedCRSes(aggStats);
+            var activeCRSes = miner.process().getLastSatisfiedCRSes();
             h.assertTrue(activeCRSes.size() == 1, "Unexpected number of active catalysts: " +
                     activeCRSes.size() + "(1 expected)");
             h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.name.equals("overclock")),

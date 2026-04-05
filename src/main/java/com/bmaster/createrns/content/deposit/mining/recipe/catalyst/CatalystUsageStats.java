@@ -10,38 +10,24 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.neoforged.neoforge.common.util.INBTSerializable;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Stream;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class CatalystUsageStats implements INBTSerializable<CompoundTag> {
-    public static List<CatalystRequirementSet> getLastSatisfiedCRSes(Set<CatalystUsageStats> aggStats) {
-        if (aggStats.isEmpty()) return List.of();
-        return aggStats.stream()
-                .flatMap(s ->
-                        (s.lastTickedCRSes != null) ? s.lastTickedCRSes.stream() : Stream.of())
-                .distinct()
-                .map(crsName -> CatalystRequirementSetLookup
-                        .get(aggStats.stream().findAny().orElseThrow().access, crsName))
-                .sorted(Comparator.comparingInt(crs -> crs.displayPriority))
-                .toList();
-    }
-
+    public @Nullable ObjectOpenHashSet<String> lastTickedCRSes = null;
     protected RegistryAccess access = RegistryAccess.EMPTY;
-    protected Int2FloatOpenHashMap lastChances = null;
-    protected ObjectOpenHashSet<String> lastTickedCRSes = null;
+    protected @Nullable Int2FloatOpenHashMap lastChances = null;
 
     public boolean isChancesComputed() {
         return lastChances != null;
     }
 
     public float getLastComputedChance(int i) {
+        if (lastChances == null) throw new IllegalStateException("Chances were never computed");
         return lastChances.get(i);
     }
 

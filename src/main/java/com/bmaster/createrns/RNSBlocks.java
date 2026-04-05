@@ -4,7 +4,6 @@ import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadPartBlock;
-import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadSize;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferMovementBehaviour;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ResonatorBlock;
@@ -75,12 +74,8 @@ public class RNSBlocks {
                     .mapColor(MapColor.COLOR_GRAY)
                     .noOcclusion())
             .transform(pickaxeOnly())
-            .blockstate((c, p) -> {
-                var baseModel = AssetLookup.standardModel(c, p);
-                var largeModel = p.models().getExistingFile(p.modLoc("block/mine_head_large"));
-                p.horizontalFaceBlock(c.get(), state ->
-                        state.getValue(MineHeadBlock.SIZE) == MineHeadSize.LARGE ? largeModel : baseModel);
-            })
+            .blockstate((c, p) -> p.horizontalFaceBlock(c.get(), state ->
+                    p.models().getExistingFile(state.getValue(MineHeadBlock.SIZE).model)))
             .simpleItem()
             .recipe((c, p) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get())
                     .define('A', AllItems.ANDESITE_ALLOY)

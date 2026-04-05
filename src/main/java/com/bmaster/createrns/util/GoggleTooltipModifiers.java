@@ -5,7 +5,6 @@ import com.bmaster.createrns.content.deposit.mining.IHaveAdaptiveGoggleInformati
 import com.bmaster.createrns.content.deposit.mining.MiningBehaviour;
 import com.bmaster.createrns.content.deposit.mining.MiningProcess.RateEstimationStatus;
 import com.bmaster.createrns.content.deposit.mining.contraption.ContraptionMiningBehaviour;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystUsageStats;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
@@ -20,7 +19,6 @@ import net.minecraft.util.Mth;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
@@ -82,7 +80,6 @@ public class GoggleTooltipModifiers {
             CreateRNS.lang().space().forGoggles(tooltip);
         }
 
-
         var rates = process.getEstimatedRates(mb.getCurrentProgressIncrement());
         rates.object2FloatEntrySet().stream().sorted((a, b) -> {
                     float av = a.getFloatValue();
@@ -138,8 +135,7 @@ public class GoggleTooltipModifiers {
                 .forGoggles(tooltip);
 
         // Add descriptions contributed by active CRSes
-        var aggStats = process.innerProcesses.stream().map(p -> p.catStats).collect(Collectors.toSet());
-        var activeCRSes = CatalystUsageStats.getLastSatisfiedCRSes(aggStats);
+        var activeCRSes = process.getLastSatisfiedCRSes();
         for (var crs : activeCRSes) {
             var comp = crs.getNameComponent(activeCRSes);
             if (comp != null) {

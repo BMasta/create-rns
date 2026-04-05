@@ -51,6 +51,14 @@ public class RNSSoundEvents {
             .category(SoundSource.AMBIENT)
             .build();
 
+    public static RNSSoundEntry MINING_LARGE_HEAD_ACCENT = create("mining_large_head_accent")
+            .category(SoundSource.AMBIENT)
+            .build();
+
+    public static RNSSoundEntry MINING_OVERCLOCKED_ACCENT = create("mining_overclocked_accent")
+            .category(SoundSource.AMBIENT)
+            .build();
+
     public static RNSSoundEntry MINED = create("mined")
             .category(SoundSource.AMBIENT)
             .build();

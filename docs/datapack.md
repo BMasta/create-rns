@@ -143,6 +143,9 @@ See [default catalysts](../src/main/resources/data/create_rns/create_rns/catalys
   // If any catalyst specified here is active, this catalyst will be hidden
   // in the goggle tooltip of the miner bearing.
   "hide_if_present": ["i_am_ultra_rich"],
+  // Optional (default none).
+  // Specified sound will play on top of other mining sounds when this catalyst is active.
+  "play_when_active": {"sound_id": "create_rns:mining_overclocked_accent"},
   // List of requirements that must be met to activate this catalyst.
   // Must contain at least one entry.
   "requirements": [

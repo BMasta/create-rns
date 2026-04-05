@@ -6,9 +6,7 @@ import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystHandler;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystUsageStats;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.*;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -33,6 +31,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.bmaster.createrns.RNSMisc.LEVEL_DEPOSIT_DATA;
 
@@ -83,6 +82,16 @@ public class MiningProcess {
                 .map(InnerProcess::collect)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
+    }
+
+    public List<CatalystRequirementSet> getLastSatisfiedCRSes() {
+        return innerProcesses.stream()
+                .flatMap(p ->
+                        (p.catStats.lastTickedCRSes != null) ? p.catStats.lastTickedCRSes.stream() : Stream.of())
+                .distinct()
+                .map(crsName -> CatalystRequirementSetLookup.get(level.registryAccess(), crsName))
+                .sorted(Comparator.comparingInt(crs -> crs.displayPriority))
+                .toList();
     }
 
     public RateEstimationStatus getRateEstimationStatus() {

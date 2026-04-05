@@ -68,7 +68,7 @@ public class MinerEquipmentManager {
             if (bs.is(RNSBlocks.MINE_HEAD.get())) {
                 var tipOffset = MineHeadBlock.getConnectedDirection(bs)
                         .getNormal()
-                        .multiply(bs.getValue(MineHeadBlock.SIZE).getTipOffset());
+                        .multiply(bs.getValue(MineHeadBlock.SIZE).tipOffset);
                 mineHeadPos = pos.offset(contraption.anchor).offset(tipOffset);
                 mineHeadSize = bs.getValue(MineHeadBlock.SIZE);
             }

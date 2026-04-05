@@ -12,5 +12,6 @@
     }
   ],
   "display_priority": 1004,
-  "representative_items": ["minecraft:lava_bucket"]
+  "representative_items": ["minecraft:lava_bucket"],
+  "play_when_active": {"sound_id": "create_rns:mining_overclocked_accent"}
 }
