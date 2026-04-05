@@ -1,5 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead;
 
+import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.FaceAttachedMinerComponentBlock;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -10,11 +11,9 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.HashSet;
 import java.util.Set;
 
 @MethodsReturnNonnullByDefault
@@ -23,99 +22,59 @@ public class MineHeadMultiblock {
     public static Set<BlockPos> getOccupiedPositions(BlockPos controllerPos, BlockState controllerState) {
         var direction = MineHeadBlock.getConnectedDirection(controllerState);
         var size = controllerState.getValue(MineHeadBlock.SIZE);
-        return getOccupiedPositions(controllerPos, direction, size);
-    }
-
-    public static Set<BlockPos> getOccupiedPositions(BlockPos controllerPos, Direction direction, MineHeadSize size) {
-        Set<BlockPos> positions = new HashSet<>();
-        Direction u = getUDirection(direction);
-        Direction v = getVDirection(direction);
-        switch (size) {
-            case SMALL -> positions.add(controllerPos);
-            case LARGE -> {
-                addSquareLayer(positions, controllerPos, u, v);
-                positions.add(controllerPos.relative(direction));
-            }
-        }
-        return positions;
+        return size.getOccupiedPositions(controllerPos, direction);
     }
 
     public static void formMultiblock(Level level, BlockPos tipPos, BlockState tipState) {
-        BlockPos controllerPos = null;
-        Direction direction = null;
+        Direction direction = MineHeadBlock.getConnectedDirection(tipState);
+        MineHeadSize size = MineHeadSize.SMALL;
 
-        // Resolve a unique formation direction from the placed tip position and nearby iron patterns.
+        // Find the largest available size and direction required for that size.
+        // If bigger sizes aren't available, preserve the direction of the placed tip.
         for (var candidateDirection : Direction.values()) {
-            var candidateControllerPos = tipPos.relative(candidateDirection.getOpposite());
-            var u = getUDirection(candidateDirection);
-            var v = getVDirection(candidateDirection);
-
-            boolean hasIronPattern = true;
-            for (int du = -1; du <= 1; du++) {
-                for (int dv = -1; dv <= 1; dv++) {
-                    var ironPos = offsetInPlane(candidateControllerPos, u, du, v, dv);
-                    if (level.getBlockState(ironPos).is(Blocks.IRON_BLOCK)) continue;
-                    hasIronPattern = false;
-                    break;
-                }
-                if (!hasIronPattern) break;
+            var candidateSize = calculateSizeForPlacement(level, candidateDirection, tipPos);
+            if (candidateSize.ordinal() > size.ordinal()) {
+                direction = candidateDirection;
+                size = candidateSize;
             }
-            if (!hasIronPattern) continue;
-
-            if (controllerPos != null) return;
-            controllerPos = candidateControllerPos;
-            direction = candidateDirection;
+            if (size.ordinal() >= MineHeadSize.values().length - 1) break;
         }
-
-        // Abort when no valid pattern exists around the placed mine head.
-        if (controllerPos == null) return;
+        if (size == MineHeadSize.SMALL) return;
 
         // Replace the pattern with the large mine head multiblock and enforce orientation from placement position.
+        var controllerPos = size.getControllerPos(tipPos, direction);
         var controllerState = FaceAttachedMinerComponentBlock.withConnectedDirection(tipState, direction)
-                .setValue(MineHeadBlock.SIZE, MineHeadSize.LARGE);
+                .setValue(MineHeadBlock.SIZE, size);
         level.setBlock(controllerPos, controllerState, Block.UPDATE_ALL);
         placePartBlocksForSize(level, controllerPos, controllerState);
     }
 
-    public static void breakMultiblock(
-            Level level, BlockPos controllerPos, BlockState controllerState, BlockPos brokenPos
-    ) {
+    public static void breakMultiblock(Level level, BlockPos controllerPos, BlockState controllerState) {
         if (!controllerState.is(RNSBlocks.MINE_HEAD.get())) return;
-        var mineHeadSize = controllerState.getValue(MineHeadBlock.SIZE);
-        if (mineHeadSize == MineHeadSize.SMALL) return;
+        var size = controllerState.getValue(MineHeadBlock.SIZE);
+        if (size == MineHeadSize.SMALL) return;
 
         var direction = MineHeadBlock.getConnectedDirection(controllerState);
-        var u = getUDirection(direction);
-        var v = getVDirection(direction);
         var smallMineHead = FaceAttachedMinerComponentBlock.withConnectedDirection(
                 RNSBlocks.MINE_HEAD.getDefaultState(), direction);
-        var tipPos = controllerPos.relative(direction);
-        Set<BlockPos> basePositions = new HashSet<>();
-
-        // Gather base positions
-        switch (mineHeadSize) {
-            case LARGE -> {
-                addSquareLayer(basePositions, controllerPos, u, v);
-                if (!brokenPos.equals(tipPos) && !basePositions.contains(brokenPos)) return;
-
-            }
-            default -> throw new NotImplementedException(mineHeadSize.name() + " Mine Head size is not implemented");
-        }
+        var tipPos = size.getTipPos(controllerPos, direction);
 
         // First restore the tip to avoid retriggering multiblock formation. Then restore the base.
         level.setBlock(tipPos, smallMineHead, Block.UPDATE_ALL);
-        for (var basePos : basePositions) {
-            level.setBlock(basePos, Blocks.IRON_BLOCK.defaultBlockState(), Block.UPDATE_ALL);
+        for (var pos : size.getOccupiedPositions(controllerPos, direction)) {
+            if (pos.equals(tipPos)) continue;
+            level.setBlock(pos, Blocks.IRON_BLOCK.defaultBlockState(), Block.UPDATE_ALL);
         }
     }
 
     public static @Nullable BlockPos findOwnerController(LevelReader level, BlockPos occupiedPos) {
         BlockPos foundPos = null;
         int bestDist = Integer.MAX_VALUE;
+        int r = MineHeadSize.values()[MineHeadSize.values().length - 1].tipOffset;
 
-        for (int x = -2; x <= 2; x++) {
-            for (int y = -2; y <= 2; y++) {
-                for (int z = -2; z <= 2; z++) {
+        for (int x = -r; x <= r; x++) {
+            for (int y = -r; y <= r; y++) {
+                for (int z = -r; z <= r; z++) {
                     var candidatePos = occupiedPos.offset(x, y, z);
                     var candidateState = level.getBlockState(candidatePos);
                     if (!candidateState.is(RNSBlocks.MINE_HEAD.get())) continue;
@@ -139,61 +98,34 @@ public class MineHeadMultiblock {
 
     public static void placePartBlocksForSize(Level level, BlockPos controllerPos, BlockState controllerState) {
         var occupied = getOccupiedPositions(controllerPos, controllerState);
+        var part = RNSBlocks.MINE_HEAD_PART.getDefaultState();
         for (var p : occupied) {
-            if (p.equals(controllerPos)) continue;
-            var desiredState = getPartStateForPosition(controllerPos, controllerState, p);
-            if (level.getBlockState(p).equals(desiredState)) continue;
-            level.setBlock(p, desiredState, Block.UPDATE_ALL);
-        }
-    }
-
-    public static void removePartBlocks(Level level, BlockPos controllerPos, BlockState controllerState) {
-        var occupied = getOccupiedPositions(controllerPos, controllerState);
-        for (var p : occupied) {
-            if (p.equals(controllerPos)) continue;
-            if (!level.getBlockState(p).is(RNSBlocks.MINE_HEAD_PART.get())) continue;
-            level.destroyBlock(p, false);
-        }
-    }
-
-    protected static Direction getUDirection(Direction direction) {
-        return switch (direction.getAxis()) {
-            case X -> Direction.UP;
-            case Y, Z -> Direction.EAST;
-        };
-    }
-
-    protected static Direction getVDirection(Direction direction) {
-        return switch (direction.getAxis()) {
-            case X, Y -> Direction.SOUTH;
-            case Z -> Direction.UP;
-        };
-    }
-
-    protected static BlockPos offsetInPlane(BlockPos pos, Direction u, int du, Direction v, int dv) {
-        return pos.offset(
-                u.getStepX() * du + v.getStepX() * dv,
-                u.getStepY() * du + v.getStepY() * dv,
-                u.getStepZ() * du + v.getStepZ() * dv
-        );
-    }
-
-    protected static void addSquareLayer(Set<BlockPos> positions, BlockPos center, Direction u, Direction v) {
-        for (int du = -1; du <= 1; du++) {
-            for (int dv = -1; dv <= 1; dv++) {
-                positions.add(offsetInPlane(center, u, du, v, dv));
+            if (p.getY() == 67) {
+                CreateRNS.LOGGER.error("TESTTEST: reached");
             }
+            if (p.equals(controllerPos)) continue;
+            if (level.getBlockState(p).equals(part)) continue;
+            level.setBlock(p, part, Block.UPDATE_ALL);
         }
     }
 
-    protected static BlockState getPartStateForPosition(BlockPos controllerPos, BlockState controllerState, BlockPos partPos) {
-        var direction = MineHeadBlock.getConnectedDirection(controllerState);
-        var position = switch (controllerState.getValue(MineHeadBlock.SIZE)) {
-            case SMALL, LARGE -> MineHeadPartPosition.CORE;
-        };
-
-        return RNSBlocks.MINE_HEAD_PART.getDefaultState()
-                .setValue(MineHeadPartBlock.FACING, direction)
-                .setValue(MineHeadPartBlock.POSITION, position);
+    public static MineHeadSize calculateSizeForPlacement(Level level, Direction direction, BlockPos placedPos) {
+        MineHeadSize computedSize = MineHeadSize.SMALL;
+        var sizes = MineHeadSize.values();
+        // Try from largest to smallest
+        for (int i = sizes.length - 1; i >= 0; i--) {
+            var controllerPos = sizes[i].getControllerPos(placedPos, direction);
+            boolean accepted = true;
+            for (var pos : sizes[i].getOccupiedPositions(controllerPos, direction)) {
+                if (pos.equals(placedPos)) continue;
+                if (level.getBlockState(pos).is(Blocks.IRON_BLOCK)) continue;
+                accepted = false;
+                break;
+            }
+            if (!accepted) continue;
+            computedSize = sizes[i];
+            break;
+        }
+        return computedSize;
     }
 }

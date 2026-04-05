@@ -21,8 +21,10 @@ public class MineHeadRenderer extends SmartBlockEntityRenderer<MineHeadBlockEnti
     protected void renderSafe(MineHeadBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buf, int light, int overlay) {
         var bs = be.getBlockState();
         var size = bs.getValue(MineHeadBlock.SIZE);
-        var scale = size.getModelScale();
-        var offset = size.getModelOffset();
+        float scale = size.modelScale;
+        float offset = size.modelOffset;
+//        float scale = 2f;
+//        float offset = 0.248f;
         var direction = MineHeadBlock.getConnectedDirection(bs);
         var superBuffer = CachedBuffers.block(bs);
 

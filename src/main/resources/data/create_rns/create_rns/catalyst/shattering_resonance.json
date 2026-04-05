@@ -8,5 +8,6 @@
     }
   ],
   "display_priority": 1002,
-  "representative_items": ["create_rns:shattering_resonator"]
+  "representative_items": ["create_rns:shattering_resonator"],
+  "play_when_active": {"sound_id": "create_rns:mining_resonance_accent"}
 }

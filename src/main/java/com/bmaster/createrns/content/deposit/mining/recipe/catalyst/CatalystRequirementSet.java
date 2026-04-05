@@ -6,9 +6,11 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -16,6 +18,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -35,6 +38,8 @@ public class CatalystRequirementSet {
                     .forGetter(crs -> crs.representativeItems),
             StrictOptionalField.of("hide_if_present", Codec.STRING.listOf(), List.of())
                     .forGetter(crs -> crs.hideIfPresent),
+            StrictOptionalField.of("play_when_active", SoundEvent.CODEC)
+                    .forGetter(c -> c.soundHolder),
             CatalystRequirement.CODEC.listOf().fieldOf("requirements")
                     .forGetter(crs -> crs.requirements)
     ).apply(i, CatalystRequirementSet::new));
@@ -51,6 +56,8 @@ public class CatalystRequirementSet {
                     .forGetter(crs -> crs.representativeItems),
             StrictOptionalField.of("hide_if_present", Codec.STRING.listOf(), List.of())
                     .forGetter(crs -> crs.hideIfPresent),
+            StrictOptionalField.of("play_when_active", SoundEvent.CODEC)
+                    .forGetter(c -> c.soundHolder),
             CatalystRequirement.STREAM_CODEC.listOf().fieldOf("requirements")
                     .forGetter(crs -> crs.requirements)
     ).apply(i, CatalystRequirementSet::new));
@@ -64,11 +71,14 @@ public class CatalystRequirementSet {
     public final int displayPriority;
     public final List<Item> representativeItems;
     public final List<String> hideIfPresent;
+    public final @Nullable SoundEvent sound;
     public final List<CatalystRequirement> requirements;
+
+    protected final Optional<Holder<SoundEvent>> soundHolder;
 
     public CatalystRequirementSet(
             String name, float chanceMult, boolean optional, int displayPriority, List<Item> representativeItems,
-            List<String> hideIfPresent, List<CatalystRequirement> requirements
+            List<String> hideIfPresent, Optional<Holder<SoundEvent>> soundHolder, List<CatalystRequirement> requirements
     ) {
         if (requirements.isEmpty()) throw new IllegalArgumentException("Catalyst must have at least one requirement");
         this.name = name;
@@ -78,6 +88,8 @@ public class CatalystRequirementSet {
         this.representativeItems = representativeItems;
         this.hideIfPresent = hideIfPresent;
         this.requirements = requirements;
+        this.soundHolder = soundHolder;
+        this.sound = soundHolder.map(h -> h.isBound() ? h.value() : null).orElse(null);
     }
 
     /* Returns a list of catalysts that satisfy any requirement in this set */

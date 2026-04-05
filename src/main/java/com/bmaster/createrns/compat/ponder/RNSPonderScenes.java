@@ -300,7 +300,7 @@ public class RNSPonderScenes {
 
         w.setBlocks(resonatorsOrIron, Blocks.AIR.defaultBlockState(), false);
         w.setBlock(contraptionRoot, RNSBlocks.MINE_HEAD.getDefaultState()
-                .setValue(MineHeadBlock.SIZE, MineHeadSize.LARGE)
+                .setValue(MineHeadBlock.SIZE, MineHeadSize.MEDIUM)
                 .setValue(MineHeadBlock.FACE, AttachFace.CEILING), true);
         minerAfter.showContraptionImmediately();
         w.setBlock(mineHead, Blocks.AIR.defaultBlockState(), false);
