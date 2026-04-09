@@ -17,7 +17,7 @@
   "block.create_rns.mine_head": "采矿钻头",
   "block.create_rns.mine_head_part": "采矿钻头",
   "block.create_rns.resonator": "共振器",
-  "block.create_rns.shattering_resonator": "碎裂共振器",
+  "block.create_rns.shattering_resonator": "破碎共振器",
   "block.create_rns.stabilizing_resonator": "稳定共振器",
   "block.create_rns.resonance_buffer": "共振缓冲器",
   "item.create_rns.deposit_scanner": "矿藏扫描仪",
