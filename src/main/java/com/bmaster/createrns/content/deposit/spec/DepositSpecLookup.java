@@ -87,6 +87,6 @@ public class DepositSpecLookup {
 
     public static List<Item> getScannerIcons(Level l) {
         if (dimToScannerIcons == null) build(l.registryAccess());
-        return dimToScannerIcons.get(l.dimension());
+        return dimToScannerIcons.computeIfAbsent(l.dimension(), ignored -> new ArrayList<>());
     }
 }
