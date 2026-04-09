@@ -151,7 +151,7 @@
   "create_rns.configuration.miningRadius": "开采半径",
   "create_rns.configuration.miningRadius.tooltip": "采矿机可认领矿藏方块进行开采的半径。半径为2时，形成一个以采矿钻头为中心的5x5方形开采区域。\n\n§e警告：正在运行的采矿机需要重新组装才能应用此设置。",
   "create_rns.configuration.miningDepth": "开采深度",
-  "create_rns.configuration.miningDepth.tooltip": "采矿机可认领矿床方块的深度（格数）。\n\n§e警告：正在运行的采矿机需要重新组装才能应用此设置。",
+  "create_rns.configuration.miningDepth.tooltip": "采矿机可认领矿藏方块的深度（格数）。\n\n§e警告：正在运行的采矿机需要重新组装才能应用此设置。",
   "create_rns.configuration.infiniteDeposits": "无限矿藏",
   "create_rns.configuration.infiniteDeposits.tooltip": "是否让矿藏资源无限。",
   "create_rns.configuration.movableDeposits": "可移动矿藏",
