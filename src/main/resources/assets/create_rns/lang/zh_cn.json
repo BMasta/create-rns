@@ -145,7 +145,6 @@
   "create_rns.datapack.frequent_deposit_worldgen.description": "村庄频生成概率的 2 倍",
   "create_rns.datapack.very_frequent_deposit_worldgen.title": "富集矿藏生成",
   "create_rns.datapack.very_frequent_deposit_worldgen.description": "村庄生成概率的 3 倍",
-  "create_rns.datapack.deposits_n_blocks_apart": "矿藏平均间隔约 %1$s 格生成",
   "create_rns.configuration.miningSpeed": "开采速率",
   "create_rns.configuration.miningSpeed.tooltip": "在256RPM转速下，无任何附件且仅认领一个矿藏方块时，一台采矿机在一小时内能完成的开采作业次数。",
   "create_rns.configuration.miningRadius": "开采半径",
