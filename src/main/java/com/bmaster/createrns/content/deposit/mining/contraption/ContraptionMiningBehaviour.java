@@ -70,7 +70,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
         super.unload();
         var level = getLevel();
         assert level != null;
-        if (level.isClientSide) effects.uninitialize();
+        if (level.isClientSide && effects != null) effects.uninitialize();
     }
 
     @Override
