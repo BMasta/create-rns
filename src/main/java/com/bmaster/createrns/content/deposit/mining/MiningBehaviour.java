@@ -4,6 +4,7 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
+import com.bmaster.createrns.content.deposit.claiming.IDepositClaimerHolder;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
@@ -33,6 +34,7 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
     public static final ClaimerType CLAIMER_TYPE = new ClaimerType(CreateRNS.ID + ":mining");
 
     protected final KineticBlockEntity kBE;
+    protected final IDepositClaimerHolder claimerHolder;
     protected final Supplier<Direction> claimingDirection;
     protected @Nullable Set<BlockPos> claimedDepositBlocks = null;
     protected MinerSpec spec = null;
@@ -41,9 +43,10 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
     // Used by client to defer process sync until it is initialized
     protected Tuple<CompoundTag, Boolean> pendingProcessTag = null;
 
-    public MiningBehaviour(KineticBlockEntity be, Supplier<Direction> claimingDirection) {
+    public MiningBehaviour(KineticBlockEntity be, IDepositClaimerHolder holder, Supplier<Direction> claimingDirection) {
         super(be);
-        kBE = be;
+        this.kBE = be;
+        this.claimerHolder = holder;
         this.claimingDirection = claimingDirection;
     }
 
@@ -56,7 +59,7 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
         var level = getLevel();
         assert level != null;
 
-        DepositClaimerInstanceHolder.addClaimer(this, level);
+        DepositClaimerInstanceHolder.addClaimer(claimerHolder, level);
     }
 
     @Override
@@ -74,7 +77,7 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
         var level = getLevel();
         assert level != null;
 
-        DepositClaimerInstanceHolder.removeClaimer(this, level);
+        DepositClaimerInstanceHolder.removeClaimer(claimerHolder, level);
 
         level.invalidateCapabilities(getPos());
         if (level.isClientSide()) DepositClaimerOutlineRenderer.removeClaimer(this);
@@ -133,6 +136,11 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
     @Override
     public ClaimerType getClaimerType() {
         return CLAIMER_TYPE;
+    }
+
+    @Override
+    public IDepositClaimerHolder getClaimerHolder() {
+        return claimerHolder;
     }
 
     @Override

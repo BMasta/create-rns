@@ -29,6 +29,8 @@ public interface IDepositBlockClaimer {
 
     ClaimerType getClaimerType();
 
+    IDepositClaimerHolder getClaimerHolder();
+
     @Nullable Level getLevel();
 
     @Nullable IDepositBlockClaimer.ClaimingArea getClaimingArea();
