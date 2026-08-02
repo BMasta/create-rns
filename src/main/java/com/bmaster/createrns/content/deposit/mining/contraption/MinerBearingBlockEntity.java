@@ -1,7 +1,5 @@
 package com.bmaster.createrns.content.deposit.mining.contraption;
 
-import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
-import com.bmaster.createrns.content.deposit.claiming.IDepositClaimerHolder;
 import com.bmaster.createrns.content.deposit.mining.IHaveAdaptiveGoggleInformation;
 import com.bmaster.createrns.util.GoggleTooltipModifiers;
 import com.simibubi.create.AllSoundEvents;
@@ -21,14 +19,11 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.BiFunction;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity
-        implements IHaveAdaptiveGoggleInformation, IDepositClaimerHolder
-{
+public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity implements IHaveAdaptiveGoggleInformation {
     public ContraptionMiningBehaviour miningBehaviour;
 
     public MinerBearingBlockEntity(BlockEntityType<MinerBearingBlockEntity> type, BlockPos pos, BlockState state) {
@@ -95,11 +90,6 @@ public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity
     @Override
     public KineticBlockEntity getTargetBlockEntity() {
         return this;
-    }
-
-    @Override
-    public Optional<IDepositBlockClaimer> getClaimer() {
-        return miningBehaviour != null ? Optional.of(miningBehaviour) : Optional.empty();
     }
 
     @Override

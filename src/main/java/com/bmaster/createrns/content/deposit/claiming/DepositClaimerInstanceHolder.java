@@ -2,6 +2,8 @@ package com.bmaster.createrns.content.deposit.claiming;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer.ClaimerType;
+import com.bmaster.createrns.content.deposit.mining.MiningBehaviour;
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -11,7 +13,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -71,18 +72,14 @@ public class DepositClaimerInstanceHolder {
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-    public static void addClaimer(IDepositClaimerHolder holder, Level level) {
-        var claimer = holder.getClaimer().orElse(null);
-        if (claimer == null) return;
+    public static void addClaimer(IDepositBlockClaimer claimer, Level level) {
         DepositClaimerInstanceHolder.INSTANCES
                 .computeIfAbsent(claimer.getClaimerType(), k -> new Object2ObjectOpenHashMap<>())
                 .computeIfAbsent(level.dimension(), k -> new ObjectOpenHashSet<>())
-                .add(holder.getBlockPos());
+                .add(claimer.getBlockPos());
     }
 
-    public static void removeClaimer(IDepositClaimerHolder holder, Level level) {
-        var claimer = holder.getClaimer().orElse(null);
-        if (claimer == null) return;
+    public static void removeClaimer(IDepositBlockClaimer claimer, Level level) {
         var type = claimer.getClaimerType();
         var typeMap = DepositClaimerInstanceHolder.INSTANCES.get(type);
         if (typeMap == null) {
@@ -94,7 +91,7 @@ public class DepositClaimerInstanceHolder {
             CreateRNS.LOGGER.error("Could not get a set of deposit claimer instances at level {}", level);
             return;
         }
-        levelSet.remove(holder.getBlockPos());
+        levelSet.remove(claimer.getBlockPos());
         if (levelSet.isEmpty()) typeMap.remove(level.dimension());
         if (typeMap.isEmpty()) INSTANCES.remove(type);
     }
@@ -104,14 +101,32 @@ public class DepositClaimerInstanceHolder {
         if (typeMap == null) return Set.of();
         var levelSet = typeMap.get(l.dimension());
         if (levelSet == null) return Set.of();
-        return levelSet.stream()
-                .map(bp -> {
-                    var be = l.getBlockEntity(bp);
-                    if (!(be instanceof IDepositClaimerHolder holder)) return null;
-                    return holder.getClaimer().orElse(null);
 
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+        var claimers = new ObjectOpenHashSet<IDepositBlockClaimer>();
+        var iterator = levelSet.iterator();
+        while (iterator.hasNext()) {
+            var bp = iterator.next();
+            var be = l.getBlockEntity(bp);
+
+            // Remove invalid claimers
+            if (!(be instanceof SmartBlockEntity sbe)) {
+                iterator.remove();
+                continue;
+            }
+
+            var claimer = sbe.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
+            if (claimer == null) {
+                iterator.remove();
+                continue;
+            }
+
+            claimers.add(claimer);
+        }
+
+        // Clean up collections if removing elements left them empty
+        if (levelSet.isEmpty()) typeMap.remove(l.dimension());
+        if (typeMap.isEmpty()) INSTANCES.remove(t);
+
+        return claimers;
     }
 }

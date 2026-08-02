@@ -2,7 +2,6 @@ package com.bmaster.createrns.serialization;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
-import com.bmaster.createrns.content.deposit.claiming.IDepositClaimerHolder;
 import com.mojang.math.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -16,7 +15,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 @GameTestHolder(CreateRNS.ID)
@@ -55,39 +53,16 @@ public class DepositBlockClaimerSerialization {
     /// Used to test serialization methods of IDepositBlockClaimer
     @ParametersAreNonnullByDefault
     @MethodsReturnNonnullByDefault
-    private static class FakeClaimerHolder implements IDepositClaimerHolder {
-        private final BlockPos pos;
-        private final @Nullable IDepositBlockClaimer claimer;
-
-        public FakeClaimerHolder(BlockPos pos, @Nullable IDepositBlockClaimer claimer) {
-            this.pos = pos;
-            this.claimer = claimer;
-        }
-
-        @Override
-        public Optional<IDepositBlockClaimer> getClaimer() {
-            return Optional.ofNullable(claimer);
-        }
-
-        @Override
-        public BlockPos getBlockPos() {
-            return pos;
-        }
-    }
-
-    /// Used to test serialization methods of IDepositBlockClaimer
-    @ParametersAreNonnullByDefault
-    @MethodsReturnNonnullByDefault
     private static class FakeClaimer implements IDepositBlockClaimer {
         private static final ClaimerType CLAIMER_TYPE = new ClaimerType("create_rns:test_claimer");
 
         private final ServerLevel level;
-        private final IDepositClaimerHolder holder;
+        private final BlockPos pos;
         private @Nullable Set<BlockPos> claimedBlocks;
 
         private FakeClaimer(ServerLevel level, BlockPos pos) {
             this.level = level;
-            this.holder = new FakeClaimerHolder(pos, this);
+            this.pos = pos;
         }
 
         @Override
@@ -101,8 +76,8 @@ public class DepositBlockClaimerSerialization {
         }
 
         @Override
-        public IDepositClaimerHolder getClaimerHolder() {
-            return holder;
+        public BlockPos getBlockPos() {
+            return pos;
         }
 
         @Override
