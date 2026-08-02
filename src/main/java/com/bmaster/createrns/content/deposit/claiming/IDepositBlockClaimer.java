@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayDeque;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -29,7 +30,7 @@ public interface IDepositBlockClaimer {
 
     ClaimerType getClaimerType();
 
-    IDepositClaimerHolder getClaimerHolder();
+    BlockPos getBlockPos();
 
     @Nullable Level getLevel();
 
@@ -162,6 +163,11 @@ public interface IDepositBlockClaimer {
             } else {
                 return obj instanceof ClaimerType(String name1) && this.name.equalsIgnoreCase(name1);
             }
+        }
+
+        @Override
+        public int hashCode() {
+            return name.toLowerCase(Locale.ROOT).hashCode();
         }
     }
 

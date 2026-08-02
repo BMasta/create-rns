@@ -99,6 +99,7 @@ All versions are defined in `gradle.properties`. Java version is 21.
 * EMI support currently goes through EMI's JEI bridge rather than a separate native EMI plugin; any EMI-specific adjustments therefore belong in the JEI compat code and should stay limited to bridge-safety behavior.
 * `neoforge.mods.toml` should declare optional client-side compat dependencies only for integrations the mod actually loads against at runtime.
 * Xaero World Map overlay experiments use client-only pseudo-mixins targeting `xaero.map.gui.GuiMap`, because Xaero World Map does not expose a stable public overlay hook for custom renderers.
+* Deposit claimer instance tracking stores owner block positions keyed by level/type and resolves live mining behaviours from the owning block entity on demand. Lookup must prune stale positions when the block entity or behaviour is gone so reloads and block removal cannot leave dead claimers registered.
 * Translation keys follow `create_rns.<category>.<key>` for mod content and the standard Minecraft pattern (`block.create_rns.*`, `item.create_rns.*`) for blocks/items.
 * When creating translatable components for mod-owned keys (`create_rns.*`), prefer `CreateRNS.translatable(...)` over direct `Component.translatable(...)` calls.
 * Defaulted codec fields should prefer `optionalFieldOf(..., default)` over `fieldOf(...).orElse(default)` so omitted datapack properties still use defaults while malformed present values surface codec errors instead of silently falling back.

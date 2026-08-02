@@ -30,7 +30,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     protected boolean wasAssembled = false;
 
     public ContraptionMiningBehaviour(MinerBearingBlockEntity bearing) {
-        super(bearing, bearing, () -> bearing.getBlockState().getValue(DirectionalKineticBlock.FACING));
+        super(bearing, () -> bearing.getBlockState().getValue(DirectionalKineticBlock.FACING));
         this.bearing = bearing;
     }
 
