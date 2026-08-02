@@ -4,11 +4,14 @@ import com.bmaster.createrns.RNSSoundEvents;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadSize;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
@@ -23,12 +26,10 @@ import java.util.Objects;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class MinerEffectsGenerator {
-    public enum SoundModifier {
-        RESONANCE
-    }
-
+    protected static final int MAX_SOUND_DISTANCE = 128;
     protected static final int SOUND_SEQUENCE_INTERVAL = 4;
-    protected static final ObjectOpenHashSet<MinerBearingBlockEntity> miners = new ObjectOpenHashSet<>();
+    protected static final Object2ObjectOpenHashMap<ResourceKey<Level>, ObjectOpenHashSet<BlockPos>> MINERS =
+            new Object2ObjectOpenHashMap<>();
     protected static int lastPlayed = 0;
 
     @SuppressWarnings("DataFlowIssue")
@@ -39,8 +40,17 @@ public class MinerEffectsGenerator {
         var p = instance.player;
         if (instance.isPaused() || p == null || lastPlayed < SOUND_SEQUENCE_INTERVAL) return;
 
+        var miners = MINERS.get(p.level().dimension());
+        if (miners == null) return;
         miners.stream()
+                .filter(bp -> bp.distManhattan(p.blockPosition()) <= MAX_SOUND_DISTANCE)
+                .map(bp -> {
+                    var be = instance.level.getBlockEntity(bp);
+                    if (!(be instanceof MinerBearingBlockEntity miner)) return null;
+                    return miner;
+                })
                 .filter(miner -> {
+                    if (miner == null) return false;
                     if (miner.miningBehaviour.equipment == null) return false;
                     if (miner.miningBehaviour.process == null) return false;
                     return miner.miningBehaviour.isMining();
@@ -67,7 +77,7 @@ public class MinerEffectsGenerator {
     }
 
     public static void clearState() {
-        miners.clear();
+        MINERS.clear();
     }
 
     protected final Level level;
@@ -116,12 +126,19 @@ public class MinerEffectsGenerator {
     }
 
     public void uninitialize() {
-        miners.remove(be);
+        var l = be.getLevel();
+        if (l == null) return;
+        var dim = l.dimension();
+        var dimMiners = MINERS.get(dim);
+        dimMiners.remove(be.getBlockPos());
+        if (dimMiners.isEmpty()) MINERS.remove(dim);
     }
 
     protected void refreshSound() {
         if (be.miningBehaviour.process == null || be.miningBehaviour.equipment == null) return;
-        miners.add(be);
+        var l = be.getLevel();
+        if (l == null) return;
+        MINERS.computeIfAbsent(l.dimension(), ignored -> new ObjectOpenHashSet<>()).add(be.getBlockPos());
     }
 
     protected void refreshParticles() {

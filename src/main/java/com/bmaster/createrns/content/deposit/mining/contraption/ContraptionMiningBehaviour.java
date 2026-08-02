@@ -29,7 +29,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     protected boolean wasAssembled = false;
 
     public ContraptionMiningBehaviour(MinerBearingBlockEntity bearing) {
-        super(bearing, () -> bearing.getBlockState().getValue(DirectionalKineticBlock.FACING));
+        super(bearing, bearing, () -> bearing.getBlockState().getValue(DirectionalKineticBlock.FACING));
         this.bearing = bearing;
     }
 
@@ -41,7 +41,13 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     @Override
     public boolean isMining() {
         var mc = bearing.getMovedContraption();
-        return isMiningOrStalled() && !mc.isStalled();
+        boolean isMining = isMiningOrStalled() && !mc.isStalled();
+        if (isMining) {
+            CreateRNS.LOGGER.info("Mining at " + bearing.getBlockPos());
+        } else {
+            CreateRNS.LOGGER.info("Not mining at " + bearing.getBlockPos());
+        }
+        return isMining;
     }
 
     @Override

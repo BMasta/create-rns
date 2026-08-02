@@ -27,7 +27,7 @@ public class DepositClaimerOutlineRenderer {
     private static int ttl = 0;
 
     @ParametersAreNonnullByDefault
-    public static void clearAndAddNearbyMiningBEs(ClaimerType type) {
+    public static void clearAndAddNearbyClaimers(ClaimerType type) {
         if (!outlineActive) return;
         Player p = Minecraft.getInstance().player;
         if (p == null) return;
@@ -114,6 +114,6 @@ public class DepositClaimerOutlineRenderer {
 
         ttl = MAX_TTL;
         outlineActive = true;
-        clearAndAddNearbyMiningBEs(target.getClaimerType());
+        clearAndAddNearbyClaimers(target.getClaimerType());
     }
 }
