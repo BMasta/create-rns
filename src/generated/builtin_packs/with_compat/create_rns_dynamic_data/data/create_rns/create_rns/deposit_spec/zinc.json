@@ -1,5 +1,10 @@
 {
-  "scanner_icon_item": "create:raw_zinc",
+  "scanner_icon_item": [
+    "#forge:raw_materials/zinc",
+    "#forge:ores/zinc",
+    "#forge:ingots/zinc",
+    "#forge:nuggets/zinc"
+  ],
   "map_icon_item": "create_rns:zinc_deposit_block",
   "structure": "create_rns:deposit_zinc"
 }

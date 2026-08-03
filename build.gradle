@@ -135,6 +135,7 @@ repositories {
     maven { url = "https://maven.tterrag.com" } // Registrate
     maven { url = "https://maven.blamejared.com" } // JEI
     maven { url = "https://maven.terraformersmc.com/" } // EMI
+    maven { url = "https://api.modrinth.com/maven" } // OEI, OELib
     maven { url = "https://chocolateminecraft.com/maven" } // Xaero's Minimap / World Map
     maven { url = 'https://www.cursemaven.com' }
 }
@@ -170,6 +171,8 @@ dependencies {
     annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
     compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.4.1"))
     implementation("io.github.llamalad7:mixinextras-forge:0.4.1")
+//    localRuntime(fg.deobf("maven.modrinth:7pCNymxz:${oei_version}")) // One Enough Item
+//    localRuntime(fg.deobf("maven.modrinth:7ODqOXka:${oelib_version}")) // OELib
 
     compileOnly(fg.deobf("curse.maven:journeymap-${journeymap_version}"))
     compileOnly(fg.deobf("curse.maven:xaeros-world-map-${xaero_worldmap_version}"))
@@ -186,23 +189,23 @@ dependencies {
 tasks.named('processResources', ProcessResources).configure {
     duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
     var replaceProperties = [
-            minecraft_version              : minecraft_version,
-            minecraft_version_range        : minecraft_version_range,
-            forge_version                  : forge_version,
-            forge_version_range            : forge_version_range,
-            loader_version_range           : loader_version_range,
-            jei_version                    : jei_version,
-            emi_version                    : emi_version,
-            xaero_worldmap_version         : xaero_worldmap_version,
-            xaero_worldmap_version_runtime : xaero_worldmap_version_runtime,
-            xaero_minimap_version_runtime  : xaero_minimap_version_runtime,
-            journeymap_version             : journeymap_version,
-            mod_id                         : mod_id,
-            mod_name                       : mod_name,
-            mod_license                    : mod_license,
-            mod_version                    : mod_version,
-            mod_authors                    : mod_authors,
-            mod_description                : mod_description,
+            minecraft_version             : minecraft_version,
+            minecraft_version_range       : minecraft_version_range,
+            forge_version                 : forge_version,
+            forge_version_range           : forge_version_range,
+            loader_version_range          : loader_version_range,
+            jei_version                   : jei_version,
+            emi_version                   : emi_version,
+            xaero_worldmap_version        : xaero_worldmap_version,
+            xaero_worldmap_version_runtime: xaero_worldmap_version_runtime,
+            xaero_minimap_version_runtime : xaero_minimap_version_runtime,
+            journeymap_version            : journeymap_version,
+            mod_id                        : mod_id,
+            mod_name                      : mod_name,
+            mod_license                   : mod_license,
+            mod_version                   : mod_version,
+            mod_authors                   : mod_authors,
+            mod_description               : mod_description,
     ]
     inputs.properties replaceProperties
 

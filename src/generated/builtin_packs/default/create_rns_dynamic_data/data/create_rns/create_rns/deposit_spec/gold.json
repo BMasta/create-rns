@@ -1,5 +1,10 @@
 {
-  "scanner_icon_item": "minecraft:raw_gold",
+  "scanner_icon_item": [
+    "#forge:raw_materials/gold",
+    "#forge:ores/gold",
+    "#forge:ingots/gold",
+    "#forge:nuggets/gold"
+  ],
   "map_icon_item": "create_rns:gold_deposit_block",
   "structure": "create_rns:deposit_gold"
 }
