@@ -151,6 +151,8 @@ dependencies {
     localRuntime("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
 //    localRuntime("dev.emi:emi-neoforge:${emi_version}+${minecraft_version}")
     localRuntime("maven.modrinth:jade:${jade_version}+neoforge")
+//    localRuntime("maven.modrinth:7pCNymxz:${oei_version}") // One Enough Item
+//    localRuntime("maven.modrinth:7ODqOXka:${oelib_version}") // OELib
 
     localRuntime("maven.modrinth:journeymap:${journeymap_version}+neoforge")
     localRuntime("xaero.minimap:xaerominimap-neoforge-${minecraft_version}:${xaero_minimap_version}")

@@ -15,6 +15,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -120,6 +121,13 @@ public class ItemWithFallbacks {
                 if (resolved == null) {
                     report.add("Item tag \"#" + entry.id + "\" does not contain any items");
                     continue;
+                }
+
+                // Mods like One Enough Item may dynamically substitute certain items with others.
+                // If an item stack is created with a different item, use the stack item instead.
+                var testStack = new ItemStack(resolved);
+                if (resolved != testStack.getItem()) {
+                    resolved = testStack.getItem();
                 }
             }
             break;
