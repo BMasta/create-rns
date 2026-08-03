@@ -3,12 +3,12 @@ package com.bmaster.createrns.content.deposit.claiming;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer.ClaimerType;
 import com.bmaster.createrns.content.deposit.mining.MiningBehaviour;
+import com.bmaster.createrns.util.SidedDimension;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @MethodsReturnNonnullByDefault
 public class DepositClaimerInstanceHolder {
     private static final Object2ObjectOpenHashMap<ClaimerType,
-            Object2ObjectOpenHashMap<ResourceKey<Level>, ObjectOpenHashSet<BlockPos>>> INSTANCES = new Object2ObjectOpenHashMap<>();
+            Object2ObjectOpenHashMap<SidedDimension, ObjectOpenHashSet<BlockPos>>> INSTANCES = new Object2ObjectOpenHashMap<>();
 
     public static Set<IDepositBlockClaimer> getInstancesWithinManhattanDistance(
             Level level, BlockPos pos, int distance, ClaimerType type
@@ -75,31 +75,33 @@ public class DepositClaimerInstanceHolder {
     public static void addClaimer(IDepositBlockClaimer claimer, Level level) {
         DepositClaimerInstanceHolder.INSTANCES
                 .computeIfAbsent(claimer.getClaimerType(), k -> new Object2ObjectOpenHashMap<>())
-                .computeIfAbsent(level.dimension(), k -> new ObjectOpenHashSet<>())
+                .computeIfAbsent(SidedDimension.of(level), k -> new ObjectOpenHashSet<>())
                 .add(claimer.getBlockPos());
     }
 
     public static void removeClaimer(IDepositBlockClaimer claimer, Level level) {
+        var sd = SidedDimension.of(level);
         var type = claimer.getClaimerType();
         var typeMap = DepositClaimerInstanceHolder.INSTANCES.get(type);
         if (typeMap == null) {
             CreateRNS.LOGGER.error("Could not get a set of deposit claimer instances of type {}", type.name());
             return;
         }
-        var levelSet = typeMap.get(level.dimension());
+        var levelSet = typeMap.get(sd);
         if (levelSet == null) {
             CreateRNS.LOGGER.error("Could not get a set of deposit claimer instances at level {}", level);
             return;
         }
         levelSet.remove(claimer.getBlockPos());
-        if (levelSet.isEmpty()) typeMap.remove(level.dimension());
+        if (levelSet.isEmpty()) typeMap.remove(sd);
         if (typeMap.isEmpty()) INSTANCES.remove(type);
     }
 
     private static Set<IDepositBlockClaimer> getClaimersFromLevelAndType(Level l, ClaimerType t) {
+        var sd = SidedDimension.of(l);
         var typeMap = INSTANCES.get(t);
         if (typeMap == null) return Set.of();
-        var levelSet = typeMap.get(l.dimension());
+        var levelSet = typeMap.get(sd);
         if (levelSet == null) return Set.of();
 
         var claimers = new ObjectOpenHashSet<IDepositBlockClaimer>();
@@ -124,7 +126,7 @@ public class DepositClaimerInstanceHolder {
         }
 
         // Clean up collections if removing elements left them empty
-        if (levelSet.isEmpty()) typeMap.remove(l.dimension());
+        if (levelSet.isEmpty()) typeMap.remove(sd);
         if (typeMap.isEmpty()) INSTANCES.remove(t);
 
         return claimers;

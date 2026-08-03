@@ -41,13 +41,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     @Override
     public boolean isMining() {
         var mc = bearing.getMovedContraption();
-        boolean isMining = isMiningOrStalled() && !mc.isStalled();
-        if (isMining) {
-            CreateRNS.LOGGER.info("Mining at " + bearing.getBlockPos());
-        } else {
-            CreateRNS.LOGGER.info("Not mining at " + bearing.getBlockPos());
-        }
-        return isMining;
+        return isMiningOrStalled() && !mc.isStalled();
     }
 
     @Override

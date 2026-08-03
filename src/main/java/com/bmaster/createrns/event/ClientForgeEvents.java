@@ -46,6 +46,20 @@ public class ClientForgeEvents {
     }
 
     @SubscribeEvent
+    public static void onClientPlayerClone(ClientPlayerNetworkEvent.Clone event) {
+        DepositClaimerOutlineRenderer.clearOutline();
+        DepositScannerClientHandler.clearState();
+    }
+
+    @SubscribeEvent
+    public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut e) {
+        FoundDepositClientCache.clear();
+        DepositScannerClientHandler.clearState();
+        DepositClaimerOutlineRenderer.clearOutline();
+        MinerEffectsGenerator.clearState();
+    }
+
+    @SubscribeEvent
     public static void onScrollInput(InputEvent.MouseScrollingEvent e) {
         var mc = Minecraft.getInstance();
         var p = mc.player;
@@ -121,13 +135,5 @@ public class ClientForgeEvents {
                 break;
             }
         }
-    }
-
-    @SubscribeEvent
-    public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut e) {
-        FoundDepositClientCache.clear();
-        DepositScannerClientHandler.clearState();
-        DepositClaimerOutlineRenderer.clearOutline();
-        MinerEffectsGenerator.clearState();
     }
 }
