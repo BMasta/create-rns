@@ -130,6 +130,7 @@ public class MinerEffectsGenerator {
         if (l == null) return;
         var dim = l.dimension();
         var dimMiners = MINERS.get(dim);
+        if (dimMiners == null) return;
         dimMiners.remove(be.getBlockPos());
         if (dimMiners.isEmpty()) MINERS.remove(dim);
     }
