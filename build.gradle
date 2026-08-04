@@ -136,8 +136,23 @@ repositories {
     maven { url = "https://maven.blamejared.com" } // JEI
     maven { url = "https://maven.terraformersmc.com/" } // EMI
     maven { url = "https://api.modrinth.com/maven" } // OEI, OELib
+    maven { url = "https://maven.architectury.dev/" } // KubeJS transitive deps
     maven { url = "https://chocolateminecraft.com/maven" } // Xaero's Minimap / World Map
     maven { url = 'https://www.cursemaven.com' }
+
+    maven {
+        url = "https://maven.latvian.dev/releases" // KubeJS
+        content {
+            includeGroup "dev.latvian.mods"
+            includeGroup "dev.latvian.apps"
+        }
+    }
+    maven {
+        url = "https://jitpack.io"
+        content {
+            includeGroup "com.github.rtyley"
+        }
+    }
 }
 
 configurations {
@@ -177,7 +192,14 @@ dependencies {
     compileOnly(fg.deobf("curse.maven:journeymap-${journeymap_version}"))
     compileOnly(fg.deobf("curse.maven:xaeros-world-map-${xaero_worldmap_version}"))
 
+    compileOnly(fg.deobf("dev.latvian.mods:kubejs-forge:${kubejs_version}"))
+    compileOnly(fg.deobf("dev.latvian.mods:rhino-forge:${rhino_version}"))
+    compileOnly(fg.deobf("dev.architectury:architectury-forge:${architectury_version}"))
+
 //    runtimeOnly(fg.deobf("dev.emi:emi-forge:${emi_version}+${minecraft_version}"))
+    localRuntime(fg.deobf("dev.latvian.mods:kubejs-forge:${kubejs_version}"))
+    localRuntime(fg.deobf("dev.latvian.mods:rhino-forge:${rhino_version}"))
+    localRuntime(fg.deobf("dev.architectury:architectury-forge:${architectury_version}"))
     runtimeOnly(fg.deobf("curse.maven:journeymap-${journeymap_version}"))
     runtimeOnly(fg.deobf("curse.maven:xaeros-world-map-${xaero_worldmap_version}"))
 }
@@ -196,6 +218,7 @@ tasks.named('processResources', ProcessResources).configure {
             loader_version_range          : loader_version_range,
             jei_version                   : jei_version,
             emi_version                   : emi_version,
+            kubejs_version                : kubejs_version,
             xaero_worldmap_version        : xaero_worldmap_version,
             xaero_worldmap_version_runtime: xaero_worldmap_version_runtime,
             xaero_minimap_version_runtime : xaero_minimap_version_runtime,

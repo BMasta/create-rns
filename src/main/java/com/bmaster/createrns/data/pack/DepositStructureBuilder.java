@@ -35,6 +35,14 @@ public class DepositStructureBuilder {
                 .toList();
     }
 
+    public static ResourceLocation structureId(ConfiguredEntry entry) {
+        return structureId(entry.name, entry.structure.dimension);
+    }
+
+    public static ResourceLocation structureId(String depositName, DepositDimension dimension) {
+        return CreateRNS.asResource("deposit_" + dimension.prefix() + depositName);
+    }
+
     private final DepositBuildingContext ctx;
     private final List<WeightedTemplate> weightedTemplates = new ArrayList<>();
 

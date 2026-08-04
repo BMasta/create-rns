@@ -263,48 +263,68 @@ public class DynamicDatapackContent {
             var specEntries = DepositSpecBuilder.getEnabledSpecs();
             var files = new ArrayList<DatapackFile>(specEntries.size());
             for (var def : specEntries) {
-                var filename = def.dimension().prefix() + def.specId().getPath();
-                var root = new JsonObject();
-                var spec = def.spec();
-
-                var scannerIconCandidates = spec.scannerIconCandidates().stream()
-                        .map(c -> c.contains(":") ? c : "minecraft:" + c)
-                        .toList();
-                if (scannerIconCandidates.size() == 1) {
-                    root.addProperty("scanner_icon_item", scannerIconCandidates.get(0));
-                } else {
-                    var candidates = new JsonArray();
-                    for (var id : scannerIconCandidates) {
-                        candidates.add(id);
-                    }
-                    root.add("scanner_icon_item", candidates);
-                }
-
-                var mapIconCandidates = spec.mapIconCandidates().stream()
-                        .map(c -> c.contains(":") ? c : "minecraft:" + c)
-                        .toList();
-                if (mapIconCandidates.size() == 1) {
-                    root.addProperty("map_icon_item", mapIconCandidates.get(0));
-                } else {
-                    var candidates = new JsonArray();
-                    for (var id : mapIconCandidates) {
-                        candidates.add(id);
-                    }
-                    root.add("map_icon_item", candidates);
-                }
-
-                root.addProperty("structure", spec.structureId().toString());
-
-                if (def.dimension() != DepositDimension.OVERWORLD) {
-                    root.addProperty("dimension", def.dimension().levelDimension().toString());
-                }
-
-                var path = DEPOSIT_SPEC_PATH.formatted(def.specId().getNamespace(), CreateRNS.ID,
-                        DEPOSIT_SPEC_REGISTRY.getPath() + "/" + filename);
-                files.add(new DatapackFile(path, root));
+                files.add(new DatapackFile(depositSpecDatapackPath(def), depositSpecJson(def)));
             }
             return files;
         };
+    }
+
+    public static JsonObject depositSpecJson(DepositSpecBuilder.ConfiguredEntry def) {
+        return depositSpecJson(def, def.spec().scannable());
+    }
+
+    public static JsonObject depositSpecJson(DepositSpecBuilder.ConfiguredEntry def, boolean scannable) {
+        var root = new JsonObject();
+        var spec = def.spec();
+
+        var scannerIconCandidates = spec.scannerIconCandidates().stream()
+                .map(c -> c.contains(":") ? c : "minecraft:" + c)
+                .toList();
+        if (scannerIconCandidates.size() == 1) {
+            root.addProperty("scanner_icon_item", scannerIconCandidates.get(0));
+        } else {
+            var candidates = new JsonArray();
+            for (var id : scannerIconCandidates) {
+                candidates.add(id);
+            }
+            root.add("scanner_icon_item", candidates);
+        }
+
+        var mapIconCandidates = spec.mapIconCandidates().stream()
+                .map(c -> c.contains(":") ? c : "minecraft:" + c)
+                .toList();
+        if (mapIconCandidates.size() == 1) {
+            root.addProperty("map_icon_item", mapIconCandidates.get(0));
+        } else {
+            var candidates = new JsonArray();
+            for (var id : mapIconCandidates) {
+                candidates.add(id);
+            }
+            root.add("map_icon_item", candidates);
+        }
+
+        root.addProperty("structure", spec.structureId().toString());
+
+        if (def.dimension() != DepositDimension.OVERWORLD) {
+            root.addProperty("dimension", def.dimension().levelDimension().toString());
+        }
+        if (!scannable) {
+            root.addProperty("scannable", false);
+        }
+
+        return root;
+    }
+
+    public static ResourceLocation depositSpecPath(DepositSpecBuilder.ConfiguredEntry def) {
+        var filename = def.dimension().prefix() + def.specId().getPath();
+        return ResourceLocation.fromNamespaceAndPath(def.specId().getNamespace(),
+                CreateRNS.ID + "/" + DEPOSIT_SPEC_REGISTRY.getPath() + "/" + filename);
+    }
+
+    public static String depositSpecDatapackPath(DepositSpecBuilder.ConfiguredEntry def) {
+        var filename = def.dimension().prefix() + def.specId().getPath();
+        return DEPOSIT_SPEC_PATH.formatted(def.specId().getNamespace(), CreateRNS.ID,
+                DEPOSIT_SPEC_REGISTRY.getPath() + "/" + filename);
     }
 
     private static String processorName(ResourceLocation depositBlock) {
