@@ -40,11 +40,12 @@ public class DepositScannerClientHandler {
     }
 
     public static void cancelTracking(boolean playSound) {
-        var p = Minecraft.getInstance().player;
-        if (p == null) return;
         state.depositFound = false;
         state.isTracking = false;
         DepositScannerItemRenderer.setRoll(Roll.NONE);
+
+        var p = Minecraft.getInstance().player;
+        if (p == null) return;
         if (playSound) RNSSoundEvents.SCANNER_CLICK.playClient(p.level(), p.blockPosition());
     }
 
@@ -55,7 +56,7 @@ public class DepositScannerClientHandler {
         RNSSoundEvents.SCANNER_DISCOVERY_PING.playClient(p.level(), p.blockPosition());
         DepositScannerItemRenderer.shakeItem();
 
-        var selectedItem = getSelectedItem();
+        var selectedItem = getSelectedIcon();
         if (selectedItem == null) return;
         // Server limits how often it processes discover requests. It will be a no-op if called too soon.
         PacketDistributor.sendToServer(new DepositScannerC2SPayload(selectedItem, RequestType.DISCOVER));
@@ -103,20 +104,20 @@ public class DepositScannerClientHandler {
         state.ticksSinceLastPing++;
         if (state.ticksSinceLastPing >= state.pingInterval) {
             state.ticksSinceLastPing = 0;
-            var selectedItem = getSelectedItem();
+            var selectedItem = getSelectedIcon();
             if (selectedItem == null) return;
             PacketDistributor.sendToServer(new DepositScannerC2SPayload(selectedItem, RequestType.TRACK));
         }
     }
 
-    public static @Nullable ItemStack getSelectedItem() {
+    public static @Nullable ItemStack getSelectedIcon() {
         var l = Minecraft.getInstance().level;
         if (l == null) return null;
-        var allItems = DepositSpecLookup.getScannerIcons(l);
-        int size = allItems.size();
+        var allIcons = DepositSpecLookup.getScannerIcons(l);
+        int size = allIcons.size();
         if (size == 0) return null;
         int normalizedIndex = (state.selectedIndex % size + size) % size;
-        return new ItemStack(allItems.get(normalizedIndex));
+        return new ItemStack(allIcons.get(normalizedIndex));
     }
 
     protected static void processDiscoverReply(AntennaStatus status) {
@@ -195,7 +196,7 @@ public class DepositScannerClientHandler {
 
         RNSSoundEvents.SCANNER_SCROLL.playClient(player.level(), player.blockPosition());
 
-        var selectedItem = getSelectedItem();
+        var selectedItem = getSelectedIcon();
         if (selectedItem == null) return;
 
         player.displayClientMessage(DepositSpecLookup.getDepositName(player.level(),

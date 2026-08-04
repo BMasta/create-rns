@@ -1,40 +1,12 @@
-# Creating a Datapack - UNRELEASED
+# Datapack Reference - UNRELEASED
+## THIS DOCUMENT IS FOR AN UNRELEASED VERSION OF THE MOD
+## GO TO THE MAIN PAGE AND SELECT THE RIGHT VERSION
 
-This document covers what parts of Create: Rock & Stone are datapack-driven and can be overridden or extended.
-
-_**The following content is for the unreleased version of the mod. See this doc for released versions below:**_
-
-#### [1.1.x - MC 1.21.1](https://github.com/BMasta/create-rns/blob/1.21-1.1.x/docs/datapack.md)
-#### [1.1.x - MC 1.20.1](https://github.com/BMasta/create-rns/blob/1.20-1.1.x/docs/datapack.md)
-#### [1.0.x - MC 1.21.1](https://github.com/BMasta/create-rns/blob/1.21-1.0.x/docs/datapack.md)
-#### [1.0.x - MC 1.20.1](https://github.com/BMasta/create-rns/blob/1.20-1.0.x/docs/datapack.md)
-
-## What You Can Override
-* Mining recipes (mining rewards, resource uses for finite deposits, what to replace with when depleted, how recipe is displayed in JEI).
-* Catalysts (custom requirements for mining certain kinds of items from a deposit).
-* Deposit world generation (spawn rate, structure nbt, deposit scanner icon, map overlay icon)
-
-## Default Configuration
-
-* Most resources are located in `src/main/resources` and `src/generated/resources`.
-* Default mining recipes, deposit specs, and worldgen resources come from the mod's main built-in (in-memory) datapack.
-* Built-in datapacks are created dynamically based on which compatible mods are loaded.
-* Dumps of datapacks created when no compatible mods are loaded can be found in `src/generated/builtin_packs/default`.
-* Dumps of datapacks created when all compatible mods are loaded can be found in `src/generated/builtin_packs/with_compat`.
-* Code-registered compat mining recipes follow the same dump split as other dynamic content: `default` excludes them and `with_compat` includes them.
-
-## Custom Deposit Spawn Rate
-Deposit spawn rate is influenced by these parameters:
-* Spacing (configured in structure set) - the average distance in chunks between two structures.
-* Separation (configured in structure set) - the minimum distance in chunks between two structures.
-* Frequency (configured in structure set) - the probability to spawn a structure if other requirements are met.
-* Biomes (configured in a structure or by modifying the `#create_rns:has_deposit` biome tag) - some biomes may be excluded, which will result in less frequent spawns.
-
-See https://minecraft.fandom.com/wiki/Custom_structure for more details.
-
-Easiest solution that works in most cases - copy the [default structure sets](
-../src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure_set),
-remove the deposits you don't want, then tweak the separation and spacing.
+## Notes
+* You can look at the mod resources for reference. The manually-written resources are [here](../src/main/resources) and the auto-generated resource are [here](../src/generated/resources).
+* Some resources are dynamically generated depending on the presence of other mods. Despite it being dynamic,
+There are two examples you can look at: when no compatible mods are present ([here](../src/generated/builtin_packs/default)),
+and when all compatible mods are present ([here](../src/generated/builtin_packs/with_compat)).
 
 ## Mining Recipe
 
@@ -170,6 +142,8 @@ See [default catalysts](../src/main/resources/data/create_rns/create_rns/catalys
 ```
 
 ## Adding a New Deposit Structure
+ This process is a lot easier with KubeJS. Please refer to [this example](templates/custom-deposit/kubejs).
+ However, if you want to know how the sausage is made, below is the recipe for doing it manually. 
 
 ### 1. Deposit Spec
 
@@ -185,6 +159,9 @@ See [default deposit specs](../src/generated/builtin_packs/with_compat/create_rn
   // Optional (default minecraft:overworld)
   // Should match the dimension of the deposit structure.
   "dimension": "minecraft:the_nether",
+  // Optional (default true)
+  // If false, this deposit does not appear in the deposit scanner selection wheel.
+  "scannable": false,
   // Item/Block to render when this deposit structure is selected in deposit scanner.
   "scanner_icon_item": "your_pack:raw_tin",
   // ..or
@@ -238,6 +215,10 @@ See [default structures](../src/generated/builtin_packs/with_compat/create_rns_d
 ### 3. Processor
 The deposit nbt's contain deposits made of end stone.
 To convert it to your deposit blocks of choice, a custom processor is needed.
+
+***IMPORTANT!*** A datapack alone does not let you add new items into the game,
+so to add a new deposit block, you must either use KubeJS, or a separate mod that adds it.
+The deposit block of your choice has to be tagged with `#create_rns:deposit_blocks` to work properly.
 
 Path: `data/create_rns/worldgen/processor_list/replace_with_your_pack_tin_deposit_block.json`
 

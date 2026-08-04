@@ -27,6 +27,19 @@ repositories {
     maven { url = 'https://www.cursemaven.com' }
     maven { url = "https://api.modrinth.com/maven" } // Jade
     maven { url = "https://maven.terraformersmc.com/" } // EMI
+    maven {
+        url = "https://maven.latvian.dev/releases" // KubeJS
+        content {
+            includeGroup "dev.latvian.mods"
+            includeGroup "dev.latvian.apps"
+        }
+    }
+    maven {
+        url = "https://jitpack.io"
+        content {
+            includeGroup "com.github.rtyley"
+        }
+    }
 }
 
 base {
@@ -141,6 +154,7 @@ dependencies {
     compileOnly("maven.modrinth:jade:${jade_version}+neoforge")
     compileOnly("info.journeymap:journeymap-api-neoforge:${journeymap_api_version}")
     compileOnly("xaero.map:xaeroworldmap-neoforge-${minecraft_version}:${xaero_worldmap_version}")
+    compileOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}")
 
     implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
     implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
@@ -151,6 +165,7 @@ dependencies {
     localRuntime("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
 //    localRuntime("dev.emi:emi-neoforge:${emi_version}+${minecraft_version}")
     localRuntime("maven.modrinth:jade:${jade_version}+neoforge")
+    localRuntime("dev.latvian.mods:kubejs-neoforge:${kubejs_version}")
 //    localRuntime("maven.modrinth:7pCNymxz:${oei_version}") // One Enough Item
 //    localRuntime("maven.modrinth:7ODqOXka:${oelib_version}") // OELib
 
@@ -170,6 +185,7 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             jei_version            : jei_version,
             emi_version            : emi_version,
             jade_version           : jade_version,
+            kubejs_version         : kubejs_version,
             xaero_worldmap_version : xaero_worldmap_version,
             xaero_minimap_version  : xaero_minimap_version,
             journeymap_api_version : journeymap_api_version,

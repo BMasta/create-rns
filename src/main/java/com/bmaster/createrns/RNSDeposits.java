@@ -13,8 +13,6 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.MapColor;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
@@ -58,7 +56,7 @@ public class RNSDeposits {
 
     public static final BlockEntry<DepositBlock> IRON_DEPOSIT = DepositBlockBuilder
             .create("iron")
-            .transform(depositBlockProperties(MapColor.RAW_IRON))
+            .transform(depositBlockDefaults())
             .attach(ctx -> DepositStructureBuilder.create(ctx)
                     .transform(bulkDepositStructure(2))
                     .save())
@@ -78,7 +76,7 @@ public class RNSDeposits {
 
     public static final BlockEntry<DepositBlock> COPPER_DEPOSIT = DepositBlockBuilder
             .create("copper")
-            .transform(depositBlockProperties(MapColor.COLOR_ORANGE))
+            .transform(depositBlockDefaults())
             .attach(ctx -> DepositStructureBuilder.create(ctx)
                     .transform(bulkDepositStructure(2))
                     .save())
@@ -100,7 +98,7 @@ public class RNSDeposits {
 
     public static final BlockEntry<DepositBlock> ZINC_DEPOSIT = DepositBlockBuilder
             .create("zinc")
-            .transform(depositBlockProperties(MapColor.GLOW_LICHEN))
+            .transform(depositBlockDefaults())
             .attach(ctx -> DepositStructureBuilder.create(ctx)
                     .transform(preciousDepositStructure(2))
                     .save())
@@ -124,7 +122,7 @@ public class RNSDeposits {
 
     public static final BlockEntry<DepositBlock> GOLD_DEPOSIT = DepositBlockBuilder
             .create("gold")
-            .transform(depositBlockProperties(MapColor.GOLD))
+            .transform(depositBlockDefaults())
             .attach(ctx -> DepositStructureBuilder.create(ctx)
                     .transform(preciousDepositStructure(2))
                     .save())
@@ -160,7 +158,7 @@ public class RNSDeposits {
 
     public static final BlockEntry<DepositBlock> REDSTONE_DEPOSIT = DepositBlockBuilder
             .create("redstone")
-            .transform(depositBlockProperties(MapColor.FIRE))
+            .transform(depositBlockDefaults())
             .attach(ctx -> DepositStructureBuilder.create(ctx)
                     .transform(preciousDepositStructure(2))
                     .save())
@@ -182,7 +180,7 @@ public class RNSDeposits {
 
     public static final BlockEntry<DepositBlock> TIN_DEPOSIT = DepositBlockBuilder
             .create("tin")
-            .transform(depositBlockProperties(MapColor.COLOR_BLUE))
+            .transform(depositBlockDefaults())
             .enableWhenBlockPresent("tin_ore")
             .enableWhenBlockPresent("deepslate_tin_ore")
             .attach(ctx -> DepositStructureBuilder.create(ctx)
@@ -204,7 +202,7 @@ public class RNSDeposits {
 
     public static final BlockEntry<DepositBlock> LEAD_DEPOSIT = DepositBlockBuilder
             .create("lead")
-            .transform(depositBlockProperties(MapColor.COLOR_BLUE))
+            .transform(depositBlockDefaults())
             .enableWhenBlockPresent("lead_ore")
             .enableWhenBlockPresent("deepslate_lead_ore")
             .attach(ctx -> DepositStructureBuilder.create(ctx)
@@ -226,7 +224,7 @@ public class RNSDeposits {
 
     public static final BlockEntry<DepositBlock> NICKEL_DEPOSIT = DepositBlockBuilder
             .create("nickel")
-            .transform(depositBlockProperties(MapColor.SAND))
+            .transform(depositBlockDefaults())
             .enableWhenBlockPresent("nickel_ore")
             .enableWhenBlockPresent("deepslate_nickel_ore")
             .attach(ctx -> DepositStructureBuilder.create(ctx)
@@ -248,7 +246,7 @@ public class RNSDeposits {
 
     public static final BlockEntry<DepositBlock> SILVER_DEPOSIT = DepositBlockBuilder
             .create("silver")
-            .transform(depositBlockProperties(MapColor.SNOW))
+            .transform(depositBlockDefaults())
             .enableWhenBlockPresent("silver_ore")
             .enableWhenBlockPresent("deepslate_silver_ore")
             .attach(ctx -> DepositStructureBuilder.create(ctx)
@@ -270,7 +268,7 @@ public class RNSDeposits {
 
     public static final BlockEntry<DepositBlock> URANIUM_DEPOSIT = DepositBlockBuilder
             .create("uranium")
-            .transform(depositBlockProperties(MapColor.COLOR_GREEN))
+            .transform(depositBlockDefaults())
             .enableWhenBlockPresent("uranium_ore")
             .enableWhenBlockPresent("deepslate_uranium_ore")
             .attach(ctx -> DepositSpecBuilder.create(ctx)
@@ -294,7 +292,7 @@ public class RNSDeposits {
 
     public static final BlockEntry<DepositBlock> THORIUM_DEPOSIT = DepositBlockBuilder
             .create("thorium")
-            .transform(depositBlockProperties(MapColor.COLOR_ORANGE))
+            .transform(depositBlockDefaults())
             .enableWhenBlockPresent("thorium_ore")
             .enableWhenBlockPresent("deepslate_thorium_ore")
             .attach(ctx -> DepositStructureBuilder.create(ctx)
@@ -321,7 +319,7 @@ public class RNSDeposits {
 
     public static final BlockEntry<DepositBlock> QUARTZ_DEPOSIT = DepositBlockBuilder
             .create("quartz")
-            .transform(depositBlockProperties(MapColor.QUARTZ))
+            .transform(depositBlockDefaults())
             .attach(ctx -> DepositStructureBuilder.create(ctx)
                     .transform(bulkNetherDepositStructure(1))
                     .save())
@@ -346,7 +344,7 @@ public class RNSDeposits {
 
     public static final BlockEntry<DepositBlock> COBALT_DEPOSIT = DepositBlockBuilder
             .create("cobalt")
-            .transform(depositBlockProperties(MapColor.LAPIS))
+            .transform(depositBlockDefaults())
             .enableWhenBlockPresent("cobalt_ore")
             .attach(ctx -> DepositStructureBuilder.create(ctx)
                     .transform(preciousNetherDepositStructure(1))
@@ -370,20 +368,16 @@ public class RNSDeposits {
 
     public static final BlockEntry<DepositBlock> DEPLETED_DEPOSIT = DepositBlockBuilder
             .create("depleted")
-            .transform(depositBlockProperties(MapColor.COLOR_BLACK))
+            .transform(depositBlockDefaults())
             .attach(id -> MiningRecipeBuilder.create(id)
                     .yield(y -> y.item(List.of("cobblestone")))
                     .save())
             .register();
 
-    public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> depositBlockProperties(MapColor mapColor) {
+    public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> depositBlockDefaults() {
         return b -> b
                 .initialProperties(() -> Blocks.RAW_IRON_BLOCK)
-                .properties(p -> p
-                        .mapColor(mapColor)
-                        .strength(50.0F, 1200f)
-                        .sound(SoundType.DEEPSLATE)
-                        .noLootTable())
+                .properties((unused) -> DepositBlock.defaultProperties())
                 .transform(pickaxeOnly())
                 .tag(BlockTags.NEEDS_DIAMOND_TOOL)
                 .tag(RNSBlockTags.DEPOSIT_BLOCKS)

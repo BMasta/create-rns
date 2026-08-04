@@ -13,7 +13,10 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,8 +31,19 @@ import java.util.stream.Collectors;
 @ParametersAreNonnullByDefault
 public class DepositBlock extends Block {
     public static final int MAX_DEPOSIT_VEIN_SIZE = 128;
+    public static final float DEFAULT_HARDNESS = 50.0F;
+    public static final float DEFAULT_RESISTANCE = 1200.0F;
     private static final Set<Direction> xzDirections = Set.of(
             Direction.SOUTH, Direction.WEST, Direction.EAST, Direction.NORTH);
+
+    public static Properties defaultProperties() {
+        return Properties.ofFullCopy(Blocks.RAW_IRON_BLOCK)
+                .mapColor(MapColor.COLOR_BLACK)
+                .strength(DEFAULT_HARDNESS, DEFAULT_RESISTANCE)
+                .sound(SoundType.DEEPSLATE)
+                .requiresCorrectToolForDrops()
+                .noLootTable();
+    }
 
     public static Object2IntOpenHashMap<BlockPos> getVein(Level level, BlockPos start) {
         Queue<BlockPos> q = new ArrayDeque<>();

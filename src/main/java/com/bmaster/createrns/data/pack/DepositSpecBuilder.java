@@ -26,6 +26,7 @@ public class DepositSpecBuilder {
     private final DepositBuildingContext ctx;
     private final List<String> scannerIconItemCandidates = new ArrayList<>();
     private DepositDimension dimension = DepositDimension.OVERWORLD;
+    private boolean scannable = true;
 
     public DepositSpecBuilder dimension(DepositDimension dimension) {
         this.dimension = dimension;
@@ -46,6 +47,11 @@ public class DepositSpecBuilder {
         return transform.apply(this);
     }
 
+    public DepositSpecBuilder scannable(boolean scannable) {
+        this.scannable = scannable;
+        return this;
+    }
+
     public void save() {
         if (scannerIconItemCandidates.isEmpty()) {
             throw new IllegalStateException("Deposit spec must define a scanner icon");
@@ -57,7 +63,10 @@ public class DepositSpecBuilder {
             }
         }
         var entry = new ConfiguredEntry(ctx.depositSpecId(), dimension, ctx.isEnabled, new ConfiguredSpec(
-                List.copyOf(scannerIconItemCandidates), List.of(ctx.depositBlockId().toString()), ctx.depositStructureId(dimension)));
+                List.copyOf(scannerIconItemCandidates),
+                List.of(ctx.depositBlockId().toString()),
+                ctx.depositStructureId(dimension),
+                scannable));
         SPECS.add(entry);
     }
 
@@ -73,7 +82,8 @@ public class DepositSpecBuilder {
     public record ConfiguredSpec(
             List<String> scannerIconCandidates,
             List<String> mapIconCandidates,
-            ResourceLocation structureId
+            ResourceLocation structureId,
+            boolean scannable
     ) {
     }
 }

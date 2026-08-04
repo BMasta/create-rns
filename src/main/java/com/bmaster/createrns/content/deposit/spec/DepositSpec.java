@@ -30,7 +30,9 @@ public class DepositSpec {
             ResourceLocation.CODEC.fieldOf("structure")
                     .forGetter(ds -> ds.structure),
             ResourceKey.codec(Registries.DIMENSION).optionalFieldOf("dimension", Level.OVERWORLD)
-                    .forGetter(ds -> ds.dimension)
+                    .forGetter(ds -> ds.dimension),
+            Codec.BOOL.optionalFieldOf("scannable", true)
+                    .forGetter(ds -> ds.scannable)
     ).apply(i, DepositSpec::new));
 
     public static final ResourceKey<Registry<DepositSpec>> REGISTRY_KEY =
@@ -38,18 +40,20 @@ public class DepositSpec {
 
     public final ResourceLocation structure;
     public final ResourceKey<Level> dimension;
+    public final boolean scannable;
     protected final ItemWithFallbacks scannerIconItemData;
     protected final ItemWithFallbacks mapIconItemData;
     protected ItemStack mapIcon;
 
     public DepositSpec(
             ItemWithFallbacks scannerIconItemData, ItemWithFallbacks mapIconItemData, ResourceLocation structure,
-            ResourceKey<Level> dimension
+            ResourceKey<Level> dimension, boolean scannable
     ) {
         this.structure = structure;
         this.scannerIconItemData = scannerIconItemData;
         this.mapIconItemData = mapIconItemData;
         this.dimension = dimension;
+        this.scannable = scannable;
     }
 
     public ResourceKey<Structure> structureKey() {

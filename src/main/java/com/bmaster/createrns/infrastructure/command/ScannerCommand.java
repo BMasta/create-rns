@@ -51,17 +51,16 @@ import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 public class ScannerCommand {
     public static final SuggestionProvider<CommandSourceStack> SUGGEST_DEPOSIT_STRUCTURES =
             (ctx, b) -> SharedSuggestionProvider.suggestResource(
-                    ctx.getSource().getLevel().registryAccess().lookupOrThrow(Registries.STRUCTURE).listElements()
-                            .filter(h -> h.is(RNSStructureTags.DEPOSITS))
+                    getSuggestedDepositStructures(ctx.getSource()).stream()
                             .map(h -> h.key().location()),
                     b
             );
 
     public static final SuggestionProvider<CommandSourceStack> SUGGEST_DEPOSIT_STRUCTURES_OR_TAGS =
             (ctx, b) -> {
-                var lookup = ctx.getSource().getLevel().registryAccess().lookupOrThrow(Registries.STRUCTURE);
-                var structures = lookup.listElements()
-                        .filter(h -> h.is(RNSStructureTags.DEPOSITS))
+                var src = ctx.getSource();
+                var lookup = src.getLevel().registryAccess().lookupOrThrow(Registries.STRUCTURE);
+                var structures = getSuggestedDepositStructures(src).stream()
                         .map(h -> h.key().location())
                         .toList();
                 var tags = lookup.listTags()
@@ -375,6 +374,7 @@ public class ScannerCommand {
             }
 
             var depKeys = deposits.stream()
+                    .filter(h -> hasPlacements(src, h))
                     .map(h -> h.unwrapKey().orElse(null))
                     .filter(Objects::nonNull)
                     .sorted(Comparator.comparing(k -> k.location().toString()))
@@ -454,6 +454,19 @@ public class ScannerCommand {
         var right = resOrTag.right().orElse(null);
         assert left != null || right != null;
         return (left != null) ? left.location() : right.location();
+    }
+
+    private static List<net.minecraft.core.Holder.Reference<Structure>> getSuggestedDepositStructures(CommandSourceStack src) {
+        var lookup = src.getLevel().registryAccess().lookupOrThrow(Registries.STRUCTURE);
+        return lookup.listElements()
+                .filter(h -> h.is(RNSStructureTags.DEPOSITS))
+                .toList();
+    }
+
+    private static boolean hasPlacements(
+            CommandSourceStack src, net.minecraft.core.Holder<Structure> structure
+    ) {
+        return !src.getLevel().getChunkSource().getGeneratorState().getPlacementsForStructure(structure).isEmpty();
     }
 
     private static Component bracketedCoords(BlockPos pos, boolean hideY) {

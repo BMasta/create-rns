@@ -288,7 +288,7 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
     private static void renderSelectedItem(PoseStack ms, PoseTransformStack msr, MultiBufferSource buf,
             int light, int overlay, float partialTicks
     ) {
-        var selectedItem = DepositScannerClientHandler.getSelectedItem();
+        var selectedItem = DepositScannerClientHandler.getSelectedIcon();
         if (selectedItem == null) return;
 
         float am = ambientItemMovement.getValue(partialTicks);

@@ -37,8 +37,14 @@ public class DepositSpecLookup {
             var spec = e.getValue();
             spec.initialize(access);
 
+            var structureKey = spec.structureKey();
+            if (structureKeyToSpec.containsKey(structureKey)) {
+                throw new KeyAlreadyExistsException("Found deposit spec with the same structure: " + spec.structure);
+            }
+            structureKeyToSpec.put(structureKey, spec);;
+
             var scannerIcon = spec.getScannerIcon();
-            if (scannerIcon == null) return;
+            if (scannerIcon == null || !spec.scannable) return;
 
             var dimSpecs = scannerIconToDimToSpec.computeIfAbsent(scannerIcon, ignored -> new HashMap<>());
             if (dimSpecs.containsKey(spec.dimension)) {
@@ -47,11 +53,6 @@ public class DepositSpecLookup {
             }
             dimSpecs.put(spec.dimension, spec);
 
-            var structureKey = spec.structureKey();
-            if (structureKeyToSpec.containsKey(structureKey)) {
-                throw new KeyAlreadyExistsException("Found deposit spec with the same structure: " + spec.structure);
-            }
-            structureKeyToSpec.put(structureKey, spec);
             dimToScannerIcons.computeIfAbsent(spec.dimension, ignored -> new ArrayList<>())
                     .add(scannerIcon);
         });
