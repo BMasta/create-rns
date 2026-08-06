@@ -1,5 +1,5 @@
 // You can assign common yields to a variable and reuse them in multiple places.
- const nuggetYield = y => y
+const nuggetYield = y => y
   .chance(0.5)
   .item('minecraft:iron_nugget')
   .catalyst('create_rns:overclock')

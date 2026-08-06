@@ -19,6 +19,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -52,6 +53,12 @@ public class RNSKubeJSPlugin extends KubeJSPlugin {
 
     @Override
     public void generateDataJsons(DataJsonGenerator generator) {
+        var customCatalysts = allCustomCatalysts();
+        for (var catalyst : customCatalysts) {
+            catalyst.generateData(generator);
+        }
+        generateMinerAttachmentTag(generator, customCatalysts);
+
         var allCustomStructures = allCustomDepositStructures();
         if (!RNSStartupKubeEvents.CREATE_RNS_STRUCTURE_SET.hasListeners()) return;
 
@@ -93,6 +100,10 @@ public class RNSKubeJSPlugin extends KubeJSPlugin {
 
     @Override
     public void generateLang(LangEventJS event) {
+        for (var catalyst : allCustomCatalysts()) {
+            catalyst.generateLang(event);
+        }
+
         if (!RNSStartupKubeEvents.CREATE_RNS_STRUCTURE_SET.hasListeners()) return;
 
         var customDepositStructures = customDepositStructuresById(allCustomDepositStructures());
@@ -252,6 +263,27 @@ public class RNSKubeJSPlugin extends KubeJSPlugin {
         }
     }
 
+    private static void generateMinerAttachmentTag(
+            DataJsonGenerator generator,
+            List<CatalystKubeBuilder> customCatalysts
+    ) {
+        var attachmentBlocks = new LinkedHashSet<String>();
+        for (var catalyst : customCatalysts) {
+            attachmentBlocks.addAll(catalyst.attachmentBlocks());
+        }
+        if (attachmentBlocks.isEmpty()) return;
+
+        var values = new JsonArray();
+        for (var blockId : attachmentBlocks.stream().sorted().toList()) {
+            values.add(blockId);
+        }
+
+        var json = new JsonObject();
+        json.addProperty("replace", false);
+        json.add("values", values);
+        generator.json(CreateRNS.asResource("tags/block/miner_attachments"), json);
+    }
+
     private static JsonObject structureSetJson(
             List<DepositStructureSetKubeBuilder.SelectedStructure> structures,
             int separation, int spacing, int salt
@@ -287,6 +319,14 @@ public class RNSKubeJSPlugin extends KubeJSPlugin {
 
         var event = new DepositStructuresKubeEvent();
         RNSStartupKubeEvents.CREATE_RNS_DEPOSIT_STRUCTURES.post(event);
+        return event.created();
+    }
+
+    private static List<CatalystKubeBuilder> allCustomCatalysts() {
+        if (!RNSStartupKubeEvents.CREATE_RNS_CATALYSTS.hasListeners()) return List.of();
+
+        var event = new CatalystsKubeEvent();
+        RNSStartupKubeEvents.CREATE_RNS_CATALYSTS.post(event);
         return event.created();
     }
 }

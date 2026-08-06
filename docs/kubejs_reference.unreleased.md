@@ -6,7 +6,7 @@
 * This page only covers the custom KubeJS API added by Create: Rock & Stone.
 * Standard KubeJS methods such as `displayName(...)` on normal block builders are not re-documented here.
 * Standard KubeJS recipe methods such as `.id(...)` are not re-documented here.
-* See the [KubeJS templates](templates/custom-deposit/kubejs) for complete working examples.
+* See the KubeJS templates in `templates/custom-deposit`, `templates/tweak-mining-recipe`, and `templates/custom-catalyst` for complete working examples.
 
 ## Adding mining recipes
 
@@ -25,7 +25,7 @@ ServerEvents.recipes(event => {
       .item('minecraft:stone'))
     .yield(y => y
       .chance(0.25)
-      .item('#c:raw_materials/tin')
+      .item('#forge:raw_materials/tin')
       .item('mymod:raw_tin')
       .catalyst('create_rns:overclock'))
 })
@@ -72,7 +72,7 @@ Usage:
 ```js
 .yield(y => y
   .chance(0.25)
-  .item('#c:raw_materials/tin')
+  .item('#forge:raw_materials/tin')
   .item('mymod:raw_tin')
   .catalyst('create_rns:overclock'))
 ```
@@ -94,7 +94,7 @@ Default: `1`
 Adds an item, item tag, or ordered fallback list of item ids and item tags to this yield.
 When multiple items are added to the same yield, one of them is rolled by weight.
 
-* `itemOrTagId`: item id or item tag such as `minecraft:raw_iron` or `#c:raw_materials/iron`
+* `itemOrTagId`: item id or item tag such as `minecraft:raw_iron` or `#forge:raw_materials/iron`
 * `itemOrTagIdList`: ordered list of item ids and item tags used as fallbacks
 * `weight`: positive integer (default: `1`)
 
@@ -119,6 +119,102 @@ Sets the background color shown for this yield in JEI/EMI.
 * `argb`: 32-bit ARGB integer (the alpha channel is ignored, but must be specified regardless)
 
 Default: regular slot background.
+
+## Adding custom catalysts
+
+Create: Rock & Stone adds a custom catalyst-building event `StartupEvents.createRnsCatalysts`.
+
+Usage:
+
+```js
+StartupEvents.createRnsCatalysts(event => {
+  event.create('mymod:superheated_overclock')
+    .displayName('§6Superheated Overclock')
+    .description('Achieved by attaching six or more resonators and a fluid container filled with lava to a miner.')
+    .chanceMultiplier(1.5)
+    .optional()
+    .displayPriority(1100)
+    .representativeItem('minecraft:lava_bucket')
+    .hideIfPresent('create_rns:overclock')
+    .playWhenActive('create_rns:mining_overclocked_accent')
+    .fluid('minecraft:lava', 40)
+    .attachment([
+      'create_rns:resonator',
+      'create_rns:stabilizing_resonator',
+      'create_rns:shattering_resonator'
+    ], 6)
+})
+```
+
+### `create(catalystId)`
+Creates a catalyst definition.
+
+* `catalystId`: catalyst id such as `mymod:superheated_overclock`
+
+### `fluid(fluidId, amount)`
+Adds a fluid consumption requirement.
+Can be called multiple times to require multiple fluids.
+
+* `fluidId`: fluid id such as `minecraft:lava`
+* `amount`: positive integer amount consumed per mining operation
+
+### `attachment(blockId, count)` / `attachment(blockId)` / `attachment(blockIdList, count)` / `attachment(blockIdList)`
+Adds an attachment requirement.
+When a list is used, any matching attachment block can contribute towards the required count.
+Can be called multiple times to add more independent requirements.
+
+* `blockId`: single block id such as `create_rns:resonator`
+* `blockIdList`: list of block ids such as `['create_rns:resonator', 'create_rns:shattering_resonator']`
+* `count`: positive integer (default: `1`)
+
+### `displayName(name)` (optional)
+Generates the catalyst name lang entry used in JEI/EMI and miner tooltips.
+If omitted, make sure to supply the matching `<namespace>.catalyst.<path>.name` lang entry yourself.
+
+* `name`: text shown to the player
+
+### `chanceMultiplier(value)` (optional)
+Sets the chance multiplier applied while this catalyst is active.
+
+* `value`: decimal greater than or equal to `0`
+
+Default: `1`.
+
+### `optional()` (optional)
+Marks the catalyst as optional. Optional catalysts influence the chance of a yield without being strictly required for it.
+
+Default: required.
+
+### `displayPriority(value)` (optional)
+Defines the order in which the catalysts are shown in the miner bearing tooltip and JEI/EMI.
+Highest priority catalysts are shown at the bottom. The order will not be stable unless each catalyst has a unique priority.
+
+* `value`: integer
+
+Default: shown at the very bottom.
+
+### `representativeItem(itemId)` (optional)
+Attaches a JEI/EMI info page to the specified item with the catalyst description (see [description](#descriptiontext-optional)).
+Call multiple times to attach the same description to more than one item.
+
+* `itemId`: item id such as `minecraft:lava_bucket`
+
+### `description(text)` (optional)
+Generates the lang entry displayed on the catalyst info page (see [representativeItem](#representativeitemitemid-optional)).
+If omitted, make sure to supply the matching `<namespace>.catalyst.<path>.description` lang entry yourself.
+
+* `text`: description text shown to the player
+
+### `hideIfPresent(catalystId)` (optional)
+Hides this catalyst from the miner bearing tooltip while the specified catalyst is active.
+Useful when having multiple tiers of catalysts. Can be called multiple times to add more catalysts.
+
+* `catalystId`: namespaced catalyst id such as `create_rns:resonance`
+
+### `playWhenActive(soundId)` (optional)
+The specified sound event will be continuously played while the catalyst is active.
+
+* `soundId`: sound event id
 
 ## Adding new deposit blocks
 
@@ -181,27 +277,27 @@ Notes:
 Sets an item or an item tag to be rendered in the scanner nixie tube.
 Can be called multiple times to add more items as fallbacks in case the original item does not exist.
 
-* `itemOrTagId`: item id or item tag such as `yourmod:raw_tin` or `#c:raw_materials/tin`
+* `itemOrTagId`: item id or item tag such as `yourmod:raw_tin` or `#forge:raw_materials/tin`
 
 ### `scannerIconMetal(material)`
 Shortcut that expands to :
 ```js
-.scannerIcon("#c:raw_materials/<material>")
-.scannerIcon("#c:ores/<material>")
-.scannerIcon("#c:ingots/<material>")
-.scannerIcon("#c:nuggets/<material>")
+.scannerIcon("#forge:raw_materials/<material>")
+.scannerIcon("#forge:ores/<material>")
+.scannerIcon("#forge:ingots/<material>")
+.scannerIcon("#forge:nuggets/<material>")
 ```
 
 ### `scannerIconGem(material)`
 Shortcut that expands to:
 ```js
-.scannerIcon("#c:gems/<material>")
+.scannerIcon("#forge:gems/<material>")
 ```
 
 ### `scannerIconDust(material)`
 Shortcut that expands to:
 ```js
-.scannerIcon("#c:dusts/<material>")
+.scannerIcon("#forge:dusts/<material>")
 ```
 
 ### `nbt(templateId, weight)`
@@ -236,7 +332,7 @@ Default: * `-8` for overworld deposits, `-4` for nether deposits.
 Sets an item or an item tag to be rendered on the map as a marker for found deposits.
 Can be called multiple times to add more items as fallbacks in case the original item does not exist.
 
-* `itemOrTagId`: item id or item tag such as `yourmod:raw_tin` or `#c:raw_materials/tin`.
+* `itemOrTagId`: item id or item tag such as `yourmod:raw_tin` or `#forge:raw_materials/tin`.
 
 Default: the deposit block item attached to this structure.
 

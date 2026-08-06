@@ -451,12 +451,12 @@ public class RNSDeposits {
 
     private static UnaryOperator<DepositSpecBuilder> scannerIconDustCandidates(String material) {
         return b -> b
-                .scannerIconItem("#c:dusts/" + material);
+                .scannerIconItem("#forge:dusts/" + material);
     }
 
     private static UnaryOperator<DepositSpecBuilder> scannerIconGemCandidates(String material) {
         return b -> b
-                .scannerIconItem("#c:gems/" + material);
+                .scannerIconItem("#forge:gems/" + material);
     }
 
     private static UnaryOperator<MiningRecipeBuilder> addYield(

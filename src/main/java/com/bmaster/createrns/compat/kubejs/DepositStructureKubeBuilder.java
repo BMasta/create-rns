@@ -92,10 +92,10 @@ public class DepositStructureKubeBuilder {
             The first item of a first non-empty tag is selected.
             """)
     public DepositStructureKubeBuilder scannerIconMetal(String material) {
-        return scannerIcon("#c:raw_materials/" + material)
-                .scannerIcon("#c:ores/" + material)
-                .scannerIcon("#c:ingots/" + material)
-                .scannerIcon("#c:nuggets/" + material);
+        return scannerIcon("#forge:raw_materials/" + material)
+                .scannerIcon("#forge:ores/" + material)
+                .scannerIcon("#forge:ingots/" + material)
+                .scannerIcon("#forge:nuggets/" + material);
     }
 
     @Info("""
@@ -103,7 +103,7 @@ public class DepositStructureKubeBuilder {
             The first item of a first non-empty tag is selected.
             """)
     public DepositStructureKubeBuilder scannerIconGem(String material) {
-        return scannerIcon("#c:gems/" + material);
+        return scannerIcon("#forge:gems/" + material);
     }
 
     @Info("""
@@ -111,7 +111,7 @@ public class DepositStructureKubeBuilder {
             The first item of a first non-empty tag is selected.
             """)
     public DepositStructureKubeBuilder scannerIconDust(String material) {
-        return scannerIcon("#c:dusts/" + material);
+        return scannerIcon("#forge:dusts/" + material);
     }
 
     @Info("""
