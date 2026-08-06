@@ -48,6 +48,7 @@
   "subtitle.create_rns.scanner_discovery_success": "Lingering chime",
   "subtitle.create_rns.scanner_tracking_ping": "Tracking ping",
   "subtitle.create_rns.mining_1": "Mine head drills",
+  "subtitle.create_rns.mining_large_head_accent": "Large mine head drills",
   "subtitle.create_rns.mining_resonance_accent": "Mine head resonates",
   "subtitle.create_rns.mining_overclocked_accent": "Mine head hums menacingly",
   "subtitle.create_rns.mined": "Deposit mined",

@@ -9,6 +9,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class RNSStartupKubeEvents {
+    public static final EventHandler CREATE_RNS_CATALYSTS =
+            StartupEvents.GROUP.startup("createRnsCatalysts", () -> CatalystsKubeEvent.class);
     public static final EventHandler CREATE_RNS_DEPOSIT_STRUCTURES =
             StartupEvents.GROUP.startup("createRnsDepositStructures", () -> DepositStructuresKubeEvent.class);
     public static final EventHandler CREATE_RNS_STRUCTURE_SET =
