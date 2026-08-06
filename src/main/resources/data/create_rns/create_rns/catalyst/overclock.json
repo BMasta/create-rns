@@ -1,5 +1,4 @@
 {
-  "name": "overclock",
   "chance_multiplier": 2.0,
   "optional": true,
   "requirements": [

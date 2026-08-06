@@ -1,5 +1,4 @@
 {
-  "name": "faint_resonance",
   "requirements": [
     {
       "type": "attachment",
@@ -9,6 +8,6 @@
   ],
   "display_priority": 1000,
   "representative_items": ["create_rns:resonator"],
-  "hide_if_present": ["resonance"],
+  "hide_if_present": ["create_rns:resonance"],
   "play_when_active": {"sound_id": "create_rns:mining_resonance_accent"}
 }

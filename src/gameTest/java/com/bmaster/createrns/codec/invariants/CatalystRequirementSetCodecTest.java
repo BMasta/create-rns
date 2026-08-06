@@ -19,12 +19,11 @@ public class CatalystRequirementSetCodecTest {
         var requirementSet = CodecHelper.assertParses(helper, CatalystRequirementSet.CODEC,
                 CodecHelper.registries(helper), """
                         {
-                          "name": "overclock",
                           "chance_multiplier": 2.0,
                           "optional": true,
                           "display_priority": 1004,
                           "representative_items": ["minecraft:lava_bucket"],
-                          "hide_if_present": ["resonance"],
+                          "hide_if_present": ["create_rns:resonance"],
                           "requirements": [
                             {
                               "type": "fluid",
@@ -37,7 +36,6 @@ public class CatalystRequirementSetCodecTest {
                         }
                         """, "catalyst requirement set");
 
-        helper.assertValueEqual(requirementSet.name, "overclock", "catalyst requirement set name");
         CodecHelper.assertFloat(helper, requirementSet.chanceMult, 2.0f, "chance multiplier");
         helper.assertTrue(requirementSet.optional, "Requirement set should preserve the optional flag");
         helper.assertValueEqual(requirementSet.displayPriority, 1004, "display priority");
@@ -45,7 +43,8 @@ public class CatalystRequirementSetCodecTest {
         CodecHelper.assertSame(helper, Items.LAVA_BUCKET, requirementSet.representativeItems.getFirst(),
                 "representative item");
         helper.assertValueEqual(requirementSet.hideIfPresent.size(), 1, "hidden catalyst count");
-        helper.assertValueEqual(requirementSet.hideIfPresent.getFirst(), "resonance", "hidden catalyst name");
+        helper.assertValueEqual(requirementSet.hideIfPresent.getFirst(), CreateRNS.asResource("resonance"),
+                "hidden catalyst id");
         helper.assertValueEqual(requirementSet.requirements.size(), 1, "requirement count");
 
         var fluidRequirement = CodecHelper.assertInstanceOf(helper, FluidCatalystRequirement.class,
@@ -62,7 +61,6 @@ public class CatalystRequirementSetCodecTest {
         CodecHelper.assertFails(helper, CatalystRequirementSet.CODEC, CodecHelper.registries(helper),
                 """
                         {
-                          "name": "invalid",
                           "requirements": []
                         }
                         """, "Catalyst must have at least one requirement");
@@ -75,7 +73,6 @@ public class CatalystRequirementSetCodecTest {
         var overclock = registry.get(CreateRNS.asResource("overclock"));
 
         helper.assertTrue(overclock != null, "Game bootstrap should load the built-in overclock catalyst entry");
-        helper.assertValueEqual(overclock.name, "overclock", "built-in catalyst name");
         CodecHelper.assertFloat(helper, overclock.chanceMult, 2.0f, "built-in overclock chance multiplier");
         helper.assertTrue(overclock.optional, "Built-in overclock should be optional");
         helper.assertValueEqual(overclock.displayPriority, 1004, "built-in overclock display priority");

@@ -100,19 +100,20 @@ public class RNSJEI implements IModPlugin {
         if (level == null) return;
 
         var crsRegistry = level.registryAccess().registryOrThrow(CatalystRequirementSet.REGISTRY_KEY);
-        var crsList = crsRegistry.stream()
-                .sorted(Comparator.comparingInt(crs -> crs.displayPriority))
+        var crsList = crsRegistry.entrySet().stream()
+                .map(e -> crsRegistry.getHolderOrThrow(e.getKey()))
+                .sorted(Comparator.comparingInt(crs -> crs.value().displayPriority))
                 .toList();
         for (var crs : crsList) {
             reg.addItemStackInfo(
                     Stream.concat(Stream.of(RNSBlocks.MINER_BEARING.get().asItem(), RNSBlocks.MINE_HEAD.asItem()),
-                                    crs.representativeItems.stream())
+                                    crs.value().representativeItems.stream())
                             .distinct()
                             .map(ItemStack::new)
                             .toList(),
-                    crs.getNameComponent()
+                    CatalystRequirementSet.getNameComponent(crs)
                             .append("\n")
-                            .append(CreateRNS.translatable("catalyst." + crs.name + ".description"))
+                            .append(CatalystRequirementSet.getDescriptionComponent(crs))
                             .append("\n\n")
             );
         }

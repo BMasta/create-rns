@@ -27,7 +27,7 @@ ServerEvents.recipes(event => {
       .chance(0.25)
       .item('#c:raw_materials/tin')
       .item('mymod:raw_tin')
-      .catalyst('overclock'))
+      .catalyst('create_rns:overclock'))
 })
 ```
 
@@ -74,7 +74,7 @@ Usage:
   .chance(0.25)
   .item('#c:raw_materials/tin')
   .item('mymod:raw_tin')
-  .catalyst('overclock'))
+  .catalyst('create_rns:overclock'))
 ```
 
 ### `yield(callback)`
@@ -106,11 +106,11 @@ If it resolves to nothing at runtime, the entry is discarded instead of making t
 * `itemOrTagIdList`: ordered list of item ids and item tags used as fallbacks
 * `weight`: positive integer (default: `1`)
 
-### `catalyst(name)` (optional)
+### `catalyst(id)` (optional)
 Attaches a catalyst to this yield.
 Depending on the catalyst, it may be required or optional, and may modify the chance of getting a yield.
 
-* `name`: catalyst id
+* `id`: namespaced catalyst id such as `create_rns:overclock`
 
 ### `jeiSlotColor('#rrggbb')` / `jeiSlotColor(argb)` (optional)
 Sets the background color shown for this yield in JEI/EMI.

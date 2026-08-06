@@ -79,8 +79,8 @@ The runtime format is still the same JSON shown below, and datapacks can overrid
       // Optional (default none).
       // Catalysts are specific requirements needed to mine this yield.
       // In some cases, each mine of a yield will consume a resource like lava.
-      // Catalysts are defined separately (see example later in the doc) and can be referenced by name.
-      "catalysts": ["overclock", "faint_resonance"],
+      // Catalysts are defined separately (see example later in the doc) and are referenced by namespaced id.
+      "catalysts": ["create_rns:overclock", "create_rns:faint_resonance"],
       // Optional (default is standard background).
       // All items that belong to this yield will have this background color in JEI.
       // The number can be obtained by converting an ARGB hex color into a decimal number.
@@ -99,8 +99,6 @@ See [default catalysts](../src/main/resources/data/create_rns/create_rns/catalys
 
 ```json5
 {
-  // Used to reference this overclock in mining recipes.
-  "name": "i_am_rich",
   // Optional (default 100% aka no change).
   // When catalyst is active, the chance to mine a yield will be multiplied by this value.
   "chance_multiplier": 2.5,
@@ -114,7 +112,7 @@ See [default catalysts](../src/main/resources/data/create_rns/create_rns/catalys
   "representative_items": ["minecraft:netherite_block", "minecraft:lava_bucket"],
   // If any catalyst specified here is active, this catalyst will be hidden
   // in the goggle tooltip of the miner bearing.
-  "hide_if_present": ["i_am_ultra_rich"],
+  "hide_if_present": ["your_pack:i_am_ultra_rich"],
   // Optional (default none).
   // Specified sound will play on top of other mining sounds when this catalyst is active.
   "play_when_active": {"sound_id": "create_rns:mining_overclocked_accent"},

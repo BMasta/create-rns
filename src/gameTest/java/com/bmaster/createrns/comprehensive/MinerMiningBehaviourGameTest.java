@@ -128,9 +128,11 @@ public class MinerMiningBehaviourGameTest {
             var activeCRSes = miner.process().getLastSatisfiedCRSes();
             h.assertTrue(activeCRSes.size() == 2, "Unexpected number of active catalysts: " +
                     activeCRSes.size() + "(2 expected)");
-            h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.name.equals("faint_resonance")),
+            h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.unwrapKey()
+                            .orElseThrow().location().equals(CreateRNS.asResource("faint_resonance"))),
                     "Faint resonance is not active");
-            h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.name.equals("faint_shattering_resonance")),
+            h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.unwrapKey()
+                            .orElseThrow().location().equals(CreateRNS.asResource("faint_shattering_resonance"))),
                     "Faint shattering resonance is not active");
             h.succeed();
         });
@@ -171,13 +173,17 @@ public class MinerMiningBehaviourGameTest {
             var activeCRSes = miner.process().getLastSatisfiedCRSes();
             h.assertTrue(activeCRSes.size() == 4, "Unexpected number of active catalysts: " +
                     activeCRSes.size() + "(4 expected)");
-            h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.name.equals("faint_resonance")),
+            h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.unwrapKey()
+                            .orElseThrow().location().equals(CreateRNS.asResource("faint_resonance"))),
                     "Faint resonance is not active");
-            h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.name.equals("faint_shattering_resonance")),
+            h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.unwrapKey()
+                            .orElseThrow().location().equals(CreateRNS.asResource("faint_shattering_resonance"))),
                     "Faint shattering resonance is not active");
-            h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.name.equals("resonance")),
+            h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.unwrapKey()
+                            .orElseThrow().location().equals(CreateRNS.asResource("resonance"))),
                     "Resonance is not active");
-            h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.name.equals("shattering_resonance")),
+            h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.unwrapKey()
+                            .orElseThrow().location().equals(CreateRNS.asResource("shattering_resonance"))),
                     "Shattering resonance is not active");
             h.succeed();
         });
@@ -209,7 +215,8 @@ public class MinerMiningBehaviourGameTest {
             var activeCRSes = miner.process().getLastSatisfiedCRSes();
             h.assertTrue(activeCRSes.size() == 1, "Unexpected number of active catalysts: " +
                     activeCRSes.size() + "(1 expected)");
-            h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.name.equals("overclock")),
+            h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.unwrapKey()
+                            .orElseThrow().location().equals(CreateRNS.asResource("overclock"))),
                     "Overclock is not active");
             h.assertTrue(miner.findInStorage(new ItemStack(Items.COBBLESTONE), false),
                     "Expected to find at least 1 cobblestone in miner storage");

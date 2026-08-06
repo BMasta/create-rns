@@ -7,7 +7,6 @@ import com.bmaster.createrns.compat.Mods;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.content.deposit.mining.recipe.Yield;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSetLookup;
 import com.bmaster.createrns.util.FlexibleLayoutHelper;
 import com.bmaster.createrns.util.Utils;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -29,6 +28,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -77,9 +77,9 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
         return (view, tooltip) -> {
             for (var crs : output.crsList) {
                 tooltip.add(CreateRNS.lang()
-                        .translate("jei.catalyst." + ((crs.optional) ? "optional" : "required"))
+                        .translate("jei.catalyst." + ((crs.value().optional) ? "optional" : "required"))
                         .space()
-                        .add(crs.getNameComponent())
+                        .add(CatalystRequirementSet.getNameComponent(crs))
                         .component());
             }
 
@@ -215,7 +215,7 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
         public final float weightRatio;
         public final float chance;
         public final int bgColor;
-        public final List<CatalystRequirementSet> crsList;
+        public final List<Holder<CatalystRequirementSet>> crsList;
 
         public MinerOutput(Yield yield, Yield.WeightedItem wItem, int count) {
             var conn = Minecraft.getInstance().getConnection();
@@ -227,9 +227,7 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
             this.weightRatio = (float) wItem.weight / yield.getTotalWeight();
             this.chance = yield.chance;
             this.bgColor = yield.slotColor;
-            this.crsList = yield.crsNames.stream()
-                    .map(crsName -> CatalystRequirementSetLookup.get(access, crsName))
-                    .toList();
+            this.crsList = yield.getCRSes();
         }
     }
 }

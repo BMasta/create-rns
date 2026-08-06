@@ -8,8 +8,10 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.Item;
 
@@ -25,8 +27,6 @@ import java.util.stream.Collectors;
 @MethodsReturnNonnullByDefault
 public class CatalystRequirementSet {
     public static final Codec<CatalystRequirementSet> CODEC = RecordCodecBuilder.create(i -> i.group(
-            Codec.STRING.fieldOf("name")
-                    .forGetter(crs -> crs.name),
             Codec.floatRange(0f, Float.MAX_VALUE).optionalFieldOf("chance_multiplier", 1f)
                     .forGetter(crs -> crs.chanceMult),
             Codec.BOOL.optionalFieldOf("optional", false)
@@ -35,7 +35,7 @@ public class CatalystRequirementSet {
                     .forGetter(crs -> crs.displayPriority),
             BuiltInRegistries.ITEM.byNameCodec().listOf().optionalFieldOf("representative_items", List.of())
                     .forGetter(crs -> crs.representativeItems),
-            Codec.STRING.listOf().optionalFieldOf("hide_if_present", List.of())
+            CatalystRequirementSetLookup.ID_CODEC.listOf().optionalFieldOf("hide_if_present", List.of())
                     .forGetter(crs -> crs.hideIfPresent),
             SoundEvent.CODEC.optionalFieldOf("play_when_active")
                             .forGetter(c -> c.soundHolder),
@@ -46,23 +46,22 @@ public class CatalystRequirementSet {
     public static final ResourceKey<Registry<CatalystRequirementSet>> REGISTRY_KEY =
             ResourceKey.createRegistryKey(CreateRNS.asResource("catalyst"));
 
-    public final String name;
     public final float chanceMult;
     public final boolean optional;
     public final int displayPriority;
     public final List<Item> representativeItems;
-    public final List<String> hideIfPresent;
+    public final List<ResourceLocation> hideIfPresent;
     public final @Nullable SoundEvent sound;
     public final List<CatalystRequirement> requirements;
 
     protected final Optional<Holder<SoundEvent>> soundHolder;
 
     public CatalystRequirementSet(
-            String name, float chanceMult, boolean optional, int displayPriority, List<Item> representativeItems,
-            List<String> hideIfPresent, Optional<Holder<SoundEvent>> soundHolder, List<CatalystRequirement> requirements
+            float chanceMult, boolean optional, int displayPriority, List<Item> representativeItems,
+            List<ResourceLocation> hideIfPresent, Optional<Holder<SoundEvent>> soundHolder,
+            List<CatalystRequirement> requirements
     ) {
         if (requirements.isEmpty()) throw new IllegalArgumentException("Catalyst must have at least one requirement");
-        this.name = name;
         this.chanceMult = chanceMult;
         this.optional = optional;
         this.displayPriority = displayPriority;
@@ -100,15 +99,22 @@ public class CatalystRequirementSet {
         return true;
     }
 
-    public MutableComponent getNameComponent() {
-        return CreateRNS.translatable("catalyst." + name + ".name");
+    public static MutableComponent getNameComponent(Holder<CatalystRequirementSet> holder) {
+        return Component.translatable(langKey(CatalystRequirementSetLookup.id(holder), "name"));
     }
 
-    public @Nullable MutableComponent getNameComponent(Collection<CatalystRequirementSet> activeCRSes) {
+    /// Returns null if at least one of CRSes configured in hideIfPresent is active
+    public static @Nullable MutableComponent getNameComponent(
+            Collection<Holder<CatalystRequirementSet>> activeCRSes, Holder<CatalystRequirementSet> self
+    ) {
         for (var crs : activeCRSes) {
-            if (hideIfPresent.contains(crs.name)) return null;
+            if (self.value().hideIfPresent.contains(CatalystRequirementSetLookup.id(crs))) return null;
         }
-        return getNameComponent();
+        return getNameComponent(self);
+    }
+
+    public static MutableComponent getDescriptionComponent(Holder<CatalystRequirementSet> holder) {
+        return Component.translatable(langKey(CatalystRequirementSetLookup.id(holder), "description"));
     }
 
     protected boolean useCatalystsNonAtomic(List<Catalyst> catalysts, boolean simulate) {
@@ -125,5 +131,9 @@ public class CatalystRequirementSet {
             if (!satisifed) allSatisfied = false;
         }
         return allSatisfied;
+    }
+
+    private static String langKey(ResourceLocation id, String suffix) {
+        return id.getNamespace() + ".catalyst." + id.getPath().replace('/', '.') + "." + suffix;
     }
 }

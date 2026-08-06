@@ -235,7 +235,7 @@ public class DynamicDatapackContent {
                     if (!yield.catalysts().isEmpty()) {
                         var catalysts = new JsonArray();
                         for (var catalyst : yield.catalysts()) {
-                            catalysts.add(catalyst);
+                            catalysts.add(catalyst.toString());
                         }
                         yieldJson.add("catalysts", catalysts);
                     }

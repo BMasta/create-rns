@@ -1,7 +1,9 @@
 package com.bmaster.createrns.data.pack;
 
 import com.bmaster.createrns.content.deposit.mining.recipe.Yield.WeightedItem;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSetLookup;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
@@ -12,7 +14,7 @@ import java.util.function.UnaryOperator;
 @ParametersAreNonnullByDefault
 public class YieldBuilder {
     protected final List<ConfiguredWeightedItem> items = new ArrayList<>();
-    private final List<String> catalysts = new ArrayList<>();
+    private final List<ResourceLocation> catalysts = new ArrayList<>();
 
     private float chance = 1;
     private int jeiSlotColor = 0;
@@ -62,7 +64,15 @@ public class YieldBuilder {
     }
 
     public YieldBuilder catalyst(String catalyst) {
-        if (catalyst.isBlank()) throw new IllegalArgumentException("Catalyst name cannot be blank");
+        if (catalyst.isBlank()) throw new IllegalArgumentException("Catalyst id cannot be blank");
+
+        catalysts.add(CatalystRequirementSetLookup.parseId(catalyst)
+                .result()
+                .orElseThrow(() -> new IllegalArgumentException("Invalid catalyst id: " + catalyst)));
+        return this;
+    }
+
+    public YieldBuilder catalyst(ResourceLocation catalyst) {
         catalysts.add(catalyst);
         return this;
     }
@@ -84,7 +94,7 @@ public class YieldBuilder {
     public record ConfiguredYield(
             float chance,
             List<ConfiguredWeightedItem> items,
-            List<String> catalysts,
+            List<ResourceLocation> catalysts,
             int jeiSlotColor
     ) {
     }

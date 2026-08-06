@@ -5,6 +5,7 @@ import com.bmaster.createrns.content.deposit.mining.IHaveAdaptiveGoggleInformati
 import com.bmaster.createrns.content.deposit.mining.MiningBehaviour;
 import com.bmaster.createrns.content.deposit.mining.MiningProcess.RateEstimationStatus;
 import com.bmaster.createrns.content.deposit.mining.contraption.ContraptionMiningBehaviour;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
@@ -137,7 +138,7 @@ public class GoggleTooltipModifiers {
         // Add descriptions contributed by active CRSes
         var activeCRSes = process.getLastSatisfiedCRSes();
         for (var crs : activeCRSes) {
-            var comp = crs.getNameComponent(activeCRSes);
+            var comp = CatalystRequirementSet.getNameComponent(activeCRSes, crs);
             if (comp != null) {
                 CreateRNS.lang().add(comp).forGoggles(tooltip);
             }

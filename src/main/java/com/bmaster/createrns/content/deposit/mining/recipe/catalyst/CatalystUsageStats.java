@@ -1,5 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.recipe.catalyst;
 
+import com.bmaster.createrns.CreateRNS;
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -9,6 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
@@ -18,7 +20,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class CatalystUsageStats implements INBTSerializable<CompoundTag> {
-    public @Nullable ObjectOpenHashSet<String> lastTickedCRSes = null;
+    public @Nullable ObjectOpenHashSet<ResourceLocation> lastTickedCRSes = null;
     protected RegistryAccess access = RegistryAccess.EMPTY;
     protected @Nullable Int2FloatOpenHashMap lastChances = null;
 
@@ -30,7 +32,6 @@ public class CatalystUsageStats implements INBTSerializable<CompoundTag> {
         if (lastChances == null) throw new IllegalStateException("Chances were never computed");
         return lastChances.get(i);
     }
-
 
     public void clear() {
         lastChances = null;
@@ -50,8 +51,8 @@ public class CatalystUsageStats implements INBTSerializable<CompoundTag> {
         if (lastTickedCRSes != null) {
             var ltcTag = new ListTag();
             // Values (CRS chance multipliers) are currently unused, and are thus not serialized
-            for (var crsName : lastTickedCRSes) {
-                ltcTag.add(StringTag.valueOf(crsName));
+            for (var crsId : lastTickedCRSes) {
+                ltcTag.add(StringTag.valueOf(crsId.toString()));
             }
             root.put("last_satisfied_crses", ltcTag);
         }
@@ -74,7 +75,19 @@ public class CatalystUsageStats implements INBTSerializable<CompoundTag> {
             }
             // Values (CRS chance multipliers) are currently unused, and are thus not deserialized
             for (int i = 0; i < ltcTag.size(); ++i) {
-                lastTickedCRSes.add(ltcTag.getString(i));
+                var idStr = ltcTag.getString(i);
+                ResourceLocation crsId;
+
+                // Legacy fallback
+                if (!idStr.contains(":")) crsId = CreateRNS.asResource(idStr);
+                else crsId = ResourceLocation.tryParse(idStr);
+
+                if (crsId == null) {
+                    CreateRNS.LOGGER.error("Failed to deserialize catalyst id: {}", idStr);
+                    continue;
+                }
+
+                lastTickedCRSes.add(crsId);
             }
         }
     }
