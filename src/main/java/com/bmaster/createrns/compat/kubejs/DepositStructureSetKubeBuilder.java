@@ -11,13 +11,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class DepositStructureSetKubeBuilder {
 
     private final ResourceLocation id;
-    private final Map<ResourceLocation, AvailableStructure> availableStructures;
+    private final Supplier<Map<ResourceLocation, AvailableStructure>> availableStructures;
     private final Map<ResourceLocation, SelectedStructure> selectedStructures = new LinkedHashMap<>();
     private Integer separation;
     private Integer spacing;
@@ -26,8 +27,14 @@ public class DepositStructureSetKubeBuilder {
     public DepositStructureSetKubeBuilder(
             ResourceLocation id, Map<ResourceLocation, AvailableStructure> availableStructures
     ) {
+        this(id, () -> Map.copyOf(availableStructures));
+    }
+
+    public DepositStructureSetKubeBuilder(
+            ResourceLocation id, Supplier<Map<ResourceLocation, AvailableStructure>> availableStructures
+    ) {
         this.id = id;
-        this.availableStructures = Map.copyOf(availableStructures);
+        this.availableStructures = availableStructures;
     }
 
     @Info("Makes a deposit scannable and enables worldgen.")
@@ -52,7 +59,7 @@ public class DepositStructureSetKubeBuilder {
         }
 
         var id = ResourceLocation.parse(structureId);
-        var structure = availableStructures.get(id);
+        var structure = availableStructures.get().get(id);
         if (structure == null) {
             throw new IllegalArgumentException("Unknown deposit structure: " + structureId);
         }
