@@ -30,6 +30,9 @@ All versions are defined in `gradle.properties`. Java version is 17.
 | Flywheel          | Hard | `flywheel_version`       | Rendering engine (transitive via Create)                                      |
 | Registrate        | Hard | `registrate_version`     | Content registration framework                                                |
 | Ponder            | Hard | `ponder_version`         | In-game tutorial system                                                       |
+| KubeJS            | Soft | `kubejs_version`         | Optional scripting and addon integration surface                              |
+| Rhino             | Soft | `rhino_version`          | JavaScript runtime required by KubeJS                                         |
+| Architectury      | Soft | `architectury_version`   | Shared library dependency required by KubeJS on Forge 1.20.1                  |
 | JEI               | Soft | `jei_version`            | Recipe viewer; mod provides a JEI plugin for mining recipes and catalyst info |
 | JourneyMap        | Soft | `journeymap_version`     | Optional client waypoint integration surface used for deposit markers         |
 | Xaero's Minimap   | Soft | `xaero_minimap_version`  | Optional client waypoint integration surface used for deposit markers         |

@@ -2,8 +2,8 @@
 const debrisYield = y => y
     .chance(0.002)
     .item('minecraft:ancient_debris')
-    .catalyst('resonance')
-    .catalyst('overclock')
+    .catalyst('create_rns:resonance')
+    .catalyst('create_rns:overclock')
     .jeiSlotColor("#8572BF")
 
 ServerEvents.recipes(event => {
@@ -28,13 +28,13 @@ ServerEvents.recipes(event => {
     .yield(y => y
         .chance(5.0e-4)
         .item('create_rns:resonant_amethyst')
-        .catalyst('overclock'))
+        .catalyst('create_rns:overclock'))
     // 1% to get netherite scrap when both catalysts are active.
     .yield(y => y
         .chance(0.01)
         .item('minecraft:netherite_scrap')
-        .catalyst('faint_resonance')
-        .catalyst('overclock')
+        .catalyst('create_rns:faint_resonance')
+        .catalyst('create_rns:overclock')
         .jeiSlotColor("#968CB3"))
     // Empty yields are ignored
     .yield()
@@ -43,8 +43,8 @@ ServerEvents.recipes(event => {
         .chance(5.0e-4)
         .compatItem('minecraft:glooperblooper')
         .item('create_rns:resonant_amethyst')
-        .catalyst('resonance')
-        .catalyst('overclock')
+        .catalyst('create_rns:resonance')
+        .catalyst('create_rns:overclock')
         .jeiSlotColor("#8572BF"))
     // Using a variable defined at the top.
     .yield(debrisYield)
@@ -52,7 +52,7 @@ ServerEvents.recipes(event => {
         .item('minecraft:blackstone')
         .item('minecraft:basalt')
         .item('minecraft:smooth_basalt')
-        .catalyst('faint_shattering_resonance')
+        .catalyst('create_rns:faint_shattering_resonance')
         .jeiSlotColor("#B28F8E"))
     .yield(y => y
         .chance(0.2)
@@ -60,23 +60,23 @@ ServerEvents.recipes(event => {
         .item('create:veridium')
         .item('create:asurine')
         .item('create:ochrum')
-        .catalyst('shattering_resonance')
-        .catalyst('overclock')
+        .catalyst('create_rns:shattering_resonance')
+        .catalyst('create_rns:overclock')
         .jeiSlotColor("#BF7672"))
     .yield(y => y
         .chance(0.1)
         .item('minecraft:quartz')
         .item('minecraft:glowstone_dust')
         .item('minecraft:amethyst_shard')
-        .catalyst('faint_stabilizing_resonance')
-        .catalyst('overclock')
+        .catalyst('create_rns:faint_stabilizing_resonance')
+        .catalyst('create_rns:overclock')
         .jeiSlotColor("#8EA9B2"))
     .yield(y => y
         .chance(0.02)
         .item('minecraft:netherite_scrap', 5)
         .item('minecraft:ancient_debris')
-        .catalyst('stabilizing_resonance')
-        .catalyst('overclock')
+        .catalyst('create_rns:stabilizing_resonance')
+        .catalyst('create_rns:overclock')
         .jeiSlotColor("#72ACBF"))
     .id('mymod:netherite_deposit')
 })

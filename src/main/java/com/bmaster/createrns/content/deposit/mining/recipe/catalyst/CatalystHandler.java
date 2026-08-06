@@ -8,9 +8,9 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,8 +23,8 @@ public class CatalystHandler {
     public static boolean isMiningPossible(RegistryAccess access, MiningRecipe recipe, Set<Catalyst> catalysts) {
         for (var y : recipe.getYields()) {
             boolean satisfied = true;
-            for (var crsName : y.crsNames) {
-                if (!CatalystRequirementSetLookup.get(access, crsName).isSatisfiableOrOptional(catalysts)) {
+            for (var crs : y.getCRSes()) {
+                if (!crs.value().isSatisfiableOrOptional(catalysts)) {
                     satisfied = false;
                 }
             }
@@ -37,7 +37,7 @@ public class CatalystHandler {
     protected final RegistryAccess access;
     protected final List<Yield> yields;
     protected final IntArrayList enabledYields;
-    protected final Object2ObjectOpenHashMap<String, List<Catalyst>> crsToCatalysts;
+    protected final Object2ObjectOpenHashMap<ResourceLocation, CatalystMapping> crsIdToMapping;
 
     public CatalystHandler(
             RegistryAccess access, MiningRecipe recipe, Set<Catalyst> catalysts, CatalystUsageStats stats
@@ -48,41 +48,33 @@ public class CatalystHandler {
         this.yields = recipe.getYields();
 
         // Map each unique CRS to all catalysts that can satisfy it
-        var crsToCatalystsAll = yields.stream()
-                .map(y -> y.crsNames)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toMap(
-                        crsName -> crsName,
-                        crsName -> CatalystRequirementSetLookup.get(access, crsName).getRelevantCatalysts(catalysts),
-                        (cats1, cats2) -> {
-                            cats1.addAll(cats2);
-                            return cats1;
-                        },
-                        Object2ObjectOpenHashMap::new
-                ));
+        var crsIdToMappingUnfiltered = new Object2ObjectOpenHashMap<ResourceLocation, CatalystMapping>();
+        for (var yield : yields) {
+            for (var crsHolder : yield.getCRSes()) {
+                var crs = crsHolder.value();
+                crsIdToMappingUnfiltered.computeIfAbsent(CatalystRequirementSetLookup.id(crsHolder), unused ->
+                        new CatalystMapping(crs, crs.getRelevantCatalysts(catalysts).stream().toList()));
+            }
+        }
 
         // Go through all yields and enable only those that are satisfiable
         enabledYields = new IntArrayList();
         for (int i = 0; i < yields.size(); ++i) {
             var y = yields.get(i);
-            boolean satisfiable = y.crsNames.stream().allMatch(crsName ->
-                    CatalystRequirementSetLookup.get(access, crsName)
-                            .isSatisfiableOrOptional(crsToCatalystsAll.get(crsName)));
+            boolean satisfiable = y.getCRSes().stream().allMatch(crs ->
+                    crs.value().isSatisfiableOrOptional(catalysts));
             if (satisfiable) enabledYields.add(i);
         }
 
         // Filter only CRS'es that are referenced by enabled yields
-        crsToCatalysts = crsToCatalystsAll.entrySet().stream()
+        crsIdToMapping = crsIdToMappingUnfiltered.entrySet().stream()
                 .filter(e -> enabledYields.intStream()
                         .mapToObj(yields::get)
-                        .anyMatch(y -> y.crsNames.contains(e.getKey())))
+                        .anyMatch(y -> y.getCRSIds().contains(e.getKey())))
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        e -> e.getValue().stream().toList(),
-                        (v1, v2) -> {
-                            v1.addAll(v2);
-                            return v1;
-                        },
+                        Map.Entry::getValue,
+                        (o, n) -> o,
                         Object2ObjectOpenHashMap::new));
     }
 
@@ -102,45 +94,47 @@ public class CatalystHandler {
         //   2. Which CRS'es need to be ticked
         for (int i : enabledYields) {
             var y = yields.get(i);
-            var unsatisfiedOptional = new ObjectOpenHashSet<String>();
+            var unsatisfiedOptional = new ObjectOpenHashSet<ResourceLocation>();
             boolean satisfiable = true;
-            for (var crsName : y.crsNames) {
-                var crs = CatalystRequirementSetLookup.get(access, crsName);
-                if (!crs.useCatalysts(crsToCatalysts.get(crsName), true)) {
+            for (var crsId : y.getCRSIds()) {
+                var mapping = crsIdToMapping.get(crsId);
+                if (!mapping.crs().useCatalysts(mapping.catalysts(), true)) {
                     // Required catalysts make yield unsatisfiable.
                     // Optionals don't, but should still be excluded from ticking.
-                    if (crs.optional) unsatisfiedOptional.add(crsName);
+                    if (mapping.crs().optional) unsatisfiedOptional.add(crsId);
                     else satisfiable = false;
                 }
             }
             if (satisfiable) {
                 yieldChances.put(i, 0);
             }
-            for (var crsName : y.crsNames) {
-                if (unsatisfiedOptional.contains(crsName)) continue;
-                tickedCRSes.add(crsName);
+            for (var crsId : y.getCRSIds()) {
+                if (unsatisfiedOptional.contains(crsId)) continue;
+                tickedCRSes.add(crsId);
             }
         }
 
         // Use catalysts and calculate chance multipliers of all ticked CRS'es
-        for (var crsName : tickedCRSes) {
-            var crs = CatalystRequirementSetLookup.get(access, crsName);
-            if (!simulate) crs.useCatalysts(crsToCatalysts.get(crsName), false);
-            tickedCRSes.add(crsName);
+        for (var crsId : tickedCRSes) {
+            var mapping = crsIdToMapping.get(crsId);
+            if (!simulate) mapping.crs().useCatalysts(mapping.catalysts(), false);
         }
 
         // Calculate chance for each satisfied yield
         yieldChances.replaceAll((i, u) -> {
             var y = yields.get(i);
             var chance = y.chance;
-            for (var crsName : y.crsNames) {
-                if (tickedCRSes.contains(crsName)) {
-                    chance *= CatalystRequirementSetLookup.get(access, tickedCRSes.get(crsName)).chanceMult;
+            for (var crs : y.getCRSes()) {
+                if (tickedCRSes.contains(CatalystRequirementSetLookup.id(crs))) {
+                    chance *= crs.value().chanceMult;
                 }
             }
             return chance;
         });
 
         return yieldChances;
+    }
+
+    protected record CatalystMapping(CatalystRequirementSet crs, List<Catalyst> catalysts) {
     }
 }

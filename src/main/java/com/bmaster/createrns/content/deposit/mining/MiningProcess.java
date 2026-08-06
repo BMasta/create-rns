@@ -11,6 +11,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -80,13 +81,13 @@ public class MiningProcess {
                 .collect(Collectors.toSet());
     }
 
-    public List<CatalystRequirementSet> getLastSatisfiedCRSes() {
+    public List<Holder<CatalystRequirementSet>> getLastSatisfiedCRSes() {
         return innerProcesses.stream()
                 .flatMap(p ->
                         (p.catStats.lastTickedCRSes != null) ? p.catStats.lastTickedCRSes.stream() : Stream.of())
                 .distinct()
-                .map(crsName -> CatalystRequirementSetLookup.get(level.registryAccess(), crsName))
-                .sorted(Comparator.comparingInt(crs -> crs.displayPriority))
+                .map(crsId -> CatalystRequirementSetLookup.get(level.registryAccess(), crsId))
+                .sorted(Comparator.comparingInt(crs -> crs.value().displayPriority))
                 .toList();
     }
 

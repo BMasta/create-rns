@@ -23,7 +23,7 @@
         }
       ],
       "catalysts": [
-        "overclock"
+        "create_rns:overclock"
       ]
     },
     {
@@ -34,8 +34,8 @@
         }
       ],
       "catalysts": [
-        "resonance",
-        "overclock"
+        "create_rns:resonance",
+        "create_rns:overclock"
       ],
       "jei_slot_color": -8031553
     },
@@ -50,8 +50,8 @@
         }
       ],
       "catalysts": [
-        "resonance",
-        "overclock"
+        "create_rns:resonance",
+        "create_rns:overclock"
       ],
       "jei_slot_color": -8031553
     },
@@ -68,7 +68,7 @@
         }
       ],
       "catalysts": [
-        "faint_shattering_resonance"
+        "create_rns:faint_shattering_resonance"
       ],
       "jei_slot_color": -5075058
     },
@@ -89,8 +89,8 @@
         }
       ],
       "catalysts": [
-        "shattering_resonance",
-        "overclock"
+        "create_rns:shattering_resonance",
+        "create_rns:overclock"
       ],
       "jei_slot_color": -4229518
     },
@@ -108,8 +108,8 @@
         }
       ],
       "catalysts": [
-        "faint_stabilizing_resonance",
-        "overclock"
+        "create_rns:faint_stabilizing_resonance",
+        "create_rns:overclock"
       ],
       "jei_slot_color": -7427662
     },
@@ -125,8 +125,8 @@
         }
       ],
       "catalysts": [
-        "stabilizing_resonance",
-        "overclock"
+        "create_rns:stabilizing_resonance",
+        "create_rns:overclock"
       ],
       "jei_slot_color": -9261889
     }

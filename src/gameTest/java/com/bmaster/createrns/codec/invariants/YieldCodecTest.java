@@ -107,16 +107,16 @@ public class YieldCodecTest {
                               "weight": 2
                             }
                           ],
-                          "catalysts": ["overclock"]
+                          "catalysts": ["create_rns:overclock"]
                         }
                         """, "yield");
 
         CodecHelper.assertFloat(helper, yield.chance, 1.0f, "yield chance");
         CodecHelper.assertValueEqual(helper, yield.items.size(), 1, "yield weighted item count");
-        helper.assertTrue(yield.crsNames != null, "Yield catalyst list should be initialized");
-        CodecHelper.assertValueEqual(helper, yield.crsNames.size(), 1, "yield catalyst count");
-        CodecHelper.assertValueEqual(helper, yield.crsNames.get(0), "overclock", "yield catalyst name");
         CodecHelper.assertValueEqual(helper, yield.slotColor, 0, "yield slot color");
+        CodecHelper.assertValueEqual(helper, yield.getCRSIds().size(), 1, "yield catalyst count");
+        CodecHelper.assertValueEqual(helper, yield.getCRSIds().get(0), CreateRNS.asResource("overclock"),
+                "yield catalyst id");
         helper.assertTrue(yield.initialize(helper.getLevel().registryAccess()),
                 "Yield initialization should succeed when referenced catalysts exist in the live registry");
         CodecHelper.assertSame(helper, Items.DIAMOND, yield.items.get(0).item,
@@ -160,7 +160,7 @@ public class YieldCodecTest {
                               "weight": 1
                             }
                           ],
-                          "catalysts": ["missing_catalyst"]
+                          "catalysts": ["create_rns:missing_catalyst"]
                         }
                         """, "yield with missing catalyst");
 
@@ -169,8 +169,8 @@ public class YieldCodecTest {
                     "Yield initialization should fail when a referenced catalyst is missing");
             helper.assertTrue(logs.contains("unknown catalyst requirement set"),
                     "Missing catalysts should produce the expected error log");
-            helper.assertTrue(logs.contains("missing_catalyst"),
-                    "Missing catalyst logs should include the missing catalyst name");
+            helper.assertTrue(logs.contains("create_rns:missing_catalyst"),
+                    "Missing catalyst logs should include the missing catalyst id");
         }
         helper.succeed();
     }

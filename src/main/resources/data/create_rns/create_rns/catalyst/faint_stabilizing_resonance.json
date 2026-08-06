@@ -1,5 +1,4 @@
 {
-  "name": "faint_stabilizing_resonance",
   "requirements": [
     {
       "type": "attachment",
@@ -9,6 +8,6 @@
   ],
   "display_priority": 1003,
   "representative_items": ["create_rns:stabilizing_resonator"],
-  "hide_if_present": ["stabilizing_resonance"],
+  "hide_if_present": ["create_rns:stabilizing_resonance"],
   "play_when_active": {"sound_id": "create_rns:mining_resonance_accent"}
 }

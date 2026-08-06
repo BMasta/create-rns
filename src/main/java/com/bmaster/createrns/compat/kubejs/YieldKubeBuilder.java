@@ -1,6 +1,7 @@
 package com.bmaster.createrns.compat.kubejs;
 
 import dev.latvian.mods.kubejs.recipe.component.RecipeComponentBuilderMap;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSetLookup;
 import dev.latvian.mods.kubejs.typings.Info;
 import net.minecraft.MethodsReturnNonnullByDefault;
 
@@ -83,9 +84,12 @@ public class YieldKubeBuilder {
 
     @Info("Requires the specified catalyst requirement set for this yield.")
     public YieldKubeBuilder catalyst(String catalyst) {
-        if (catalyst.isBlank()) throw new IllegalArgumentException("Catalyst name cannot be blank");
+        if (catalyst.isBlank()) throw new IllegalArgumentException("Catalyst id cannot be blank");
 
-        catalysts.add(catalyst);
+        catalysts.add(CatalystRequirementSetLookup.parseId(catalyst)
+                .result()
+                .orElseThrow(() -> new IllegalArgumentException("Invalid catalyst id: " + catalyst))
+                .toString());
         return this;
     }
 

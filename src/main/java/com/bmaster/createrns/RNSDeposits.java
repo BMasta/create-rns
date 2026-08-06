@@ -10,6 +10,7 @@ import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -37,13 +38,15 @@ public class RNSDeposits {
     public static final float CHANCE_FAINT_STABILIZING_RESONANCE = 0.15f;
     public static final float CHANCE_STABILIZING_RESONANCE = 0.06f;
 
-    public static final String CATA_FAINT_RESONANCE = "faint_resonance";
-    public static final String CATA_RESONANCE = "resonance";
-    public static final String CATA_FAINT_SHATTERING_RESONANCE = "faint_shattering_resonance";
-    public static final String CATA_SHATTERING_RESONANCE = "shattering_resonance";
-    public static final String CATA_FAINT_STABILIZING_RESONANCE = "faint_stabilizing_resonance";
-    public static final String CATA_STABILIZING_RESONANCE = "stabilizing_resonance";
-    public static final String CATA_OVERCLOCK = "overclock";
+    public static final ResourceLocation CATA_FAINT_RESONANCE = CreateRNS.asResource("faint_resonance");
+    public static final ResourceLocation CATA_RESONANCE = CreateRNS.asResource("resonance");
+    public static final ResourceLocation CATA_FAINT_SHATTERING_RESONANCE =
+            CreateRNS.asResource("faint_shattering_resonance");
+    public static final ResourceLocation CATA_SHATTERING_RESONANCE = CreateRNS.asResource("shattering_resonance");
+    public static final ResourceLocation CATA_FAINT_STABILIZING_RESONANCE =
+            CreateRNS.asResource("faint_stabilizing_resonance");
+    public static final ResourceLocation CATA_STABILIZING_RESONANCE = CreateRNS.asResource("stabilizing_resonance");
+    public static final ResourceLocation CATA_OVERCLOCK = CreateRNS.asResource("overclock");
 
     public static final int COLOR_FAINT_RESONANCE = 0xFF968CB3;
     public static final int COLOR_RESONANCE = 0xFF8572BF;

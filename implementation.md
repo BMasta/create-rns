@@ -41,11 +41,13 @@
 ## Catalyst Requirement Sets
 * Player perspective: catalyst effects, stacking rules, and JEI info pages are unchanged; datapack-defined catalyst sets can combine fluid consumption with generic attachment-count checks on the same catalyst entry.
 * Core behavior: each catalyst set owns an ordered `requirements` list, and every element is a tagged requirement object with a `type` discriminator plus the payload fields for that requirement kind.
+* Core behavior: catalyst requirement sets are identified by their datapack registry ids rather than by an embedded `name` field. Mining recipes, hide rules, and KubeJS/datapack examples therefore reference namespaced ids such as `create_rns:overclock`.
 * Core behavior: requirement evaluation now receives the full relevant catalyst collection at once, allowing one requirement to aggregate multiple catalyst instances of the same kind before deciding whether it is satisfied.
 * Core behavior: attachment requirement JSON accepts a single block id, a list of block ids, or a block tag for its `attachment` field through a mod-owned holder-set codec, so the same datapack forms stay valid on both the 1.20.1 Forge and 1.21.1 NeoForge branches.
 * Core behavior: attachment requirements match miner attachment catalysts by block membership, sum all matching attachment counts across the provided catalyst collection, and succeed once the configured threshold is reached.
 * Core behavior: catalyst consumption still requires every requirement in the set to succeed unless the set is marked optional; non-consuming attachment requirements rely on the prior satisfaction pass and do not mutate catalyst state during use.
 * System interaction: mining logic, JEI catalyst info ordering, and contraption-derived catalyst detection continue to consume the same `CatalystRequirementSet.requirements` runtime list; the refactor changes both datapack JSON decoding and requirement-evaluation granularity.
+* System interaction: runtime catalyst references are resolved into registry holders during recipe initialization, so mining logic, goggles, and JEI derive catalyst identity and lang keys from the live registry entry rather than from duplicated payload fields.
 * Data and assets: catalyst set composition remains datapack-driven through the catalyst registry JSON; the tagged requirement type table and default attachment tags are code-defined.
 * Maintenance invariant: adding a new catalyst requirement type should only require registering a new tagged requirement codec and updating docs/default datapack data, not reshaping the `CatalystRequirementSet` codec again.
 

@@ -1,6 +1,7 @@
 package com.bmaster.createrns.content.deposit.mining.recipe;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSetLookup;
 import com.bmaster.createrns.util.StrictOptionalField;
 import com.bmaster.createrns.util.codec.ItemWithFallbacks;
@@ -9,7 +10,9 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -27,8 +30,8 @@ public class Yield {
                             .forGetter(y -> y.chance),
                     WeightedItem.CODEC.listOf().fieldOf("items")
                             .forGetter(y -> y.items),
-                    StrictOptionalField.of("catalysts", Codec.STRING.listOf())
-                            .forGetter(y -> (!y.crsNames.isEmpty()) ? Optional.of(y.crsNames) : Optional.empty()),
+                    StrictOptionalField.of("catalysts", CatalystRequirementSetLookup.ID_CODEC.listOf())
+                            .forGetter(y -> (!y.crsIds.isEmpty()) ? Optional.of(y.crsIds) : Optional.empty()),
                     StrictOptionalField.of("jei_slot_color", Codec.INT, 0)
                             .forGetter(y -> y.slotColor))
             .apply(i, Yield::new));
@@ -38,17 +41,18 @@ public class Yield {
                             .forGetter(y -> y.chance),
                     WeightedItem.STREAM_CODEC.listOf().fieldOf("items")
                             .forGetter(y -> y.items),
-                    StrictOptionalField.of("catalysts", Codec.STRING.listOf())
-                            .forGetter(y -> (!y.crsNames.isEmpty()) ? Optional.of(y.crsNames) : Optional.empty()),
+                    StrictOptionalField.of("catalysts", CatalystRequirementSetLookup.ID_CODEC.listOf())
+                            .forGetter(y -> (!y.crsIds.isEmpty()) ? Optional.of(y.crsIds) : Optional.empty()),
                     StrictOptionalField.of("jei_slot_color", Codec.INT, 0)
                             .forGetter(y -> y.slotColor))
             .apply(i, Yield::new));
 
     public final float chance;
     public List<WeightedItem> items;
-    public final List<String> crsNames;
     public final int slotColor;
 
+    private final List<ResourceLocation> crsIds;
+    private List<Holder<CatalystRequirementSet>> crsList = List.of();
     private int totalWeight = 0;
 
     public int getTotalWeight() {
@@ -80,19 +84,28 @@ public class Yield {
                 .filter(wi -> wi.initialize(access))
                 .toList();
         if (items.isEmpty()) return false;
-        if (crsNames.isEmpty()) return true;
+        if (crsIds.isEmpty()) return true;
 
-        CatalystRequirementSetLookup.build(access);
-        for (var crsName : crsNames) {
+        var resolvedCRSes = new ArrayList<Holder<CatalystRequirementSet>>(crsIds.size());
+        for (var crsId : crsIds) {
             try {
-                CatalystRequirementSetLookup.get(access, crsName);
+                resolvedCRSes.add(CatalystRequirementSetLookup.get(access, crsId));
             } catch (RuntimeException e) {
-                CreateRNS.LOGGER.error("Yield references unknown catalyst requirement set \"{}\"", crsName);
+                CreateRNS.LOGGER.error("Yield references unknown catalyst requirement set \"{}\"", crsId);
                 return false;
             }
         }
 
+        crsList = List.copyOf(resolvedCRSes);
         return true;
+    }
+
+    public List<ResourceLocation> getCRSIds() {
+        return crsIds;
+    }
+
+    public List<Holder<CatalystRequirementSet>> getCRSes() {
+        return crsList;
     }
 
     public static class WeightedItem {
@@ -142,10 +155,10 @@ public class Yield {
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    protected Yield(float chance, List<WeightedItem> items, Optional<List<String>> crsNames, int slotColor) {
+    protected Yield(float chance, List<WeightedItem> items, Optional<List<ResourceLocation>> crsIds, int slotColor) {
         this.chance = chance;
         this.items = items;
-        this.crsNames = crsNames.orElse(new ArrayList<>());
+        this.crsIds = crsIds.orElse(new ArrayList<>());
         this.slotColor = slotColor;
     }
 }

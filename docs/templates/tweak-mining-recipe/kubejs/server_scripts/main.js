@@ -2,7 +2,7 @@
  const nuggetYield = y => y
   .chance(0.5)
   .item('minecraft:iron_nugget')
-  .catalyst('overclock')
+  .catalyst('create_rns:overclock')
 
 ServerEvents.recipes(event => {
   // Built-in recipe ids can be found in:
@@ -30,7 +30,7 @@ ServerEvents.recipes(event => {
     .yield(y => y
       .chance(5.0e-4)
       .item('create_rns:resonant_amethyst')
-      .catalyst('overclock'))
+      .catalyst('create_rns:overclock'))
     // Using the variable defined at the top.
     .yield(nuggetYield)
     // Empty yields are ignored.
@@ -38,22 +38,22 @@ ServerEvents.recipes(event => {
     .yield(y => y
       .chance(0.05)
       .item('minecraft:raw_iron')
-      .catalyst('faint_resonance')
-      .catalyst('overclock')
+      .catalyst('create_rns:faint_resonance')
+      .catalyst('create_rns:overclock')
       .jeiSlotColor('#968CB3'))
     // Compat items are allowed to reference non-existent item ids without invalidating the recipe.
     .yield(y => y
         .chance(5.0e-4)
         .compatItem('minecraft:glooperblooper')
         .item('create_rns:resonant_amethyst')
-        .catalyst('resonance')
-        .catalyst('overclock')
+        .catalyst('create_rns:resonance')
+        .catalyst('create_rns:overclock')
         .jeiSlotColor('#8572BF'))
     .yield(y => y
         .chance(0.005)
         .item('minecraft:raw_iron_block')
-        .catalyst('resonance')
-        .catalyst('overclock')
+        .catalyst('create_rns:resonance')
+        .catalyst('create_rns:overclock')
         .jeiSlotColor('#8572BF'))
     // Weight defaults to 1 when not specified.
     // Drops tuff with a 60% chance (3/3+1+1), calcite and limestone with a 20% chance (1/3+1+1).
@@ -61,7 +61,7 @@ ServerEvents.recipes(event => {
         .item('minecraft:tuff', 3)
         .item('minecraft:calcite')
         .item('create:limestone')
-        .catalyst('faint_shattering_resonance')
+        .catalyst('create_rns:faint_shattering_resonance')
         .jeiSlotColor('#B28F8E'))
     .yield(y => y
         .chance(0.3)
@@ -69,22 +69,22 @@ ServerEvents.recipes(event => {
         .item('create:veridium')
         .item('create:asurine')
         .item('create:ochrum')
-        .catalyst('shattering_resonance')
-        .catalyst('overclock')
+        .catalyst('create_rns:shattering_resonance')
+        .catalyst('create_rns:overclock')
         .jeiSlotColor('#BF7672'))
     .yield(y => y
         .chance(0.15)
         .item('minecraft:lapis_lazuli')
         .item('minecraft:amethyst_shard')
         .item('minecraft:emerald')
-        .catalyst('faint_stabilizing_resonance')
-        .catalyst('overclock')
+        .catalyst('create_rns:faint_stabilizing_resonance')
+        .catalyst('create_rns:overclock')
         .jeiSlotColor('#8EA9B2'))
     .yield(y => y
         .chance(0.06)
         .item('minecraft:redstone', 5)
         .item('minecraft:diamond')
-        .catalyst('stabilizing_resonance')
-        .catalyst('overclock')
+        .catalyst('create_rns:stabilizing_resonance')
+        .catalyst('create_rns:overclock')
         .jeiSlotColor('#72ACBF'))
 })

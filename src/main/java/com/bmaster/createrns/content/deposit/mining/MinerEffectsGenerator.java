@@ -67,7 +67,7 @@ public class MinerEffectsGenerator {
                         RNSSoundEvents.MINING_LARGE_HEAD_ACCENT.playClient(p.level(), mineHeadPos, 1, pitch, false);
                     }
                     crsList.stream()
-                            .map(crs -> crs.sound)
+                            .map(crs -> crs.value().sound)
                             .filter(Objects::nonNull)
                             .distinct()
                             .forEach(s -> miner.getLevel().playLocalSound(
