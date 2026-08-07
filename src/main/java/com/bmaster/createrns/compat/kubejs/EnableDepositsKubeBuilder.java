@@ -1,6 +1,6 @@
 package com.bmaster.createrns.compat.kubejs;
 
-import com.bmaster.createrns.compat.kubejs.DepositStructureSetKubeEvent.AvailableStructure;
+import com.bmaster.createrns.compat.kubejs.EnableDepositsKubeEvent.AvailableStructure;
 import dev.latvian.mods.kubejs.typings.Info;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class DepositStructureSetKubeBuilder {
+public class EnableDepositsKubeBuilder {
 
     private final ResourceLocation id;
     private final Supplier<Map<ResourceLocation, AvailableStructure>> availableStructures;
@@ -24,13 +24,13 @@ public class DepositStructureSetKubeBuilder {
     private Integer spacing;
     private Integer salt;
 
-    public DepositStructureSetKubeBuilder(
+    public EnableDepositsKubeBuilder(
             ResourceLocation id, Map<ResourceLocation, AvailableStructure> availableStructures
     ) {
         this(id, () -> Map.copyOf(availableStructures));
     }
 
-    public DepositStructureSetKubeBuilder(
+    public EnableDepositsKubeBuilder(
             ResourceLocation id, Supplier<Map<ResourceLocation, AvailableStructure>> availableStructures
     ) {
         this.id = id;
@@ -38,22 +38,22 @@ public class DepositStructureSetKubeBuilder {
     }
 
     @Info("Makes a deposit scannable and enables worldgen.")
-    public DepositStructureSetKubeBuilder deposit(String structureId) {
+    public EnableDepositsKubeBuilder deposit(String structureId) {
         return deposit(structureId, null, true);
     }
 
     @Info("Makes a deposit scannable and enables worldgen.")
-    public DepositStructureSetKubeBuilder deposit(String structureId, int weight) {
+    public EnableDepositsKubeBuilder deposit(String structureId, int weight) {
         return deposit(structureId, weight, true);
     }
 
     @Info("Makes a deposit scannable and optionally enables worldgen.")
-    public DepositStructureSetKubeBuilder deposit(String structureId, boolean enableWorldgen) {
+    public EnableDepositsKubeBuilder deposit(String structureId, boolean enableWorldgen) {
         return deposit(structureId, null, enableWorldgen);
     }
 
     @Info("Makes a deposit scannable and optionally enables worldgen.")
-    public DepositStructureSetKubeBuilder deposit(String structureId, @Nullable Integer weight, boolean enableWorldgen) {
+    public EnableDepositsKubeBuilder deposit(String structureId, @Nullable Integer weight, boolean enableWorldgen) {
         if (weight != null && weight <= 0) {
             throw new IllegalArgumentException("Structure set weight must be positive");
         }
@@ -73,7 +73,7 @@ public class DepositStructureSetKubeBuilder {
     }
 
     @Info("Sets the average distance between deposits in chunks.")
-    public DepositStructureSetKubeBuilder spacing(int value) {
+    public EnableDepositsKubeBuilder spacing(int value) {
         if (value <= 0) throw new IllegalArgumentException("Structure set spacing must be positive");
 
         spacing = value;
@@ -82,7 +82,7 @@ public class DepositStructureSetKubeBuilder {
     }
 
     @Info("Sets the minimum distance between deposits in chunks.")
-    public DepositStructureSetKubeBuilder separation(int value) {
+    public EnableDepositsKubeBuilder separation(int value) {
         if (value < 0) throw new IllegalArgumentException("Structure set separation must be non-negative");
 
         separation = value;
@@ -91,7 +91,7 @@ public class DepositStructureSetKubeBuilder {
     }
 
     @Info("Sets a seed for the random spread of deposits across the world")
-    public DepositStructureSetKubeBuilder salt(int value) {
+    public EnableDepositsKubeBuilder salt(int value) {
         salt = value;
         return this;
     }

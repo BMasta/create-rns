@@ -1,6 +1,7 @@
 package com.bmaster.createrns.compat.kubejs;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.RNSPacks;
 import com.bmaster.createrns.data.pack.DepositBlockBuilder.DepositBuildingContext;
 import com.bmaster.createrns.data.pack.DepositDimension;
 import com.bmaster.createrns.data.pack.DepositSpecBuilder;
@@ -28,12 +29,6 @@ import java.util.stream.Collectors;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class RNSKubeJSAssembler {
-    private static final int OVERWORLD_STRUCTURE_SET_SEPARATION = 4;
-    private static final int OVERWORLD_STRUCTURE_SET_SPACING = 24;
-    private static final int OVERWORLD_STRUCTURE_SET_SALT = 591646342;
-    private static final int NETHER_STRUCTURE_SET_SEPARATION = 2;
-    private static final int NETHER_STRUCTURE_SET_SPACING = 8;
-    private static final int NETHER_STRUCTURE_SET_SALT = 781087034;
     private static final Object DEPOSIT_SELECTION_LOCK = new Object();
     private static final Set<ResourceLocation> DEFAULT_ENABLED_DEPOSIT_BLOCKS =
             Set.of(new DepositBuildingContext("depleted").depositBlockId());
@@ -42,15 +37,18 @@ public class RNSKubeJSAssembler {
 
     private final Supplier<List<CatalystKubeBuilder>> customCatalysts;
     private final Supplier<List<DepositStructureKubeBuilder>> allCustomStructures;
-    private final @Nullable DepositStructureSetKubeEvent structureSetEvent;
+    private final Supplier<List<DepositStructureKubeBuilder>> allTweakedStructures;
+    private final @Nullable EnableDepositsKubeEvent structureSetEvent;
 
     public RNSKubeJSAssembler(
             Supplier<List<CatalystKubeBuilder>> customCatalysts,
             Supplier<List<DepositStructureKubeBuilder>> allCustomStructures,
-            @Nullable DepositStructureSetKubeEvent structureSetEvent
+            Supplier<List<DepositStructureKubeBuilder>> allTweakedStructures,
+            @Nullable EnableDepositsKubeEvent structureSetEvent
     ) {
         this.customCatalysts = customCatalysts;
         this.allCustomStructures = allCustomStructures;
+        this.allTweakedStructures = allTweakedStructures;
         this.structureSetEvent = structureSetEvent;
     }
 
@@ -70,7 +68,8 @@ public class RNSKubeJSAssembler {
         var customCatalystEvent = currentCatalystEvent();
         var customStructureEvent = currentDepositStructureEvent();
         var structureSetEvent = currentStructureSetEvent(customStructureEvent);
-        return new RNSKubeJSAssembler(customCatalystEvent::created, customStructureEvent::created, structureSetEvent);
+        return new RNSKubeJSAssembler(customCatalystEvent::created, customStructureEvent::created,
+                customStructureEvent::tweaked, structureSetEvent);
     }
 
     static void resetDepositSelectionCache() {
@@ -86,32 +85,48 @@ public class RNSKubeJSAssembler {
         }
         generateMinerAttachmentTag(generator, customCatalysts);
 
-        if (structureSetEvent == null) return;
-        if (!structureSetEvent.hasConfiguredDimensions()) return;
-
         var allCustomStructures = List.copyOf(this.allCustomStructures.get());
+        var allTweakedStructures = List.copyOf(this.allTweakedStructures.get());
         var customDepositStructures = customDepositStructuresById(allCustomStructures);
+        var tweakedDepositStructures = tweakedDepositStructuresById(allTweakedStructures);
         var assignedDimensions = new HashMap<ResourceLocation, DepositDimension>();
-        var overworldStructureSet = structureSetEvent.configuredOverworld();
+        var overworldStructureSet = structureSetEvent != null ? structureSetEvent.configuredOverworld() : null;
         applyStructureSetDimension(overworldStructureSet,
                 DepositDimension.OVERWORLD, customDepositStructures, assignedDimensions);
-        var netherStructureSet = structureSetEvent.configuredNether();
+        var netherStructureSet = structureSetEvent != null ? structureSetEvent.configuredNether() : null;
         applyStructureSetDimension(netherStructureSet,
                 DepositDimension.NETHER, customDepositStructures, assignedDimensions);
 
-        var selectedCustomStructures = selectedCustomStructures(overworldStructureSet, netherStructureSet, customDepositStructures);
+        var selectedCustomStructures = selectedCustomStructures(
+                overworldStructureSet, netherStructureSet, customDepositStructures);
         for (var structure : selectedCustomStructures) {
             structure.generateData(generator);
         }
 
-        generateBuiltInDepositSpecOverrides(generator, overworldStructureSet, netherStructureSet);
+        var selectedStructureIds = selectedStructureIds(overworldStructureSet, netherStructureSet);
+        var selectedStructureIdSet = Set.copyOf(selectedStructureIds);
+        for (var structure : allTweakedStructures) {
+            var dimensionConfigured = structure.dimension() == DepositDimension.OVERWORLD
+                    ? overworldStructureSet != null
+                    : netherStructureSet != null;
+            var scannable = dimensionConfigured
+                    ? selectedStructureIdSet.contains(structure.id())
+                    : structure.defaultScannable();
+            structure.generateData(generator, scannable);
+        }
+
+        generateBuiltInDepositSpecOverrides(
+                generator, overworldStructureSet, netherStructureSet, tweakedDepositStructures.keySet());
 
         generateStructureSet(generator, overworldStructureSet,
-                OVERWORLD_STRUCTURE_SET_SEPARATION, OVERWORLD_STRUCTURE_SET_SPACING, OVERWORLD_STRUCTURE_SET_SALT);
+                RNSPacks.DEFAULT_SEPARATION, RNSPacks.DEFAULT_SPACING, RNSPacks.SALT);
         generateStructureSet(generator, netherStructureSet,
-                NETHER_STRUCTURE_SET_SEPARATION, NETHER_STRUCTURE_SET_SPACING, NETHER_STRUCTURE_SET_SALT);
+                RNSPacks.DEFAULT_NETHER_SEPARATION, RNSPacks.DEFAULT_NETHER_SPACING, RNSPacks.NETHER_SALT);
+        generateDefaultStructureSetWeightOverrides(
+                generator, allTweakedStructures, overworldStructureSet, netherStructureSet);
 
-        var selectedStructureIds = selectedStructureIds(overworldStructureSet, netherStructureSet);
+        if (structureSetEvent == null || !structureSetEvent.hasConfiguredDimensions()) return;
+
         var values = new JsonArray();
         for (var structureId : selectedStructureIds) {
             values.add(structureId.toString());
@@ -129,8 +144,11 @@ public class RNSKubeJSAssembler {
             catalyst.generateLang(event);
         }
 
-        if (structureSetEvent == null) return;
-        if (!structureSetEvent.hasConfiguredDimensions()) return;
+        for (var structure : List.copyOf(this.allTweakedStructures.get())) {
+            structure.generateLang(event);
+        }
+
+        if (structureSetEvent == null || !structureSetEvent.hasConfiguredDimensions()) return;
 
         var allCustomStructures = List.copyOf(this.allCustomStructures.get());
         var customDepositStructures = customDepositStructuresById(allCustomStructures);
@@ -149,23 +167,35 @@ public class RNSKubeJSAssembler {
         }
     }
 
-    private static @Nullable DepositStructureSetKubeEvent currentStructureSetEvent(DepositStructuresKubeEvent customStructureEvent) {
-        if (!RNSStartupKubeEvents.CREATE_RNS_STRUCTURE_SET.hasListeners()) return null;
+    private static @Nullable EnableDepositsKubeEvent currentStructureSetEvent(
+            DepositStructuresKubeEvent customStructureEvent
+    ) {
+        if (!RNSStartupKubeEvents.RNS_ENABLE_DEPOSITS.hasListeners()) return null;
 
-        var structureSetEvent = new DepositStructureSetKubeEvent(
-                () -> availableStructures(customStructureEvent.created()));
-        RNSStartupKubeEvents.CREATE_RNS_STRUCTURE_SET.post(structureSetEvent);
+        var structureSetEvent = new EnableDepositsKubeEvent(
+                () -> availableStructures(customStructureEvent.created(), customStructureEvent.tweaked()));
+        RNSStartupKubeEvents.RNS_ENABLE_DEPOSITS.post(structureSetEvent);
         return structureSetEvent;
     }
 
-    static Map<ResourceLocation, DepositStructureSetKubeEvent.AvailableStructure> availableStructures(
+    static Map<ResourceLocation, EnableDepositsKubeEvent.AvailableStructure> availableStructures(
             List<DepositStructureKubeBuilder> depositStructures
     ) {
-        var structures = new LinkedHashMap<ResourceLocation, DepositStructureSetKubeEvent.AvailableStructure>();
+        return availableStructures(depositStructures, List.of());
+    }
+
+    static Map<ResourceLocation, EnableDepositsKubeEvent.AvailableStructure> availableStructures(
+            List<DepositStructureKubeBuilder> depositStructures,
+            List<DepositStructureKubeBuilder> tweakedStructures
+    ) {
+        var structures = new LinkedHashMap<ResourceLocation, EnableDepositsKubeEvent.AvailableStructure>();
+        var tweaksById = tweakedDepositStructuresById(tweakedStructures);
 
         for (var entry : DepositStructureBuilder.getDeposits()) {
             var structureId = DepositStructureBuilder.structureId(entry);
-            putAvailableStructure(structures, structureId, entry.structure().weight(), true);
+            var tweak = tweaksById.get(structureId);
+            var weight = tweak != null ? tweak.structureSetWeight() : entry.structure().weight();
+            putAvailableStructure(structures, structureId, weight, true);
         }
 
         for (var builder : depositStructures) {
@@ -185,14 +215,16 @@ public class RNSKubeJSAssembler {
     }
 
     private static DepositSelectionState computeDepositSelection() {
-        if (!RNSStartupKubeEvents.CREATE_RNS_STRUCTURE_SET.hasListeners()) {
+        if (!RNSStartupKubeEvents.RNS_ENABLE_DEPOSITS.hasListeners()) {
             return new DepositSelectionState(false, Set.of(), DEFAULT_ENABLED_DEPOSIT_BLOCKS);
         }
 
         var customStructureEvent = currentDepositStructureEvent();
         var customStructures = customStructureEvent.created();
-        var structureSetEvent = new DepositStructureSetKubeEvent(() -> availableStructures(customStructures));
-        RNSStartupKubeEvents.CREATE_RNS_STRUCTURE_SET.post(structureSetEvent);
+        var tweakedStructures = customStructureEvent.tweaked();
+        var structureSetEvent = new EnableDepositsKubeEvent(
+                () -> availableStructures(customStructures, tweakedStructures));
+        RNSStartupKubeEvents.RNS_ENABLE_DEPOSITS.post(structureSetEvent);
 
         if (!structureSetEvent.hasConfiguredDimensions()) {
             return new DepositSelectionState(false, Set.of(), DEFAULT_ENABLED_DEPOSIT_BLOCKS);
@@ -236,8 +268,8 @@ public class RNSKubeJSAssembler {
     }
 
     private static List<DepositStructureKubeBuilder> selectedCustomStructures(
-            @Nullable DepositStructureSetKubeBuilder overworldStructureSet,
-            @Nullable DepositStructureSetKubeBuilder netherStructureSet,
+            @Nullable EnableDepositsKubeBuilder overworldStructureSet,
+            @Nullable EnableDepositsKubeBuilder netherStructureSet,
             Map<ResourceLocation, DepositStructureKubeBuilder> customDepositStructures
     ) {
         var selected = new LinkedHashMap<ResourceLocation, DepositStructureKubeBuilder>();
@@ -250,7 +282,7 @@ public class RNSKubeJSAssembler {
 
     private static void collectSelectedCustomStructures(
             Map<ResourceLocation, DepositStructureKubeBuilder> selected,
-            @Nullable DepositStructureSetKubeBuilder structureSet,
+            @Nullable EnableDepositsKubeBuilder structureSet,
             Map<ResourceLocation, DepositStructureKubeBuilder> customDepositStructures
     ) {
         if (structureSet == null) return;
@@ -264,8 +296,8 @@ public class RNSKubeJSAssembler {
     }
 
     static List<ResourceLocation> selectedStructureIds(
-            @Nullable DepositStructureSetKubeBuilder overworldStructureSet,
-            @Nullable DepositStructureSetKubeBuilder netherStructureSet
+            @Nullable EnableDepositsKubeBuilder overworldStructureSet,
+            @Nullable EnableDepositsKubeBuilder netherStructureSet
     ) {
         var selected = new LinkedHashMap<ResourceLocation, ResourceLocation>();
 
@@ -279,7 +311,7 @@ public class RNSKubeJSAssembler {
 
     private static void collectSelectedStructureIds(
             Map<ResourceLocation, ResourceLocation> selected,
-            @Nullable DepositStructureSetKubeBuilder structureSet
+            @Nullable EnableDepositsKubeBuilder structureSet
     ) {
         if (structureSet == null) return;
 
@@ -304,12 +336,31 @@ public class RNSKubeJSAssembler {
         return structures;
     }
 
+    static Map<ResourceLocation, DepositStructureKubeBuilder> tweakedDepositStructuresById(
+            List<DepositStructureKubeBuilder> depositStructures
+    ) {
+        var structures = new LinkedHashMap<ResourceLocation, DepositStructureKubeBuilder>();
+
+        for (var structure : depositStructures) {
+            if (!structure.isTweak()) {
+                throw new IllegalArgumentException("Expected a built-in deposit structure tweak: " + structure.id());
+            }
+            var previous = structures.putIfAbsent(structure.id(), structure);
+            if (previous != null) {
+                throw new IllegalStateException("Duplicate built-in deposit structure tweak registered for KubeJS: "
+                        + structure.id());
+            }
+        }
+
+        return structures;
+    }
+
     private static void putAvailableStructure(
-            Map<ResourceLocation, DepositStructureSetKubeEvent.AvailableStructure> structures,
+            Map<ResourceLocation, EnableDepositsKubeEvent.AvailableStructure> structures,
             ResourceLocation structureId, Integer weight, boolean builtIn
     ) {
         var previous = structures.putIfAbsent(structureId,
-                new DepositStructureSetKubeEvent.AvailableStructure(structureId, weight, builtIn));
+                new EnableDepositsKubeEvent.AvailableStructure(structureId, weight, builtIn));
         if (previous != null) {
             throw new IllegalStateException("Duplicate deposit structure id registered for KubeJS structure set selection: "
                     + structureId);
@@ -317,7 +368,7 @@ public class RNSKubeJSAssembler {
     }
 
     private static void applyStructureSetDimension(
-            @Nullable DepositStructureSetKubeBuilder structureSet,
+            @Nullable EnableDepositsKubeBuilder structureSet,
             DepositDimension dimension,
             Map<ResourceLocation, DepositStructureKubeBuilder> customDepositStructures,
             Map<ResourceLocation, DepositDimension> assignedDimensions
@@ -340,7 +391,7 @@ public class RNSKubeJSAssembler {
 
     private static void generateStructureSet(
             DataJsonGenerator generator,
-            @Nullable DepositStructureSetKubeBuilder structureSet,
+            @Nullable EnableDepositsKubeBuilder structureSet,
             int defaultSeparation,
             int defaultSpacing,
             int defaultSalt
@@ -354,15 +405,55 @@ public class RNSKubeJSAssembler {
                         structureSet.resolvedSalt(defaultSalt)));
     }
 
+    private static void generateDefaultStructureSetWeightOverrides(
+            DataJsonGenerator generator,
+            List<DepositStructureKubeBuilder> tweakedStructures,
+            @Nullable EnableDepositsKubeBuilder overworldStructureSet,
+            @Nullable EnableDepositsKubeBuilder netherStructureSet
+    ) {
+        var availableStructures = availableStructures(List.of(), tweakedStructures);
+        if (overworldStructureSet == null && hasWeightOverride(tweakedStructures, DepositDimension.OVERWORLD)) {
+            var structureSet = defaultStructureSet(DepositDimension.OVERWORLD, availableStructures);
+            generateStructureSet(generator, structureSet,
+                    RNSPacks.DEFAULT_SEPARATION, RNSPacks.DEFAULT_SPACING, RNSPacks.SALT);
+        }
+        if (netherStructureSet == null && hasWeightOverride(tweakedStructures, DepositDimension.NETHER)) {
+            var structureSet = defaultStructureSet(DepositDimension.NETHER, availableStructures);
+            generateStructureSet(generator, structureSet,
+                    RNSPacks.DEFAULT_NETHER_SEPARATION, RNSPacks.DEFAULT_NETHER_SPACING, RNSPacks.NETHER_SALT);
+        }
+    }
+
+    private static boolean hasWeightOverride(
+            List<DepositStructureKubeBuilder> tweakedStructures, DepositDimension dimension
+    ) {
+        return tweakedStructures.stream()
+                .anyMatch(structure -> structure.dimension() == dimension && structure.weightChanged());
+    }
+
+    private static EnableDepositsKubeBuilder defaultStructureSet(
+            DepositDimension dimension,
+            Map<ResourceLocation, EnableDepositsKubeEvent.AvailableStructure> availableStructures
+    ) {
+        var structureSet = new EnableDepositsKubeBuilder(
+                CreateRNS.asResource(dimension.prefix() + "deposits"), availableStructures);
+        for (var entry : DepositStructureBuilder.getScannableDeposits(dimension)) {
+            structureSet.deposit(DepositStructureBuilder.structureId(entry).toString());
+        }
+        return structureSet;
+    }
+
     private static void generateBuiltInDepositSpecOverrides(
             DataJsonGenerator generator,
-            @Nullable DepositStructureSetKubeBuilder overworldStructureSet,
-            @Nullable DepositStructureSetKubeBuilder netherStructureSet
+            @Nullable EnableDepositsKubeBuilder overworldStructureSet,
+            @Nullable EnableDepositsKubeBuilder netherStructureSet,
+            Set<ResourceLocation> tweakedStructureIds
     ) {
         var selectedStructureIds = Set.copyOf(selectedStructureIds(overworldStructureSet, netherStructureSet));
         for (var entry : DepositSpecBuilder.getSpecs()) {
             if (entry.dimension() == DepositDimension.OVERWORLD && overworldStructureSet == null) continue;
             if (entry.dimension() == DepositDimension.NETHER && netherStructureSet == null) continue;
+            if (tweakedStructureIds.contains(entry.spec().structureId())) continue;
 
             var scannable = selectedStructureIds.contains(entry.spec().structureId());
             generator.json(DynamicDatapackContent.depositSpecPath(entry),
@@ -392,7 +483,7 @@ public class RNSKubeJSAssembler {
     }
 
     private static JsonObject structureSetJson(
-            List<DepositStructureSetKubeBuilder.SelectedStructure> structures,
+            List<EnableDepositsKubeBuilder.SelectedStructure> structures,
             int separation, int spacing, int salt
     ) {
         var root = new JsonObject();
@@ -423,17 +514,17 @@ public class RNSKubeJSAssembler {
 
     private static DepositStructuresKubeEvent currentDepositStructureEvent() {
         var event = new DepositStructuresKubeEvent();
-        if (!RNSStartupKubeEvents.CREATE_RNS_DEPOSIT_STRUCTURES.hasListeners()) return event;
+        if (!RNSStartupKubeEvents.RNS_DEPOSIT_STRUCTURES.hasListeners()) return event;
 
-        RNSStartupKubeEvents.CREATE_RNS_DEPOSIT_STRUCTURES.post(event);
+        RNSStartupKubeEvents.RNS_DEPOSIT_STRUCTURES.post(event);
         return event;
     }
 
     private static CatalystsKubeEvent currentCatalystEvent() {
         var event = new CatalystsKubeEvent();
-        if (!RNSStartupKubeEvents.CREATE_RNS_CATALYSTS.hasListeners()) return event;
+        if (!RNSStartupKubeEvents.RNS_CATALYSTS.hasListeners()) return event;
 
-        RNSStartupKubeEvents.CREATE_RNS_CATALYSTS.post(event);
+        RNSStartupKubeEvents.RNS_CATALYSTS.post(event);
         return event;
     }
 

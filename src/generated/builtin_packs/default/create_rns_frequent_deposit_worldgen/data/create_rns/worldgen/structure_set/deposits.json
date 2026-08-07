@@ -8,23 +8,23 @@
   "structures": [
     {
       "structure": "create_rns:deposit_iron",
-      "weight": 100
+      "weight": 50
     },
     {
       "structure": "create_rns:deposit_copper",
-      "weight": 100
+      "weight": 50
     },
     {
       "structure": "create_rns:deposit_zinc",
-      "weight": 40
+      "weight": 20
     },
     {
       "structure": "create_rns:deposit_gold",
-      "weight": 40
+      "weight": 20
     },
     {
       "structure": "create_rns:deposit_redstone",
-      "weight": 40
+      "weight": 20
     }
   ]
 }

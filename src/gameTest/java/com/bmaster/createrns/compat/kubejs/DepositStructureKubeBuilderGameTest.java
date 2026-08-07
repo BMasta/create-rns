@@ -34,6 +34,112 @@ public class DepositStructureKubeBuilderGameTest {
     }
 
     @RNSKubeJSBuilderTest
+    private static void tweakInheritsBuiltInValuesWithoutRequiringStructureSetConfiguration(
+            RNSKubeJSBuilderTestContext context
+    ) {
+        var helper = context.helper();
+        var structureId = CreateRNS.asResource("deposit_iron");
+
+        context.depositStructures().tweak(structureId.toString());
+
+        var generated = context.assembleData();
+        var depositSpecJson = generated.jsonObject(depositSpecPath(structureId));
+        var structureJson = generated.jsonObject(structurePath(structureId));
+        var structures = structureJson.getAsJsonArray("structures");
+
+        assertArrayStrings(helper, depositSpecJson.get("scanner_icon_item"), "inherited scanner icons",
+                "#forge:raw_materials/iron", "#forge:ores/iron", "#forge:ingots/iron", "#forge:nuggets/iron");
+        helper.assertValueEqual(depositSpecJson.get("map_icon_item").getAsString(),
+                "create_rns:iron_deposit_block", "inherited map icon");
+        helper.assertFalse(depositSpecJson.has("dimension"),
+                "Overworld built-in tweak should preserve omitted dimension");
+        helper.assertValueEqual(structureJson.get("height").getAsInt(), -8, "inherited height");
+        helper.assertValueEqual(structures.size(), 2, "inherited template count");
+        assertStructureEntry(helper, structures, 0, DEFAULT_TEMPLATE_MEDIUM.toString(), 70,
+                "create_rns:replace_with_create_rns_iron_deposit_block");
+        assertStructureEntry(helper, structures, 1, DEFAULT_TEMPLATE_LARGE.toString(), 30,
+                "create_rns:replace_with_create_rns_iron_deposit_block");
+        helper.assertFalse(generated.hasJson(structureSetPath("deposits")),
+                "A tweak without a weight change should not replace the default structure set");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void tweakListMethodsReplaceBuiltInListsAndAccumulateInOrder(
+            RNSKubeJSBuilderTestContext context
+    ) {
+        var helper = context.helper();
+        var structureId = CreateRNS.asResource("deposit_iron");
+
+        context.depositStructures().tweak(structureId.toString())
+                .height(-27)
+                .scannerIcon("mymod:refined_iron")
+                .scannerIcon("minecraft:raw_iron")
+                .mapIcon("minecraft:compass")
+                .mapIcon("minecraft:iron_ingot")
+                .nbt(DEFAULT_TEMPLATE_SMALL.toString(), 7)
+                .nbt(DEFAULT_TEMPLATE_LARGE.toString(), 3);
+
+        var generated = context.assembleData();
+        var depositSpecJson = generated.jsonObject(depositSpecPath(structureId));
+        var structureJson = generated.jsonObject(structurePath(structureId));
+        var structures = structureJson.getAsJsonArray("structures");
+
+        assertArrayStrings(helper, depositSpecJson.get("scanner_icon_item"), "replacement scanner icons",
+                "mymod:refined_iron", "minecraft:raw_iron");
+        assertArrayStrings(helper, depositSpecJson.get("map_icon_item"), "replacement map icons",
+                "minecraft:compass", "minecraft:iron_ingot");
+        helper.assertValueEqual(structureJson.get("height").getAsInt(), -27, "replacement height");
+        helper.assertValueEqual(structures.size(), 2, "replacement template count");
+        assertStructureEntry(helper, structures, 0, DEFAULT_TEMPLATE_SMALL.toString(), 7,
+                "create_rns:replace_with_create_rns_iron_deposit_block");
+        assertStructureEntry(helper, structures, 1, DEFAULT_TEMPLATE_LARGE.toString(), 3,
+                "create_rns:replace_with_create_rns_iron_deposit_block");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void tweakPresetReplacesBuiltInPlacementTemplatesAndDefaultWeight(
+            RNSKubeJSBuilderTestContext context
+    ) {
+        var helper = context.helper();
+        var structureId = CreateRNS.asResource("deposit_iron");
+
+        context.depositStructures().tweak(structureId.toString())
+                .preset("overworld_rare");
+
+        var generated = context.assembleData();
+        var structureJson = generated.jsonObject(structurePath(structureId));
+        var structures = structureJson.getAsJsonArray("structures");
+        var structureSetEntries = generated.jsonObject(structureSetPath("deposits"))
+                .getAsJsonArray("structures");
+
+        helper.assertValueEqual(structureJson.get("height").getAsInt(), -12, "preset height");
+        helper.assertValueEqual(structures.size(), 3, "preset template count");
+        assertStructureEntry(helper, structures, 0, DEFAULT_TEMPLATE_SMALL.toString(), 70,
+                "create_rns:replace_with_create_rns_iron_deposit_block");
+        assertStructureEntry(helper, structures, 1, DEFAULT_TEMPLATE_MEDIUM.toString(), 28,
+                "create_rns:replace_with_create_rns_iron_deposit_block");
+        assertStructureEntry(helper, structures, 2, DEFAULT_TEMPLATE_LARGE.toString(), 2,
+                "create_rns:replace_with_create_rns_iron_deposit_block");
+        assertStructureSetWeight(helper, structureSetEntries, structureId, 20);
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void tweakRejectsUnknownDuplicateAndBlockReplacement(RNSKubeJSBuilderTestContext context) {
+        var helper = context.helper();
+        var structureId = CreateRNS.asResource("deposit_iron");
+        var builder = context.depositStructures().tweak(structureId.toString());
+
+        assertThrows(helper, IllegalArgumentException.class, "Unknown built-in deposit structure",
+                () -> context.depositStructures().tweak("create_rns:missing_deposit"));
+        assertThrows(helper, IllegalStateException.class, "already tweaked",
+                () -> context.depositStructures().tweak(structureId.toString()));
+        assertThrows(helper, UnsupportedOperationException.class, "block cannot be changed",
+                () -> builder.block("minecraft:gold_block"));
+        assertThrows(helper, IllegalArgumentException.class, "must be modified with tweak",
+                () -> context.depositStructures().create(structureId.toString()));
+    }
+
+    @RNSKubeJSBuilderTest
     private static void assemblyRejectsMissingDepositBlock(RNSKubeJSBuilderTestContext context) {
         var helper = context.helper();
         var structureId = CreateRNS.asResource("test_missing_deposit_block");
@@ -469,6 +575,20 @@ public class DepositStructureKubeBuilderGameTest {
             assertStructureEntry(helper, structures, i, templates[i].template().toString(), templates[i].weight(),
                     "create_rns:replace_with_" + structureId.getNamespace() + "_" + structureId.getPath());
         }
+    }
+
+    private static void assertStructureSetWeight(
+            RNSKubeJSBuilderTestHelper helper, JsonArray structures, ResourceLocation structureId, int expectedWeight
+    ) {
+        for (var element : structures) {
+            var structure = element.getAsJsonObject();
+            if (!structure.get("structure").getAsString().equals(structureId.toString())) continue;
+
+            helper.assertValueEqual(structure.get("weight").getAsInt(), expectedWeight, "tweaked structure-set weight");
+            return;
+        }
+
+        helper.assertTrue(false, "Missing structure-set entry for " + structureId);
     }
 
     private record PresetTemplate(ResourceLocation template, int weight) {

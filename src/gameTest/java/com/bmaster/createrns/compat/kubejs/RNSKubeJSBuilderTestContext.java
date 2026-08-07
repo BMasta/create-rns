@@ -13,10 +13,12 @@ public class RNSKubeJSBuilderTestContext {
     private final RNSKubeJSBuilderTestHelper helper;
     private final CatalystsKubeEvent catalysts = new CatalystsKubeEvent();
     private final DepositStructuresKubeEvent depositStructures = new DepositStructuresKubeEvent();
-    private final DepositStructureSetKubeEvent structureSet =
-            new DepositStructureSetKubeEvent(() -> RNSKubeJSAssembler.availableStructures(depositStructures.created()));
+    private final EnableDepositsKubeEvent structureSet =
+            new EnableDepositsKubeEvent(() -> RNSKubeJSAssembler.availableStructures(
+                    depositStructures.created(), depositStructures.tweaked()));
     private final RNSKubeJSAssembler assembler =
-            new RNSKubeJSAssembler(catalysts::created, depositStructures::created, structureSet);
+            new RNSKubeJSAssembler(
+                    catalysts::created, depositStructures::created, depositStructures::tweaked, structureSet);
 
     public RNSKubeJSBuilderTestContext(GameTestHelper helper) {
         this.helper = new RNSKubeJSBuilderTestHelper(helper);
@@ -34,7 +36,7 @@ public class RNSKubeJSBuilderTestContext {
         return depositStructures;
     }
 
-    public DepositStructureSetKubeEvent structureSet() {
+    public EnableDepositsKubeEvent structureSet() {
         return structureSet;
     }
 

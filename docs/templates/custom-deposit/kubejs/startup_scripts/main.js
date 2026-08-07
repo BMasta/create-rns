@@ -5,7 +5,7 @@ StartupEvents.registry('block', event => {
 })
 
 // Deposit structures go here. Multiple structures can use the same block.
-StartupEvents.createRnsDepositStructures(event => {
+StartupEvents.rnsDepositStructures(event => {
   event.create('mymod:deposit_netherite')
     .block('mymod:netherite_deposit')
     .displayName('Netherite Deposit')
@@ -19,7 +19,7 @@ StartupEvents.createRnsDepositStructures(event => {
     .mapIcon('minecraft:ancient_debris')
 })
 
-StartupEvents.createRnsStructureSet(event => {
+StartupEvents.rnsEnableDeposits(event => {
   // Configure overworld deposits
   event.overworld()
     // Enables scanning and worldgen

@@ -24,6 +24,22 @@ public class DepositSpecBuilder {
         return Collections.unmodifiableList(SPECS);
     }
 
+    public static List<String> metalScannerIconCandidates(String material) {
+        return List.of(
+                "#forge:raw_materials/" + material,
+                "#forge:ores/" + material,
+                "#forge:ingots/" + material,
+                "#forge:nuggets/" + material);
+    }
+
+    public static List<String> gemScannerIconCandidates(String material) {
+        return List.of("#forge:gems/" + material);
+    }
+
+    public static List<String> dustScannerIconCandidates(String material) {
+        return List.of("#forge:dusts/" + material);
+    }
+
     private final DepositBuildingContext ctx;
     private final List<String> scannerIconItemCandidates = new ArrayList<>();
     private DepositDimension dimension = DepositDimension.OVERWORLD;
@@ -33,13 +49,23 @@ public class DepositSpecBuilder {
         return this;
     }
 
-    public DepositSpecBuilder scannerIconItem(String candidateId) {
+    public DepositSpecBuilder scannerIcon(String candidateId) {
         scannerIconItemCandidates.add(candidateId);
         return this;
     }
 
-    public DepositSpecBuilder scannerIconItem(List<String> candidateIds) {
-        scannerIconItemCandidates.addAll(candidateIds);
+    public DepositSpecBuilder scannerIconMetal(String material) {
+        scannerIconItemCandidates.addAll(metalScannerIconCandidates(material));
+        return this;
+    }
+
+    public DepositSpecBuilder scannerIconGem(String dustKeyword) {
+        scannerIconItemCandidates.addAll(gemScannerIconCandidates(dustKeyword));
+        return this;
+    }
+
+    public DepositSpecBuilder scannerIconDust(String material) {
+        scannerIconItemCandidates.addAll(dustScannerIconCandidates(material));
         return this;
     }
 

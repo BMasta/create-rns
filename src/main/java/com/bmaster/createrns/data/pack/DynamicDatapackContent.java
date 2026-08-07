@@ -73,7 +73,7 @@ public class DynamicDatapackContent {
                 var rule = new JsonObject();
 
                 var inputPredicate = new JsonObject();
-                inputPredicate.addProperty("block", "minecraft:end_stone");
+                inputPredicate.addProperty("block", DepositStructureBuilder.PROCESSOR_INPUT_BLOCK.toString());
                 inputPredicate.addProperty("predicate_type", "minecraft:block_match");
                 rule.add("input_predicate", inputPredicate);
 
@@ -333,6 +333,10 @@ public class DynamicDatapackContent {
         var filename = def.dimension().prefix() + def.specId().getPath();
         return DEPOSIT_SPEC_PATH.formatted(def.specId().getNamespace(), CreateRNS.ID,
                 DEPOSIT_SPEC_REGISTRY.getPath() + "/" + filename);
+    }
+
+    public static ResourceLocation processorId(ResourceLocation depositBlock) {
+        return CreateRNS.asResource(processorName(depositBlock));
     }
 
     private static String processorName(ResourceLocation depositBlock) {

@@ -1,4 +1,4 @@
-StartupEvents.createRnsCatalysts(event => {
+StartupEvents.rnsCatalysts(event => {
   event.create('mymod:superheated_overclock')
     .displayName('Superheated Overclock')
     // A JEI tab with your description will be generated for the representative item.

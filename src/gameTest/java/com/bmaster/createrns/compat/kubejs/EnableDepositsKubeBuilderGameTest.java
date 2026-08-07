@@ -22,13 +22,13 @@ import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions
 
 @GameTestHolder(CreateRNS.ID)
 @PrefixGameTestTemplate(false)
-public class DepositStructureSetKubeBuilderGameTest {
+public class EnableDepositsKubeBuilderGameTest {
     private static final ResourceLocation DEFAULT_TEMPLATE_SMALL =
             ResourceLocation.fromNamespaceAndPath("create_rns", "ore_deposit_small");
 
     @GameTest(template = "empty16x16")
     public void structureSetBuilderScenarios(GameTestHelper helper) {
-        RNSKubeJSBuilderTestRunner.runAll(helper, DepositStructureSetKubeBuilderGameTest.class);
+        RNSKubeJSBuilderTestRunner.runAll(helper, EnableDepositsKubeBuilderGameTest.class);
     }
 
     @RNSKubeJSBuilderTest
@@ -52,6 +52,30 @@ public class DepositStructureSetKubeBuilderGameTest {
         helper.assertValueEqual(netherEntries.size(), 1, "nether built-in entry count");
         assertStructureSetEntry(helper, overworldEntries, 0, overworld.id().toString(), overworld.weight());
         assertStructureSetEntry(helper, netherEntries, 0, nether.id().toString(), nether.weight());
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void builtInSelectionUsesTweakedWeightUnlessDepositCallOverridesIt(
+            RNSKubeJSBuilderTestContext context
+    ) {
+        var helper = context.helper();
+        var builtIns = enabledBuiltInStructures(DepositDimension.OVERWORLD);
+        helper.assertTrue(builtIns.size() >= 2, "Expected at least two overworld built-in deposit structures");
+        var tweakedDefault = builtIns.get(0);
+        var explicitlyOverridden = builtIns.get(1);
+
+        context.depositStructures().tweak(tweakedDefault.id().toString()).weight(9);
+        context.depositStructures().tweak(explicitlyOverridden.id().toString()).weight(11);
+        context.structureSet().overworld()
+                .deposit(tweakedDefault.id().toString())
+                .deposit(explicitlyOverridden.id().toString(), 17);
+
+        var structures = context.assembleData().jsonObject(structureSetPath("deposits"))
+                .getAsJsonArray("structures");
+
+        helper.assertValueEqual(structures.size(), 2, "selected tweaked built-in count");
+        assertStructureSetEntry(helper, structures, 0, tweakedDefault.id().toString(), 9);
+        assertStructureSetEntry(helper, structures, 1, explicitlyOverridden.id().toString(), 17);
     }
 
     @RNSKubeJSBuilderTest
