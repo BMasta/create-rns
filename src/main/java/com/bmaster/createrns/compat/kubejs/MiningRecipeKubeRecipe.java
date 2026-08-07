@@ -16,6 +16,8 @@ import java.util.function.Consumer;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class MiningRecipeKubeRecipe extends KubeRecipe {
+    private final List<List<String>> unresolvedRequiredItems = new ArrayList<>();
+
     @Info("Sets the deposit block mined by this mining recipe.")
     public MiningRecipeKubeRecipe block(String blockId) {
         setValue(MiningRecipeKubeSchema.DEPOSIT_BLOCK,
@@ -64,6 +66,7 @@ public class MiningRecipeKubeRecipe extends KubeRecipe {
         yield.accept(builder);
         if (!builder.hasItems()) return this;
 
+        unresolvedRequiredItems.addAll(builder.unresolvedRequiredItems());
         var yields = getValue(MiningRecipeKubeSchema.YIELDS);
         var mutableYields = yields == null
                 ? new ArrayList<List<CustomObjectRecipeComponent.Value>>()
@@ -83,6 +86,10 @@ public class MiningRecipeKubeRecipe extends KubeRecipe {
         var yields = getValue(MiningRecipeKubeSchema.YIELDS);
         if (yields == null || yields.isEmpty()) {
             throw new IllegalStateException("Mining recipe must define at least one yield");
+        }
+        if (!unresolvedRequiredItems.isEmpty()) {
+            throw new IllegalStateException("Mining recipe item(...) candidates do not resolve to a registered item: "
+                    + unresolvedRequiredItems);
         }
 
         return super.serializeChanges();
