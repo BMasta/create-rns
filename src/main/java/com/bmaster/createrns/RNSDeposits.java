@@ -38,15 +38,20 @@ public class RNSDeposits {
     public static final float CHANCE_FAINT_STABILIZING_RESONANCE = 0.15f;
     public static final float CHANCE_STABILIZING_RESONANCE = 0.06f;
 
-    public static final ResourceLocation CATA_FAINT_RESONANCE = CreateRNS.asResource("faint_resonance");
-    public static final ResourceLocation CATA_RESONANCE = CreateRNS.asResource("resonance");
+    public static final ResourceLocation CATA_FAINT_RESONANCE =
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, "faint_resonance");
+    public static final ResourceLocation CATA_RESONANCE =
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, "resonance");
     public static final ResourceLocation CATA_FAINT_SHATTERING_RESONANCE =
-            CreateRNS.asResource("faint_shattering_resonance");
-    public static final ResourceLocation CATA_SHATTERING_RESONANCE = CreateRNS.asResource("shattering_resonance");
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, "faint_shattering_resonance");
+    public static final ResourceLocation CATA_SHATTERING_RESONANCE =
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, "shattering_resonance");
     public static final ResourceLocation CATA_FAINT_STABILIZING_RESONANCE =
-            CreateRNS.asResource("faint_stabilizing_resonance");
-    public static final ResourceLocation CATA_STABILIZING_RESONANCE = CreateRNS.asResource("stabilizing_resonance");
-    public static final ResourceLocation CATA_OVERCLOCK = CreateRNS.asResource("overclock");
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, "faint_stabilizing_resonance");
+    public static final ResourceLocation CATA_STABILIZING_RESONANCE =
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, "stabilizing_resonance");
+    public static final ResourceLocation CATA_OVERCLOCK =
+            ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, "overclock");
 
     public static final int COLOR_FAINT_RESONANCE = 0xFF968CB3;
     public static final int COLOR_RESONANCE = 0xFF8572BF;

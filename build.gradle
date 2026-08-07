@@ -7,6 +7,7 @@ plugins {
 }
 
 def gameTestSourceSet = sourceSets.create('gameTest')
+def dataRunSourceSet = sourceSets.create('dataRun')
 
 version = mod_version
 group = mod_group_id
@@ -113,6 +114,12 @@ minecraft {
 
             // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
             args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+
+            mods {
+                "${mod_id}" {
+                    setSources([dataRunSourceSet])
+                }
+            }
         }
     }
 }
@@ -121,6 +128,9 @@ minecraft {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 sourceSets.gameTest.compileClasspath += sourceSets.main.output
 sourceSets.gameTest.runtimeClasspath += sourceSets.main.output
+sourceSets.dataRun.java.srcDirs = sourceSets.main.java.srcDirs
+sourceSets.dataRun.resources.srcDirs = sourceSets.main.resources.srcDirs
+sourceSets.dataRun.compileClasspath += sourceSets.main.compileClasspath
 
 repositories {
     // Put repositories for dependencies here
@@ -168,7 +178,18 @@ configurations {
     named(gameTestSourceSet.runtimeOnlyConfigurationName) {
         extendsFrom runtimeOnly, localRuntime
     }
+    named(dataRunSourceSet.implementationConfigurationName) {
+        extendsFrom implementation
+    }
+    named(dataRunSourceSet.compileOnlyConfigurationName) {
+        extendsFrom compileOnly
+    }
+    named(dataRunSourceSet.runtimeOnlyConfigurationName) {
+        extendsFrom runtimeOnly
+    }
 }
+
+sourceSets.dataRun.runtimeClasspath += sourceSets.main.runtimeClasspath - configurations.named('localRuntime').get()
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
@@ -204,32 +225,42 @@ dependencies {
     runtimeOnly(fg.deobf("curse.maven:xaeros-world-map-${xaero_worldmap_version}"))
 }
 
+def replaceProperties = [
+        minecraft_version             : minecraft_version,
+        minecraft_version_range       : minecraft_version_range,
+        forge_version                 : forge_version,
+        forge_version_range           : forge_version_range,
+        loader_version_range          : loader_version_range,
+        jei_version                   : jei_version,
+        emi_version                   : emi_version,
+        kubejs_version                : kubejs_version,
+        xaero_worldmap_version        : xaero_worldmap_version,
+        xaero_worldmap_version_runtime: xaero_worldmap_version_runtime,
+        xaero_minimap_version_runtime : xaero_minimap_version_runtime,
+        journeymap_version            : journeymap_version,
+        mod_id                        : mod_id,
+        mod_name                      : mod_name,
+        mod_license                   : mod_license,
+        mod_version                   : mod_version,
+        mod_authors                   : mod_authors,
+        mod_description               : mod_description,
+]
+
 // This block of code expands all declared replace properties in the specified resource targets.
 // A missing property will result in an error. Properties are expanded using ${} Groovy notation.
 // When "copyIdeResources" is enabled, this will also run before the game launches in IDE environments.
 // See https://docs.gradle.org/current/dsl/org.gradle.language.jvm.tasks.ProcessResources.html
 tasks.named('processResources', ProcessResources).configure {
     duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
-    var replaceProperties = [
-            minecraft_version             : minecraft_version,
-            minecraft_version_range       : minecraft_version_range,
-            forge_version                 : forge_version,
-            forge_version_range           : forge_version_range,
-            loader_version_range          : loader_version_range,
-            jei_version                   : jei_version,
-            emi_version                   : emi_version,
-            kubejs_version                : kubejs_version,
-            xaero_worldmap_version        : xaero_worldmap_version,
-            xaero_worldmap_version_runtime: xaero_worldmap_version_runtime,
-            xaero_minimap_version_runtime : xaero_minimap_version_runtime,
-            journeymap_version            : journeymap_version,
-            mod_id                        : mod_id,
-            mod_name                      : mod_name,
-            mod_license                   : mod_license,
-            mod_version                   : mod_version,
-            mod_authors                   : mod_authors,
-            mod_description               : mod_description,
-    ]
+    inputs.properties replaceProperties
+
+    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
+        expand replaceProperties + [project: project]
+    }
+}
+
+tasks.named(dataRunSourceSet.processResourcesTaskName, ProcessResources).configure {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     inputs.properties replaceProperties
 
     filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
