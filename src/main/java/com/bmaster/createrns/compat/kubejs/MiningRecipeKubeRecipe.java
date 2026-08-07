@@ -6,11 +6,15 @@ import dev.latvian.mods.kubejs.typings.Info;
 import net.minecraft.MethodsReturnNonnullByDefault;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class MiningRecipeKubeRecipe extends RecipeJS {
+    private final List<List<String>> unresolvedRequiredItems = new ArrayList<>();
+
     private boolean durabilityInvalid;
 
     @Info("Sets the deposit block mined by this mining recipe.")
@@ -63,6 +67,7 @@ public class MiningRecipeKubeRecipe extends RecipeJS {
         yield.accept(builder);
         if (!builder.hasItems()) return this;
 
+        unresolvedRequiredItems.addAll(builder.unresolvedRequiredItems());
         var yields = getValue(MiningRecipeKubeSchema.YIELDS);
         var nextYield = builder.build();
         setValue(MiningRecipeKubeSchema.YIELDS,
@@ -82,6 +87,10 @@ public class MiningRecipeKubeRecipe extends RecipeJS {
         var yields = getValue(MiningRecipeKubeSchema.YIELDS);
         if (yields == null || yields.length == 0) {
             throw new IllegalStateException("Mining recipe must define at least one yield");
+        }
+        if (!unresolvedRequiredItems.isEmpty()) {
+            throw new IllegalStateException("Mining recipe item(...) candidates do not resolve to a registered item: "
+                    + unresolvedRequiredItems);
         }
 
         super.serialize();

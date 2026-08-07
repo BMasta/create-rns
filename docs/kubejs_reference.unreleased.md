@@ -95,7 +95,7 @@ Adds an item, item tag, or ordered fallback list of item ids and item tags to th
 When multiple items are added to the same yield, one of them is rolled by weight.
 
 * `itemOrTagId`: item id or item tag such as `minecraft:raw_iron` or `#forge:raw_materials/iron`
-* `itemOrTagIdList`: ordered list of item ids and item tags used as fallbacks
+* `itemOrTagIdList`: ordered list of item ids and item tags used as fallbacks; elements are tried one by one until at least one item is resolved
 * `weight`: positive integer (default: `1`)
 
 ### `compatItem(itemOrTagId, weight)` / `compatItem(itemOrTagId)` / `compatItem(itemOrTagIdList, weight)` / `compatItem(itemOrTagIdList)`
@@ -103,7 +103,7 @@ Adds a compat-gated item, item tag, or ordered fallback list of item ids and ite
 If it resolves to nothing at runtime, the entry is discarded instead of making the recipe invalid.
 
 * `itemOrTagId`: item id or item tag
-* `itemOrTagIdList`: ordered list of item ids and item tags used as fallbacks
+* `itemOrTagIdList`: ordered list of item ids and item tags used as fallbacks; elements are tried one by one until at least one item is resolved
 * `weight`: positive integer (default: `1`)
 
 ### `catalyst(id)` (optional)

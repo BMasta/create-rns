@@ -1,9 +1,12 @@
 package com.bmaster.createrns.compat.kubejs;
 
-import dev.latvian.mods.kubejs.recipe.component.RecipeComponentBuilderMap;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSetLookup;
+import dev.latvian.mods.kubejs.recipe.component.RecipeComponentBuilderMap;
 import dev.latvian.mods.kubejs.typings.Info;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Items;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
@@ -18,6 +21,7 @@ public class YieldKubeBuilder {
 
     private final List<RecipeComponentBuilderMap> items = new ArrayList<>();
     private final List<String> catalysts = new ArrayList<>();
+    private final List<List<String>> unresolvedRequiredItems = new ArrayList<>();
 
     private float chance = 1;
     private int jeiSlotColor = 0;
@@ -109,6 +113,10 @@ public class YieldKubeBuilder {
         return !items.isEmpty();
     }
 
+    List<List<String>> unresolvedRequiredItems() {
+        return List.copyOf(unresolvedRequiredItems);
+    }
+
     RecipeComponentBuilderMap build() {
         if (items.isEmpty()) throw new IllegalStateException("Yield must define at least one item");
 
@@ -125,10 +133,14 @@ public class YieldKubeBuilder {
 
         var normalizedIds = candidateIds.stream()
                 .map(YieldKubeBuilder::normalizeCandidateId)
-                .toArray(String[]::new);
+                .toList();
+        if (!compat && normalizedIds.stream().noneMatch(YieldKubeBuilder::isTag)
+                && normalizedIds.stream().noneMatch(YieldKubeBuilder::isRegisteredItem)) {
+            unresolvedRequiredItems.add(normalizedIds);
+        }
 
         items.add(MiningRecipeKubeSchema.weightedItem(
-                normalizedIds,
+                normalizedIds.toArray(String[]::new),
                 compat,
                 weight != DEFAULT_WEIGHT ? weight : null
         ));
@@ -142,6 +154,19 @@ public class YieldKubeBuilder {
         }
 
         return candidateId.contains(":") ? candidateId : "minecraft:" + candidateId;
+    }
+
+    private static boolean isRegisteredItem(String candidateId) {
+        var id = ResourceLocation.tryParse(candidateId);
+        if (id == null) return false;
+
+        return BuiltInRegistries.ITEM.getOptional(id)
+                .filter(item -> item != Items.AIR)
+                .isPresent();
+    }
+
+    private static boolean isTag(String candidateId) {
+        return candidateId.startsWith("#");
     }
 
     private static int parseJeiSlotColor(String jeiSlotColor) {

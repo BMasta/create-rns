@@ -138,6 +138,16 @@ public class MiningRecipeKubeRecipeGameTest {
     }
 
     @RNSKubeJSBuilderTest
+    private static void serializeChangesRejectsUnregisteredRequiredItems(RNSKubeJSBuilderTestContext context) {
+        assertThrows(context.helper(), IllegalStateException.class,
+                "item(...) candidates do not resolve to a registered item: "
+                        + "[[create_rns:definitely_missing_item]]",
+                () -> serialize(context.miningRecipe("missing_required_item")
+                        .block("stone")
+                        .yield(yield -> yield.item("create_rns:definitely_missing_item"))));
+    }
+
+    @RNSKubeJSBuilderTest
     private static void durabilityBoundariesAndInvalidComponentValuesSerializeAsExpected(RNSKubeJSBuilderTestContext context) {
         var helper = context.helper();
 
