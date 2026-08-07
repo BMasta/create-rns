@@ -4,6 +4,7 @@ import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.LoadingModList;
 
 public enum Mods {
+    KUBEJS("kubejs"),
     EMI("emi"),
     NEW_AGE("create_new_age"),
     NUCLEAR("createnuclear"),

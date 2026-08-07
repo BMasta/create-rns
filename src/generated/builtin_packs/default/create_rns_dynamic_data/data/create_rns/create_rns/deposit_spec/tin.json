@@ -1,0 +1,11 @@
+{
+  "scanner_icon_item": [
+    "#c:raw_materials/tin",
+    "#c:ores/tin",
+    "#c:ingots/tin",
+    "#c:nuggets/tin"
+  ],
+  "map_icon_item": "create_rns:tin_deposit_block",
+  "structure": "create_rns:deposit_tin",
+  "scannable": false
+}

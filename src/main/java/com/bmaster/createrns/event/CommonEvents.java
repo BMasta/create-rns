@@ -3,17 +3,18 @@ package com.bmaster.createrns.event;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.RNSRecipes;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSPluginBridge;
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositDeltaS2CPayload;
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsClearS2CPayload;
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsSnapshotC2SPayload;
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsSnapshotS2CPayload;
-import com.bmaster.createrns.data.pack.MiningRecipeBuilder;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerC2SPayload;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerS2CPayload;
 import com.bmaster.createrns.content.deposit.spec.DepositSpec;
 import com.bmaster.createrns.data.gen.depositworldgen.DepositWorldgenProvider;
 import com.bmaster.createrns.data.pack.DynamicDatapack;
+import com.bmaster.createrns.data.pack.MiningRecipeBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.packs.PackType;
@@ -30,6 +31,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.HashSet;
 
 @EventBusSubscriber(modid = CreateRNS.ID)
 @MethodsReturnNonnullByDefault
@@ -60,9 +62,21 @@ public class CommonEvents {
     public static void onBuildCreativeModeTabContents(BuildCreativeModeTabContentsEvent e) {
         if (e.getTabKey() != RNSMisc.MAIN_TAB.getKey()) return;
 
+        boolean depositsManagedByKubeJS = RNSKubeJSPluginBridge.isManagingDeposits();
+        var depositBlocksEnabledByKubeJS = RNSKubeJSPluginBridge.getEnabledDepositBlocks();
+
+        var processedDepositBlocks = new HashSet<>();
+
         for (var r : MiningRecipeBuilder.getRecipes()) {
+            if (!processedDepositBlocks.add(r.recipe().depositBlockId())) continue;
             var depItem = BuiltInRegistries.ITEM.get(r.recipe().depositBlockId());
-            if (!r.isEnabled().get()) {
+
+            // If KubeJS is managing deposits, query the KubeJS plugin for enabled deposits.
+            // If not, use the locally determined compat availability.
+            boolean remove = depositsManagedByKubeJS
+                    ? !depositBlocksEnabledByKubeJS.contains(r.recipe().depositBlockId())
+                    : !r.isEnabled().get();
+            if (remove) {
                 e.remove(new ItemStack(depItem), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
             }
         }

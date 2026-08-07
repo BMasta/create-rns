@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -19,14 +20,13 @@ public class DepositSpecBuilder {
         return new DepositSpecBuilder(ctx);
     }
 
-    public static List<ConfiguredEntry> getEnabledSpecs() {
-        return SPECS.stream().filter(s -> s.isEnabled.get()).toList();
+    public static List<ConfiguredEntry> getSpecs() {
+        return Collections.unmodifiableList(SPECS);
     }
 
     private final DepositBuildingContext ctx;
     private final List<String> scannerIconItemCandidates = new ArrayList<>();
     private DepositDimension dimension = DepositDimension.OVERWORLD;
-    private boolean scannable = true;
 
     public DepositSpecBuilder dimension(DepositDimension dimension) {
         this.dimension = dimension;
@@ -47,11 +47,6 @@ public class DepositSpecBuilder {
         return transform.apply(this);
     }
 
-    public DepositSpecBuilder scannable(boolean scannable) {
-        this.scannable = scannable;
-        return this;
-    }
-
     public void save() {
         if (scannerIconItemCandidates.isEmpty()) {
             throw new IllegalStateException("Deposit spec must define a scanner icon");
@@ -62,11 +57,11 @@ public class DepositSpecBuilder {
                         ctx.depositStructureId(dimension));
             }
         }
-        var entry = new ConfiguredEntry(ctx.depositSpecId(), dimension, ctx.isEnabled, new ConfiguredSpec(
+        var entry = new ConfiguredEntry(ctx.depositSpecId(), dimension, new ConfiguredSpec(
                 List.copyOf(scannerIconItemCandidates),
                 List.of(ctx.depositBlockId().toString()),
                 ctx.depositStructureId(dimension),
-                scannable));
+                ctx.isEnabled));
         SPECS.add(entry);
     }
 
@@ -75,7 +70,7 @@ public class DepositSpecBuilder {
     }
 
     public record ConfiguredEntry(
-            ResourceLocation specId, DepositDimension dimension, Supplier<Boolean> isEnabled, ConfiguredSpec spec
+            ResourceLocation specId, DepositDimension dimension, ConfiguredSpec spec
     ) {
     }
 
@@ -83,7 +78,7 @@ public class DepositSpecBuilder {
             List<String> scannerIconCandidates,
             List<String> mapIconCandidates,
             ResourceLocation structureId,
-            boolean scannable
+            Supplier<Boolean> scannable
     ) {
     }
 }
