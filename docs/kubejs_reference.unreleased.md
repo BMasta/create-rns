@@ -6,7 +6,7 @@
 * This page only covers the custom KubeJS API added by Create: Rock & Stone.
 * Standard KubeJS methods such as `displayName(...)` on normal block builders are not re-documented here.
 * Standard KubeJS recipe methods such as `.id(...)` are not re-documented here.
-* See the KubeJS templates in `templates/custom-deposit`, `templates/tweak-mining-recipe`, and `templates/custom-catalyst` for complete working examples.
+* Working examples can be found [here](templates).
 
 ## Adding mining recipes
 
@@ -37,7 +37,7 @@ Creates a mining recipe builder.
 ### `block(blockId)`
 Sets the deposit block mined by this recipe.
 
-* `blockId`: id of an existing deposit block.
+* `blockId`: id of an existing block tagged with `#create_rns:deposit_blocks`.
 
 ### `replaceWhenDepleted(blockId)` (optional)
 Sets the block that should replace the deposit once it is depleted. The replacement block does not have to be a deposit block.
@@ -94,6 +94,9 @@ Default: `1`
 Adds an item, item tag, or ordered fallback list of item ids and item tags to this yield.
 When multiple items are added to the same yield, one of them is rolled by weight.
 
+***IMPORTANT!*** Item tags do not have the same level of validation as items.
+If you specify a non-existent or empty tag, KubeJS will not report any errors.
+
 * `itemOrTagId`: item id or item tag such as `minecraft:raw_iron` or `#forge:raw_materials/iron`
 * `itemOrTagIdList`: ordered list of item ids and item tags used as fallbacks; elements are tried one by one until at least one item is resolved
 * `weight`: positive integer (default: `1`)
@@ -110,7 +113,7 @@ If it resolves to nothing at runtime, the entry is discarded instead of making t
 Attaches a catalyst to this yield.
 Depending on the catalyst, it may be required or optional, and may modify the chance of getting a yield.
 
-* `id`: namespaced catalyst id such as `create_rns:overclock`
+* `id`: id of an existing catalyst such as `create_rns:overclock`.
 
 ### `jeiSlotColor('#rrggbb')` / `jeiSlotColor(argb)` (optional)
 Sets the background color shown for this yield in JEI/EMI.
@@ -209,7 +212,7 @@ If omitted, make sure to supply the matching `<namespace>.catalyst.<path>.descri
 Hides this catalyst from the miner bearing tooltip while the specified catalyst is active.
 Useful when having multiple tiers of catalysts. Can be called multiple times to add more catalysts.
 
-* `catalystId`: namespaced catalyst id such as `create_rns:resonance`
+* `catalystId`: catalyst id such as `create_rns:resonance`.
 
 ### `playWhenActive(soundId)` (optional)
 The specified sound event will be continuously played while the catalyst is active.

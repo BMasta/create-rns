@@ -2,9 +2,11 @@ package com.bmaster.createrns.util.codec;
 
 import com.bmaster.createrns.CreateRNS;
 import com.mojang.datafixers.util.Either;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.math.MethodsReturnNonnullByDefault;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
@@ -29,27 +31,69 @@ public class ItemWithFallbacks {
             ItemFallbackEntry::encode
     );
 
+    protected static final Codec<List<ItemFallbackEntry>> ITEM_FALLBACK_ENTRY_LIST_CODEC =
+            discardPartialOnError(ITEM_FALLBACK_ENTRY_CODEC.listOf());
+
     // []                                       <-> ItemWithFallbacks([Items.AIR], encodedAsList=false
     // "minecraft:dirt"                         <-> ItemWithFallbacks(<entry list of size 1>, encodedAsList=false)
     // ["minecraft:dirt"]                       <-> ItemWithFallbacks(<entry list of size 1>, encodedAsList=true)
     // ["minecraft:dirt", "minecraft:stone"]    <-> ItemWithFallbacks(<entry list of size 2>, encodedAsList=true)
+    public static final Codec<ItemWithFallbacks> LENIENT_CODEC =
+            Codec.either(ITEM_FALLBACK_ENTRY_CODEC, ITEM_FALLBACK_ENTRY_LIST_CODEC).comapFlatMap(
+                    ItemWithFallbacks::decodeLenient,
+                    ItemWithFallbacks::encode
+            );
+
     public static final Codec<ItemWithFallbacks> STRICT_CODEC =
-            Codec.either(ITEM_FALLBACK_ENTRY_CODEC, ITEM_FALLBACK_ENTRY_CODEC.listOf()).comapFlatMap(
+            Codec.either(ITEM_FALLBACK_ENTRY_CODEC, ITEM_FALLBACK_ENTRY_LIST_CODEC).comapFlatMap(
                     ItemWithFallbacks::decodeStrict,
                     ItemWithFallbacks::encode
             );
 
-    public static final Codec<ItemWithFallbacks> LENIENT_CODEC =
-            Codec.either(ITEM_FALLBACK_ENTRY_CODEC, ITEM_FALLBACK_ENTRY_CODEC.listOf()).comapFlatMap(
-                    ItemWithFallbacks::decodeLenient,
-                    ItemWithFallbacks::encode
-            );
+    /// In addition to the correct format of items and tags, also requires at least one item to resolve.
+    /// Disables the resolution check if at least one of the fallback entries is a tag.
+    public static final Codec<ItemWithFallbacks> STRICT_RESOLVABLE_CODEC = STRICT_CODEC.flatXmap(
+            ItemWithFallbacks::validateResolvable, ItemWithFallbacks::validateResolvable);
 
     public static final ItemWithFallbacks EMPTY = new ItemWithFallbacks(List.of(), true);
 
     private static DataResult<ItemWithFallbacks> decode(List<ItemFallbackEntry> entries, boolean asList, boolean lenient) {
         if (entries.isEmpty() && !lenient) return DataResult.error(() -> "No items or item tags specified");
         return DataResult.success(new ItemWithFallbacks(entries, (entries.isEmpty() || asList)));
+    }
+
+    private static boolean isRegisteredItem(ItemFallbackEntry entry) {
+        var item = ForgeRegistries.ITEMS.getValue(entry.id());
+        return item != null && item != Items.AIR;
+    }
+
+    private static <T> Codec<T> discardPartialOnError(Codec<T> codec) {
+        return codec.mapResult(new Codec.ResultFunction<>() {
+            @Override
+            public <O> DataResult<Pair<T, O>> apply(
+                    DynamicOps<O> ops, O input, DataResult<Pair<T, O>> result
+            ) {
+                var error = result.error().orElse(null);
+                return error == null ? result : DataResult.error(error::message);
+            }
+
+            @Override
+            public <O> DataResult<O> coApply(
+                    DynamicOps<O> ops, T input, DataResult<O> result
+            ) {
+                return result;
+            }
+        });
+    }
+
+    private static DataResult<ItemWithFallbacks> validateResolvable(ItemWithFallbacks itemWithFallbacks) {
+        if (itemWithFallbacks.originalEntries.stream().anyMatch(ItemFallbackEntry::isTag)
+                || itemWithFallbacks.originalEntries.stream().anyMatch(ItemWithFallbacks::isRegisteredItem)) {
+            return DataResult.success(itemWithFallbacks);
+        }
+        return DataResult.error(() -> "None of the items resolved: " + itemWithFallbacks.originalEntries.stream()
+                .map(ItemFallbackEntry::encode)
+                .toList());
     }
 
     private static DataResult<ItemWithFallbacks> decodeStrict(Either<ItemFallbackEntry, List<ItemFallbackEntry>> serialized) {

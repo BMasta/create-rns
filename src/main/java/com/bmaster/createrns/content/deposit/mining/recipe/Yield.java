@@ -2,7 +2,6 @@ package com.bmaster.createrns.content.deposit.mining.recipe;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSetLookup;
 import com.bmaster.createrns.util.StrictOptionalField;
 import com.bmaster.createrns.util.codec.ItemWithFallbacks;
 import com.mojang.datafixers.util.Pair;
@@ -30,8 +29,8 @@ public class Yield {
                             .forGetter(y -> y.chance),
                     WeightedItem.CODEC.listOf().fieldOf("items")
                             .forGetter(y -> y.items),
-                    StrictOptionalField.of("catalysts", CatalystRequirementSetLookup.ID_CODEC.listOf())
-                            .forGetter(y -> (!y.crsIds.isEmpty()) ? Optional.of(y.crsIds) : Optional.empty()),
+                    StrictOptionalField.of("catalysts", ResourceLocation.CODEC.listOf())
+                            .forGetter(y -> y.crsIds.isEmpty() ? Optional.empty() : Optional.of(y.crsIds)),
                     StrictOptionalField.of("jei_slot_color", Codec.INT, 0)
                             .forGetter(y -> y.slotColor))
             .apply(i, Yield::new));
@@ -41,8 +40,8 @@ public class Yield {
                             .forGetter(y -> y.chance),
                     WeightedItem.STREAM_CODEC.listOf().fieldOf("items")
                             .forGetter(y -> y.items),
-                    StrictOptionalField.of("catalysts", CatalystRequirementSetLookup.ID_CODEC.listOf())
-                            .forGetter(y -> (!y.crsIds.isEmpty()) ? Optional.of(y.crsIds) : Optional.empty()),
+                    StrictOptionalField.of("catalysts", ResourceLocation.CODEC.listOf())
+                            .forGetter(y -> y.crsIds.isEmpty() ? Optional.empty() : Optional.of(y.crsIds)),
                     StrictOptionalField.of("jei_slot_color", Codec.INT, 0)
                             .forGetter(y -> y.slotColor))
             .apply(i, Yield::new));
@@ -84,19 +83,17 @@ public class Yield {
                 .filter(wi -> wi.initialize(access))
                 .toList();
         if (items.isEmpty()) return false;
-        if (crsIds.isEmpty()) return true;
 
-        var resolvedCRSes = new ArrayList<Holder<CatalystRequirementSet>>(crsIds.size());
-        for (var crsId : crsIds) {
+        var resolvedCatalysts = new ArrayList<Holder<CatalystRequirementSet>>(crsIds.size());
+        for (var catalystId : crsIds) {
             try {
-                resolvedCRSes.add(CatalystRequirementSetLookup.get(access, crsId));
+                resolvedCatalysts.add(CatalystRequirementSet.get(access, catalystId));
             } catch (RuntimeException e) {
-                CreateRNS.LOGGER.error("Yield references unknown catalyst requirement set \"{}\"", crsId);
+                CreateRNS.LOGGER.error("Failed to get element {}", catalystId);
                 return false;
             }
         }
-
-        crsList = List.copyOf(resolvedCRSes);
+        crsList = List.copyOf(resolvedCatalysts);
         return true;
     }
 
@@ -110,8 +107,10 @@ public class Yield {
 
     public static class WeightedItem {
         public static final int DEFAULT_WEIGHT = 1;
-        private static final MapCodec<ItemWithFallbacks> STRICT_ITEM_FIELD = ItemWithFallbacks.STRICT_CODEC.fieldOf("item");
-        private static final MapCodec<ItemWithFallbacks> LENIENT_ITEM_FIELD = ItemWithFallbacks.LENIENT_CODEC.fieldOf("item");
+        private static final MapCodec<ItemWithFallbacks> STRICT_ITEM_FIELD =
+                ItemWithFallbacks.STRICT_RESOLVABLE_CODEC.fieldOf("item");
+        private static final MapCodec<ItemWithFallbacks> LENIENT_ITEM_FIELD =
+                ItemWithFallbacks.LENIENT_CODEC.fieldOf("item");
 
         public final int weight;
         public final boolean compat;
@@ -158,7 +157,7 @@ public class Yield {
     protected Yield(float chance, List<WeightedItem> items, Optional<List<ResourceLocation>> crsIds, int slotColor) {
         this.chance = chance;
         this.items = items;
-        this.crsIds = crsIds.orElse(new ArrayList<>());
+        this.crsIds = List.copyOf(crsIds.orElseGet(ArrayList::new));
         this.slotColor = slotColor;
     }
 }

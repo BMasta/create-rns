@@ -3,6 +3,8 @@ package com.bmaster.createrns.content.deposit.mining.recipe;
 import com.bmaster.createrns.RNSRecipeTypes;
 import com.bmaster.createrns.util.StrictOptionalField;
 import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -30,9 +32,11 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 public class MiningRecipe implements Recipe<Container> {
     private static final DepositDurability DEFAULT_DURABILITY = new DepositDurability(0, 0, 0);
+    private static final Codec<Block> DEPOSIT_BLOCK_CODEC = ForgeRegistries.BLOCKS.getCodec()
+            .flatXmap(MiningRecipe::validateDepositBlock, MiningRecipe::validateDepositBlock);
 
     public static final MapCodec<MiningRecipeHelper.SerializedRecipe> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
-                    ForgeRegistries.BLOCKS.getCodec().fieldOf("deposit_block")
+                    DEPOSIT_BLOCK_CODEC.fieldOf("deposit_block")
                             .forGetter(MiningRecipeHelper.SerializedRecipe::depositBlock),
                     StrictOptionalField.of("dimension", ResourceKey.codec(Registries.DIMENSION), Level.OVERWORLD)
                             .forGetter(MiningRecipeHelper.SerializedRecipe::dimension),
@@ -43,6 +47,11 @@ public class MiningRecipe implements Recipe<Container> {
                     Yield.CODEC.listOf().fieldOf("yields")
                             .forGetter(MiningRecipeHelper.SerializedRecipe::yields))
             .apply(i, MiningRecipeHelper.SerializedRecipe::new));
+
+    private static DataResult<Block> validateDepositBlock(Block block) {
+        if (block == Blocks.AIR) return DataResult.error(() -> "Deposit block cannot be minecraft:air");
+        return DataResult.success(block);
+    }
 
     public static final MapCodec<MiningRecipeHelper.SerializedRecipe> STREAM_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
                     ForgeRegistries.BLOCKS.getCodec().fieldOf("deposit_block")

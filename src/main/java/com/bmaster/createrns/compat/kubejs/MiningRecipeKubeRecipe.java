@@ -1,21 +1,31 @@
 package com.bmaster.createrns.compat.kubejs;
 
+import com.google.gson.JsonSyntaxException;
 import dev.latvian.mods.kubejs.recipe.RecipeJS;
 import dev.latvian.mods.kubejs.recipe.component.RecipeComponentBuilderMap;
 import dev.latvian.mods.kubejs.typings.Info;
+import dev.latvian.mods.kubejs.util.ConsoleJS;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.world.item.crafting.Recipe;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class MiningRecipeKubeRecipe extends RecipeJS {
-    private final List<List<String>> unresolvedRequiredItems = new ArrayList<>();
-
-    private boolean durabilityInvalid;
+    @Nullable
+    @Override
+    public Recipe<?> createRecipe() {
+        try {
+            return super.createRecipe();
+        } catch (JsonSyntaxException e) {
+            ConsoleJS.SERVER.warn(e.getMessage());
+            type.event.failedCount.incrementAndGet();
+            return null;
+        }
+    }
 
     @Info("Sets the deposit block mined by this mining recipe.")
     public MiningRecipeKubeRecipe block(String blockId) {
@@ -53,10 +63,6 @@ public class MiningRecipeKubeRecipe extends RecipeJS {
             and it gradually decreases towards the edges.
             """)
     public MiningRecipeKubeRecipe durability(long core, long edge, float randomSpread) {
-        durabilityInvalid = core <= 0 || edge <= 0 || !Float.isFinite(randomSpread)
-                || randomSpread < 0 || randomSpread > 1;
-        if (durabilityInvalid) return this;
-
         setValue(MiningRecipeKubeSchema.DURABILITY, MiningRecipeKubeSchema.durability(core, edge, randomSpread));
         return this;
     }
@@ -67,7 +73,6 @@ public class MiningRecipeKubeRecipe extends RecipeJS {
         yield.accept(builder);
         if (!builder.hasItems()) return this;
 
-        unresolvedRequiredItems.addAll(builder.unresolvedRequiredItems());
         var yields = getValue(MiningRecipeKubeSchema.YIELDS);
         var nextYield = builder.build();
         setValue(MiningRecipeKubeSchema.YIELDS,
@@ -75,27 +80,6 @@ public class MiningRecipeKubeRecipe extends RecipeJS {
                         ? new RecipeComponentBuilderMap[]{nextYield}
                         : MiningRecipeKubeSchema.YIELDS_COMPONENT.add(yields, nextYield));
         return this;
-    }
-
-    @Override
-    public void serialize() {
-        var depositBlock = getValue(MiningRecipeKubeSchema.DEPOSIT_BLOCK);
-        if (depositBlock == null || depositBlock.equals(MiningRecipeKubeSchema.AIR_BLOCK_ID)) {
-            throw new IllegalStateException("Mining recipe must specify a deposit block via block(...)");
-        }
-
-        var yields = getValue(MiningRecipeKubeSchema.YIELDS);
-        if (yields == null || yields.length == 0) {
-            throw new IllegalStateException("Mining recipe must define at least one yield");
-        }
-        if (!unresolvedRequiredItems.isEmpty()) {
-            throw new IllegalStateException("Mining recipe item(...) candidates do not resolve to a registered item: "
-                    + unresolvedRequiredItems);
-        }
-
-        super.serialize();
-        if (durabilityInvalid)
-            json.remove(MiningRecipeKubeSchema.DURABILITY.name);
     }
 
     private static String normalizeId(String id) {

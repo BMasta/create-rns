@@ -1,7 +1,6 @@
 package com.bmaster.createrns.data.pack;
 
 import com.bmaster.createrns.content.deposit.mining.recipe.Yield.WeightedItem;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSetLookup;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
 
@@ -66,9 +65,10 @@ public class YieldBuilder {
     public YieldBuilder catalyst(String catalyst) {
         if (catalyst.isBlank()) throw new IllegalArgumentException("Catalyst id cannot be blank");
 
-        catalysts.add(CatalystRequirementSetLookup.parseId(catalyst)
-                .result()
-                .orElseThrow(() -> new IllegalArgumentException("Invalid catalyst id: " + catalyst)));
+        var parsedId = ResourceLocation.tryParse(catalyst);
+        if (parsedId == null) throw new IllegalArgumentException("Invalid catalyst id: " + catalyst);
+
+        catalysts.add(parsedId);
         return this;
     }
 

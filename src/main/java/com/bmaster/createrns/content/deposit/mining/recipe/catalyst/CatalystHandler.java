@@ -52,7 +52,7 @@ public class CatalystHandler {
         for (var yield : yields) {
             for (var crsHolder : yield.getCRSes()) {
                 var crs = crsHolder.value();
-                crsIdToMappingUnfiltered.computeIfAbsent(CatalystRequirementSetLookup.id(crsHolder), unused ->
+                crsIdToMappingUnfiltered.computeIfAbsent(CatalystRequirementSet.id(crsHolder), unused ->
                         new CatalystMapping(crs, crs.getRelevantCatalysts(catalysts).stream().toList()));
             }
         }
@@ -125,7 +125,7 @@ public class CatalystHandler {
             var y = yields.get(i);
             var chance = y.chance;
             for (var crs : y.getCRSes()) {
-                if (tickedCRSes.contains(CatalystRequirementSetLookup.id(crs))) {
+                if (tickedCRSes.contains(CatalystRequirementSet.id(crs))) {
                     chance *= crs.value().chanceMult;
                 }
             }

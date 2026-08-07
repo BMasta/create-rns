@@ -31,7 +31,7 @@ public class MiningRecipeKubeSchema {
     static final RecipeComponentBuilder DURABILITY_COMPONENT =
             RecipeComponent.builder(DURABILITY_CORE, DURABILITY_EDGE, DURABILITY_RANDOM_SPREAD);
 
-    static final ArrayRecipeComponent<String> CANDIDATE_IDS_COMPONENT = StringComponent.ID.asArray();
+    static final ArrayRecipeComponent<String> CANDIDATE_IDS_COMPONENT = StringComponent.ANY.asArray();
     private static final RecipeKey<String[]> WEIGHTED_ITEM_IDS = CANDIDATE_IDS_COMPONENT.key("item");
     private static final RecipeKey<Boolean> WEIGHTED_ITEM_COMPAT =
             BooleanComponent.BOOLEAN.key("compat").optional(false);
@@ -44,8 +44,7 @@ public class MiningRecipeKubeSchema {
     static final ArrayRecipeComponent<RecipeComponentBuilderMap> YIELD_ITEMS_COMPONENT = WEIGHTED_ITEM_COMPONENT.asArray();
     private static final RecipeKey<Float> YIELD_CHANCE =
             NumberComponent.floatRange(0, 1).key("chance").optional(1F);
-    private static final RecipeKey<RecipeComponentBuilderMap[]> YIELD_ITEMS =
-            YIELD_ITEMS_COMPONENT.key("items");
+    private static final RecipeKey<RecipeComponentBuilderMap[]> YIELD_ITEMS = YIELD_ITEMS_COMPONENT.key("items");
     private static final RecipeKey<String[]> YIELD_CATALYSTS =
             CATALYSTS_COMPONENT.key("catalysts").optional(new String[0]);
     private static final RecipeKey<Integer> YIELD_JEI_SLOT_COLOR =
@@ -55,6 +54,7 @@ public class MiningRecipeKubeSchema {
     static final ArrayRecipeComponent<RecipeComponentBuilderMap> YIELDS_COMPONENT = YIELD_COMPONENT.asArray();
 
     static final RecipeKey<String> DEPOSIT_BLOCK = StringComponent.ID.key("deposit_block")
+            .defaultOptional()
             .exclude()
             .noBuilders();
     static final RecipeKey<String> DIMENSION = StringComponent.ID.key("dimension")
@@ -70,17 +70,19 @@ public class MiningRecipeKubeSchema {
             .exclude()
             .noBuilders();
     static final RecipeKey<RecipeComponentBuilderMap[]> YIELDS = YIELDS_COMPONENT.key("yields")
+            .defaultOptional()
             .exclude()
             .noBuilders();
 
     public static RecipeSchema schema() {
         return new RecipeSchema(MiningRecipeKubeRecipe.class, MiningRecipeKubeRecipe::new,
                 DEPOSIT_BLOCK, YIELDS, DIMENSION, REPLACE_WHEN_DEPLETED, DURABILITY)
-                .constructor(DEPOSIT_BLOCK, DIMENSION)
+                .constructor()
                 .uniqueId(recipe -> {
                     var depositBlock = recipe.getValue(DEPOSIT_BLOCK);
                     var dimension = recipe.getValue(DIMENSION);
-                    return RecipeSchema.normalizeId(normalizeForId(depositBlock)
+                    return RecipeSchema.normalizeId(normalizeForId(
+                            depositBlock != null ? depositBlock : "missing_deposit_block")
                             + "_" + normalizeForId(dimension != null ? dimension : OVERWORLD_ID));
                 });
     }

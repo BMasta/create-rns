@@ -41,21 +41,13 @@ public class YieldCodecTest {
     }
 
     @GameTest(template = "empty16x16")
-    public void weightedItemRejectsUnresolvableStrictItem(GameTestHelper helper) {
-        var weightedItem = CodecHelper.assertParses(helper, Yield.WeightedItem.CODEC,
-                CodecHelper.json(), """
-                        {
-                          "item": "create_rns:definitely_missing_item",
-                          "weight": 1
-                        }
-                        """, "strict weighted item");
-
-        try (var logs = LogCapture.capture(CreateRNS.LOGGER.getName())) {
-            helper.assertFalse(weightedItem.initialize(helper.getLevel().registryAccess()),
-                    "Strict weighted items should fail initialization when no candidates resolve");
-            helper.assertTrue(logs.contains("Could not resolve item \"create_rns:definitely_missing_item\""),
-                    "Missing strict weighted items should log the unresolved candidate");
-        }
+    public void weightedItemRejectsUnregisteredStrictDirectItemDuringDecoding(GameTestHelper helper) {
+        CodecHelper.assertFails(helper, Yield.WeightedItem.CODEC, CodecHelper.json(), """
+                {
+                  "item": "create_rns:definitely_missing_item",
+                  "weight": 1
+                }
+                """, "None of the items resolved: [create_rns:definitely_missing_item]");
         helper.succeed();
     }
 
@@ -99,7 +91,7 @@ public class YieldCodecTest {
 
     @GameTest(template = "empty16x16")
     public void yieldParsesWithDefaultsAndInitializesItems(GameTestHelper helper) {
-        var yield = CodecHelper.assertParses(helper, Yield.CODEC, CodecHelper.json(), """
+        var yield = CodecHelper.assertParses(helper, Yield.CODEC, CodecHelper.registries(helper), """
                         {
                           "items": [
                             {
@@ -119,8 +111,7 @@ public class YieldCodecTest {
                 "yield catalyst id");
         helper.assertTrue(yield.initialize(helper.getLevel().registryAccess()),
                 "Yield initialization should succeed when referenced catalysts exist in the live registry");
-        CodecHelper.assertSame(helper, Items.DIAMOND, yield.items.get(0).item,
-                "initialized yield item");
+        CodecHelper.assertSame(helper, Items.DIAMOND, yield.items.get(0).item, "initialized yield item");
         helper.succeed();
     }
 
@@ -151,7 +142,7 @@ public class YieldCodecTest {
     }
 
     @GameTest(template = "empty16x16")
-    public void yieldLogsErrorAndFailsWhenCatalystNameIsUnknown(GameTestHelper helper) {
+    public void yieldRejectsUnknownCatalystDuringInitialization(GameTestHelper helper) {
         var yield = CodecHelper.assertParses(helper, Yield.CODEC, CodecHelper.json(), """
                         {
                           "items": [
@@ -167,10 +158,33 @@ public class YieldCodecTest {
         try (var logs = LogCapture.capture(CreateRNS.LOGGER.getName())) {
             helper.assertFalse(yield.initialize(helper.getLevel().registryAccess()),
                     "Yield initialization should fail when a referenced catalyst is missing");
-            helper.assertTrue(logs.contains("unknown catalyst requirement set"),
-                    "Missing catalysts should produce the expected error log");
-            helper.assertTrue(logs.contains("create_rns:missing_catalyst"),
-                    "Missing catalyst logs should include the missing catalyst id");
+            helper.assertTrue(logs.contains("Failed to get element create_rns:missing_catalyst"),
+                    "Missing catalysts should retain the registry codec error message");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty16x16")
+    public void yieldOmitsExplicitlyEmptyCatalystsAndKeepsDecodedListImmutable(GameTestHelper helper) {
+        var yield = CodecHelper.assertParses(helper, Yield.CODEC, CodecHelper.registries(helper), """
+                {
+                  "items": [
+                    {
+                      "item": "minecraft:diamond"
+                    }
+                  ],
+                  "catalysts": []
+                }
+                """, "yield with empty catalysts");
+
+        var encoded = Yield.CODEC.encodeStart(CodecHelper.registries(helper), yield).result().orElse(null);
+        helper.assertTrue(encoded != null, "Yield with empty catalysts should encode");
+        helper.assertFalse(encoded.getAsJsonObject().has("catalysts"),
+                "Empty catalyst list should be omitted during encoding");
+        try {
+            yield.getCRSes().clear();
+            helper.fail("Decoded catalyst list should be immutable");
+        } catch (UnsupportedOperationException ignored) {
         }
         helper.succeed();
     }
