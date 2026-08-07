@@ -1,5 +1,20 @@
-// Reconfigure the built-in deposit structure sets without adding any new deposits.
-StartupEvents.createRnsStructureSet(event => {
+// Tweak deposit structure parameters.
+StartupEvents.rnsDepositStructures(event => {
+  event.tweak('create_rns:deposit_iron')
+    .scannerIcon("minecraft:iron_ore")
+    // common - iron, copper
+    // uncommon - lead, nickel
+    // rare - redstone, zinc
+    .preset('overworld_rare')
+//    .preset('overworld_uncommon')
+//    .preset('overworld_common')
+//    .preset('nether_rare')
+//    .preset('nether_uncommon')
+//    .preset('nether_common')
+})
+
+// Select which deposits should be enabled and/or generated, as well as how frequently
+StartupEvents.rnsEnableDeposits(event => {
   // IMPORTANT! Simply calling overworld() will override the default config and disable all deposits in the overworld.
   event.overworld()
     // Omitted deposits will no longer be scannable or generated.

@@ -1,6 +1,9 @@
 package com.bmaster.createrns.compat.kubejs;
 
 import com.bmaster.createrns.data.pack.DepositDimension;
+import com.bmaster.createrns.data.pack.DepositSpecBuilder;
+import com.bmaster.createrns.data.pack.DepositStructureBuilder;
+import com.bmaster.createrns.data.pack.DynamicDatapackContent;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -11,6 +14,7 @@ import dev.latvian.mods.kubejs.typings.Info;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,22 +22,9 @@ import java.util.List;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class DepositStructureKubeBuilder {
-    private static final ResourceLocation DEFAULT_PROCESSOR_INPUT_BLOCK = ResourceLocation.withDefaultNamespace("end_stone");
-    private static final ResourceLocation DEFAULT_TEMPLATE_SMALL =
-            ResourceLocation.fromNamespaceAndPath("create_rns", "ore_deposit_small");
-    private static final ResourceLocation DEFAULT_TEMPLATE_MEDIUM =
-            ResourceLocation.fromNamespaceAndPath("create_rns", "ore_deposit_medium");
-    private static final ResourceLocation DEFAULT_TEMPLATE_LARGE =
-            ResourceLocation.fromNamespaceAndPath("create_rns", "ore_deposit_large");
-    private static final int OVERWORLD_COMMON_HEIGHT = -8;
-    private static final int OVERWORLD_UNCOMMON_HEIGHT = -10;
-    private static final int OVERWORLD_RARE_HEIGHT = -12;
-    private static final int NETHER_HEIGHT = -4;
-    private static final int COMMON_STRUCTURE_SET_WEIGHT = 50;
-    private static final int UNCOMMON_STRUCTURE_SET_WEIGHT = 35;
-    private static final int RARE_STRUCTURE_SET_WEIGHT = 20;
-
     private final ResourceLocation id;
+    private final ResourceLocation processorId;
+    private final @Nullable DepositSpecBuilder.ConfiguredEntry builtInSpec;
     private final List<WeightedTemplate> weightedTemplates = new ArrayList<>();
     private final List<String> scannerIconCandidates = new ArrayList<>();
     private final List<String> mapIconCandidates = new ArrayList<>();
@@ -41,15 +32,50 @@ public class DepositStructureKubeBuilder {
     private ResourceLocation blockId;
     private DepositDimension dimension = DepositDimension.OVERWORLD;
     private Integer height;
+    private int heightDeviation;
     private Integer structureSetWeight;
     private String displayName;
+    private boolean scannerIconsInherited;
+    private boolean mapIconsInherited;
+    private boolean templatesInherited;
+    private boolean weightChanged;
 
     public DepositStructureKubeBuilder(ResourceLocation id) {
         this.id = id;
+        processorId = ResourceLocation.fromNamespaceAndPath(id.getNamespace(),
+                "replace_with_" + id.getNamespace() + "_" + id.getPath().replace('/', '_'));
+        builtInSpec = null;
+    }
+
+    DepositStructureKubeBuilder(
+            DepositStructureBuilder.ConfiguredEntry structureEntry,
+            DepositSpecBuilder.ConfiguredEntry specEntry
+    ) {
+        var structure = structureEntry.structure();
+
+        id = DepositStructureBuilder.structureId(structureEntry);
+        processorId = DynamicDatapackContent.processorId(structure.depositBlock());
+        builtInSpec = specEntry;
+        blockId = structure.depositBlock();
+        dimension = structure.dimension();
+        height = -structure.depth();
+        heightDeviation = structure.depthDeviation();
+        structureSetWeight = structure.weight();
+        scannerIconCandidates.addAll(specEntry.spec().scannerIconCandidates());
+        mapIconCandidates.addAll(specEntry.spec().mapIconCandidates());
+        for (var template : structure.weightedTemplates()) {
+            weightedTemplates.add(new WeightedTemplate(template.template(), template.weight()));
+        }
+        scannerIconsInherited = true;
+        mapIconsInherited = true;
+        templatesInherited = true;
     }
 
     @Info("Sets the deposit block used by this deposit structure.")
     public DepositStructureKubeBuilder block(String blockId) {
+        if (isTweak()) {
+            throw new UnsupportedOperationException("A built-in deposit structure's block cannot be changed");
+        }
         this.blockId = ResourceLocation.parse(blockId);
         return this;
     }
@@ -63,17 +89,19 @@ public class DepositStructureKubeBuilder {
     @Info("Sets the Y offset from the world surface for the deposit.")
     public DepositStructureKubeBuilder height(int value) {
         height = value;
+        heightDeviation = 0;
         return this;
     }
 
     @Info("""
-            Sets the weight used when this deposit structure is selected in StartupEvents.createRnsStructureSet.
+            Sets the weight used when this deposit structure is selected in StartupEvents.rnsEnableDeposits.
             Preset structures already assign a default.
             """)
     public DepositStructureKubeBuilder weight(int value) {
         if (value <= 0) throw new IllegalArgumentException("Structure set weight must be positive");
 
         structureSetWeight = value;
+        weightChanged = true;
         return this;
     }
 
@@ -83,6 +111,10 @@ public class DepositStructureKubeBuilder {
             Can be called multiple times to add more items as fallbacks in case the original item does not exist.
             """)
     public DepositStructureKubeBuilder scannerIcon(String candidateId) {
+        if (scannerIconsInherited) {
+            scannerIconCandidates.clear();
+            scannerIconsInherited = false;
+        }
         scannerIconCandidates.add(candidateId);
         return this;
     }
@@ -92,10 +124,10 @@ public class DepositStructureKubeBuilder {
             The first item of a first non-empty tag is selected.
             """)
     public DepositStructureKubeBuilder scannerIconMetal(String material) {
-        return scannerIcon("#c:raw_materials/" + material)
-                .scannerIcon("#c:ores/" + material)
-                .scannerIcon("#c:ingots/" + material)
-                .scannerIcon("#c:nuggets/" + material);
+        for (var candidate : DepositSpecBuilder.metalScannerIconCandidates(material)) {
+            scannerIcon(candidate);
+        }
+        return this;
     }
 
     @Info("""
@@ -103,7 +135,10 @@ public class DepositStructureKubeBuilder {
             The first item of a first non-empty tag is selected.
             """)
     public DepositStructureKubeBuilder scannerIconGem(String material) {
-        return scannerIcon("#c:gems/" + material);
+        for (var candidate : DepositSpecBuilder.gemScannerIconCandidates(material)) {
+            scannerIcon(candidate);
+        }
+        return this;
     }
 
     @Info("""
@@ -111,7 +146,10 @@ public class DepositStructureKubeBuilder {
             The first item of a first non-empty tag is selected.
             """)
     public DepositStructureKubeBuilder scannerIconDust(String material) {
-        return scannerIcon("#c:dusts/" + material);
+        for (var candidate : DepositSpecBuilder.dustScannerIconCandidates(material)) {
+            scannerIcon(candidate);
+        }
+        return this;
     }
 
     @Info("""
@@ -119,6 +157,10 @@ public class DepositStructureKubeBuilder {
             Can be called multiple times to add more items as fallbacks in case the original item does not exist.
             """)
     public DepositStructureKubeBuilder mapIcon(String candidateId) {
+        if (mapIconsInherited) {
+            mapIconCandidates.clear();
+            mapIconsInherited = false;
+        }
         mapIconCandidates.add(candidateId);
         return this;
     }
@@ -131,6 +173,10 @@ public class DepositStructureKubeBuilder {
     public DepositStructureKubeBuilder nbt(String templateId, int weight) {
         if (weight <= 0) throw new IllegalArgumentException("Template weight must be positive");
 
+        if (templatesInherited) {
+            weightedTemplates.clear();
+            templatesInherited = false;
+        }
         weightedTemplates.add(new WeightedTemplate(ResourceLocation.parse(templateId), weight));
         return this;
     }
@@ -141,34 +187,24 @@ public class DepositStructureKubeBuilder {
             Supported values: overworld_common, overworld_uncommon, overworld_rare, nether_common, nether_uncommon, nether_rare.
             """)
     public DepositStructureKubeBuilder preset(String presetId) {
+        var preset = DepositStructureBuilder.getPreset(presetId);
         weightedTemplates.clear();
-
-        return switch (presetId) {
-            case "overworld_common" -> weight(COMMON_STRUCTURE_SET_WEIGHT)
-                    .height(OVERWORLD_COMMON_HEIGHT)
-                    .commonTemplates();
-            case "overworld_uncommon" -> weight(UNCOMMON_STRUCTURE_SET_WEIGHT)
-                    .height(OVERWORLD_UNCOMMON_HEIGHT)
-                    .uncommonTemplates();
-            case "overworld_rare" -> weight(RARE_STRUCTURE_SET_WEIGHT)
-                    .height(OVERWORLD_RARE_HEIGHT)
-                    .rareTemplates();
-            case "nether_common" -> weight(COMMON_STRUCTURE_SET_WEIGHT)
-                    .height(NETHER_HEIGHT)
-                    .commonTemplates();
-            case "nether_uncommon" -> weight(UNCOMMON_STRUCTURE_SET_WEIGHT)
-                    .height(NETHER_HEIGHT)
-                    .uncommonTemplates();
-            case "nether_rare" -> weight(RARE_STRUCTURE_SET_WEIGHT)
-                    .height(NETHER_HEIGHT)
-                    .rareTemplates();
-            default -> throw new IllegalArgumentException("Unknown deposit preset: " + presetId);
-        };
+        templatesInherited = false;
+        weight(preset.weight());
+        height(-preset.depth());
+        for (var template : preset.weightedTemplates()) {
+            nbt(template.template().toString(), template.weight());
+        }
+        return this;
     }
 
     void generateData(KubeDataGenerator generator) {
+        generateData(generator, true);
+    }
+
+    void generateData(KubeDataGenerator generator, boolean scannable) {
         validate();
-        generator.json(depositSpecPath(), depositSpecJson());
+        generator.json(depositSpecPath(), depositSpecJson(scannable));
         generator.json(processorPath(), processorJson());
         generator.json(structurePath(), structureJson());
     }
@@ -196,6 +232,19 @@ public class DepositStructureKubeBuilder {
         return structureSetWeight;
     }
 
+    boolean weightChanged() {
+        return weightChanged;
+    }
+
+    boolean defaultScannable() {
+        if (builtInSpec == null) return true;
+        return builtInSpec.spec().scannable().get();
+    }
+
+    boolean isTweak() {
+        return builtInSpec != null;
+    }
+
     ResourceLocation blockId() {
         if (blockId == null) {
             throw new IllegalStateException("Deposit structure " + id + " must specify a deposit block");
@@ -209,13 +258,14 @@ public class DepositStructureKubeBuilder {
     }
 
     private ResourceLocation depositSpecPath() {
+        if (builtInSpec != null) return DynamicDatapackContent.depositSpecPath(builtInSpec);
+
         var specId = depositSpecId();
         return ResourceLocation.fromNamespaceAndPath(specId.getNamespace(), "create_rns/deposit_spec/" + specId.getPath());
     }
 
     private ResourceLocation processorId() {
-        return ResourceLocation.fromNamespaceAndPath(id.getNamespace(),
-                "replace_with_" + id.getNamespace() + "_" + id.getPath().replace('/', '_'));
+        return processorId;
     }
 
     private ResourceLocation processorPath() {
@@ -252,14 +302,19 @@ public class DepositStructureKubeBuilder {
         }
     }
 
-    private JsonObject depositSpecJson() {
+    private JsonObject depositSpecJson(boolean scannable) {
         var json = new JsonObject();
         json.add("scanner_icon_item", stringOrArray(scannerIconCandidates));
         json.add("map_icon_item", stringOrArray(mapIconCandidates.isEmpty()
                 ? List.of(blockId.toString())
                 : mapIconCandidates));
         json.addProperty("structure", id.toString());
-        json.addProperty("dimension", dimension.levelDimension().location().toString());
+        if (!isTweak() || dimension != DepositDimension.OVERWORLD) {
+            json.addProperty("dimension", dimension.levelDimension().location().toString());
+        }
+        if (!scannable) {
+            json.addProperty("scannable", false);
+        }
         return json;
     }
 
@@ -273,7 +328,7 @@ public class DepositStructureKubeBuilder {
         var locationPredicate = new JsonObject();
         var outputState = new JsonObject();
 
-        inputPredicate.addProperty("block", DEFAULT_PROCESSOR_INPUT_BLOCK.toString());
+        inputPredicate.addProperty("block", DepositStructureBuilder.PROCESSOR_INPUT_BLOCK.toString());
         inputPredicate.addProperty("predicate_type", "minecraft:block_match");
         locationPredicate.addProperty("predicate_type", "minecraft:always_true");
         outputState.addProperty("Name", blockId.toString());
@@ -296,7 +351,14 @@ public class DepositStructureKubeBuilder {
         json.addProperty("type", "create_rns:deposit");
         json.addProperty("biomes", biomeTag());
         json.addProperty("placement_strategy", dimension.placement().getSerializedName());
-        json.addProperty("height", resolvedHeight());
+        if (heightDeviation == 0) {
+            json.addProperty("height", resolvedHeight());
+        } else {
+            var heightRange = new JsonObject();
+            heightRange.addProperty("min", resolvedHeight() - heightDeviation);
+            heightRange.addProperty("max", resolvedHeight() + heightDeviation);
+            json.add("height", heightRange);
+        }
         json.add("structures", weightedStructuresJson());
         return json;
     }
@@ -317,7 +379,10 @@ public class DepositStructureKubeBuilder {
 
     private int resolvedHeight() {
         if (height != null) return height;
-        return dimension == DepositDimension.NETHER ? NETHER_HEIGHT : OVERWORLD_COMMON_HEIGHT;
+        var preset = dimension == DepositDimension.NETHER
+                ? DepositStructureBuilder.NETHER_COMMON
+                : DepositStructureBuilder.OVERWORLD_COMMON;
+        return -preset.depth();
     }
 
     private String biomeTag() {
@@ -334,27 +399,6 @@ public class DepositStructureKubeBuilder {
             array.add(value);
         }
         return array;
-    }
-
-    private DepositStructureKubeBuilder nbt(ResourceLocation templateId, int weight) {
-        return nbt(templateId.toString(), weight);
-    }
-
-    private DepositStructureKubeBuilder commonTemplates() {
-        return nbt(DEFAULT_TEMPLATE_MEDIUM, 70)
-                .nbt(DEFAULT_TEMPLATE_LARGE, 30);
-    }
-
-    private DepositStructureKubeBuilder uncommonTemplates() {
-        return nbt(DEFAULT_TEMPLATE_SMALL, 30)
-                .nbt(DEFAULT_TEMPLATE_MEDIUM, 60)
-                .nbt(DEFAULT_TEMPLATE_LARGE, 10);
-    }
-
-    private DepositStructureKubeBuilder rareTemplates() {
-        return nbt(DEFAULT_TEMPLATE_SMALL, 70)
-                .nbt(DEFAULT_TEMPLATE_MEDIUM, 28)
-                .nbt(DEFAULT_TEMPLATE_LARGE, 2);
     }
 
     private record WeightedTemplate(ResourceLocation template, int weight) {

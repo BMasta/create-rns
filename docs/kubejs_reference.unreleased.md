@@ -53,7 +53,7 @@ Sets the deposit durability values used by the mining recipe.
 * `edge`: positive integer
 * `randomSpread`: float between `0` and `1`
 
-Default: infinite (even with finite deposits enabled in server config). 
+Default: infinite (even with finite deposits enabled in server config).
 
 ### `overworld()` (optional)
 Marks this recipe as an overworld recipe. This is the default dimension unless specified otherwise.
@@ -122,12 +122,12 @@ Default: regular slot background.
 
 ## Adding custom catalysts
 
-Create: Rock & Stone adds a custom catalyst-building event `StartupEvents.createRnsCatalysts`.
+Create: Rock & Stone adds a custom catalyst-building event `StartupEvents.rnsCatalysts`.
 
 Usage:
 
 ```js
-StartupEvents.createRnsCatalysts(event => {
+StartupEvents.rnsCatalysts(event => {
   event.create('mymod:superheated_overclock')
     .displayName('§6Superheated Overclock')
     .description('Achieved by attaching six or more resonators and a fluid container filled with lava to a miner.')
@@ -239,24 +239,43 @@ What this builder does:
 
 ## Adding new deposit structures
 
-Create: Rock & Stone adds a custom structure-building event `StartupEvents.createRnsDepositStructures`.
+Create: Rock & Stone adds a custom structure-building event `StartupEvents.rnsDepositStructures`.
 
 Usage:
 
 ```js
-StartupEvents.createRnsDepositStructures(event => {
+StartupEvents.rnsDepositStructures(event => {
   event.create('mymod:deposit_tin')
     .block('mymod:tin_deposit_block')
     .displayName('Tin Deposit')
     .preset('overworld_common')
     .scannerIconMetal('tin')
+
+  event.tweak('create_rns:deposit_iron')
+    .height(-16)
+    .weight(30)
+    .scannerIcon('mymod:refined_iron')
+    .scannerIcon('minecraft:raw_iron')
+    .mapIcon('minecraft:iron_ingot')
+    .nbt('create_rns:ore_deposit_small', 70)
+    .nbt('create_rns:ore_deposit_medium', 30)
 })
 ```
 
 ### `create(structureId)`
-Creates a structure.
+Creates a deposit structure.
 
 * `structureId`: string value used as an id for this structure.
+
+### `tweak(structureId)`
+Tweaks a built-in deposit structure while inheriting every value that is not changed.
+Available built-in structures can be found [here](../src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure).
+
+For `scannerIcon(...)`, `mapIcon(...)`, and `nbt(...)`, the first call clears the defaults.
+
+
+* `structureId`: full id of an existing built-in structure, such as `create_rns:deposit_iron` or
+  `create_rns:deposit_nether_gold`.
 
 ### `block(blockId)`
 Sets the deposit block used by this deposit structure.
@@ -270,12 +289,10 @@ the chance of selecting structure 1 is `w1/(w1+w2+w3)`.
 
 * `value`: positive integer
 
-Notes:
-* If this structure is added through `createRnsStructureSet` with worldgen enabled, it must have a weight either from `weight(...)` or `preset(...)`.
-
 ### `scannerIcon(itemOrTagId)`
 Sets an item or an item tag to be rendered in the scanner nixie tube.
 Can be called multiple times to add more items as fallbacks in case the original item does not exist.
+On a tweaked built-in structure, the first call will clear the default values.
 
 * `itemOrTagId`: item id or item tag such as `yourmod:raw_tin` or `#c:raw_materials/tin`
 
@@ -304,6 +321,7 @@ Shortcut that expands to:
 Adds a structure NBT template to the generated deposit.
 Can be called multiple times to specify more templates.
 When multiple templates are specified, the chance of picking one is determined by the weight.
+On a tweaked built-in structure, the first call will clear the default values.
 
 Default available NBT templates are `create_rns:ore_deposit_small`, `create_rns:ore_deposit_medium`, `create_rns:ore_deposit_large`.
 
@@ -331,12 +349,13 @@ Default: * `-8` for overworld deposits, `-4` for nether deposits.
 ### `mapIcon(itemOrTagId)` (optional)
 Sets an item or an item tag to be rendered on the map as a marker for found deposits.
 Can be called multiple times to add more items as fallbacks in case the original item does not exist.
+On a tweaked built-in structure, the first call will clear the default values.
 
 * `itemOrTagId`: item id or item tag such as `yourmod:raw_tin` or `#c:raw_materials/tin`.
 
 Default: the deposit block item attached to this structure.
 
-#### `preset(presetId)` (optional)
+### `preset(presetId)` (optional)
 Shortcut that expands to:
 ```js
 .weight(...)
@@ -352,7 +371,7 @@ The exact values depend on the selected preset. For reference:
 * rare - redstone, zinc
 
 ## Configure deposit generation and visibility
-Create: Rock & Stone adds a custom structure-set-building event `StartupEvents.createRnsStructureSet`.
+Create: Rock & Stone adds a custom deposit-enablement event `StartupEvents.rnsEnableDeposits`.
 
 ***IMPORTANT!*** Calling either `event.overworld()` or `event.nether()` puts Create: Rock & Stone into KubeJS-managed deposit mode.
 Only the structures selected through these builders stay scannable, only built-in deposit blocks that correspond to them stay visible in the mod's creative tab,
@@ -364,7 +383,7 @@ Default deposits (including compat) can be found [here](../src/generated/builtin
 Usage:
 
 ```js
-StartupEvents.createRnsStructureSet(event => {
+StartupEvents.rnsEnableDeposits(event => {
   event.overworld()
     .deposit('create_rns:deposit_iron', true)
     .deposit('create_rns:deposit_copper', 20)
@@ -386,7 +405,7 @@ For default deposits, not including them in any dimension will also remove the r
 The only exception is the depleted deposit block, which is always available.
 
 ### `deposit(structureId, weight)` / `deposit(structureId, enableWorldgen)` / `deposit(structureId, weight, enableWorldgen)`
-Makes deposit scannable in the current dimension. Unless `enableWorldgen` is set to false, also makes it generate in the world. 
+Makes deposit scannable in the current dimension. Unless `enableWorldgen` is set to false, also makes it generate in the world.
 
 * `structureId`: id of a default or custom deposit structure
 * `weight`: Overrides the deposit weight (if a deposit does not configure its weight, this parameter is required)

@@ -13,42 +13,42 @@ import java.util.function.Supplier;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class DepositStructureSetKubeEvent implements KubeStartupEvent {
+public class EnableDepositsKubeEvent implements KubeStartupEvent {
     private final Supplier<Map<ResourceLocation, AvailableStructure>> availableStructures;
-    private @Nullable DepositStructureSetKubeBuilder overworld;
-    private @Nullable DepositStructureSetKubeBuilder nether;
+    private @Nullable EnableDepositsKubeBuilder overworld;
+    private @Nullable EnableDepositsKubeBuilder nether;
 
-    public DepositStructureSetKubeEvent(Map<ResourceLocation, AvailableStructure> availableStructures) {
+    public EnableDepositsKubeEvent(Map<ResourceLocation, AvailableStructure> availableStructures) {
         this(() -> Map.copyOf(availableStructures));
     }
 
-    DepositStructureSetKubeEvent(Supplier<Map<ResourceLocation, AvailableStructure>> availableStructures) {
+    EnableDepositsKubeEvent(Supplier<Map<ResourceLocation, AvailableStructure>> availableStructures) {
         this.availableStructures = availableStructures;
     }
 
     @Info("Returns the overworld deposit structure set builder.")
-    public DepositStructureSetKubeBuilder overworld() {
+    public EnableDepositsKubeBuilder overworld() {
         if (overworld == null) {
-            overworld = new DepositStructureSetKubeBuilder(CreateRNS.asResource("deposits"), availableStructures);
+            overworld = new EnableDepositsKubeBuilder(CreateRNS.asResource("deposits"), availableStructures);
         }
         return overworld;
     }
 
     @Info("Returns the nether deposit structure set builder.")
-    public DepositStructureSetKubeBuilder nether() {
+    public EnableDepositsKubeBuilder nether() {
         if (nether == null) {
-            nether = new DepositStructureSetKubeBuilder(CreateRNS.asResource("nether_deposits"), availableStructures);
+            nether = new EnableDepositsKubeBuilder(CreateRNS.asResource("nether_deposits"), availableStructures);
         }
         return nether;
     }
 
     @Nullable
-    DepositStructureSetKubeBuilder configuredOverworld() {
+    EnableDepositsKubeBuilder configuredOverworld() {
         return overworld;
     }
 
     @Nullable
-    DepositStructureSetKubeBuilder configuredNether() {
+    EnableDepositsKubeBuilder configuredNether() {
         return nether;
     }
 
