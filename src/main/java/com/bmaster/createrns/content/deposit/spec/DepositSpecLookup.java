@@ -43,8 +43,9 @@ public class DepositSpecLookup {
             }
             structureKeyToSpec.put(structureKey, spec);;
 
+            if (!spec.scannable) return;
             var scannerIcon = spec.getScannerIcon();
-            if (scannerIcon == null || !spec.scannable) return;
+            if (scannerIcon == null) return;
 
             var dimSpecs = scannerIconToDimToSpec.computeIfAbsent(scannerIcon, ignored -> new HashMap<>());
             if (dimSpecs.containsKey(spec.dimension)) {

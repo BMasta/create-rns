@@ -196,6 +196,14 @@ public class DepositStructureKubeBuilder {
         return structureSetWeight;
     }
 
+    ResourceLocation blockId() {
+        if (blockId == null) {
+            throw new IllegalStateException("Deposit structure " + id + " must specify a deposit block");
+        }
+
+        return blockId;
+    }
+
     private ResourceLocation depositSpecId() {
         return ResourceLocation.fromNamespaceAndPath(id.getNamespace(), normalizedStructureName());
     }

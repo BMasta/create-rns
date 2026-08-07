@@ -3,6 +3,7 @@ package com.bmaster.createrns.event;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.RNSRecipes;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSPluginBridge;
 import com.bmaster.createrns.content.deposit.info.IDepositIndex;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.content.deposit.spec.DepositSpec;
@@ -24,6 +25,7 @@ import net.minecraftforge.registries.DataPackRegistryEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.HashSet;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
@@ -59,9 +61,22 @@ public class CommonModEvents {
     public static void onBuildCreativeModeTabContents(BuildCreativeModeTabContentsEvent e) {
         if (e.getTabKey() != RNSMisc.MAIN_TAB.getKey()) return;
 
+        boolean depositsManagedByKubeJS = RNSKubeJSPluginBridge.isManagingDeposits();
+        var depositBlocksEnabledByKubeJS = RNSKubeJSPluginBridge.getEnabledDepositBlocks();
+
+        var processedDepositBlocks = new HashSet<>();
+
         for (var r : MiningRecipeBuilder.getRecipes()) {
+            if (!processedDepositBlocks.add(r.recipe().depositBlockId())) continue;
             var depItem = ForgeRegistries.ITEMS.getValue(r.recipe().depositBlockId());
-            if (depItem != null && !r.isEnabled().get()) {
+            if (depItem == null) continue;
+
+            // If KubeJS is managing deposits, query the KubeJS plugin for enabled deposits.
+            // If not, use the locally determined compat availability.
+            boolean remove = depositsManagedByKubeJS
+                    ? !depositBlocksEnabledByKubeJS.contains(r.recipe().depositBlockId())
+                    : !r.isEnabled().get();
+            if (remove) {
                 e.getEntries().remove(new ItemStack(depItem));
             }
         }

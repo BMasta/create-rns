@@ -1,6 +1,7 @@
 package com.bmaster.createrns.data.pack;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSPluginBridge;
 import com.bmaster.createrns.content.deposit.mining.recipe.Yield.WeightedItem;
 import com.bmaster.createrns.data.pack.DynamicDatapack.DatapackFile;
 import com.google.gson.JsonArray;
@@ -60,7 +61,7 @@ public class DynamicDatapackContent {
 
     public static Supplier<List<DatapackFile>> depositProcessorLists() {
         return () -> {
-            var depositEntries = DepositStructureBuilder.getEnabledDeposits();
+            var depositEntries = DepositStructureBuilder.getDeposits();
             var files = new ArrayList<DatapackFile>(depositEntries.size());
             for (var def : depositEntries) {
                 var root = new JsonObject();
@@ -101,7 +102,7 @@ public class DynamicDatapackContent {
     public static Supplier<List<DatapackFile>> depositStructures() {
         return () -> {
             var files = new ArrayList<DatapackFile>();
-            var depositEntries = DepositStructureBuilder.getEnabledDeposits();
+            var depositEntries = DepositStructureBuilder.getDeposits();
             for (var def : depositEntries) {
                 var filename = def.structure().dimension().prefix() + def.name();
                 var root = new JsonObject();
@@ -139,7 +140,7 @@ public class DynamicDatapackContent {
         return () -> {
             var root = new JsonObject();
             var values = new JsonArray();
-            for (var def : DepositStructureBuilder.getEnabledDeposits()) {
+            for (var def : DepositStructureBuilder.getDeposits()) {
                 values.add(CreateRNS.ID + ":deposit_" + def.structure().dimension().prefix() + def.name());
             }
             root.add("values", values);
@@ -161,7 +162,7 @@ public class DynamicDatapackContent {
             root.add("placement", placement);
 
             var structures = new JsonArray();
-            for (var def : DepositStructureBuilder.getEnabledDeposits(dimension)) {
+            for (var def : DepositStructureBuilder.getScannableDeposits(dimension)) {
                 var e = new JsonObject();
                 e.addProperty("structure", CreateRNS.ID +
                         ":deposit_" + def.structure().dimension().prefix() + def.name());
@@ -177,8 +178,15 @@ public class DynamicDatapackContent {
 
     public static Supplier<List<DatapackFile>> miningRecipes() {
         return () -> {
-            var recipes = MiningRecipeBuilder.getEnabledRecipes();
+            var recipes = MiningRecipeBuilder.getRecipes().stream().filter(def -> {
+                // If KubeJS is managing deposits, add the recipe only if it corresponds to an enabled deposit block
+                if (RNSKubeJSPluginBridge.isManagingDeposits()) {
+                    return RNSKubeJSPluginBridge.getEnabledDepositBlocks().contains(def.recipe().depositBlockId());
+                }
+                 return def.isEnabled().get();
+            }).toList();
             var files = new ArrayList<DatapackFile>(recipes.size());
+
             for (var r : recipes) {
                 var dim = r.recipe().dimension();
                 var filename = r.recipe().dimension().prefix() + r.recipeId().getPath();
@@ -260,7 +268,7 @@ public class DynamicDatapackContent {
 
     public static Supplier<List<DatapackFile>> depositSpecs() {
         return () -> {
-            var specEntries = DepositSpecBuilder.getEnabledSpecs();
+            var specEntries = DepositSpecBuilder.getSpecs();
             var files = new ArrayList<DatapackFile>(specEntries.size());
             for (var def : specEntries) {
                 files.add(new DatapackFile(depositSpecDatapackPath(def), depositSpecJson(def)));
@@ -270,7 +278,7 @@ public class DynamicDatapackContent {
     }
 
     public static JsonObject depositSpecJson(DepositSpecBuilder.ConfiguredEntry def) {
-        return depositSpecJson(def, def.spec().scannable());
+        return depositSpecJson(def, def.spec().scannable().get());
     }
 
     public static JsonObject depositSpecJson(DepositSpecBuilder.ConfiguredEntry def, boolean scannable) {

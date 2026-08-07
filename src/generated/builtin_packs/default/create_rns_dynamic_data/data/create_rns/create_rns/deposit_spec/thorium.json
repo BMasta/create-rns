@@ -1,0 +1,12 @@
+{
+  "scanner_icon_item": [
+    "create_new_age:thorium",
+    "#forge:raw_materials/thorium",
+    "#forge:ores/thorium",
+    "#forge:ingots/thorium",
+    "#forge:nuggets/thorium"
+  ],
+  "map_icon_item": "create_rns:thorium_deposit_block",
+  "structure": "create_rns:deposit_thorium",
+  "scannable": false
+}

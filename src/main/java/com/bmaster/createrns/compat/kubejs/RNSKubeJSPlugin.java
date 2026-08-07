@@ -13,6 +13,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class RNSKubeJSPlugin extends KubeJSPlugin {
+    static {
+        RNSKubeJSPluginBridge.install(
+                RNSKubeJSAssembler::isManagingDeposits,
+                RNSKubeJSAssembler::getEnabledDepositBlocks,
+                RNSKubeJSAssembler::getSelectedStructureIds
+        );
+    }
+
     @Override
     public void init() {
         RegistryInfo.BLOCK.addType(
@@ -33,11 +41,13 @@ public class RNSKubeJSPlugin extends KubeJSPlugin {
 
     @Override
     public void generateDataJsons(DataJsonGenerator generator) {
+        RNSKubeJSAssembler.resetDepositSelectionCache();
         RNSKubeJSAssembler.fromCurrentEvents().generateData(generator);
     }
 
     @Override
     public void generateLang(LangEventJS event) {
+        RNSKubeJSAssembler.resetDepositSelectionCache();
         RNSKubeJSAssembler.fromCurrentEvents().generateLang(event);
     }
 }

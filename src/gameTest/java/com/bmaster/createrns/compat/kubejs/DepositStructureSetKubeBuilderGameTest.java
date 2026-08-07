@@ -11,7 +11,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.assertArrayStrings;
@@ -151,7 +150,24 @@ public class DepositStructureSetKubeBuilderGameTest {
         assertBuiltInScannableState(helper, generated, selectedFirst.id(), true);
         assertBuiltInScannableState(helper, generated, selectedLast.id(), true);
         assertBuiltInScannableState(helper, generated, omittedOverworld.id(), false);
-        assertBuiltInScannableState(helper, generated, netherBuiltIn.id(), false);
+        helper.assertFalse(generated.hasJson(DynamicDatapackContent.depositSpecPath(findSpecByStructure(netherBuiltIn.id()))),
+                "Did not expect a nether deposit-spec override without configuring nether()");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void emptyDimensionBuilderEmitsEmptyOverrideOnlyForThatDimension(RNSKubeJSBuilderTestContext context) {
+        var helper = context.helper();
+
+        context.structureSet().overworld();
+
+        var generated = context.assembleData();
+        var overworldSetJson = generated.jsonObject(structureSetPath("deposits"));
+
+        assertPlacement(helper, overworldSetJson, 4, 24, 591646342);
+        helper.assertValueEqual(overworldSetJson.getAsJsonArray("structures").size(), 0,
+                "empty overworld builder should emit an empty structure-set file");
+        helper.assertFalse(generated.hasJson(structureSetPath("nether_deposits")),
+                "Did not expect a nether structure-set file without configuring nether()");
     }
 
     @RNSKubeJSBuilderTest
@@ -299,7 +315,7 @@ public class DepositStructureSetKubeBuilderGameTest {
     }
 
     private static List<BuiltInStructure> enabledBuiltInStructures(DepositDimension dimension) {
-        return DepositStructureBuilder.getEnabledDeposits(dimension).stream()
+        return DepositStructureBuilder.getScannableDeposits(dimension).stream()
                 .map(entry -> new BuiltInStructure(DepositStructureBuilder.structureId(entry), entry.structure().weight()))
                 .toList();
     }
@@ -318,7 +334,7 @@ public class DepositStructureSetKubeBuilderGameTest {
     }
 
     private static DepositSpecBuilder.ConfiguredEntry findSpecByStructure(ResourceLocation structureId) {
-        return DepositSpecBuilder.getEnabledSpecs().stream()
+        return DepositSpecBuilder.getSpecs().stream()
                 .filter(entry -> entry.spec().structureId().equals(structureId))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Missing built-in deposit spec for structure " + structureId));

@@ -1,0 +1,11 @@
+{
+  "scanner_icon_item": [
+    "#forge:raw_materials/silver",
+    "#forge:ores/silver",
+    "#forge:ingots/silver",
+    "#forge:nuggets/silver"
+  ],
+  "map_icon_item": "create_rns:silver_deposit_block",
+  "structure": "create_rns:deposit_silver",
+  "scannable": false
+}

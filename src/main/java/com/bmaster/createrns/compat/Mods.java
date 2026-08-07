@@ -4,6 +4,7 @@ import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.LoadingModList;
 
 public enum Mods {
+    KUBEJS("kubejs"),
     EMI("emi"),
     NEW_AGE("create_new_age"),
     NUCLEAR("createnuclear"),

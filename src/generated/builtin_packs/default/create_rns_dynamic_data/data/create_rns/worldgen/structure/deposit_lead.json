@@ -1,0 +1,23 @@
+{
+  "type": "create_rns:deposit",
+  "biomes": "#create_rns:has_deposit",
+  "placement_strategy": "overworld",
+  "height": -10,
+  "structures": [
+    {
+      "id": "create_rns:ore_deposit_small",
+      "weight": 30,
+      "processor": "create_rns:replace_with_create_rns_lead_deposit_block"
+    },
+    {
+      "id": "create_rns:ore_deposit_medium",
+      "weight": 60,
+      "processor": "create_rns:replace_with_create_rns_lead_deposit_block"
+    },
+    {
+      "id": "create_rns:ore_deposit_large",
+      "weight": 10,
+      "processor": "create_rns:replace_with_create_rns_lead_deposit_block"
+    }
+  ]
+}

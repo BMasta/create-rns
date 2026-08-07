@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -24,14 +25,20 @@ public class DepositStructureBuilder {
         return new DepositStructureBuilder(ctx);
     }
 
-    public static List<ConfiguredEntry> getEnabledDeposits() {
-        return DEPOSITS.stream().filter(d -> d.isEnabled.get()).toList();
+    public static List<ConfiguredEntry> getDeposits() {
+        return Collections.unmodifiableList(DEPOSITS);
     }
 
-    public static List<ConfiguredEntry> getEnabledDeposits(DepositDimension dimension) {
+    public static List<ConfiguredEntry> getDeposits(DepositDimension dimension) {
         return DEPOSITS.stream()
-                .filter(d -> d.isEnabled.get())
                 .filter(d -> dimension == d.structure.dimension)
+                .toList();
+    }
+
+    public static List<ConfiguredEntry> getScannableDeposits(DepositDimension dimension) {
+        return DEPOSITS.stream()
+                .filter(d -> dimension == d.structure.dimension)
+                .filter(d -> d.scannable.get())
                 .toList();
     }
 
@@ -103,7 +110,7 @@ public class DepositStructureBuilder {
     }
 
     public record ConfiguredEntry(
-            String name, Supplier<Boolean> isEnabled, ConfiguredStructure structure
+            String name, Supplier<Boolean> scannable, ConfiguredStructure structure
     ) {
     }
 

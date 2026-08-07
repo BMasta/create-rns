@@ -67,6 +67,26 @@ public class DepositSpecCodecTest {
     }
 
     @GameTest(template = "empty16x16")
+    public void nonScannableSpecDoesNotRequireScannerIconToResolve(GameTestHelper helper) {
+        var spec = CodecHelper.assertParses(helper, DepositSpec.CODEC, CodecHelper.json(), """
+                        {
+                          "scanner_icon_item": "create_rns:definitely_missing_item",
+                          "map_icon_item": "minecraft:compass",
+                          "structure": "create_rns:deposit_iron",
+                          "scannable": false
+                        }
+                        """, "non-scannable deposit spec");
+
+        helper.assertTrue(spec.initialize(helper.getLevel().registryAccess()),
+                "Non-scannable deposit spec initialization should not require a scanner icon");
+        helper.assertTrue(spec.getScannerIcon() == null,
+                "Non-scannable deposit spec should keep its scanner icon unresolved");
+        CodecHelper.assertSame(helper, Items.COMPASS, spec.getMapIcon().getItem(),
+                "non-scannable spec map icon");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty16x16")
     public void rejectsEmptyScannerIconDefinition(GameTestHelper helper) {
         CodecHelper.assertFails(helper, DepositSpec.CODEC, CodecHelper.json(), """
                         {

@@ -1,0 +1,12 @@
+{
+  "scanner_icon_item": [
+    "#forge:raw_materials/cobalt",
+    "#forge:ores/cobalt",
+    "#forge:ingots/cobalt",
+    "#forge:nuggets/cobalt"
+  ],
+  "map_icon_item": "create_rns:cobalt_deposit_block",
+  "structure": "create_rns:deposit_nether_cobalt",
+  "dimension": "minecraft:the_nether",
+  "scannable": false
+}

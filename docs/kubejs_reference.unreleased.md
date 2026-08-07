@@ -351,11 +351,13 @@ The exact values depend on the selected preset. For reference:
 * uncommon - lead, nickel
 * rare - redstone, zinc
 
-## Selecting which deposits should be scannable, which should spawn in the world, and how often
+## Configure deposit generation and visibility
 Create: Rock & Stone adds a custom structure-set-building event `StartupEvents.createRnsStructureSet`.
 
-***IMPORTANT!*** Only the deposits added here will be scannable through the deposit scanner and generate in the world.
-This applies to default deposits as well. If a structure set for a dimension is not configured, the default one is used.
+***IMPORTANT!*** Calling either `event.overworld()` or `event.nether()` puts Create: Rock & Stone into KubeJS-managed deposit mode.
+Only the structures selected through these builders stay scannable, only built-in deposit blocks that correspond to them stay visible in the mod's creative tab,
+and only built-in mining recipes for those deposit blocks (plus the depleted deposit block) stay enabled.
+This applies to default deposits as well. Only the dimensions whose builders are called are overridden; omitted dimensions keep their built-in default deposit selection.
 
 Default deposits (including compat) can be found [here](../src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure).
 
@@ -373,11 +375,15 @@ StartupEvents.createRnsStructureSet(event => {
 })
 ```
 
-### `overworld()`
-Configure the overworld deposit structure set. Replaces the default overworld structure set and scanner selection rules when called.
+### `overworld()` / `nether()`
+Configure the structure set for the respective dimension.
 
-### `nether()`
-Configure the nether deposit structure set. Replaces the default nether structure set and scanner selection rules when called.
+***IMPORTANT!*** When called, replaces the default structure set.
+This means that once called, only the deposits specified with `deposit()` will be enabled in the world.
+Calling it without adding deposits with `deposit()` essentially removes all deposits from the respective dimension.
+
+For default deposits, not including them in any dimension will also remove the respective deposit block from the creative menu tab.
+The only exception is the depleted deposit block, which is always available.
 
 ### `deposit(structureId, weight)` / `deposit(structureId, enableWorldgen)` / `deposit(structureId, weight, enableWorldgen)`
 Makes deposit scannable in the current dimension. Unless `enableWorldgen` is set to false, also makes it generate in the world. 

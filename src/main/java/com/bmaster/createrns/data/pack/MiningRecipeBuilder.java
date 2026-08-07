@@ -27,10 +27,6 @@ public class MiningRecipeBuilder {
         return Collections.unmodifiableList(RECIPES);
     }
 
-    public static List<ConfiguredEntry> getEnabledRecipes() {
-        return RECIPES.stream().filter(r -> r.isEnabled.get()).toList();
-    }
-
     private final DepositBuildingContext ctx;
     private final List<YieldBuilder.ConfiguredYield> yields = new ArrayList<>();
 
