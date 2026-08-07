@@ -11,6 +11,8 @@ import java.util.function.Consumer;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class MiningRecipeKubeRecipe extends RecipeJS {
+    private boolean durabilityInvalid;
+
     @Info("Sets the deposit block mined by this mining recipe.")
     public MiningRecipeKubeRecipe block(String blockId) {
         setValue(MiningRecipeKubeSchema.DEPOSIT_BLOCK, normalizeId(blockId));
@@ -47,6 +49,10 @@ public class MiningRecipeKubeRecipe extends RecipeJS {
             and it gradually decreases towards the edges.
             """)
     public MiningRecipeKubeRecipe durability(long core, long edge, float randomSpread) {
+        durabilityInvalid = core <= 0 || edge <= 0 || !Float.isFinite(randomSpread)
+                || randomSpread < 0 || randomSpread > 1;
+        if (durabilityInvalid) return this;
+
         setValue(MiningRecipeKubeSchema.DURABILITY, MiningRecipeKubeSchema.durability(core, edge, randomSpread));
         return this;
     }
@@ -79,6 +85,8 @@ public class MiningRecipeKubeRecipe extends RecipeJS {
         }
 
         super.serialize();
+        if (durabilityInvalid)
+            json.remove(MiningRecipeKubeSchema.DURABILITY.name);
     }
 
     private static String normalizeId(String id) {
