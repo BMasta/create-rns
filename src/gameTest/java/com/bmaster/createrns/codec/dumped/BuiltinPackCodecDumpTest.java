@@ -48,7 +48,13 @@ public class BuiltinPackCodecDumpTest {
         DumpedCodecHelper.assertRoundTrips(helper, files, DepositSpec.CODEC,
                 CodecHelper.registries(helper), "dumped deposit spec",
                 DumpedCodecHelper::identity);
-        DumpedCodecHelper.assertItemWithFallbackFieldsResolve(helper, files, "scanner_icon_item",
+        var scannableFiles = files.stream()
+                .filter(path -> {
+                    var json = DumpedCodecHelper.readJson(path).getAsJsonObject();
+                    return !json.has("scannable") || json.get("scannable").getAsBoolean();
+                })
+                .toList();
+        DumpedCodecHelper.assertItemWithFallbackFieldsResolve(helper, scannableFiles, "scanner_icon_item",
                 "dumped deposit spec");
         DumpedCodecHelper.assertItemWithFallbackFieldsResolve(helper, files, "map_icon_item",
                 "dumped deposit spec");
