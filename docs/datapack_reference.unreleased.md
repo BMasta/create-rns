@@ -20,7 +20,7 @@ The runtime format is still the same JSON shown below, and datapacks can overrid
 ```json5
 {
   "type": "create_rns:mining",
-  // Deposit blocks must be tagged with #create_rns:deposit_blocks to work properly.
+  // Required. Recipes whose block is not tagged with #create_rns:deposit_blocks are rejected.
   // Only one recipe with the same deposit block and dimension is allowed.
   "deposit_block": "your_pack:tin_deposit_block",
   // Optional (default "minecraft:overworld")
@@ -79,7 +79,8 @@ The runtime format is still the same JSON shown below, and datapacks can overrid
       // Optional (default none).
       // Catalysts are specific requirements needed to mine this yield.
       // In some cases, each mine of a yield will consume a resource like lava.
-      // Catalysts are defined separately (see example later in the doc) and are referenced by namespaced id.
+      // Catalysts are defined separately (see example later in the doc) and are referenced by id.
+      // Every referenced catalyst must exist or the mining recipe is rejected while loading.
       "catalysts": ["create_rns:overclock", "create_rns:faint_resonance"],
       // Optional (default is standard background).
       // All items that belong to this yield will have this background color in JEI.

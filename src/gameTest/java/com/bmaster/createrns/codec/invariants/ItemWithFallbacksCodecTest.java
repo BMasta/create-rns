@@ -85,6 +85,27 @@ public class ItemWithFallbacksCodecTest {
     }
 
     @GameTest(template = "empty16x16")
+    public void strictResolvableCodecRejectsAllUnregisteredDirectCandidates(GameTestHelper helper) {
+        CodecHelper.assertFails(helper, ItemWithFallbacks.STRICT_RESOLVABLE_CODEC, CodecHelper.json(), """
+                [
+                  "create_rns:first_missing_item",
+                  "create_rns:second_missing_item"
+                ]
+                """, "None of the items resolved: [create_rns:first_missing_item, create_rns:second_missing_item]");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty16x16")
+    public void strictCodecDefersUnregisteredDirectCandidateResolution(GameTestHelper helper) {
+        var parsed = CodecHelper.assertParses(helper, ItemWithFallbacks.STRICT_CODEC, CodecHelper.json(),
+                "\"create_rns:definitely_missing_item\"", "deferred item fallback");
+
+        CodecHelper.assertSame(helper, Items.AIR, parsed.item,
+                "Unregistered strict fallback should remain unresolved until initialization");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty16x16")
     public void resolveFailsWhenNoFallbackCandidateResolves(GameTestHelper helper) {
         var parsed = CodecHelper.assertParses(helper, ItemWithFallbacks.STRICT_CODEC, CodecHelper.json(), """
                         [

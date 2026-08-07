@@ -1,6 +1,8 @@
 package com.bmaster.createrns.content.deposit.mining.recipe;
 
 import com.bmaster.createrns.RNSRecipeTypes;
+import com.bmaster.createrns.RNSTags.RNSBlockTags;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -29,7 +31,19 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
     private static final DepositDurability DEFAULT_DURABILITY = new DepositDurability(0, 0, 0);
 
     public static final MapCodec<MiningRecipe> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
-                    BuiltInRegistries.BLOCK.byNameCodec().fieldOf("deposit_block")
+                    BuiltInRegistries.BLOCK.byNameCodec()
+                            .validate(block -> {
+                                if (block == Blocks.AIR) {
+                                    return DataResult.error(() -> "Deposit block cannot be minecraft:air");
+                                }
+                                if (!block.defaultBlockState().is(RNSBlockTags.DEPOSIT_BLOCKS)) {
+                                    return DataResult.error(() -> "Deposit block must be tagged #"
+                                            + RNSBlockTags.DEPOSIT_BLOCKS.location() + ": "
+                                            + BuiltInRegistries.BLOCK.getKey(block));
+                                }
+                                return DataResult.success(block);
+                            })
+                            .fieldOf("deposit_block")
                             .forGetter(MiningRecipe::getDepositBlock),
                     ResourceKey.codec(Registries.DIMENSION).optionalFieldOf("dimension", Level.OVERWORLD)
                             .forGetter(MiningRecipe::getDimension),

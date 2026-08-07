@@ -1,11 +1,13 @@
 package com.bmaster.createrns.compat.kubejs;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.RNSDeposits;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.util.CodecHelper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.latvian.mods.kubejs.recipe.KubeRecipe;
+import dev.latvian.mods.kubejs.script.SourceLine;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.Level;
@@ -18,6 +20,7 @@ import java.util.List;
 @GameTestHolder(CreateRNS.ID)
 @PrefixGameTestTemplate(false)
 public class MiningRecipeKubeRecipeGameTest {
+    private static final String VALID_DEPOSIT_BLOCK = "create_rns:iron_deposit_block";
     private static final int EXPLICIT_SLOT_COLOR = 0x12345678;
     private static final int STRING_SLOT_COLOR = (int) 0xFF123ABCL;
 
@@ -31,7 +34,7 @@ public class MiningRecipeKubeRecipeGameTest {
         var helper = context.helper();
         var recipe = context.miningRecipe("invalid_durability");
 
-        recipe.block("stone")
+        recipe.block(VALID_DEPOSIT_BLOCK)
                 .durability(0, 4, 0.25f)
                 .yield(yield -> yield.item("diamond"));
 
@@ -45,16 +48,64 @@ public class MiningRecipeKubeRecipeGameTest {
     }
 
     @RNSKubeJSBuilderTest
+    private static void invalidDurabilityUsesItsCallSiteForKubeJSErrorAttribution(
+            RNSKubeJSBuilderTestContext context
+    ) {
+        var expectedSource = SourceLine.of("server_scripts/main.js", 11);
+        var recipe = context.miningRecipe("invalid_durability_source");
+
+        recipe.block(VALID_DEPOSIT_BLOCK)
+                .durability(8, 3, -0.1f, expectedSource)
+                .yield(yield -> yield.item("diamond"));
+
+        var marker = serialize(recipe).getAsJsonObject(KubeRecipe.CHANGED_MARKER);
+        context.helper().assertValueEqual(marker.get("source").getAsString(), expectedSource.source(),
+                "invalid durability error source");
+        context.helper().assertValueEqual(marker.get("line").getAsInt(), expectedSource.line(),
+                "invalid durability error line");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void multilineRecipeSourceLinesAreRefinedFromRhinosOuterStatement(
+            RNSKubeJSBuilderTestContext context
+    ) {
+        var script = """
+                ServerEvents.recipes(event => {
+                  event.recipes.create_rns.mining()
+                    .id('my_mod:test')
+                    .block('create_rns:iron_deposit_block')
+                    .durability(8, 3, -0.1)
+                    .yield(y => y
+                      .chance(-0.1)
+                      .item('minecraft:diamond')
+                      .catalyst('create_rns:overclock'))
+                })
+                """;
+        var coarse = SourceLine.of("server_scripts:main.js", 6);
+
+        assertSourceLine(context.helper(), KubeJSSourceLine.expressionStart(coarse, script),
+                SourceLine.of(coarse.source(), 2), "recipe expression start");
+        assertSourceLine(context.helper(), KubeJSSourceLine.methodCall(coarse, script, "block"),
+                SourceLine.of(coarse.source(), 4), "block call");
+        assertSourceLine(context.helper(), KubeJSSourceLine.methodCall(coarse, script, "durability"),
+                SourceLine.of(coarse.source(), 5), "durability call");
+        assertSourceLine(context.helper(), KubeJSSourceLine.methodCall(coarse, script, "chance"),
+                SourceLine.of(coarse.source(), 7), "chance call");
+        assertSourceLine(context.helper(), KubeJSSourceLine.methodCall(coarse, script, "catalyst"),
+                SourceLine.of(coarse.source(), 9), "catalyst call");
+    }
+
+    @RNSKubeJSBuilderTest
     private static void omittedDefaultsProduceMinimalValidRecipeJson(RNSKubeJSBuilderTestContext context) {
         var helper = context.helper();
         var recipe = context.miningRecipe("minimal_defaults");
 
-        recipe.block("stone")
+        recipe.block(VALID_DEPOSIT_BLOCK)
                 .yield(yield -> yield.item("diamond"));
 
         var json = serialize(recipe);
         helper.assertValueEqual(json.get("type").getAsString(), CreateRNS.asResource("mining").toString(), "recipe type");
-        helper.assertValueEqual(json.get("deposit_block").getAsString(), "minecraft:stone", "deposit block");
+        helper.assertValueEqual(json.get("deposit_block").getAsString(), VALID_DEPOSIT_BLOCK, "deposit block");
         helper.assertFalse(json.has("dimension"), "Default dimension should stay omitted");
         helper.assertFalse(json.has("replace_when_depleted"), "Default replacement block should stay omitted");
         helper.assertFalse(json.has("durability"), "Default durability should stay omitted");
@@ -74,7 +125,8 @@ public class MiningRecipeKubeRecipeGameTest {
         helper.assertFalse(item.has("weight"), "Default item weight should stay omitted");
 
         var parsed = parseRecipe(helper, json, "minimal mining recipe");
-        helper.assertTrue(parsed.getDepositBlock() == Blocks.STONE, "Expected parsed deposit block to be stone");
+        helper.assertTrue(parsed.getDepositBlock() == RNSDeposits.IRON_DEPOSIT.get(),
+                "Expected parsed deposit block to be the iron deposit");
         helper.assertTrue(parsed.getDimension() == Level.OVERWORLD, "Expected default dimension to be overworld");
         helper.assertTrue(parsed.getReplacementBlock() == Blocks.AIR, "Expected default replacement block to be air");
         helper.assertValueEqual(parsed.getDurability().core(), 0L, "default durability core");
@@ -87,7 +139,7 @@ public class MiningRecipeKubeRecipeGameTest {
         var helper = context.helper();
         var recipe = context.miningRecipe("boundary_values");
 
-        recipe.block("stone")
+        recipe.block(VALID_DEPOSIT_BLOCK)
                 .replaceWhenDepleted("air")
                 .yield(yield -> yield.chance(0f).item("diamond").jeiSlotColor(0))
                 .yield(yield -> yield.chance(1f).item("emerald").jeiSlotColor("#000000"));
@@ -110,45 +162,159 @@ public class MiningRecipeKubeRecipeGameTest {
     }
 
     @RNSKubeJSBuilderTest
-    private static void serializeChangesRejectsAirDepositBlock(RNSKubeJSBuilderTestContext context) {
-        assertThrows(context.helper(), IllegalStateException.class,
-                "Mining recipe must specify a deposit block via block(...)",
-                () -> context.miningRecipe("air_deposit_block")
-                        .block("air")
-                        .yield(yield -> yield.item("diamond"))
-                        .serializeChanges());
+    private static void airDepositBlockSerializesAndFailsRecipeDecoding(RNSKubeJSBuilderTestContext context) {
+        var json = serialize(context.miningRecipe("air_deposit_block")
+                .block("air")
+                .yield(yield -> yield.item("diamond")));
+
+        assertRecipeFails(context.helper(), json, "Deposit block cannot be minecraft:air");
     }
 
     @RNSKubeJSBuilderTest
-    private static void serializeChangesRequiresAtLeastOneNonEmptyYield(RNSKubeJSBuilderTestContext context) {
-        assertThrows(context.helper(), IllegalStateException.class,
-                "Mining recipe must define at least one yield",
-                () -> context.miningRecipe("missing_yields")
-                        .block("stone")
-                        .yield(yield -> {
-                        })
-                        .yield(yield -> yield.chance(0.5f))
-                        .serializeChanges());
+    private static void untaggedDepositBlockUsesItsCallSiteForKubeJSErrorAttribution(
+            RNSKubeJSBuilderTestContext context
+    ) {
+        var expectedSource = SourceLine.of("server_scripts/main.js", 9);
+        var json = serialize(context.miningRecipe("untagged_deposit_block")
+                .block("stone", expectedSource)
+                .yield(yield -> yield.item("diamond")));
+
+        assertSourceLine(context.helper(), json, expectedSource, "untagged deposit block");
+        assertRecipeFails(context.helper(), json,
+                "Deposit block must be tagged #create_rns:deposit_blocks: minecraft:stone");
     }
 
     @RNSKubeJSBuilderTest
-    private static void serializeChangesRequiresDepositBlock(RNSKubeJSBuilderTestContext context) {
-        assertThrows(context.helper(), IllegalStateException.class,
-                "Mining recipe must specify a deposit block via block(...)",
-                () -> context.miningRecipe("missing_block")
-                        .yield(yield -> yield.item("diamond"))
-                        .serializeChanges());
+    private static void missingDepositBlockIdIsPreservedForOneAttributedRecipeError(
+            RNSKubeJSBuilderTestContext context
+    ) {
+        var expectedSource = SourceLine.of("server_scripts/main.js", 9);
+        var json = serialize(context.miningRecipe("missing_deposit_block_id")
+                .block("create_rns:definitely_missing_block", expectedSource)
+                .yield(yield -> yield.item("diamond")));
+
+        context.helper().assertValueEqual(json.get("deposit_block").getAsString(),
+                "create_rns:definitely_missing_block", "missing deposit block id");
+        assertSourceLine(context.helper(), json, expectedSource, "missing deposit block id");
+        assertRecipeFails(context.helper(), json, "Unknown registry key");
     }
 
     @RNSKubeJSBuilderTest
-    private static void serializeChangesRejectsUnregisteredRequiredItems(RNSKubeJSBuilderTestContext context) {
-        assertThrows(context.helper(), IllegalStateException.class,
-                "item(...) candidates do not resolve to a registered item: "
-                        + "[[create_rns:definitely_missing_item]]",
-                () -> context.miningRecipe("missing_required_item")
-                        .block("stone")
-                        .yield(yield -> yield.item("create_rns:definitely_missing_item"))
-                        .serializeChanges());
+    private static void missingYieldsSerializeAndFailRecipeDecoding(RNSKubeJSBuilderTestContext context) {
+        var expectedSource = SourceLine.of("server_scripts/main.js", 7);
+        var json = serialize(context.miningRecipe("missing_yields")
+                .block(VALID_DEPOSIT_BLOCK, expectedSource)
+                .yield(yield -> {
+                })
+                .yield(yield -> yield.chance(0.5f)));
+
+        assertSourceLine(context.helper(), json, expectedSource, "missing yields");
+        assertRecipeFails(context.helper(), json, "No key yields");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void missingDepositBlockSerializesAndFailsRecipeDecoding(RNSKubeJSBuilderTestContext context) {
+        var expectedSource = SourceLine.of("server_scripts/main.js", 7);
+        var json = serialize(context.miningRecipe("missing_block")
+                .yield(yield -> yield.item("diamond"), expectedSource));
+
+        assertSourceLine(context.helper(), json, expectedSource, "missing deposit block");
+        assertRecipeFails(context.helper(), json, "No key deposit_block");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void unregisteredRequiredItemsSerializeAndFailRecipeDecoding(RNSKubeJSBuilderTestContext context) {
+        var json = serialize(context.miningRecipe("missing_required_item")
+                .block(VALID_DEPOSIT_BLOCK)
+                .yield(yield -> yield.item("create_rns:definitely_missing_item")));
+
+        assertRecipeFails(context.helper(), json,
+                "None of the items resolved: [create_rns:definitely_missing_item]");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void invalidItemUsesItsCallSiteForKubeJSErrorAttribution(RNSKubeJSBuilderTestContext context) {
+        var expectedSource = new SourceLine("server_scripts/main.js", 14);
+        var json = serialize(context.miningRecipe("missing_required_item_source")
+                .block(VALID_DEPOSIT_BLOCK)
+                .yield(yield -> yield.item(
+                        List.of("create_rns:definitely_missing_item"), 1, false, expectedSource)));
+
+        var marker = json.getAsJsonObject(KubeRecipe.CHANGED_MARKER);
+        context.helper().assertValueEqual(marker.get("source").getAsString(), expectedSource.source(),
+                "invalid item error source");
+        context.helper().assertValueEqual(marker.get("line").getAsInt(), expectedSource.line(),
+                "invalid item error line");
+        assertRecipeFails(context.helper(), json,
+                "None of the items resolved: [create_rns:definitely_missing_item]");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void missingCatalystUsesItsCallSiteForKubeJSErrorAttribution(
+            RNSKubeJSBuilderTestContext context
+    ) {
+        var expectedSource = SourceLine.of("server_scripts/main.js", 15);
+        var json = serialize(context.miningRecipe("missing_catalyst_source")
+                .block(VALID_DEPOSIT_BLOCK)
+                .yield(yield -> yield.item("diamond")
+                        .catalyst("create_rns:definitely_missing_catalyst", expectedSource,
+                                context.helper().raw().getLevel().registryAccess())));
+
+        assertSourceLine(context.helper(), json, expectedSource, "missing catalyst");
+        assertRecipeFails(context.helper(), json,
+                "Failed to get element create_rns:definitely_missing_catalyst");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void malformedCatalystProducesOneAttributedRecipeError(
+            RNSKubeJSBuilderTestContext context
+    ) {
+        var expectedSource = SourceLine.of("server_scripts/main.js", 15);
+        var json = serialize(context.miningRecipe("malformed_catalyst_source")
+                .block(VALID_DEPOSIT_BLOCK)
+                .yield(yield -> yield.item("diamond")
+                        .catalyst("create_rns: malformed", expectedSource,
+                                context.helper().raw().getLevel().registryAccess())));
+
+        context.helper().assertTrue(json.has("yields"),
+                "Malformed catalyst should not abort construction of the recipe yields");
+        assertSourceLine(context.helper(), json, expectedSource, "malformed catalyst");
+        assertRecipeFails(context.helper(), json, "Not a valid resource location");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void invalidChanceProducesOneAttributedRecipeError(RNSKubeJSBuilderTestContext context) {
+        var expectedSource = SourceLine.of("server_scripts/main.js", 15);
+        var json = serialize(context.miningRecipe("invalid_chance_source")
+                .block(VALID_DEPOSIT_BLOCK)
+                .yield(yield -> yield.chance(-0.02f, expectedSource).item("diamond")));
+
+        CodecHelper.assertFails(context.helper().raw(), MiningRecipeKubeSchema.CHANCE_COMPONENT.codec(),
+                CodecHelper.registries(context.helper().raw()), "-0.02", "outside of range [0.0:1.0]");
+        context.helper().assertTrue(json.has("yields"),
+                "Invalid chance should not abort construction of the recipe yields");
+        CodecHelper.assertFloat(context.helper().raw(),
+                json.getAsJsonArray("yields").get(0).getAsJsonObject().get("chance").getAsFloat(), -0.02f,
+                "invalid chance value");
+        assertSourceLine(context.helper(), json, expectedSource, "invalid chance");
+        assertRecipeFails(context.helper(), json, "outside of range [0.0:1.0]");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void invalidItemWeightProducesOneAttributedRecipeError(RNSKubeJSBuilderTestContext context) {
+        var expectedSource = SourceLine.of("server_scripts/main.js", 63);
+        var json = serialize(context.miningRecipe("invalid_item_weight_source")
+                .block(VALID_DEPOSIT_BLOCK)
+                .yield(yield -> yield.item(List.of("diamond"), -5, false, expectedSource)));
+
+        CodecHelper.assertFails(context.helper().raw(), MiningRecipeKubeSchema.WEIGHT_COMPONENT.codec(),
+                CodecHelper.registries(context.helper().raw()), "-5", "outside of range [1:2147483647]");
+        context.helper().assertTrue(json.has("yields"),
+                "Invalid item weight should not abort construction of the recipe yields");
+        context.helper().assertValueEqual(yieldItem(json.getAsJsonArray("yields"), 0).get("weight").getAsInt(), -5,
+                "invalid item weight value");
+        assertSourceLine(context.helper(), json, expectedSource, "invalid item weight");
+        assertRecipeFails(context.helper(), json, "outside of range [1:2147483647]");
     }
 
     @RNSKubeJSBuilderTest
@@ -156,7 +322,7 @@ public class MiningRecipeKubeRecipeGameTest {
         var helper = context.helper();
 
         var valid = context.miningRecipe("durability_boundary")
-                .block("stone")
+                .block(VALID_DEPOSIT_BLOCK)
                 .durability(8, 3, 1f)
                 .yield(yield -> yield.item("diamond"));
         var validJson = serialize(valid);
@@ -167,15 +333,15 @@ public class MiningRecipeKubeRecipeGameTest {
                 "boundary durability spread");
 
         assertDroppedDurability(helper, context.miningRecipe("invalid_edge")
-                .block("stone")
+                .block(VALID_DEPOSIT_BLOCK)
                 .durability(8, 0, 0.25f)
                 .yield(yield -> yield.item("diamond")));
         assertDroppedDurability(helper, context.miningRecipe("invalid_spread_negative")
-                .block("stone")
+                .block(VALID_DEPOSIT_BLOCK)
                 .durability(8, 3, -0.01f)
                 .yield(yield -> yield.item("diamond")));
         assertDroppedDurability(helper, context.miningRecipe("invalid_spread_above_one")
-                .block("stone")
+                .block(VALID_DEPOSIT_BLOCK)
                 .durability(8, 3, 1.01f)
                 .yield(yield -> yield.item("diamond")));
     }
@@ -185,7 +351,7 @@ public class MiningRecipeKubeRecipeGameTest {
         var helper = context.helper();
         var recipe = context.miningRecipe("advanced_yields");
 
-        recipe.block("stone")
+        recipe.block(VALID_DEPOSIT_BLOCK)
                 .yield(yield -> yield.chance(0.25f)
                         .item("diamond")
                         .compatItem(List.of("compatmod:raw_ore", "#planks"), 2)
@@ -230,7 +396,7 @@ public class MiningRecipeKubeRecipeGameTest {
         var helper = context.helper();
         var recipe = context.miningRecipe("yield_item_overloads");
 
-        recipe.block("stone")
+        recipe.block(VALID_DEPOSIT_BLOCK)
                 .yield(yield -> yield.item("diamond"))
                 .yield(yield -> yield.item("emerald", 2))
                 .yield(yield -> yield.item(List.of("diamond", "#planks")))
@@ -267,14 +433,14 @@ public class MiningRecipeKubeRecipeGameTest {
         var helper = context.helper();
         var recipe = context.miningRecipe("explicit_top_level");
 
-        recipe.block("stone")
+        recipe.block(VALID_DEPOSIT_BLOCK)
                 .overworld()
                 .replaceWhenDepleted("cobblestone")
                 .durability(8, 3, 0.25f)
                 .yield(yield -> yield.item("diamond"));
 
         var json = serialize(recipe);
-        helper.assertValueEqual(json.get("deposit_block").getAsString(), "minecraft:stone", "deposit block");
+        helper.assertValueEqual(json.get("deposit_block").getAsString(), VALID_DEPOSIT_BLOCK, "deposit block");
         helper.assertValueEqual(json.get("dimension").getAsString(), "minecraft:overworld", "dimension");
         helper.assertValueEqual(json.get("replace_when_depleted").getAsString(), "minecraft:cobblestone",
                 "replacement block");
@@ -299,7 +465,7 @@ public class MiningRecipeKubeRecipeGameTest {
         var helper = context.helper();
         var recipe = context.miningRecipe("last_dimension_wins");
 
-        recipe.block("stone")
+        recipe.block(VALID_DEPOSIT_BLOCK)
                 .overworld()
                 .nether()
                 .yield(yield -> yield.item("diamond"));
@@ -316,7 +482,7 @@ public class MiningRecipeKubeRecipeGameTest {
         var helper = context.helper();
         var recipe = context.miningRecipe("ignores_empty_yields");
 
-        recipe.block("stone")
+        recipe.block(VALID_DEPOSIT_BLOCK)
                 .yield(yield -> {
                 })
                 .yield(yield -> yield.chance(0.5f).catalyst("create_rns:alpha"))
@@ -330,22 +496,10 @@ public class MiningRecipeKubeRecipeGameTest {
     }
 
     @RNSKubeJSBuilderTest
-    private static void yieldBuilderRejectsInvalidArguments(RNSKubeJSBuilderTestContext context) {
+    private static void jeiSlotColorRejectsInvalidStrings(RNSKubeJSBuilderTestContext context) {
         var helper = context.helper();
         var recipe = context.miningRecipe("invalid_yield_arguments");
 
-        assertThrows(helper, IllegalArgumentException.class, "Yield chance must be between 0 and 1",
-                () -> recipe.yield(yield -> yield.chance(-0.01f)));
-        assertThrows(helper, IllegalArgumentException.class, "Yield chance must be between 0 and 1",
-                () -> recipe.yield(yield -> yield.chance(1.01f)));
-        assertThrows(helper, IllegalArgumentException.class, "Yield item weight must be positive",
-                () -> recipe.yield(yield -> yield.item("diamond", 0)));
-        assertThrows(helper, IllegalArgumentException.class, "Yield item weight must be positive",
-                () -> recipe.yield(yield -> yield.compatItem(List.of("compatmod:ore"), 0)));
-        assertThrows(helper, IllegalArgumentException.class, "Catalyst id cannot be blank",
-                () -> recipe.yield(yield -> yield.catalyst(" ")));
-        assertThrows(helper, IllegalArgumentException.class, "Invalid catalyst id: create_rns:bad id",
-                () -> recipe.yield(yield -> yield.catalyst("create_rns:bad id")));
         assertThrows(helper, IllegalArgumentException.class, "JEI slot color must be in the form #rrggbb",
                 () -> recipe.yield(yield -> yield.jeiSlotColor("123456")));
         assertThrows(helper, IllegalArgumentException.class, "JEI slot color must be in the form #rrggbb",
@@ -357,10 +511,10 @@ public class MiningRecipeKubeRecipeGameTest {
         var helper = context.helper();
         var recipe = context.miningRecipe("failed_yield_callback");
 
-        assertThrows(helper, IllegalArgumentException.class, "Yield item weight must be positive",
-                () -> recipe.yield(yield -> yield.item("diamond", 0)));
+        assertThrows(helper, IllegalArgumentException.class, "JEI slot color must be in the form #rrggbb",
+                () -> recipe.yield(yield -> yield.item("diamond").jeiSlotColor("invalid")));
 
-        recipe.block("stone")
+        recipe.block(VALID_DEPOSIT_BLOCK)
                 .yield(yield -> yield.item("emerald"));
 
         var json = serialize(recipe);
@@ -441,6 +595,30 @@ public class MiningRecipeKubeRecipeGameTest {
     private static MiningRecipe parseRecipe(RNSKubeJSBuilderTestHelper helper, JsonObject json, String valueName) {
         return CodecHelper.assertParses(helper.raw(), MiningRecipe.CODEC.codec(),
                 CodecHelper.registries(helper.raw()), codecJson(json).toString(), valueName);
+    }
+
+    private static void assertRecipeFails(
+            RNSKubeJSBuilderTestHelper helper, JsonObject json, String expectedMessagePart
+    ) {
+        helper.assertTrue(json.has(KubeRecipe.CHANGED_MARKER),
+                "Invalid KubeJS recipe should retain its source marker for error attribution");
+        CodecHelper.assertFails(helper.raw(), MiningRecipe.CODEC.codec(),
+                CodecHelper.registries(helper.raw()), codecJson(json).toString(), expectedMessagePart);
+    }
+
+    private static void assertSourceLine(
+            RNSKubeJSBuilderTestHelper helper, JsonObject json, SourceLine expected, String valueName
+    ) {
+        var marker = json.getAsJsonObject(KubeRecipe.CHANGED_MARKER);
+        helper.assertValueEqual(marker.get("source").getAsString(), expected.source(), valueName + " error source");
+        helper.assertValueEqual(marker.get("line").getAsInt(), expected.line(), valueName + " error line");
+    }
+
+    private static void assertSourceLine(
+            RNSKubeJSBuilderTestHelper helper, SourceLine actual, SourceLine expected, String valueName
+    ) {
+        helper.assertValueEqual(actual.source(), expected.source(), valueName + " source");
+        helper.assertValueEqual(actual.line(), expected.line(), valueName + " line");
     }
 
     private static JsonObject serialize(MiningRecipeKubeRecipe recipe) {

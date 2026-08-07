@@ -1,6 +1,7 @@
 package com.bmaster.createrns.codec.invariants;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.RNSDeposits;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.util.CodecHelper;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -26,7 +27,7 @@ public class MiningRecipeCodecTest {
         var recipe = CodecHelper.assertParses(helper, MiningRecipe.CODEC.codec(),
                 CodecHelper.registries(helper), """
                         {
-                          "deposit_block": "minecraft:stone",
+                          "deposit_block": "create_rns:iron_deposit_block",
                           "yields": [
                             {
                               "items": [
@@ -40,7 +41,7 @@ public class MiningRecipeCodecTest {
                         }
                         """, "mining recipe");
 
-        CodecHelper.assertSame(helper, Blocks.STONE, recipe.getDepositBlock(), "deposit block");
+        CodecHelper.assertSame(helper, RNSDeposits.IRON_DEPOSIT.get(), recipe.getDepositBlock(), "deposit block");
         CodecHelper.assertSame(helper, Blocks.AIR, recipe.getReplacementBlock(), "replacement block");
         helper.assertValueEqual(recipe.getDurability().core(), 0L, "durability core");
         helper.assertValueEqual(recipe.getDurability().edge(), 0L, "durability edge");
@@ -57,7 +58,7 @@ public class MiningRecipeCodecTest {
         var recipe = CodecHelper.assertParses(helper, MiningRecipe.CODEC.codec(),
                 CodecHelper.registries(helper), """
                         {
-                          "deposit_block": "minecraft:stone",
+                          "deposit_block": "create_rns:iron_deposit_block",
                           "yields": [
                             {
                               "items": [
@@ -94,7 +95,7 @@ public class MiningRecipeCodecTest {
     public void rejectsRecipeWithOutOfRangeDurability(GameTestHelper helper) {
         CodecHelper.assertFails(helper, MiningRecipe.CODEC.codec(), CodecHelper.registries(helper), """
                 {
-                  "deposit_block": "minecraft:stone",
+                  "deposit_block": "create_rns:iron_deposit_block",
                   "durability": {
                     "core": 0,
                     "edge": 4,
@@ -112,6 +113,25 @@ public class MiningRecipeCodecTest {
                   ]
                 }
                 """, "Value 0 outside of range [1:9223372036854775807]");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty16x16")
+    public void rejectsRecipeWithUntaggedDepositBlock(GameTestHelper helper) {
+        CodecHelper.assertFails(helper, MiningRecipe.CODEC.codec(), CodecHelper.registries(helper), """
+                {
+                  "deposit_block": "minecraft:stone",
+                  "yields": [
+                    {
+                      "items": [
+                        {
+                          "item": "minecraft:diamond"
+                        }
+                      ]
+                    }
+                  ]
+                }
+                """, "Deposit block must be tagged #create_rns:deposit_blocks: minecraft:stone");
         helper.succeed();
     }
 }

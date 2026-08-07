@@ -1,8 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.recipe;
 
-import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSetLookup;
 import com.bmaster.createrns.util.codec.ItemWithFallbacks;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
@@ -14,6 +12,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.RegistryFixedCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.RandomSource;
@@ -23,7 +22,6 @@ import net.minecraft.world.item.Items;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
@@ -33,8 +31,9 @@ public class Yield {
                             .forGetter(y -> y.chance),
                     WeightedItem.CODEC.listOf().fieldOf("items")
                             .forGetter(y -> y.items),
-                    CatalystRequirementSetLookup.ID_CODEC.listOf().optionalFieldOf("catalysts")
-                            .forGetter(y -> (!y.crsIds.isEmpty()) ? Optional.of(y.crsIds) : Optional.empty()),
+                    RegistryFixedCodec.create(CatalystRequirementSet.REGISTRY_KEY).listOf()
+                            .optionalFieldOf("catalysts", List.of())
+                            .forGetter(y -> y.crsList),
                     ExtraCodecs.ARGB_COLOR_CODEC.optionalFieldOf("jei_slot_color", 0)
                             .forGetter(y -> y.slotColor))
             .apply(i, Yield::new));
@@ -42,8 +41,9 @@ public class Yield {
     public static final StreamCodec<RegistryFriendlyByteBuf, Yield> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.FLOAT, y -> y.chance,
             ByteBufCodecs.collection(ArrayList::new, WeightedItem.STREAM_CODEC), y -> new ArrayList<>(y.items),
-            ByteBufCodecs.optional(ByteBufCodecs.collection(ArrayList::new, ResourceLocation.STREAM_CODEC)), y ->
-                    (!y.crsIds.isEmpty()) ? Optional.of(new ArrayList<>(y.crsIds)) : Optional.empty(),
+            ByteBufCodecs.collection(ArrayList::new,
+                    ByteBufCodecs.holderRegistry(CatalystRequirementSet.REGISTRY_KEY)),
+            y -> new ArrayList<>(y.crsList),
             ByteBufCodecs.INT, y -> y.slotColor,
             Yield::new
     );
@@ -53,7 +53,7 @@ public class Yield {
     public final int slotColor;
 
     private final List<ResourceLocation> crsIds;
-    private List<Holder<CatalystRequirementSet>> crsList = List.of();
+    private final List<Holder<CatalystRequirementSet>> crsList;
     private int totalWeight = 0;
 
     public int getTotalWeight() {
@@ -84,21 +84,7 @@ public class Yield {
         items = items.stream()
                 .filter(wi -> wi.initialize(access))
                 .toList();
-        if (items.isEmpty()) return false;
-        if (crsIds.isEmpty()) return true;
-
-        var resolvedCRSes = new ArrayList<Holder<CatalystRequirementSet>>(crsIds.size());
-        for (var crsId : crsIds) {
-            try {
-                resolvedCRSes.add(CatalystRequirementSetLookup.get(access, crsId));
-            } catch (RuntimeException e) {
-                CreateRNS.LOGGER.error("Yield references unknown catalyst requirement set \"{}\"", crsId);
-                return false;
-            }
-        }
-
-        crsList = List.copyOf(resolvedCRSes);
-        return true;
+        return !items.isEmpty();
     }
 
     public List<ResourceLocation> getCRSIds() {
@@ -109,20 +95,22 @@ public class Yield {
         return crsList;
     }
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    protected Yield(float chance, List<WeightedItem> items, Optional<List<ResourceLocation>> crsIds,
+    protected Yield(
+            float chance, List<WeightedItem> items, List<Holder<CatalystRequirementSet>> crsList,
             int slotColor
     ) {
         this.chance = chance;
         this.items = items;
-        this.crsIds = crsIds.orElse(new ArrayList<>());
+        this.crsList = List.copyOf(crsList);
+        this.crsIds = this.crsList.stream()
+                .map(CatalystRequirementSet::id)
+                .toList();
         this.slotColor = slotColor;
-
     }
 
     public static class WeightedItem {
         public static final int DEFAULT_WEIGHT = 1;
-        private static final MapCodec<ItemWithFallbacks> STRICT_ITEM_FIELD = ItemWithFallbacks.STRICT_CODEC.fieldOf("item");
+        private static final MapCodec<ItemWithFallbacks> STRICT_ITEM_FIELD = ItemWithFallbacks.STRICT_RESOLVABLE_CODEC.fieldOf("item");
         private static final MapCodec<ItemWithFallbacks> LENIENT_ITEM_FIELD = ItemWithFallbacks.LENIENT_CODEC.fieldOf("item");
 
         public final int weight;
@@ -131,11 +119,11 @@ public class Yield {
         protected final ItemWithFallbacks itemData;
 
         public static final Codec<WeightedItem> CODEC = RecordCodecBuilder.<WeightedItem>mapCodec(i -> i.group(
-                        Codec.BOOL.optionalFieldOf("compat", false)
-                                .forGetter((WeightedItem wi) -> wi.compat),
-                        Codec.intRange(1, Integer.MAX_VALUE).optionalFieldOf("weight", DEFAULT_WEIGHT)
-                                .forGetter((WeightedItem wi) -> wi.weight))
-                .apply(i, (compat, weight) ->  new WeightedItem(ItemWithFallbacks.EMPTY, compat, weight)))
+                                Codec.BOOL.optionalFieldOf("compat", false)
+                                        .forGetter((WeightedItem wi) -> wi.compat),
+                                Codec.intRange(1, Integer.MAX_VALUE).optionalFieldOf("weight", DEFAULT_WEIGHT)
+                                        .forGetter((WeightedItem wi) -> wi.weight))
+                        .apply(i, (compat, weight) -> new WeightedItem(ItemWithFallbacks.EMPTY, compat, weight)))
                 .dependent(
                         LENIENT_ITEM_FIELD,
                         wi -> Pair.of(wi.itemData, wi.compat ? LENIENT_ITEM_FIELD : STRICT_ITEM_FIELD),

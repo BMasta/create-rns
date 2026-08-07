@@ -42,17 +42,24 @@ public class ItemWithFallbacks {
     // "minecraft:dirt"                         <-> ItemWithFallbacks(<entry list of size 1>, encodedAsList=false)
     // ["minecraft:dirt"]                       <-> ItemWithFallbacks(<entry list of size 1>, encodedAsList=true)
     // ["minecraft:dirt", "minecraft:stone"]    <-> ItemWithFallbacks(<entry list of size 2>, encodedAsList=true)
+    public static final Codec<ItemWithFallbacks> LENIENT_CODEC =
+            Codec.either(ITEM_FALLBACK_ENTRY_CODEC, ITEM_FALLBACK_ENTRY_CODEC.listOf()).comapFlatMap(
+                    ItemWithFallbacks::decodeLenient,
+                    ItemWithFallbacks::encode
+            );
+
     public static final Codec<ItemWithFallbacks> STRICT_CODEC =
             Codec.either(ITEM_FALLBACK_ENTRY_CODEC, ITEM_FALLBACK_ENTRY_CODEC.listOf()).comapFlatMap(
                     ItemWithFallbacks::decodeStrict,
                     ItemWithFallbacks::encode
             );
 
-    public static final Codec<ItemWithFallbacks> LENIENT_CODEC =
-            Codec.either(ITEM_FALLBACK_ENTRY_CODEC, ITEM_FALLBACK_ENTRY_CODEC.listOf()).comapFlatMap(
-                    ItemWithFallbacks::decodeLenient,
-                    ItemWithFallbacks::encode
-            );
+    /// In addition to the correct format of items and tags, also requires at least one item to resolve.
+    /// Disables the resolution check if at least one of the fallback entries is a tag.
+    public static final Codec<ItemWithFallbacks> STRICT_RESOLVABLE_CODEC = STRICT_CODEC.validate(iwf ->
+            iwf.originalEntries.stream().anyMatch(ItemFallbackEntry::isTag) || iwf.originalEntries.stream().anyMatch(ItemWithFallbacks::isRegisteredItem)
+                    ? DataResult.success(iwf)
+                    : DataResult.error(() -> "None of the items resolved: " + iwf.originalEntries.stream().map(ItemFallbackEntry::encode).toList()));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ItemWithFallbacks> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.registry(Registries.ITEM), iwf -> iwf.item,
@@ -67,6 +74,12 @@ public class ItemWithFallbacks {
     private static DataResult<ItemWithFallbacks> decode(List<ItemFallbackEntry> entries, boolean asList, boolean lenient) {
         if (entries.isEmpty() && !lenient) return DataResult.error(() -> "No items or item tags specified");
         return DataResult.success(new ItemWithFallbacks(entries, (entries.isEmpty() || asList)));
+    }
+
+    private static boolean isRegisteredItem(ItemFallbackEntry entry) {
+        return BuiltInRegistries.ITEM.getOptional(entry.id())
+                .filter(item -> item != Items.AIR)
+                .isPresent();
     }
 
     private static DataResult<ItemWithFallbacks> decodeStrict(Either<ItemFallbackEntry, List<ItemFallbackEntry>> serialized) {

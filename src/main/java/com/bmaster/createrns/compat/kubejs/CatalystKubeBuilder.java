@@ -1,6 +1,5 @@
 package com.bmaster.createrns.compat.kubejs;
 
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSetLookup;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -98,10 +97,10 @@ public class CatalystKubeBuilder {
     public CatalystKubeBuilder hideIfPresent(String catalystId) {
         if (catalystId.isBlank()) throw new IllegalArgumentException("Catalyst id cannot be blank");
 
-        hideIfPresent.add(CatalystRequirementSetLookup.parseId(catalystId)
-                .result()
-                .orElseThrow(() -> new IllegalArgumentException("Invalid catalyst id: " + catalystId))
-                .toString());
+        var parsedId = ResourceLocation.tryParse(catalystId);
+        if (parsedId == null) throw new IllegalArgumentException("Invalid catalyst id: " + catalystId);
+
+        hideIfPresent.add(parsedId.toString());
         return this;
     }
 

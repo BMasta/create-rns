@@ -90,7 +90,7 @@ public class MiningProcess {
                 .flatMap(p ->
                         (p.catStats.lastTickedCRSes != null) ? p.catStats.lastTickedCRSes.stream() : Stream.of())
                 .distinct()
-                .map(crsId -> CatalystRequirementSetLookup.get(level.registryAccess(), crsId))
+                .map(crsId -> CatalystRequirementSet.get(level.registryAccess(), crsId))
                 .sorted(Comparator.comparingInt(crs -> crs.value().displayPriority))
                 .toList();
     }

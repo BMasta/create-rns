@@ -7,6 +7,7 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -26,6 +27,9 @@ import java.util.stream.Collectors;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class CatalystRequirementSet {
+    public static final ResourceKey<Registry<CatalystRequirementSet>> REGISTRY_KEY =
+            ResourceKey.createRegistryKey(CreateRNS.asResource("catalyst"));
+
     public static final Codec<CatalystRequirementSet> CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.floatRange(0f, Float.MAX_VALUE).optionalFieldOf("chance_multiplier", 1f)
                     .forGetter(crs -> crs.chanceMult),
@@ -35,16 +39,25 @@ public class CatalystRequirementSet {
                     .forGetter(crs -> crs.displayPriority),
             BuiltInRegistries.ITEM.byNameCodec().listOf().optionalFieldOf("representative_items", List.of())
                     .forGetter(crs -> crs.representativeItems),
-            CatalystRequirementSetLookup.ID_CODEC.listOf().optionalFieldOf("hide_if_present", List.of())
+            ResourceLocation.CODEC.listOf().optionalFieldOf("hide_if_present", List.of())
                     .forGetter(crs -> crs.hideIfPresent),
             SoundEvent.CODEC.optionalFieldOf("play_when_active")
-                            .forGetter(c -> c.soundHolder),
+                    .forGetter(c -> c.soundHolder),
             CatalystRequirement.CODEC.listOf().fieldOf("requirements")
                     .forGetter(crs -> crs.requirements)
     ).apply(i, CatalystRequirementSet::new));
 
-    public static final ResourceKey<Registry<CatalystRequirementSet>> REGISTRY_KEY =
-            ResourceKey.createRegistryKey(CreateRNS.asResource("catalyst"));
+    public static ResourceLocation id(Holder<CatalystRequirementSet> holder) {
+        return holder.unwrapKey()
+                .orElseThrow(() -> new IllegalStateException("Unbound catalyst requirement set holder"))
+                .location();
+    }
+
+    public static Holder<CatalystRequirementSet> get(RegistryAccess access, ResourceLocation id) {
+        var registry = access.registryOrThrow(REGISTRY_KEY);
+        return registry.getHolder(id)
+                .orElseThrow(() -> new RuntimeException("Catalyst \"" + id + "\" does not exist"));
+    }
 
     public final float chanceMult;
     public final boolean optional;
@@ -100,7 +113,7 @@ public class CatalystRequirementSet {
     }
 
     public static MutableComponent getNameComponent(Holder<CatalystRequirementSet> holder) {
-        return Component.translatable(langKey(CatalystRequirementSetLookup.id(holder), "name"));
+        return Component.translatable(langKey(id(holder), "name"));
     }
 
     /// Returns null if at least one of CRSes configured in hideIfPresent is active
@@ -108,13 +121,13 @@ public class CatalystRequirementSet {
             Collection<Holder<CatalystRequirementSet>> activeCRSes, Holder<CatalystRequirementSet> self
     ) {
         for (var crs : activeCRSes) {
-            if (self.value().hideIfPresent.contains(CatalystRequirementSetLookup.id(crs))) return null;
+            if (self.value().hideIfPresent.contains(id(crs))) return null;
         }
         return getNameComponent(self);
     }
 
     public static MutableComponent getDescriptionComponent(Holder<CatalystRequirementSet> holder) {
-        return Component.translatable(langKey(CatalystRequirementSetLookup.id(holder), "description"));
+        return Component.translatable(langKey(id(holder), "description"));
     }
 
     protected boolean useCatalystsNonAtomic(List<Catalyst> catalysts, boolean simulate) {
@@ -123,7 +136,7 @@ public class CatalystRequirementSet {
         for (var cr : requirements) {
             boolean satisifed = false;
             if (cr.useCatalysts(catalysts, simulate)) {
-            for (var c : catalysts) {
+                for (var c : catalysts) {
                     satisifed = true;
                     break;
                 }
