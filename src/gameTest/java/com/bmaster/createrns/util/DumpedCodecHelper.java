@@ -1,5 +1,6 @@
 package com.bmaster.createrns.util;
 
+import com.bmaster.createrns.util.codec.ItemWithFallbacks;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -7,9 +8,8 @@ import com.google.gson.JsonPrimitive;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
-import com.bmaster.createrns.util.codec.ItemWithFallbacks;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;

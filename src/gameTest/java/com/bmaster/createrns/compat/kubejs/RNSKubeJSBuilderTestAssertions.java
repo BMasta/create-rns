@@ -2,7 +2,6 @@ package com.bmaster.createrns.compat.kubejs;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import dev.latvian.mods.kubejs.client.LangKubeEvent;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;

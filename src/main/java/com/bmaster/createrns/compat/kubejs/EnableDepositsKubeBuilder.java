@@ -1,8 +1,8 @@
 package com.bmaster.createrns.compat.kubejs;
 
 import com.bmaster.createrns.compat.kubejs.EnableDepositsKubeEvent.AvailableStructure;
-import dev.latvian.mods.kubejs.typings.Info;
 import dev.latvian.mods.kubejs.script.SourceLine;
+import dev.latvian.mods.kubejs.typings.Info;
 import dev.latvian.mods.rhino.Context;
 import dev.latvian.mods.rhino.util.HideFromJS;
 import net.minecraft.MethodsReturnNonnullByDefault;

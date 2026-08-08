@@ -1,6 +1,5 @@
 package com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer;
 
-import com.bmaster.createrns.RNSPartialModels;
 import com.bmaster.createrns.RNSParticleTypes;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.ParticleEmittingMovementBehaviour;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;

@@ -1,11 +1,7 @@
 package com.bmaster.createrns.codec.invariants;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.AttachmentCatalyst;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.AttachmentCatalystRequirement;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirement;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.FluidCatalyst;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.FluidCatalystRequirement;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.*;
 import com.bmaster.createrns.util.CodecHelper;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;

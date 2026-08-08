@@ -8,15 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.assertArrayStrings;
-import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.assertLangValue;
-import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.assertStructureEntry;
-import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.assertStructureSetEntry;
-import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.assertThrows;
-import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.depositSpecPath;
-import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.processorPath;
-import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.structurePath;
-import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.structureSetPath;
+import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.*;
 
 @GameTestHolder(CreateRNS.ID)
 @PrefixGameTestTemplate(false)
