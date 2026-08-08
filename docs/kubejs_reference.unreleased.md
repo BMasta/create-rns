@@ -336,6 +336,7 @@ the chance of selecting template 1 is `w1/(w1+w2+w3)`.
 
 ### `displayName(name)` (optional)
 Sets the structure name shown by the deposit scanner.
+If omitted, make sure to supply the matching `<namespace>.structure.<path>` lang entry yourself.
 
 * `name`: text that shows up on screen when the deposit is selected in the scanner.
 
@@ -359,19 +360,73 @@ On a tweaked built-in structure, the first call will clear the default values.
 Default: the deposit block item attached to this structure.
 
 ### `preset(presetId)` (optional)
-Shortcut that expands to:
-```js
-.weight(...)
-.height(...)
-.nbt(...)
-.nbt(...)
-...
-```
-
+Shortcut for configuring multiple parameters at once.
 The exact values depend on the selected preset. For reference:
 * common - iron, copper
 * uncommon - lead, nickel
 * rare - redstone, zinc
+
+The preset name identifies the intended dimension defaults, but does not assign the structure to that dimension.
+Dimension is assigned when the structure is selected through `event.overworld()` or `event.nether()` in
+`StartupEvents.rnsEnableDeposits`.
+
+#### overworld_common
+Expands to:
+```js
+.weight(50)
+.height(-8)
+.nbt('create_rns:ore_deposit_medium', 70)
+.nbt('create_rns:ore_deposit_large', 30)
+```
+
+#### overworld_uncommon
+Expands to:
+```js
+.weight(35)
+.height(-10)
+.nbt('create_rns:ore_deposit_small', 30)
+.nbt('create_rns:ore_deposit_medium', 60)
+.nbt('create_rns:ore_deposit_large', 10)
+```
+
+#### overworld_rare
+Expands to:
+```js
+.weight(20)
+.height(-12)
+.nbt('create_rns:ore_deposit_small', 70)
+.nbt('create_rns:ore_deposit_medium', 28)
+.nbt('create_rns:ore_deposit_large', 2)
+```
+
+#### nether_common
+Expands to:
+```js
+.weight(50)
+.height(-4)
+.nbt('create_rns:ore_deposit_medium', 70)
+.nbt('create_rns:ore_deposit_large', 30)
+```
+
+#### nether_uncommon
+Expands to:
+```js
+.weight(35)
+.height(-4)
+.nbt('create_rns:ore_deposit_small', 30)
+.nbt('create_rns:ore_deposit_medium', 60)
+.nbt('create_rns:ore_deposit_large', 10)
+```
+
+#### nether_rare
+Expands to:
+```js
+.weight(20)
+.height(-4)
+.nbt('create_rns:ore_deposit_small', 70)
+.nbt('create_rns:ore_deposit_medium', 28)
+.nbt('create_rns:ore_deposit_large', 2)
+```
 
 ## Configure deposit generation and visibility
 Create: Rock & Stone adds a custom deposit-enablement event `StartupEvents.rnsEnableDeposits`.
