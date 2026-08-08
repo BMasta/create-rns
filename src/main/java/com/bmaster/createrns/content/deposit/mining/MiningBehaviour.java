@@ -35,11 +35,13 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
     protected final KineticBlockEntity kBE;
     protected final Supplier<Direction> claimingDirection;
     protected @Nullable Set<BlockPos> claimedDepositBlocks = null;
-    protected MinerSpec spec = null;
-    protected MiningProcess process = null;
+    protected @Nullable MinerSpec spec = null;
+    protected @Nullable MiningProcess process = null;
 
     // Used by client to defer process sync until it is initialized
     protected Tuple<CompoundTag, Boolean> pendingProcessTag = null;
+
+    private int recipeVersion = 0;
 
     public MiningBehaviour(KineticBlockEntity be, Supplier<Direction> claimingDirection) {
         super(be);
@@ -56,14 +58,24 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
         var level = getLevel();
         assert level != null;
 
+        this.recipeVersion = MiningRecipeLookup.version(level.isClientSide);
         DepositClaimerInstanceHolder.addClaimer(this, level);
     }
 
     @Override
     public void tick() {
         var level = getLevel();
-        if (level == null || level.isClientSide) return;
-        if ((process == null && !tryInitProcess(false)) || !isMining()) return;
+        if (level == null) return;
+
+        // Act on /reload
+        int latestRecipeVersion = MiningRecipeLookup.version(level.isClientSide);
+        if (recipeVersion != latestRecipeVersion) {
+            recipeVersion = latestRecipeVersion;
+            process = null;
+            claimDepositBlocks();
+        }
+
+        if (level.isClientSide || (process == null && !tryInitProcess(false)) || !isMining()) return;
 
         process.advance(getCurrentProgressIncrement());
         collect();

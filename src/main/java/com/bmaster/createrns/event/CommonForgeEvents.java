@@ -3,11 +3,13 @@ package com.bmaster.createrns.event;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.content.deposit.info.DepositIndexProvider;
+import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -32,5 +34,12 @@ public class CommonForgeEvents {
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         var d = event.getDispatcher();
         d.register(RNSMisc.RNS_COMMAND);
+    }
+
+    @SubscribeEvent
+    public static void onDatapackSync(OnDatapackSyncEvent event) {
+        if (event.getPlayer() == null) {
+            MiningRecipeLookup.invalidate(false);
+        }
     }
 }

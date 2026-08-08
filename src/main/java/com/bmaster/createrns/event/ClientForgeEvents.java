@@ -8,6 +8,7 @@ import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRende
 import com.bmaster.createrns.content.deposit.info.FoundDepositClientCache;
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsSnapshotC2SPacket;
 import com.bmaster.createrns.content.deposit.mining.MinerEffectsGenerator;
+import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler;
 import journeymap.client.ui.fullscreen.Fullscreen;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -17,6 +18,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.RecipesUpdatedEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -116,6 +118,11 @@ public class ClientForgeEvents {
         }
 
         if (clickConsumed) event.setCanceled(true);
+    }
+
+    @SubscribeEvent
+    public static void onRecipesUpdatedEvent(RecipesUpdatedEvent event) {
+        MiningRecipeLookup.invalidate(true);
     }
 
     @SubscribeEvent

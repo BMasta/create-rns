@@ -19,13 +19,15 @@ import java.util.stream.Collectors;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class MiningRecipeLookup {
-    private static Object2ObjectOpenHashMap<Block, Object2ObjectOpenHashMap<ResourceKey<Level>, MiningRecipe>> depBlockToDimToRecipe;
-    private static List<ResourceKey<Level>> allDimensions = null;
+    private static final LookupState clientState = new LookupState();
+    private static final LookupState serverState = new LookupState();
 
     public static @Nullable MiningRecipe find(Level l, Block depositBlock) {
+        var state = l.isClientSide ? clientState : serverState;
+        if (state.depBlockToDimToRecipe == null) build(l);
+
         MiningRecipe result = null;
-        if (depBlockToDimToRecipe == null) build(l);
-        var recipes = depBlockToDimToRecipe.get(depositBlock);
+        var recipes = state.depBlockToDimToRecipe.get(depositBlock);
         if (recipes != null) result = recipes.get(l.dimension());
 
         // If there aren't any candidates for the current dimension,
@@ -40,8 +42,9 @@ public class MiningRecipeLookup {
     }
 
     public static List<ResourceKey<Level>> getAllRelevantDimensions(Level l) {
-        if (allDimensions == null) build(l);
-        return allDimensions;
+        var state = l.isClientSide ? clientState : serverState;
+        if (state.allDimensions == null) build(l);
+        return state.allDimensions;
     }
 
     public static boolean isDepositMineable(Level l, Block depositBlock, Set<Catalyst> catalysts) {
@@ -50,9 +53,13 @@ public class MiningRecipeLookup {
         return CatalystHandler.isMiningPossible(l.registryAccess(), recipe, catalysts);
     }
 
+    public static int version(boolean isClientSide) {
+        return isClientSide ? clientState.version : serverState.version;
+    }
+
     public static void build(Level l) {
         var recipes = l.getRecipeManager().getAllRecipesFor(RNSRecipeTypes.MINING_RECIPE_TYPE.get());
-        depBlockToDimToRecipe = recipes.stream()
+        var depBlockToDimToRecipe = recipes.stream()
                 .filter(r -> r.initialize(l.registryAccess()))
                 .collect(Collectors.toMap(
                         MiningRecipe::getDepositBlock,
@@ -74,10 +81,36 @@ public class MiningRecipeLookup {
                         },
                         Object2ObjectOpenHashMap::new));
 
-        allDimensions = depBlockToDimToRecipe.values().stream()
+        var allDimensions = depBlockToDimToRecipe.values().stream()
                 .flatMap(dToR -> dToR.keySet().stream())
                 .distinct()
                 .sorted(Comparator.comparing(d -> d.location().toString()))
                 .collect(Collectors.toList());
+
+        if (l.isClientSide) {
+            clientState.depBlockToDimToRecipe = depBlockToDimToRecipe;
+            clientState.allDimensions = allDimensions;
+        } else {
+            serverState.depBlockToDimToRecipe = depBlockToDimToRecipe;
+            serverState.allDimensions = allDimensions;
+        }
+    }
+
+    public static void invalidate(boolean isClientSide) {
+        if (isClientSide) {
+            clientState.version++;
+            clientState.depBlockToDimToRecipe = null;
+            clientState.allDimensions = null;
+        } else {
+            serverState.version++;
+            serverState.depBlockToDimToRecipe = null;
+            serverState.allDimensions = null;
+        }
+    }
+
+    private static class LookupState {
+        int version = 0;
+        @Nullable Object2ObjectOpenHashMap<Block, Object2ObjectOpenHashMap<ResourceKey<Level>, MiningRecipe>> depBlockToDimToRecipe = null;
+        @Nullable List<ResourceKey<Level>> allDimensions = null;
     }
 }
