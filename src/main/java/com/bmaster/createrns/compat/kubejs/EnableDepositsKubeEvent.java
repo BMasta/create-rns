@@ -3,6 +3,8 @@ package com.bmaster.createrns.compat.kubejs;
 import com.bmaster.createrns.CreateRNS;
 import dev.latvian.mods.kubejs.event.KubeStartupEvent;
 import dev.latvian.mods.kubejs.typings.Info;
+import dev.latvian.mods.rhino.Context;
+import dev.latvian.mods.rhino.util.HideFromJS;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
 
@@ -27,6 +29,15 @@ public class EnableDepositsKubeEvent implements KubeStartupEvent {
     }
 
     @Info("Returns the overworld deposit structure set builder.")
+    public EnableDepositsKubeBuilder overworld(Context cx) {
+        if (overworld == null) {
+            overworld = new EnableDepositsKubeBuilder(CreateRNS.asResource("deposits"), availableStructures,
+                    KubeJSStartupError.builderStart(cx, "rnsEnableDeposits", "overworld|nether"));
+        }
+        return overworld;
+    }
+
+    @HideFromJS
     public EnableDepositsKubeBuilder overworld() {
         if (overworld == null) {
             overworld = new EnableDepositsKubeBuilder(CreateRNS.asResource("deposits"), availableStructures);
@@ -35,6 +46,15 @@ public class EnableDepositsKubeEvent implements KubeStartupEvent {
     }
 
     @Info("Returns the nether deposit structure set builder.")
+    public EnableDepositsKubeBuilder nether(Context cx) {
+        if (nether == null) {
+            nether = new EnableDepositsKubeBuilder(CreateRNS.asResource("nether_deposits"), availableStructures,
+                    KubeJSStartupError.builderStart(cx, "rnsEnableDeposits", "overworld|nether"));
+        }
+        return nether;
+    }
+
+    @HideFromJS
     public EnableDepositsKubeBuilder nether() {
         if (nether == null) {
             nether = new EnableDepositsKubeBuilder(CreateRNS.asResource("nether_deposits"), availableStructures);
@@ -44,18 +64,23 @@ public class EnableDepositsKubeEvent implements KubeStartupEvent {
 
     @Nullable
     EnableDepositsKubeBuilder configuredOverworld() {
-        return overworld;
+        return overworld != null && !overworld.isInvalid() ? overworld : null;
     }
 
     @Nullable
     EnableDepositsKubeBuilder configuredNether() {
-        return nether;
+        return nether != null && !nether.isInvalid() ? nether : null;
     }
 
     boolean hasConfiguredDimensions() {
-        return overworld != null || nether != null;
+        return configuredOverworld() != null || configuredNether() != null;
     }
 
-    public record AvailableStructure(ResourceLocation id, @Nullable Integer weight, boolean builtIn) {
+    public record AvailableStructure(
+            ResourceLocation id, @Nullable Integer weight, boolean builtIn, boolean valid
+    ) {
+        public AvailableStructure(ResourceLocation id, @Nullable Integer weight, boolean builtIn) {
+            this(id, weight, builtIn, true);
+        }
     }
 }

@@ -42,13 +42,17 @@ public class RNSKubeJSPlugin implements KubeJSPlugin {
 
     @Override
     public void generateData(KubeDataGenerator generator) {
-        RNSKubeJSAssembler.resetDepositSelectionCache();
         RNSKubeJSAssembler.fromCurrentEvents().generateData(generator);
     }
 
     @Override
     public void generateLang(dev.latvian.mods.kubejs.client.LangKubeEvent event) {
-        RNSKubeJSAssembler.resetDepositSelectionCache();
         RNSKubeJSAssembler.fromCurrentEvents().generateLang(event);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void clearCaches() {
+        RNSKubeJSAssembler.resetCaches();
     }
 }

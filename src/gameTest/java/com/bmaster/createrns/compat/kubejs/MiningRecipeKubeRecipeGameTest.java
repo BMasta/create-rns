@@ -96,6 +96,57 @@ public class MiningRecipeKubeRecipeGameTest {
     }
 
     @RNSKubeJSBuilderTest
+    private static void multilineStartupSourceLinesAreRefinedWithinTheirBuilderChain(
+            RNSKubeJSBuilderTestContext context
+    ) {
+        var script = """
+                StartupEvents.rnsDepositStructures(event => {
+                  event.create('my_mod:deposit_test')
+                    .block('my_mod:deposit_block')
+                    .preset('overworld_common')
+                    .scannerIcon('minecraft:iron_ingot')
+                    .weight(-1)
+                })
+
+                StartupEvents.rnsEnableDeposits(event => {
+                  event.overworld()
+                    .deposit('my_mod:deposit_test')
+                    .spacing(4)
+                    .separation(4)
+                })
+
+                StartupEvents.rnsCatalysts(event => {
+                  event.create('my_mod:test_catalyst')
+                    .chanceMultiplier(1.5)
+                    .hideIfPresent('create_rns:missing')
+                    .attachment('minecraft:stone')
+                })
+                """;
+        var structureCoarse = SourceLine.of("startup_scripts:main.js", 6);
+        var selectionCoarse = SourceLine.of("startup_scripts:main.js", 13);
+        var catalystCoarse = SourceLine.of("startup_scripts:main.js", 20);
+
+        assertSourceLine(context.helper(), KubeJSSourceLine.startupBuilderStart(
+                        structureCoarse, script, "rnsDepositStructures", "create|tweak"),
+                SourceLine.of(structureCoarse.source(), 2), "deposit structure builder start");
+        assertSourceLine(context.helper(), KubeJSSourceLine.startupMethodCall(
+                        structureCoarse, script, "rnsDepositStructures", "create|tweak", "weight"),
+                SourceLine.of(structureCoarse.source(), 6), "deposit structure method call");
+        assertSourceLine(context.helper(), KubeJSSourceLine.startupBuilderStart(
+                        selectionCoarse, script, "rnsEnableDeposits", "overworld|nether"),
+                SourceLine.of(selectionCoarse.source(), 10), "deposit selection builder start");
+        assertSourceLine(context.helper(), KubeJSSourceLine.startupMethodCall(
+                        selectionCoarse, script, "rnsEnableDeposits", "overworld|nether", "separation"),
+                SourceLine.of(selectionCoarse.source(), 13), "deposit selection method call");
+        assertSourceLine(context.helper(), KubeJSSourceLine.startupBuilderStart(
+                        catalystCoarse, script, "rnsCatalysts", "create"),
+                SourceLine.of(catalystCoarse.source(), 17), "catalyst builder start");
+        assertSourceLine(context.helper(), KubeJSSourceLine.startupMethodCall(
+                        catalystCoarse, script, "rnsCatalysts", "create", "hideIfPresent"),
+                SourceLine.of(catalystCoarse.source(), 19), "hide-if-present method call");
+    }
+
+    @RNSKubeJSBuilderTest
     private static void omittedDefaultsProduceMinimalValidRecipeJson(RNSKubeJSBuilderTestContext context) {
         var helper = context.helper();
         var recipe = context.miningRecipe("minimal_defaults");

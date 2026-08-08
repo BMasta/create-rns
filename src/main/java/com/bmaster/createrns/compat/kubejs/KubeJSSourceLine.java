@@ -25,6 +25,50 @@ final class KubeJSSourceLine {
         return source == null ? coarse : methodCall(coarse, source.sanitized(), methodName);
     }
 
+    static SourceLine startupBuilderStart(SourceLine coarse, String eventName, String builderMethods) {
+        var source = readSource(coarse);
+        return source == null ? coarse : startupBuilderStart(
+                coarse, source.sanitized(), eventName, builderMethods);
+    }
+
+    static SourceLine startupMethodCall(
+            SourceLine coarse, String eventName, String builderMethods, String methodName
+    ) {
+        var source = readSource(coarse);
+        return source == null ? coarse : startupMethodCall(
+                coarse, source.sanitized(), eventName, builderMethods, methodName);
+    }
+
+    static SourceLine startupBuilderStart(
+            SourceLine coarse, String script, String eventName, String builderMethods
+    ) {
+        var builderStart = findStartupBuilder(script, coarse.line(), eventName, builderMethods);
+        return builderStart < 0 ? coarse : SourceLine.of(coarse.source(), lineAt(script, builderStart));
+    }
+
+    static SourceLine startupMethodCall(
+            SourceLine coarse, String script, String eventName, String builderMethods, String methodName
+    ) {
+        var builderStart = findStartupBuilder(script, coarse.line(), eventName, builderMethods);
+        if (builderStart < 0) return coarse;
+
+        var builderPattern = methodPattern(builderMethods);
+        var nextBuilder = builderPattern.matcher(script);
+        var builderEnd = nextBuilder.find(builderStart + 1) ? nextBuilder.start() : script.length();
+        var methodCall = Pattern.compile("\\.\\s*" + Pattern.quote(methodName) + "\\s*\\(").matcher(script);
+        var coarseStart = startOfLine(script, coarse.line());
+        if (methodCall.find(Math.max(builderStart, coarseStart)) && methodCall.start() < builderEnd) {
+            return SourceLine.of(coarse.source(), lineAt(script, methodCall.start()));
+        }
+
+        methodCall = Pattern.compile("\\.\\s*" + Pattern.quote(methodName) + "\\s*\\(").matcher(script);
+        if (methodCall.find(builderStart) && methodCall.start() < builderEnd) {
+            return SourceLine.of(coarse.source(), lineAt(script, methodCall.start()));
+        }
+
+        return coarse;
+    }
+
     static SourceLine expressionStart(SourceLine coarse, String script) {
         var recipeCall = findRecipeCall(script, coarse.line());
         return recipeCall < 0 ? coarse : SourceLine.of(coarse.source(), lineAt(script, recipeCall));
@@ -85,6 +129,10 @@ final class KubeJSSourceLine {
             root = KubeJSPaths.SERVER_SCRIPTS;
         } else if (namespace.equals(KubeJSPaths.LOCAL_SERVER_SCRIPTS.getFileName().toString())) {
             root = KubeJSPaths.LOCAL_SERVER_SCRIPTS;
+        } else if (namespace.equals(KubeJSPaths.STARTUP_SCRIPTS.getFileName().toString())) {
+            root = KubeJSPaths.STARTUP_SCRIPTS;
+        } else if (namespace.equals(KubeJSPaths.LOCAL_STARTUP_SCRIPTS.getFileName().toString())) {
+            root = KubeJSPaths.LOCAL_STARTUP_SCRIPTS;
         } else {
             return null;
         }
@@ -100,6 +148,37 @@ final class KubeJSSourceLine {
         var result = -1;
         while (matcher.find() && matcher.start() < coarseEnd) result = matcher.start();
         return result;
+    }
+
+    private static int findStartupBuilder(
+            String script, int coarseLine, String eventName, String builderMethods
+    ) {
+        var eventPattern = Pattern.compile("\\bStartupEvents\\s*\\.\\s*" + Pattern.quote(eventName) + "\\s*\\(");
+        var coarseEnd = endOfLine(script, coarseLine);
+        var eventCall = eventPattern.matcher(script);
+        var eventStart = -1;
+        while (eventCall.find() && eventCall.start() < coarseEnd) eventStart = eventCall.start();
+        if (eventStart < 0) return -1;
+
+        var nextEvent = Pattern.compile("\\bStartupEvents\\s*\\.").matcher(script);
+        var eventEnd = nextEvent.find(eventStart + 1) ? nextEvent.start() : script.length();
+        var builderCall = methodPattern(builderMethods).matcher(script);
+        var firstAfterCoarse = -1;
+        var lastBeforeCoarse = -1;
+        while (builderCall.find(eventStart) && builderCall.start() < eventEnd) {
+            if (builderCall.start() < coarseEnd) {
+                lastBeforeCoarse = builderCall.start();
+            } else if (firstAfterCoarse < 0) {
+                firstAfterCoarse = builderCall.start();
+            }
+            eventStart = builderCall.end();
+        }
+
+        return lastBeforeCoarse >= 0 ? lastBeforeCoarse : firstAfterCoarse;
+    }
+
+    private static Pattern methodPattern(String methodNames) {
+        return Pattern.compile("\\.\\s*(?:" + methodNames + ")\\s*\\(");
     }
 
     private static int endOfLine(String script, int line) {

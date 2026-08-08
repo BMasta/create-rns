@@ -4,6 +4,8 @@ import com.bmaster.createrns.data.pack.DepositSpecBuilder;
 import com.bmaster.createrns.data.pack.DepositStructureBuilder;
 import dev.latvian.mods.kubejs.event.KubeStartupEvent;
 import dev.latvian.mods.kubejs.typings.Info;
+import dev.latvian.mods.rhino.Context;
+import dev.latvian.mods.rhino.util.HideFromJS;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
 
@@ -26,7 +28,24 @@ public class DepositStructuresKubeEvent implements KubeStartupEvent {
             Creates a Create: Rock & Stone deposit structure definition.
             The id is the final structure id used in generated structure, deposit spec, and structure-set files.
             """)
+    public DepositStructureKubeBuilder create(Context cx, String structureId) {
+        try {
+            return create(structureId,
+                    KubeJSStartupError.builderStart(cx, "rnsDepositStructures", "create|tweak"));
+        } catch (RuntimeException cause) {
+            throw KubeJSStartupError.exception(
+                    cx, "rnsDepositStructures", "create|tweak", "create", cause);
+        }
+    }
+
+    @HideFromJS
     public DepositStructureKubeBuilder create(String structureId) {
+        return create(structureId, dev.latvian.mods.kubejs.script.SourceLine.UNKNOWN);
+    }
+
+    private DepositStructureKubeBuilder create(
+            String structureId, dev.latvian.mods.kubejs.script.SourceLine sourceLine
+    ) {
         var id = ResourceLocation.parse(structureId);
         if (findBuiltInStructure(id) != null) {
             throw new IllegalArgumentException(
@@ -36,7 +55,7 @@ public class DepositStructuresKubeEvent implements KubeStartupEvent {
             throw new IllegalStateException("Duplicate KubeJS deposit structure id: " + structureId);
         }
 
-        var builder = new DepositStructureKubeBuilder(id);
+        var builder = new DepositStructureKubeBuilder(id, sourceLine);
         createdById.put(id, builder);
         created.add(builder);
         return builder;
@@ -47,7 +66,24 @@ public class DepositStructuresKubeEvent implements KubeStartupEvent {
             Single-value methods replace the built-in value. The first scannerIcon, mapIcon, or nbt call clears the
             corresponding built-in list, and subsequent calls append replacement fallback entries in order.
             """)
+    public DepositStructureKubeBuilder tweak(Context cx, String structureId) {
+        try {
+            return tweak(structureId,
+                    KubeJSStartupError.builderStart(cx, "rnsDepositStructures", "create|tweak"));
+        } catch (RuntimeException cause) {
+            throw KubeJSStartupError.exception(
+                    cx, "rnsDepositStructures", "create|tweak", "tweak", cause);
+        }
+    }
+
+    @HideFromJS
     public DepositStructureKubeBuilder tweak(String structureId) {
+        return tweak(structureId, dev.latvian.mods.kubejs.script.SourceLine.UNKNOWN);
+    }
+
+    private DepositStructureKubeBuilder tweak(
+            String structureId, dev.latvian.mods.kubejs.script.SourceLine sourceLine
+    ) {
         var id = ResourceLocation.parse(structureId);
         var structure = findBuiltInStructure(id);
         if (structure == null) {
@@ -61,18 +97,18 @@ public class DepositStructuresKubeEvent implements KubeStartupEvent {
                 .filter(entry -> entry.spec().structureId().equals(id))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Missing deposit spec for built-in structure " + id));
-        var builder = new DepositStructureKubeBuilder(structure, spec);
+        var builder = new DepositStructureKubeBuilder(structure, spec, sourceLine);
         tweakedById.put(id, builder);
         tweaked.add(builder);
         return builder;
     }
 
     List<DepositStructureKubeBuilder> created() {
-        return List.copyOf(created);
+        return created.stream().filter(builder -> !builder.isInvalid()).toList();
     }
 
     List<DepositStructureKubeBuilder> tweaked() {
-        return List.copyOf(tweaked);
+        return tweaked.stream().filter(builder -> !builder.isInvalid()).toList();
     }
 
     private static @Nullable DepositStructureBuilder.ConfiguredEntry findBuiltInStructure(

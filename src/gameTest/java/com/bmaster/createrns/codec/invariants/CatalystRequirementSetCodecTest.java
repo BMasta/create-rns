@@ -43,7 +43,8 @@ public class CatalystRequirementSetCodecTest {
         CodecHelper.assertSame(helper, Items.LAVA_BUCKET, requirementSet.representativeItems.getFirst(),
                 "representative item");
         helper.assertValueEqual(requirementSet.hideIfPresent.size(), 1, "hidden catalyst count");
-        helper.assertValueEqual(requirementSet.hideIfPresent.getFirst(), CreateRNS.asResource("resonance"),
+        helper.assertValueEqual(CatalystRequirementSet.id(requirementSet.hideIfPresent.getFirst()),
+                CreateRNS.asResource("resonance"),
                 "hidden catalyst id");
         helper.assertValueEqual(requirementSet.requirements.size(), 1, "requirement count");
 
@@ -64,6 +65,26 @@ public class CatalystRequirementSetCodecTest {
                           "requirements": []
                         }
                         """, "Catalyst must have at least one requirement");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty16x16")
+    public void rejectsMissingHideIfPresentCatalyst(GameTestHelper helper) {
+        CodecHelper.assertFails(helper, CatalystRequirementSet.CODEC, CodecHelper.registries(helper),
+                """
+                        {
+                          "hide_if_present": ["create_rns:missing"],
+                          "requirements": [
+                            {
+                              "type": "fluid",
+                              "consume": {
+                                "id": "minecraft:lava",
+                                "amount": 20
+                              }
+                            }
+                          ]
+                        }
+                        """, "Failed to get element create_rns:missing");
         helper.succeed();
     }
 

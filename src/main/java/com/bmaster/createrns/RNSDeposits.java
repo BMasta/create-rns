@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.Blocks;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
@@ -47,6 +48,15 @@ public class RNSDeposits {
             CreateRNS.asResource("faint_stabilizing_resonance");
     public static final ResourceLocation CATA_STABILIZING_RESONANCE = CreateRNS.asResource("stabilizing_resonance");
     public static final ResourceLocation CATA_OVERCLOCK = CreateRNS.asResource("overclock");
+    public static final Set<ResourceLocation> CATALYSTS = Set.of(
+            CATA_FAINT_RESONANCE,
+            CATA_RESONANCE,
+            CATA_FAINT_SHATTERING_RESONANCE,
+            CATA_SHATTERING_RESONANCE,
+            CATA_FAINT_STABILIZING_RESONANCE,
+            CATA_STABILIZING_RESONANCE,
+            CATA_OVERCLOCK
+    );
 
     public static final int COLOR_FAINT_RESONANCE = 0xFF968CB3;
     public static final int COLOR_RESONANCE = 0xFF8572BF;

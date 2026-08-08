@@ -10,9 +10,14 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import dev.latvian.mods.kubejs.client.LangKubeEvent;
 import dev.latvian.mods.kubejs.generator.KubeDataGenerator;
+import dev.latvian.mods.kubejs.script.SourceLine;
 import dev.latvian.mods.kubejs.typings.Info;
+import dev.latvian.mods.rhino.Context;
+import dev.latvian.mods.rhino.util.HideFromJS;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Items;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -21,7 +26,7 @@ import java.util.List;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class DepositStructureKubeBuilder {
+public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
     private final ResourceLocation id;
     private final ResourceLocation processorId;
     private final @Nullable DepositSpecBuilder.ConfiguredEntry builtInSpec;
@@ -39,8 +44,15 @@ public class DepositStructureKubeBuilder {
     private boolean mapIconsInherited;
     private boolean templatesInherited;
     private boolean weightChanged;
+    private SourceLine scannerIconSourceLine = SourceLine.UNKNOWN;
+    private SourceLine mapIconSourceLine = SourceLine.UNKNOWN;
 
     public DepositStructureKubeBuilder(ResourceLocation id) {
+        this(id, SourceLine.UNKNOWN);
+    }
+
+    DepositStructureKubeBuilder(ResourceLocation id, SourceLine sourceLine) {
+        super(sourceLine, "rnsDepositStructures", "create|tweak");
         this.id = id;
         processorId = ResourceLocation.fromNamespaceAndPath(id.getNamespace(),
                 "replace_with_" + id.getNamespace() + "_" + id.getPath().replace('/', '_'));
@@ -51,6 +63,15 @@ public class DepositStructureKubeBuilder {
             DepositStructureBuilder.ConfiguredEntry structureEntry,
             DepositSpecBuilder.ConfiguredEntry specEntry
     ) {
+        this(structureEntry, specEntry, SourceLine.UNKNOWN);
+    }
+
+    DepositStructureKubeBuilder(
+            DepositStructureBuilder.ConfiguredEntry structureEntry,
+            DepositSpecBuilder.ConfiguredEntry specEntry,
+            SourceLine sourceLine
+    ) {
+        super(sourceLine, "rnsDepositStructures", "create|tweak");
         var structure = structureEntry.structure();
 
         id = DepositStructureBuilder.structureId(structureEntry);
@@ -72,6 +93,17 @@ public class DepositStructureKubeBuilder {
     }
 
     @Info("Sets the deposit block used by this deposit structure.")
+    public DepositStructureKubeBuilder block(Context cx, String blockId) {
+        return sourced(cx, "block", () -> {
+            var result = block(blockId);
+            if (!BuiltInRegistries.BLOCK.containsKey(this.blockId)) {
+                throw new IllegalArgumentException("Unknown block: " + blockId);
+            }
+            return result;
+        });
+    }
+
+    @HideFromJS
     public DepositStructureKubeBuilder block(String blockId) {
         if (isTweak()) {
             throw new UnsupportedOperationException("A built-in deposit structure's block cannot be changed");
@@ -97,6 +129,11 @@ public class DepositStructureKubeBuilder {
             Sets the weight used when this deposit structure is selected in StartupEvents.rnsEnableDeposits.
             Preset structures already assign a default.
             """)
+    public DepositStructureKubeBuilder weight(Context cx, int value) {
+        return sourced(cx, "weight", () -> weight(value));
+    }
+
+    @HideFromJS
     public DepositStructureKubeBuilder weight(int value) {
         if (value <= 0) throw new IllegalArgumentException("Structure set weight must be positive");
 
@@ -110,7 +147,14 @@ public class DepositStructureKubeBuilder {
             If tag is specified, the first item with that tag is picked.
             Can be called multiple times to add more items as fallbacks in case the original item does not exist.
             """)
+    public DepositStructureKubeBuilder scannerIcon(Context cx, String candidateId) {
+        scannerIconSourceLine = methodSource(cx, "scannerIcon");
+        return sourced(cx, "scannerIcon", () -> scannerIcon(candidateId));
+    }
+
+    @HideFromJS
     public DepositStructureKubeBuilder scannerIcon(String candidateId) {
+        validateItemCandidate(candidateId);
         if (scannerIconsInherited) {
             scannerIconCandidates.clear();
             scannerIconsInherited = false;
@@ -123,6 +167,12 @@ public class DepositStructureKubeBuilder {
             Adds all metal-related tags as scanner icon candidates.
             The first item of a first non-empty tag is selected.
             """)
+    public DepositStructureKubeBuilder scannerIconMetal(Context cx, String material) {
+        scannerIconSourceLine = methodSource(cx, "scannerIconMetal");
+        return sourced(cx, "scannerIconMetal", () -> scannerIconMetal(material));
+    }
+
+    @HideFromJS
     public DepositStructureKubeBuilder scannerIconMetal(String material) {
         for (var candidate : DepositSpecBuilder.metalScannerIconCandidates(material)) {
             scannerIcon(candidate);
@@ -134,6 +184,12 @@ public class DepositStructureKubeBuilder {
             Adds all gem-related tags as scanner icon candidates.
             The first item of a first non-empty tag is selected.
             """)
+    public DepositStructureKubeBuilder scannerIconGem(Context cx, String material) {
+        scannerIconSourceLine = methodSource(cx, "scannerIconGem");
+        return sourced(cx, "scannerIconGem", () -> scannerIconGem(material));
+    }
+
+    @HideFromJS
     public DepositStructureKubeBuilder scannerIconGem(String material) {
         for (var candidate : DepositSpecBuilder.gemScannerIconCandidates(material)) {
             scannerIcon(candidate);
@@ -145,6 +201,12 @@ public class DepositStructureKubeBuilder {
             Adds all dust-related tags as scanner icon candidates.
             The first item of a first non-empty tag is selected.
             """)
+    public DepositStructureKubeBuilder scannerIconDust(Context cx, String material) {
+        scannerIconSourceLine = methodSource(cx, "scannerIconDust");
+        return sourced(cx, "scannerIconDust", () -> scannerIconDust(material));
+    }
+
+    @HideFromJS
     public DepositStructureKubeBuilder scannerIconDust(String material) {
         for (var candidate : DepositSpecBuilder.dustScannerIconCandidates(material)) {
             scannerIcon(candidate);
@@ -156,7 +218,14 @@ public class DepositStructureKubeBuilder {
             Uses the specified item or item tag as a map icon for a found deposit.
             Can be called multiple times to add more items as fallbacks in case the original item does not exist.
             """)
+    public DepositStructureKubeBuilder mapIcon(Context cx, String candidateId) {
+        mapIconSourceLine = methodSource(cx, "mapIcon");
+        return sourced(cx, "mapIcon", () -> mapIcon(candidateId));
+    }
+
+    @HideFromJS
     public DepositStructureKubeBuilder mapIcon(String candidateId) {
+        validateItemCandidate(candidateId);
         if (mapIconsInherited) {
             mapIconCandidates.clear();
             mapIconsInherited = false;
@@ -170,6 +239,11 @@ public class DepositStructureKubeBuilder {
             Can be called multiple times to specify more templates.
             When multiple templates are specified, the chance of picking one is determined by the weight.
             """)
+    public DepositStructureKubeBuilder nbt(Context cx, String templateId, int weight) {
+        return sourced(cx, "nbt", () -> nbt(templateId, weight));
+    }
+
+    @HideFromJS
     public DepositStructureKubeBuilder nbt(String templateId, int weight) {
         if (weight <= 0) throw new IllegalArgumentException("Template weight must be positive");
 
@@ -186,6 +260,11 @@ public class DepositStructureKubeBuilder {
             These presets are used by the default deposits (iron - common, nickel - uncommon, redstone - precious).
             Supported values: overworld_common, overworld_uncommon, overworld_rare, nether_common, nether_uncommon, nether_rare.
             """)
+    public DepositStructureKubeBuilder preset(Context cx, String presetId) {
+        return sourced(cx, "preset", () -> preset(presetId));
+    }
+
+    @HideFromJS
     public DepositStructureKubeBuilder preset(String presetId) {
         var preset = DepositStructureBuilder.getPreset(presetId);
         weightedTemplates.clear();
@@ -203,14 +282,14 @@ public class DepositStructureKubeBuilder {
     }
 
     void generateData(KubeDataGenerator generator, boolean scannable) {
-        validate();
+        if (!validate()) return;
         generator.json(depositSpecPath(), depositSpecJson(scannable));
         generator.json(processorPath(), processorJson());
         generator.json(structurePath(), structureJson());
     }
 
     void generateLang(LangKubeEvent lang) {
-        validate();
+        if (!validate()) return;
         if (displayName != null) {
             lang.add(id.getNamespace(), structureLangKey(), displayName);
         }
@@ -288,18 +367,35 @@ public class DepositStructureKubeBuilder {
                 : id.getPath();
     }
 
-    private void validate() {
+    boolean validateForAvailability() {
+        if (!hasKnownCreationSource()) return true;
+        return validate();
+    }
+
+    private boolean validate() {
+        if (isInvalid()) return false;
         if (blockId == null) {
-            throw new IllegalStateException("Deposit structure " + id + " must specify a deposit block");
+            return reportDeferredError("Deposit structure " + id + " must specify a deposit block");
         }
 
         if (scannerIconCandidates.isEmpty()) {
-            throw new IllegalStateException("Deposit structure " + id + " must specify at least one scanner icon");
+            return reportDeferredError("Deposit structure " + id + " must specify at least one scanner icon");
+        }
+        if (hasKnownCreationSource() && !hasResolvableItem(scannerIconCandidates)) {
+            return reportDeferredError(
+                    "None of the scanner icon items exist for deposit structure " + id + ": " + scannerIconCandidates,
+                    scannerIconSourceLine);
         }
 
         if (weightedTemplates.isEmpty()) {
-            throw new IllegalStateException("Deposit structure " + id + " must specify at least one nbt template");
+            return reportDeferredError("Deposit structure " + id + " must specify at least one nbt template");
         }
+        if (hasKnownCreationSource() && !mapIconCandidates.isEmpty() && !hasResolvableItem(mapIconCandidates)) {
+            return reportDeferredError(
+                    "None of the map icon items exist for deposit structure " + id + ": " + mapIconCandidates,
+                    mapIconSourceLine);
+        }
+        return true;
     }
 
     private JsonObject depositSpecJson(boolean scannable) {
@@ -399,6 +495,25 @@ public class DepositStructureKubeBuilder {
             array.add(value);
         }
         return array;
+    }
+
+    private static void validateItemCandidate(String candidateId) {
+        if (candidateId.isBlank()) throw new IllegalArgumentException("Item or item tag id cannot be blank");
+
+        var id = candidateId.startsWith("#") ? candidateId.substring(1) : candidateId;
+        if (id.isBlank() || ResourceLocation.tryParse(id) == null) {
+            throw new IllegalArgumentException("Invalid item or item tag id: " + candidateId);
+        }
+    }
+
+    private static boolean hasResolvableItem(List<String> candidateIds) {
+        for (var candidateId : candidateIds) {
+            if (candidateId.startsWith("#")) return true;
+
+            var item = BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse(candidateId)).orElse(null);
+            if (item != null && item != Items.AIR) return true;
+        }
+        return false;
     }
 
     private record WeightedTemplate(ResourceLocation template, int weight) {

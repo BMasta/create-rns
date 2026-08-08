@@ -12,6 +12,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.RegistryFixedCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.Item;
@@ -39,7 +40,7 @@ public class CatalystRequirementSet {
                     .forGetter(crs -> crs.displayPriority),
             BuiltInRegistries.ITEM.byNameCodec().listOf().optionalFieldOf("representative_items", List.of())
                     .forGetter(crs -> crs.representativeItems),
-            ResourceLocation.CODEC.listOf().optionalFieldOf("hide_if_present", List.of())
+            RegistryFixedCodec.create(REGISTRY_KEY).listOf().optionalFieldOf("hide_if_present", List.of())
                     .forGetter(crs -> crs.hideIfPresent),
             SoundEvent.CODEC.optionalFieldOf("play_when_active")
                     .forGetter(c -> c.soundHolder),
@@ -63,7 +64,8 @@ public class CatalystRequirementSet {
     public final boolean optional;
     public final int displayPriority;
     public final List<Item> representativeItems;
-    public final List<ResourceLocation> hideIfPresent;
+    public final List<ResourceLocation> hideIfPresentIds;
+    public final List<Holder<CatalystRequirementSet>> hideIfPresent;
     public final @Nullable SoundEvent sound;
     public final List<CatalystRequirement> requirements;
 
@@ -71,7 +73,7 @@ public class CatalystRequirementSet {
 
     public CatalystRequirementSet(
             float chanceMult, boolean optional, int displayPriority, List<Item> representativeItems,
-            List<ResourceLocation> hideIfPresent, Optional<Holder<SoundEvent>> soundHolder,
+            List<Holder<CatalystRequirementSet>> hideIfPresent, Optional<Holder<SoundEvent>> soundHolder,
             List<CatalystRequirement> requirements
     ) {
         if (requirements.isEmpty()) throw new IllegalArgumentException("Catalyst must have at least one requirement");
@@ -80,6 +82,7 @@ public class CatalystRequirementSet {
         this.displayPriority = displayPriority;
         this.representativeItems = representativeItems;
         this.hideIfPresent = hideIfPresent;
+        this.hideIfPresentIds = hideIfPresent.stream().map(CatalystRequirementSet::id).toList();
         this.requirements = requirements;
         this.soundHolder = soundHolder;
         this.sound = soundHolder.map(h -> h.isBound() ? h.value() : null).orElse(null);
@@ -121,7 +124,7 @@ public class CatalystRequirementSet {
             Collection<Holder<CatalystRequirementSet>> activeCRSes, Holder<CatalystRequirementSet> self
     ) {
         for (var crs : activeCRSes) {
-            if (self.value().hideIfPresent.contains(id(crs))) return null;
+            if (self.value().hideIfPresentIds.contains(id(crs))) return null;
         }
         return getNameComponent(self);
     }
