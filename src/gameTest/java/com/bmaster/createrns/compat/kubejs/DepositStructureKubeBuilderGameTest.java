@@ -64,6 +64,7 @@ public class DepositStructureKubeBuilderGameTest {
 
         context.depositStructures().tweak(structureId.toString())
                 .height(-27)
+                .biome("minecraft:badlands")
                 .scannerIcon("mymod:refined_iron")
                 .scannerIcon("minecraft:raw_iron")
                 .mapIcon("minecraft:compass")
@@ -81,6 +82,8 @@ public class DepositStructureKubeBuilderGameTest {
         assertArrayStrings(helper, depositSpecJson.get("map_icon_item"), "replacement map icons",
                 "minecraft:compass", "minecraft:iron_ingot");
         helper.assertValueEqual(structureJson.get("height").getAsInt(), -27, "replacement height");
+        helper.assertValueEqual(structureJson.get("biomes").getAsString(), "minecraft:badlands",
+                "replacement biome");
         helper.assertValueEqual(structures.size(), 2, "replacement template count");
         assertStructureEntry(helper, structures, 0, DEFAULT_TEMPLATE_SMALL.toString(), 7,
                 "create_rns:replace_with_create_rns_iron_deposit_block");
@@ -290,6 +293,8 @@ public class DepositStructureKubeBuilderGameTest {
                 .displayName("Final Name")
                 .height(7)
                 .height(23)
+                .biome("minecraft:plains")
+                .biome("#minecraft:is_badlands")
                 .scannerIcon("minecraft:raw_gold")
                 .mapIcon("minecraft:clock")
                 .nbt(DEFAULT_TEMPLATE_SMALL.toString(), 1);
@@ -306,6 +311,8 @@ public class DepositStructureKubeBuilderGameTest {
         helper.assertValueEqual(depositSpecJson.get("map_icon_item").getAsString(), "minecraft:clock",
                 "single explicit map icon");
         helper.assertValueEqual(structureJson.get("height").getAsInt(), 23, "last explicit height wins");
+        helper.assertValueEqual(structureJson.get("biomes").getAsString(), "#minecraft:is_badlands",
+                "last explicit biome selector wins");
 
         var rule = processorJson.getAsJsonArray("processors").get(0).getAsJsonObject()
                 .getAsJsonArray("rules").get(0).getAsJsonObject();
@@ -313,6 +320,37 @@ public class DepositStructureKubeBuilderGameTest {
                 "last explicit deposit block wins");
         assertLangValue(helper, lang, "create_rns", "en_us",
                 "create_rns.structure.deposit_test_last_wins", "Final Name");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void customBiomeSurvivesDimensionSelection(RNSKubeJSBuilderTestContext context) {
+        var helper = context.helper();
+        var structureId = CreateRNS.asResource("test_custom_biome");
+
+        context.depositStructures().create(structureId.toString())
+                .block("minecraft:gold_block")
+                .biome("soul_sand_valley")
+                .scannerIcon("minecraft:raw_gold")
+                .nbt(DEFAULT_TEMPLATE_SMALL.toString(), 1);
+        context.structureSet().nether().deposit(structureId.toString(), false);
+
+        var structureJson = context.assembleData().jsonObject(structurePath(structureId));
+        helper.assertValueEqual(structureJson.get("biomes").getAsString(), "minecraft:soul_sand_valley",
+                "normalized custom biome");
+        helper.assertValueEqual(structureJson.get("placement_strategy").getAsString(), "nether",
+                "selected dimension placement strategy");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void biomeRejectsBlankAndMalformedIds(RNSKubeJSBuilderTestContext context) {
+        var helper = context.helper();
+        var builder = context.depositStructures().create(CreateRNS.asResource("test_invalid_biome").toString());
+
+        assertThrows(helper, IllegalArgumentException.class, "cannot be blank", () -> builder.biome(""));
+        assertThrows(helper, IllegalArgumentException.class, "Invalid biome or biome tag id",
+                () -> builder.biome("#not a tag"));
+        assertThrows(helper, IllegalArgumentException.class, "Unknown vanilla biome",
+                () -> builder.biome("minecraft:ld_growth_birch_forest"));
     }
 
     @RNSKubeJSBuilderTest

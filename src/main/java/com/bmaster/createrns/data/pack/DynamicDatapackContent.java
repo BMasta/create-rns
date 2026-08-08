@@ -29,6 +29,10 @@ public class DynamicDatapackContent {
 
     private static final ResourceLocation DEPOSIT_SPEC_REGISTRY = CreateRNS.asResource("deposit_spec");
 
+    public static String getBiomeSelector(DepositDimension dimension) {
+        return "#" + CreateRNS.ID + ":" + BIOME_TAG_PREFIX + dimension.suffix();
+    }
+
     public static Supplier<List<DatapackFile>> depositBiomeTag(DepositDimension dimension, boolean disableGeneration) {
         return () -> {
             var values = new JsonArray();
@@ -106,7 +110,7 @@ public class DynamicDatapackContent {
                 var filename = def.structure().dimension().prefix() + def.name();
                 var root = new JsonObject();
                 root.addProperty("type", CreateRNS.ID + ":deposit");
-                root.addProperty("biomes", "#" + CreateRNS.ID + ":" + BIOME_TAG_PREFIX + def.structure().dimension().suffix());
+                root.addProperty("biomes", getBiomeSelector(def.structure().dimension()));
                 root.addProperty("placement_strategy", def.structure().dimension().placement().getSerializedName());
 
                 int height = -def.structure().depth();

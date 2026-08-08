@@ -16,6 +16,9 @@ import dev.latvian.mods.rhino.Context;
 import dev.latvian.mods.rhino.util.HideFromJS;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.data.registries.VanillaRegistries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 
@@ -23,10 +26,18 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
+    private static final Set<ResourceLocation> VANILLA_BIOMES = VanillaRegistries.createLookup()
+            .lookupOrThrow(Registries.BIOME)
+            .listElementIds()
+            .map(ResourceKey::location)
+            .collect(Collectors.toUnmodifiableSet());
+
     private final ResourceLocation id;
     private final ResourceLocation processorId;
     private final @Nullable DepositSpecBuilder.ConfiguredEntry builtInSpec;
@@ -36,6 +47,7 @@ public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
 
     private ResourceLocation blockId;
     private DepositDimension dimension = DepositDimension.OVERWORLD;
+    private @Nullable String biomeSelector;
     private Integer height;
     private int heightDeviation;
     private Integer structureSetWeight;
@@ -122,6 +134,31 @@ public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
     public DepositStructureKubeBuilder height(int value) {
         height = value;
         heightDeviation = 0;
+        return this;
+    }
+
+    @Info("Sets the biome or biome tag in which this deposit structure may generate.")
+    public DepositStructureKubeBuilder biome(Context cx, String biomeOrTagId) {
+        return sourced(cx, "biome", () -> biome(biomeOrTagId));
+    }
+
+    @HideFromJS
+    public DepositStructureKubeBuilder biome(String biomeOrTagId) {
+        if (biomeOrTagId.isBlank()) {
+            throw new IllegalArgumentException("Biome or biome tag id cannot be blank");
+        }
+
+        boolean isTag = biomeOrTagId.startsWith("#");
+        var idString = isTag ? biomeOrTagId.substring(1) : biomeOrTagId;
+        var id = ResourceLocation.tryParse(idString);
+        if (id == null) {
+            throw new IllegalArgumentException("Invalid biome or biome tag id: " + biomeOrTagId);
+        }
+        if (!isTag && id.getNamespace().equals("minecraft") && !VANILLA_BIOMES.contains(id)) {
+            throw new IllegalArgumentException("Unknown vanilla biome: " + id);
+        }
+
+        biomeSelector = (isTag ? "#" : "") + id;
         return this;
     }
 
@@ -445,7 +482,9 @@ public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
     private JsonObject structureJson() {
         var json = new JsonObject();
         json.addProperty("type", "create_rns:deposit");
-        json.addProperty("biomes", biomeTag());
+        json.addProperty("biomes", biomeSelector != null
+                ? biomeSelector
+                : DynamicDatapackContent.getBiomeSelector(dimension));
         json.addProperty("placement_strategy", dimension.placement().getSerializedName());
         if (heightDeviation == 0) {
             json.addProperty("height", resolvedHeight());
@@ -479,12 +518,6 @@ public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
                 ? DepositStructureBuilder.NETHER_COMMON
                 : DepositStructureBuilder.OVERWORLD_COMMON;
         return -preset.depth();
-    }
-
-    private String biomeTag() {
-        return dimension == DepositDimension.NETHER
-                ? "#create_rns:has_deposit_nether"
-                : "#create_rns:has_deposit";
     }
 
     private static JsonElement stringOrArray(List<String> values) {
