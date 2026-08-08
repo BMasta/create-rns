@@ -8,6 +8,7 @@ import com.bmaster.createrns.content.deposit.info.sync.FoundDepositDeltaS2CPaylo
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsClearS2CPayload;
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsSnapshotC2SPayload;
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsSnapshotS2CPayload;
+import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerC2SPayload;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerS2CPayload;
@@ -25,6 +26,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -55,6 +57,13 @@ public class CommonEvents {
             for (var drp : DynamicDatapack.RESOURCE_PACKS) {
                 e.addRepositorySource(consumer -> consumer.accept(drp.build()));
             }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onDatapackSync(OnDatapackSyncEvent event) {
+        if (event.getPlayer() == null) {
+            MiningRecipeLookup.invalidate(false);
         }
     }
 

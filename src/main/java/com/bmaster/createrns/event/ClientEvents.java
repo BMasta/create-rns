@@ -8,6 +8,7 @@ import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRende
 import com.bmaster.createrns.content.deposit.info.FoundDepositClientCache;
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsSnapshotC2SPayload;
 import com.bmaster.createrns.content.deposit.mining.MinerEffectsGenerator;
+import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
@@ -21,10 +22,7 @@ import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
-import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.InputEvent;
-import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
@@ -104,6 +102,11 @@ public class ClientEvents {
         RNSParticleTypes.RESONANCE.register(RNSParticleTypes.RESONANCE_TYPE.get(), event);
         RNSParticleTypes.STABILIZING_RESONANCE.register(RNSParticleTypes.STABILIZING_RESONANCE_TYPE.get(), event);
         RNSParticleTypes.SHATTERING_RESONANCE.register(RNSParticleTypes.SHATTERING_RESONANCE_TYPE.get(), event);
+    }
+
+    @SubscribeEvent
+    public static void onRecipesUpdatedEvent(RecipesUpdatedEvent event) {
+        MiningRecipeLookup.invalidate(true);
     }
 
     @SubscribeEvent
