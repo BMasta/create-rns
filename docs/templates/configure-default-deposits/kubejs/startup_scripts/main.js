@@ -1,36 +1,44 @@
+/*
 // Tweak deposit structure parameters.
 StartupEvents.rnsDepositStructures(event => {
-  event.tweak('create_rns:deposit_iron')
-    .scannerIcon("minecraft:iron_ore")
+  event.tweak('create_rns:deposit_tin')
+    .scannerIcon("some_mod:raw_tin")
     // common - iron, copper
     // uncommon - lead, nickel
     // rare - redstone, zinc
     .preset('overworld_rare')
-//    .preset('overworld_uncommon')
-//    .preset('overworld_common')
-//    .preset('nether_rare')
-//    .preset('nether_uncommon')
-//    .preset('nether_common')
+    .preset('overworld_uncommon')
+    .preset('overworld_common')
+    .preset('nether_rare')
+    .preset('nether_uncommon')
+    .preset('nether_common')
+    .weight(
 })
+*/
 
-// Select which deposits should be enabled and/or generated, as well as how frequently
 StartupEvents.rnsEnableDeposits(event => {
-  // IMPORTANT! Simply calling overworld() will override the default config and disable all deposits in the overworld.
   event.overworld()
-    // Omitted deposits will no longer be scannable or generated.
+    // Keep the deposits you want. Setting the second argument to false will disable worldgen, but keep the deposit enabled.
     .deposit('create_rns:deposit_iron', true)
     .deposit('create_rns:deposit_copper', true)
-    // Setting second argument to false will disable worldgen, but keep the deposit enabled.
-    .deposit('create_rns:deposit_gold', false)
+    .deposit('create_rns:deposit_zinc', true)
+    .deposit('create_rns:deposit_gold', true)
+    .deposit('create_rns:deposit_redstone', true)
+    .deposit('create_rns:deposit_tin', true)
+    .deposit('create_rns:deposit_lead', true)
     .deposit('create_rns:deposit_nickel', true)
+    .deposit('create_rns:deposit_silver', true)
+    .deposit('create_rns:deposit_uranium', true)
+    .deposit('create_rns:deposit_thorium', true)
     // Average distance between deposits in chunks
-    .spacing(32)
+    .spacing(24)
     // Minimum distance between deposits in chunks
-    .separation(6)
+    .separation(4)
 
   event.nether()
     .deposit('create_rns:deposit_nether_gold', true)
-    .deposit('create_rns:deposit_nether_quartz', false)
-    .spacing(10)
-    .separation(3)
+    .deposit('create_rns:deposit_nether_quartz', true)
+    .deposit('create_rns:deposit_nether_cobalt', true)
+    .spacing(8)
+    .separation(2)
 })
