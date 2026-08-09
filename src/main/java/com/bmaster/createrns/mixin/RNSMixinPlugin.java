@@ -4,9 +4,9 @@ import com.bmaster.createrns.compat.Mods;
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.fml.loading.LoadingModList;
 import org.objectweb.asm.tree.ClassNode;
+import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
-import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Set;

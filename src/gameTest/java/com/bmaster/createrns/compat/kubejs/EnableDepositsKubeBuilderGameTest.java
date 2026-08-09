@@ -13,12 +13,7 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 import java.util.List;
 
-import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.assertArrayStrings;
-import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.assertStructureSetEntry;
-import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.assertThrows;
-import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.depositSpecPath;
-import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.structurePath;
-import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.structureSetPath;
+import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.*;
 
 @GameTestHolder(CreateRNS.ID)
 @PrefixGameTestTemplate(false)

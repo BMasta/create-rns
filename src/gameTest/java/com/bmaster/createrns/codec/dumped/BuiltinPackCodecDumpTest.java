@@ -7,7 +7,6 @@ import com.bmaster.createrns.content.deposit.spec.DepositSpec;
 import com.bmaster.createrns.content.deposit.worldgen.DepositStructure;
 import com.bmaster.createrns.util.CodecHelper;
 import com.bmaster.createrns.util.DumpedCodecHelper;
-import com.mojang.serialization.DataResult;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.tags.TagFile;

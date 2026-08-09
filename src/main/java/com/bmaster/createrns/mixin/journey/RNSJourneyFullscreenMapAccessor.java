@@ -2,8 +2,8 @@ package com.bmaster.createrns.mixin.journey;
 
 import com.bmaster.createrns.compat.map.RNSMapOverlayRenderer;
 import journeymap.client.api.model.IFullscreen;
-import journeymap.client.ui.fullscreen.Fullscreen;
 import journeymap.client.render.map.GridRenderer;
+import journeymap.client.ui.fullscreen.Fullscreen;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

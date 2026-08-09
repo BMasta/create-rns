@@ -2,7 +2,6 @@ package com.bmaster.createrns.serialization;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystUsageStats;
-import com.bmaster.createrns.util.CodecHelper;
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.gametest.framework.GameTest;

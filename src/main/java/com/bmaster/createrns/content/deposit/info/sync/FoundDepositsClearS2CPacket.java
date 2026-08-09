@@ -1,7 +1,7 @@
 package com.bmaster.createrns.content.deposit.info.sync;
 
-import com.bmaster.createrns.content.deposit.scanning.DepositScannerChannel;
 import com.bmaster.createrns.content.deposit.info.FoundDepositClientCache;
+import com.bmaster.createrns.content.deposit.scanning.DepositScannerChannel;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
