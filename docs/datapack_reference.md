@@ -1,6 +1,4 @@
-# Datapack Reference - UNRELEASED
-## THIS DOCUMENT IS FOR AN UNRELEASED VERSION OF THE MOD
-## GO TO THE MAIN PAGE AND SELECT THE RIGHT VERSION
+# Datapack Reference - 1.2.x - MC 1.21.1
 
 ## Notes
 * You can look at the mod resources for reference. The manually-written resources are [here](../src/main/resources) and the auto-generated resource are [here](../src/generated/resources).
