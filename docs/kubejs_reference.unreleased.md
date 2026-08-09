@@ -260,6 +260,7 @@ StartupEvents.rnsDepositStructures(event => {
     .scannerIcon('mymod:refined_iron')
     .scannerIcon('minecraft:raw_iron')
     .mapIcon('minecraft:iron_ingot')
+    .biome('#minecraft:is_forest')
     .nbt('create_rns:ore_deposit_small', 70)
     .nbt('create_rns:ore_deposit_medium', 30)
 })
@@ -349,6 +350,16 @@ Set to a negative value to have deposits generate underground.
 * `value`: height offset as an integer
 
 Default: * `-8` for overworld deposits, `-4` for nether deposits.
+
+### `biome(biomeOrTagId)` (optional)
+Sets the biome or biome tag in which the deposit structure may generate.
+
+***IMPORTANT!*** The existence of modded biomes cannot be properly validated before the datapack is loaded. If you specify
+a non-existent modded biome, you will get a non-descriptive datapack load error.
+
+* `biomeOrTagId`: biome id or biome tag such as `minecraft:badlands` or `#minecraft:is_badlands`
+
+Default: `#create_rns:has_deposit` for overworld deposits and `#create_rns:has_deposit_nether` for nether deposits.
 
 ### `mapIcon(itemOrTagId)` (optional)
 Sets an item or an item tag to be rendered on the map as a marker for found deposits.

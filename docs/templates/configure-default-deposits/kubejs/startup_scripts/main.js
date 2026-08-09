@@ -12,7 +12,7 @@ StartupEvents.rnsDepositStructures(event => {
     .preset('nether_rare')
     .preset('nether_uncommon')
     .preset('nether_common')
-    .weight(
+    .biome("old_growth_birch_forest")
 })
 */
 
