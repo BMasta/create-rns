@@ -16,8 +16,8 @@ import java.util.Set;
 @ParametersAreNonnullByDefault
 public enum MineHeadSize implements StringRepresentable {
     SMALL(0, 0, "block/mine_head", 1, 0f),
-    MEDIUM(1, 1, "block/mine_head_large", 2, 0.248f),
-    LARGE(2, 3, "block/mine_head_large", 3.63f, 0.3604f);
+    LARGE(1, 1, "block/mine_head_large", 2, 0.248f),
+    HUGE(2, 3, "block/mine_head_large", 3.63f, 0.3604f);
 
     public final int radiusBonus;
     public final int tipOffset;
@@ -48,11 +48,11 @@ public enum MineHeadSize implements StringRepresentable {
         Direction v = getVDirection(direction);
         switch (this) {
             case SMALL -> positions.add(controllerPos);
-            case MEDIUM -> {
+            case LARGE -> {
                 addSquareLayer(positions, controllerPos, u, v, 1, true);
                 positions.add(controllerPos.relative(direction));
             }
-            case LARGE -> {
+            case HUGE -> {
                 addSquareLayer(positions, controllerPos, u, v, 2, false);
                 addSquareLayer(positions, controllerPos.relative(direction), u, v, 2, false);
                 addSquareLayer(positions, controllerPos.relative(direction, 2), u, v, 1, false);
