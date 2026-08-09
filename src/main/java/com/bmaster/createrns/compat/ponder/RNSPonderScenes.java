@@ -66,27 +66,32 @@ public class RNSPonderScenes {
         s.scaleSceneView(0.9f);
 
         // Positions
-        var bearing = pos.at(2, 2, 2);
-        var bearingNewPos = pos.at(2, 3, 2);
-        var mineHead = pos.at(2, 1, 2);
-        var bearing2 = pos.at(1, 2, 2);
-        var mineHead2 = pos.at(1, 1, 2);
-        var depositUnderBearing = pos.at(2, 0, 2);
-        var depositTopRight = pos.at(0, 0, 4);
-        var depositBottomRight = pos.at(0, 0, 0);
-        var contraptionRoot = pos.at(2, 2, 2);
-        var ironEast = pos.at(1, 2, 2);
+        var bearing = pos.at(4, 2, 4);
+        var bearingNewPos = pos.at(4, 3, 4);
+        var bearingNewNewPos = pos.at(4, 5, 4);
+        var mineHead = pos.at(4, 1, 4);
+        var bearing2 = pos.at(3, 2, 4);
+        var mineHead2 = pos.at(3, 1, 4);
+        var depositUnderBearing = pos.at(4, 0, 4);
+        var depositTopRight = pos.at(2, 0, 6);
+        var extraDepositTopRight = pos.at(1, 0, 7);
+        var extra2DepositTopRight = pos.at(0, 0, 8);
+        var depositBottomRight = pos.at(2, 0, 2);
+        var contraptionRoot = pos.at(4, 2, 4);
+        var ironEast = pos.at(3, 2, 4);
 
         // Selections
-        var sourceCog = sel.position(5, 0, 2);
-        var miner1Cog = sel.position(2, 3, 2);
-        var chainDriveKinetics = sel.fromTo(2, 4, 2, 4, 4, 2);
-        var verticalShaftKinetics = sel.fromTo(4, 1, 2, 4, 3, 2);
-        var miner2Cog = sel.fromTo(1, 3, 2, 1, 3, 2);
-        var deposits = sel.fromTo(0, 0, 0, 4, 0, 4);
-        var extraDeposits = sel.fromTo(0, 0, 5, 4, 0, 5);
-        var depositsClaimableByMiner2 = sel.fromTo(0, 0, 0, 3, 0, 4);
-        var resonatorsOrIron = sel.fromTo(1, 2, 1, 3, 2, 3);
+        var sourceCog = sel.position(9, 0, 4);
+        var miner1Cog = sel.position(4, 3, 4);
+        var verticalShaftKinetics = sel.fromTo(4, 4, 4, 4, 8, 4);
+        var verticalShaftKineticsBottom = sel.fromTo(4, 4, 4, 4, 5, 4);
+        var miner2Cog = sel.fromTo(3, 3, 4, 3, 3, 4);
+        var deposits = sel.fromTo(2, 0, 2, 6, 0, 6);
+        var extraDeposits = sel.fromTo(1, 0, 1, 7, 0, 7).substract(deposits);
+        var extra2Deposits = sel.fromTo(0, 0, 0, 8, 0, 8).substract(deposits).substract(extraDeposits);
+        var depositsClaimableByMiner2 = sel.fromTo(2, 0, 2, 5, 0, 6);
+        var resonatorsOrIron = sel.fromTo(3, 2, 3, 5, 2, 5);
+        var ironHugeMineHead = sel.fromTo(2, 2, 2, 6, 4, 6);
 
         // Other
         float rpm = 100;
@@ -99,7 +104,6 @@ public class RNSPonderScenes {
         var bearingFacingDown = RNSBlocks.MINER_BEARING.getDefaultState().setValue(MinerBearingBlock.FACING, Direction.DOWN);
         var miner = new MinerContraption(s, util, bearing, mineHead, sel.position(mineHead), RNSDeposits.IRON_DEPOSIT.get())
                 .syncKinetics(miner1Cog, false)
-                .syncKinetics(chainDriveKinetics, false)
                 .syncKinetics(verticalShaftKinetics, false)
                 .syncKinetics(sourceCog, true);
         var miner2 = new MinerContraption(s, util, bearing2, mineHead2, sel.position(mineHead2), RNSDeposits.IRON_DEPOSIT.get())
@@ -107,25 +111,28 @@ public class RNSPonderScenes {
         var minerAfter = new MinerContraption(
                 s, util, bearingNewPos, mineHead, resonatorsOrIron.add(sel.position(mineHead)), RNSDeposits.IRON_DEPOSIT.get()
         )
-                .syncKinetics(chainDriveKinetics, false)
+                .mineHeadSize(MineHeadSize.LARGE)
                 .syncKinetics(verticalShaftKinetics, false)
                 .syncKinetics(sourceCog, true);
+        var minerHuge = new MinerContraption(
+                s, util, bearingNewNewPos, mineHead, ironHugeMineHead, RNSDeposits.IRON_DEPOSIT.get()
+        )
+                .mineHeadSize(MineHeadSize.HUGE)
+                .syncKinetics(verticalShaftKinetics, false);
 
         // Initial kinetics setup
         w.setKineticSpeed(sourceCog, -rpm);
         w.setKineticSpeed(miner1Cog, rpm);
-        w.setKineticSpeed(chainDriveKinetics, rpm);
         w.setKineticSpeed(verticalShaftKinetics, rpm);
         w.setKineticSpeed(miner2Cog, -rpm);
 
-        s.configureBasePlate(0, 0, 5);
+        s.configureBasePlate(0, 0, 9);
         s.showBasePlate();
         w.showSection(sourceCog, Direction.UP);
         s.idle(15);
 
         o.showText(100)
                 .pointAt(vec.topOf(depositUnderBearing))
-                .attachKeyFrame()
                 .placeNearTarget()
                 .sharedText(ServerConfig.INFINITE_DEPOSITS.get() ? "mining_infinite" : "mining_finite");
         s.idle(100);
@@ -150,12 +157,7 @@ public class RNSPonderScenes {
                 .text("Each miner contraption must have exactly one mine head directly underneath in order to function");
         s.idle(80);
 
-        w.showSection(verticalShaftKinetics, Direction.WEST);
-        s.idle(2);
-
-        w.showSection(chainDriveKinetics, Direction.DOWN);
-        s.idle(2);
-
+        w.showSection(verticalShaftKinetics, Direction.NORTH);
         w.showSection(miner1Cog, Direction.NORTH);
         s.idle(10);
 
@@ -184,7 +186,7 @@ public class RNSPonderScenes {
         s.idle(10);
 
         o.showText(110)
-                .pointAt(vec.blockSurface(depositTopRight, Direction.WEST))
+                .pointAt(vec.blockSurface(depositTopRight, Direction.UP))
                 .attachKeyFrame()
                 .placeNearTarget()
                 .text("Each deposit block can only be claimed by a single miner");
@@ -198,7 +200,7 @@ public class RNSPonderScenes {
         miner2.rotate(-rpm, 190);
         s.idle(20);
 
-        o.showControls(vec.centerOf(depositBottomRight).subtract(1, 0, 0), Pointing.LEFT, 40)
+        o.showControls(vec.blockSurface(depositBottomRight, Direction.UP), Pointing.DOWN, 40)
                 .showing(AllIcons.I_MTD_CLOSE);
         s.idle(60);
 
@@ -277,9 +279,11 @@ public class RNSPonderScenes {
         w.showSection(resonatorsOrIron, Direction.SOUTH);
         s.idle(10);
 
-        for (int i = 3; i >= 1; --i) {
-            for (int j = 1; j <= 3; ++j) {
-                w.setBlocks(sel.position(j, 2, i), Blocks.IRON_BLOCK.defaultBlockState(), true);
+        s.addKeyframe();
+        for (int i = 1; i >= -1; --i) {
+            for (int j = -1; j <= 1; ++j) {
+                w.setBlocks(sel.position(contraptionRoot.getX() + j, 2, contraptionRoot.getZ() + i),
+                        Blocks.IRON_BLOCK.defaultBlockState(), true);
                 s.idle(2);
             }
         }
@@ -289,43 +293,113 @@ public class RNSPonderScenes {
         w.hideSection(sel.position(contraptionRoot), Direction.DOWN);
         o.showText(60)
                 .pointAt(vec.blockSurface(ironEast, Direction.WEST))
-                .attachKeyFrame()
                 .placeNearTarget()
                 .text("Mine heads can be made bigger when placed on a layer of iron blocks");
         s.idle(70);
 
         o.showControls(vec.blockSurface(mineHead, Direction.WEST), Pointing.LEFT, 15)
                 .withItem(new ItemStack(RNSBlocks.MINE_HEAD.get()));
-        s.idle(8);
+        s.idle(4);
 
         w.setBlocks(resonatorsOrIron, Blocks.AIR.defaultBlockState(), false);
         w.setBlock(contraptionRoot, RNSBlocks.MINE_HEAD.getDefaultState()
-                .setValue(MineHeadBlock.SIZE, MineHeadSize.MEDIUM)
+                .setValue(MineHeadBlock.SIZE, MineHeadSize.LARGE)
                 .setValue(MineHeadBlock.FACE, AttachFace.CEILING), true);
         minerAfter.showContraptionImmediately();
         w.setBlock(mineHead, Blocks.AIR.defaultBlockState(), false);
         s.idle(40);
 
-        w.showSection(extraDeposits, Direction.NORTH);
-        s.idle(20);
+        w.setBlocks(extraDeposits, RNSDeposits.IRON_DEPOSIT.getDefaultState(), true);
+        s.idle(40);
 
-        o.showText(50)
-                .pointAt(vec.blockSurface(mineHead, Direction.WEST))
+        o.showText(40)
+                .pointAt(vec.blockSurface(extraDepositTopRight, Direction.UP))
                 .attachKeyFrame()
                 .placeNearTarget()
                 .text("Mining area increases with size");
-        s.idle(65);
+        s.idle(55);
 
         o.showControls(vec.blockSurface(bearingNewPos, Direction.WEST), Pointing.LEFT, 10)
                 .rightClick();
         s.idle(4);
 
-        minerAfter.mine(rpm, Short.MAX_VALUE);
-        o.showOutline(PonderPalette.GREEN, new Object(), deposits.add(extraDeposits), 70);
-        s.idle(80);
+        minerAfter.mine(rpm, 80);
+        o.showOutline(PonderPalette.GREEN, new Object(), deposits.add(extraDeposits), 60);
+        s.idle(76);
 
-        w.hideSection(extraDeposits, Direction.SOUTH);
+
+        o.showControls(vec.blockSurface(bearingNewPos, Direction.WEST), Pointing.LEFT, 10)
+                .rightClick();
+        s.idle(20);
+
+        minerAfter.hideContraption(Direction.NORTH);
+        minerAfter.hideBearing(Direction.NORTH);
+        w.hideSection(verticalShaftKineticsBottom,  Direction.NORTH);
+        s.idle(15);
+
+        w.setBlocks(sel.position(bearingNewNewPos), RNSBlocks.MINER_BEARING.getDefaultState()
+                .setValue(MinerBearingBlock.FACING, Direction.DOWN), false);
+        w.setBlocks(ironHugeMineHead, Blocks.AIR.defaultBlockState(), false);
+        w.showSection(ironHugeMineHead, Direction.SOUTH);
+        w.setBlock(mineHead, RNSBlocks.MINE_HEAD.getDefaultState().setValue(MineHeadBlock.SIZE, MineHeadSize.HUGE), false);
+        minerHuge.setBearingKinetics(rpm);
+        minerHuge.showBearing(Direction.NORTH);
+        s.idle(20);
+
+        w.setBlocks(extra2Deposits, RNSDeposits.IRON_DEPOSIT.getDefaultState(), true);
         s.idle(40);
+
+        s.addKeyframe();
+        for (int i = 1; i >= -1; --i) {
+            for (int j = -1; j <= 1; ++j) {
+                if ((i == -1 || i == 1) && (j == -1 || j == 1)) continue;
+                w.setBlocks(sel.position(contraptionRoot.getX() + j, 2, contraptionRoot.getZ() + i),
+                        Blocks.IRON_BLOCK.defaultBlockState(), true);
+                s.idle(2);
+            }
+        }
+        s.idle(10);
+
+        for (int k = 0; k <= 1; ++k) {
+            for (int i = 2; i >= -2; --i) {
+                for (int j = -2; j <= 2; ++j) {
+                    if ((i == -2 || i == 2) && (j == -2 || j == 2)) continue;
+                    w.setBlocks(sel.position(contraptionRoot.getX() + j, 3 + k, contraptionRoot.getZ() + i),
+                            Blocks.IRON_BLOCK.defaultBlockState(), true);
+                    s.idle(2);
+                }
+            }
+        }
+        // Sneak away the contraption root selection, so it doesn't get in the way of miner's independent selection
+        w.hideSection(sel.position(bearingNewNewPos.below()), Direction.DOWN);
+        s.idle(30);
+
+        o.showControls(vec.blockSurface(mineHead, Direction.WEST), Pointing.LEFT, 15)
+                .withItem(new ItemStack(RNSBlocks.MINE_HEAD.get()));
+        s.idle(4);
+
+        w.setBlocks(ironHugeMineHead, Blocks.AIR.defaultBlockState(), false);
+        w.setBlock(bearingNewNewPos.below(), RNSBlocks.MINE_HEAD.getDefaultState()
+                .setValue(MineHeadBlock.SIZE, MineHeadSize.HUGE)
+                .setValue(MineHeadBlock.FACE, AttachFace.CEILING), true);
+        minerHuge.showContraptionImmediately();
+        s.idle(40);
+
+        o.showControls(vec.blockSurface(bearingNewNewPos, Direction.WEST), Pointing.LEFT, 10)
+                .rightClick();
+        s.idle(4);
+
+        minerHuge.mine(rpm, Short.MAX_VALUE);
+        o.showOutline(PonderPalette.GREEN, new Object(), deposits.add(extraDeposits).add(extra2Deposits), 60);
+        s.idle(40);
+
+        o.showText(60)
+                .pointAt(bearingNewNewPos.getBottomCenter().subtract(0.5,0.0, 0.5))
+                .attachKeyFrame()
+                .placeNearTarget()
+                .text("Now this is a real miner!")
+                .colored(PonderPalette.GREEN);
+        s.idle(60);
     }
 
     public static void extracting(SceneBuilder builder, SceneBuildingUtil util) {
@@ -493,7 +567,8 @@ public class RNSPonderScenes {
         protected final SceneBuildingUtil util;
         protected final BlockPos bearing;
         protected final BlockPos mineHead;
-        protected final ParticleEmitter particle;
+        protected final ItemParticleOption particle;
+        protected ParticleEmitter particleEmitter;
         protected Selection contraption;
         protected ElementLink<WorldSectionElement> contraptionLink = null;
         protected Map<Selection, Boolean> syncedKinetics = new Object2ObjectOpenHashMap<>();
@@ -506,12 +581,16 @@ public class RNSPonderScenes {
             this.bearing = bearing;
             this.mineHead = mineHead;
             this.contraption = contraption;
-            this.particle = scene.effects().particleEmitterWithinBlockSpace(
-                    new ItemParticleOption(ParticleTypes.ITEM, new ItemStack(depBlock)), Vec3.ZERO);
+            this.particle = new ItemParticleOption(ParticleTypes.ITEM, new ItemStack(depBlock));
+            this.particleEmitter = scene.effects().particleEmitterWithinBlockSpace(particle, Vec3.ZERO);
         }
 
         public MinerContraption syncKinetics(Selection kinetics, boolean reverse) {
             this.syncedKinetics.put(kinetics, reverse);
+            return this;
+        }
+
+        public MinerContraption mineHeadSize(MineHeadSize size) {
             return this;
         }
 
@@ -540,6 +619,9 @@ public class RNSPonderScenes {
 
         public void setBearingKinetics(float rpm) {
             scene.world().setKineticSpeed(util.select().position(bearing), rpm);
+            for (var k : syncedKinetics.entrySet()) {
+                scene.world().setKineticSpeed(k.getKey(), k.getValue() ? -rpm : rpm);
+            }
         }
 
         public void rotate(int angle, int dur) {
@@ -561,13 +643,13 @@ public class RNSPonderScenes {
         public void mine(int angle, int dur) {
             if (contraptionLink == null) return;
             rotate(angle, dur);
-            scene.effects().emitParticles(mineHead.getBottomCenter(), particle, 2, dur);
+            scene.effects().emitParticles(mineHead.getBottomCenter(), particleEmitter, 2, dur);
         }
 
         public void mine(float rpm, int dur) {
             if (contraptionLink == null) return;
             rotate(rpm, dur);
-            scene.effects().emitParticles(mineHead.getBottomCenter(), particle, 2, dur);
+            scene.effects().emitParticles(mineHead.getBottomCenter(), particleEmitter, 2, dur);
         }
     }
 }
