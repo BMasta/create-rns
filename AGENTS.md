@@ -1,4 +1,5 @@
 # Create: Rock & Stone
+
 **************************************IMPORTANT**************************************
 DO NOT TRY TO EXECUTE THE FOLLOWING GRADLE TASKS YOURSELF UNDER ANY CIRCUMSTANCES:
 * runClient
@@ -9,6 +10,7 @@ IF ANY OF THESE ARE NEEDED FOR TESTING, ASK TO DO IT FOR YOU.
 *************************************************************************************
 
 ## Project Description
+
 The goal of this project is to develop a mod for Minecraft 1.21.1.
 The mod is called "Create: Rock & Stone" and is itself an addon to Create mod.
 
@@ -27,36 +29,38 @@ The current catalysts are:
 
 All versions are defined in `gradle.properties`. Java version is 21.
 
-| Dependency        | Type | Version Property         | Role                                                                          |
-|-------------------|------|--------------------------|-------------------------------------------------------------------------------|
-| Minecraft         | Hard | `minecraft_version`      | Base game (1.21.1)                                                            |
-| NeoForge          | Hard | `neo_version`            | Mod loader                                                                    |
-| Create            | Hard | `create_version`         | Parent mod this is an addon for                                               |
-| Flywheel          | Hard | `flywheel_version`       | Rendering engine (transitive via Create)                                      |
-| Registrate        | Hard | `registrate_version`     | Content registration framework                                                |
-| Ponder            | Hard | `ponder_version`         | In-game tutorial system                                                       |
-| JEI               | Soft | `jei_version`            | Recipe viewer; mod provides a JEI plugin for mining recipes and catalyst info |
-| Jade              | Soft | `jade_version`           | Tooltip overlay; mod provides a plugin showing remaining deposit resources    |
-| JourneyMap API    | Soft | `journeymap_api_version` | Optional client waypoint integration surface used for deposit markers         |
-| Xaero's Minimap   | Soft | `xaero_minimap_version`  | Optional client waypoint integration surface used for deposit markers         |
-| Xaero's World Map | Soft | `xaero_worldmap_version` | Optional client map UI that displays Xaero waypoint data                      |
+| Dependency         | Type | Version Property             | Role                                                                          |
+|--------------------|------|------------------------------|-------------------------------------------------------------------------------|
+| Minecraft          | Hard | `minecraft_version`          | Base game (1.21.1)                                                            |
+| NeoForge           | Hard | `neo_version`                | Mod loader                                                                    |
+| Create             | Hard | `create_version`             | Parent mod this is an addon for                                               |
+| Flywheel           | Hard | `flywheel_version`           | Rendering engine (transitive via Create)                                      |
+| Registrate         | Hard | `registrate_version`         | Content registration framework                                                |
+| Ponder             | Hard | `ponder_version`             | In-game tutorial system                                                       |
+| JEI                | Soft | `jei_version`                | Recipe viewer; mod provides a JEI plugin for mining recipes and catalyst info |
+| Jade               | Soft | `jade_version`               | Tooltip overlay; mod provides a plugin showing remaining deposit resources    |
+| JourneyMap API     | Soft | `journeymap_api_version`     | Optional client waypoint integration surface used for deposit markers         |
+| Xaero's Minimap    | Soft | `xaero_minimap_version`      | Optional client waypoint integration surface used for deposit markers         |
+| Xaero's World Map  | Soft | `xaero_worldmap_version`     | Optional client map UI that displays Xaero waypoint data                      |
+| Create Aeronautics | Soft | `create_aeronautics_version` | Optional physics-contraption compatibility surface                            |
+| Sable              | Soft | `sable_version`              | Required physics runtime for optional Create Aeronautics compatibility        |
 
 ## Coding Style Guidelines
 * Preferred line length is 120 characters.
 * Class members are ordered in the following way (earlier rules take precedence):
-  * Static members come before non-static members (except classes).
-  * Simple enums come first (with no methods), then properties, then methods, then inner classes, records, complex enums.
-  * Final properties come before non-final properties.
-  * Public members come first, then protected, then private.
-  * Uninitialized properties come before initialized properties.
+    * Static members come before non-static members (except classes).
+    * Simple enums come first (with no methods), then properties, then methods, then inner classes, records, complex enums.
+    * Final properties come before non-final properties.
+    * Public members come first, then protected, then private.
+    * Uninitialized properties come before initialized properties.
 * Rough Order:
-  1. public->protected->private simple enum.
-  1. public->protected->private static final uninitialized property.
-  2. public->protected->private static final initialized property.
-  3. public->protected->private static non-final property.
-  4. public->protected->private static method.
-  5. Same as above, but non-static.
-  4. public->protected->private class or record or complex enum.
+    1. public->protected->private simple enum.
+    1. public->protected->private static final uninitialized property.
+    2. public->protected->private static final initialized property.
+    3. public->protected->private static non-final property.
+    4. public->protected->private static method.
+    5. Same as above, but non-static.
+    4. public->protected->private class or record or complex enum.
 * The rules above can be broken if the locality of certain class members greatly improves readability. E.g. public method overrides that delegate to a main private method can and should be placed adjacent to each other.
 * Consider factoring out a code block into a helper method ONLY if at least one of these is true:
     * The method gets very large (>50 loc).
@@ -65,7 +69,7 @@ All versions are defined in `gradle.properties`. Java version is 21.
     * It requires a lot of arguments.
     * Its name cannot accurately describe its behavior.
     * The code block in question is trivial to understand and factoring it out would make it substantially less readable.
-* If introducing a helper method is undesirable, use line breaks to separate the logical block of code and a comment above describing what it does. The comment should focus on the intent, instead of describing the process/implementation itself. 
+* If introducing a helper method is undesirable, use line breaks to separate the logical block of code and a comment above describing what it does. The comment should focus on the intent, instead of describing the process/implementation itself.
 * Try to avoid extra indentation levels whenever possible:
     * Use negative checks to return early.
     * Use `if (bad) continue;` instead of `if (good) { ... }` inside loops.
@@ -74,8 +78,8 @@ All versions are defined in `gradle.properties`. Java version is 21.
 * A single `if - else if - else` block cannot mix single- and multiline conditionals.
 * Use `var` unless the type has to be defined explicitly or if using a basic type. When assigning variables to parametrized types, prefer adding type to the constructor call and not the variable unless you have to specify the variable type regardless (e.g. class properties).
 * Hardcoded literals must be defined at the top level. No magic numbers unless all of the above are true:
-  * They are easily understood from context.
-  * They are unlikely to ever change.
+    * They are easily understood from context.
+    * They are unlikely to ever change.
 * The hierarchy of Java code, as well as conventions for naming variables, classes, and files are inspired by the Create mod and should be kept in line with it.
 
 ## Architecture and Design
@@ -106,6 +110,7 @@ All versions are defined in `gradle.properties`. Java version is 21.
 * EMI support currently goes through EMI's JEI bridge rather than a separate native EMI plugin; any EMI-specific adjustments therefore belong in the JEI compat code and should stay limited to bridge-safety behavior.
 * `neoforge.mods.toml` should declare optional client-side compat dependencies only for integrations the mod actually loads against at runtime.
 * Xaero World Map overlay experiments use client-only pseudo-mixins targeting `xaero.map.gui.GuiMap`, because Xaero World Map does not expose a stable public overlay hook for custom renderers.
+* Create Aeronautics deposit-mobility compatibility targets its bundled `simulated` mod through an optional pseudo-mixin. Physics assembly must reject blocks in `#create_rns:deposit_blocks` exactly when the server's `movableDeposits` setting is disabled, matching piston and Create contraption behavior without making the tag statically non-movable.
 * Deposit claimer instance tracking stores owner block positions keyed by level/type and resolves live mining behaviors from the owning block entity on demand. Lookup must prune stale positions when the block entity or behaviour is gone so reloads and block removal cannot leave dead claimers registered.
 * Translation keys follow `create_rns.<category>.<key>` for mod content and the standard Minecraft pattern (`block.create_rns.*`, `item.create_rns.*`) for blocks/items.
 * When creating translatable components for mod-owned keys (`create_rns.*`), prefer `CreateRNS.translatable(...)` over direct `Component.translatable(...)` calls.
@@ -117,26 +122,27 @@ All versions are defined in `gradle.properties`. Java version is 21.
 * Release bumps the `mod_version` in `gradle.properties` and publishes a release for that version with autogenerated notes and the built mod jar asset.
 
 ## Instructions
+
 While doing any feature work, this file must be updated as part of the same change whenever behavior or architecture changes.
 
 For each meaningful feature, document the following at a high level:
 * What the feature does from a player perspective:
-  * How it is activated or used.
-  * How it behaves in normal and edge-case interactions.
-  * What outcomes matter to gameplay (for example, progression, drops, constraints, or failure states).
+    * How it is activated or used.
+    * How it behaves in normal and edge-case interactions.
+    * What outcomes matter to gameplay (for example, progression, drops, constraints, or failure states).
 * Core behavior model:
-  * Important state transitions and lifecycle events.
-  * Conditions under which behavior succeeds, fails, or changes mode.
-  * Any non-obvious edge cases that must remain stable.
+    * Important state transitions and lifecycle events.
+    * Conditions under which behavior succeeds, fails, or changes mode.
+    * Any non-obvious edge cases that must remain stable.
 * Interactions with other systems:
-  * Dependencies and touchpoints with existing gameplay or technical systems.
-  * Important assumptions that other features rely on.
-  * Expected behavior when multiple systems overlap.
+    * Dependencies and touchpoints with existing gameplay or technical systems.
+    * Important assumptions that other features rely on.
+    * Expected behavior when multiple systems overlap.
 * Data and asset implications:
-  * Whether behavior depends on code, datapack JSON, or generated assets.
+    * Whether behavior depends on code, datapack JSON, or generated assets.
 * Maintenance notes:
-  * Key invariants that should remain true after refactors.
-  * Known limitations or intentional tradeoffs.
+    * Key invariants that should remain true after refactors.
+    * Known limitations or intentional tradeoffs.
 
 Avoid writing low-level implementation details that are likely to churn quickly.
 Favor stable intent and invariants so future contributors understand what must be preserved.

@@ -27,6 +27,9 @@ public class RNSMixinPlugin implements IMixinConfigPlugin {
         if (mixinClassName.startsWith("com.bmaster.createrns.mixin.xaero") && !Mods.XAERO.isLoaded()) {
             return false;
         }
+        if (mixinClassName.startsWith("com.bmaster.createrns.mixin.simulated") && !Mods.SIMULATED.isLoaded()) {
+            return false;
+        }
         LOGGER.info("Create RNS: loaded mixin {}", mixinClassName);
         return true;
     }

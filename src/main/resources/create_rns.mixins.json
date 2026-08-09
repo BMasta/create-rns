@@ -5,7 +5,8 @@
   "plugin": "com.bmaster.createrns.mixin.RNSMixinPlugin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ChunkGeneratorMixin"
+    "ChunkGeneratorMixin",
+    "simulated.SimAssemblyContraptionMixin"
   ],
   "client": [
     "xaero.RNSXaeroFullscreenMapAccessor",

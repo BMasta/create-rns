@@ -84,6 +84,14 @@
 * Maintenance invariant: controller/part occupancy and facing derivation from placement position must stay consistent so assembly, rendering, and drops remain stable.
 * Known limitation: command/worldedit-style direct edits are allowed to partially damage mine head multiblocks; this is an accepted non-gameplay edge case.
 
+## Deposit Mobility
+* Player perspective: when `movableDeposits` is disabled, deposit blocks cannot be moved by pistons or assembled into Create or Create Aeronautics physics contraptions. Enabling it restores the movement behavior supplied by those systems.
+* Edge behavior: the setting is checked when movement or assembly is attempted; changing it does not forcibly disassemble a contraption that already contains a deposit block.
+* Core behavior: piston and Create movement use the deposit block's push reaction, while Create Aeronautics compatibility rejects deposits through Simulated's physics-assembly movement check.
+* System interaction: the optional physics hook loads only with the `simulated` mod bundled by Create Aeronautics and otherwise has no effect.
+* Data and assets: mobility is code- and server-config-driven; all blocks in `#create_rns:deposit_blocks`, including KubeJS-authored deposits, follow the same rule.
+* Maintenance invariant: optional movement integrations must consult `movableDeposits` and the shared deposit block tag so enabling movement remains a single global choice.
+
 ## Miner Resonance Attachments (Contraption Composition and Mining Footprint)
 * Player perspective: resonance attachments are added by placing resonators and resonance buffers on the miner contraption.
 * Player perspective: resonators are face-attached components that can be placed on floor, wall, or ceiling surfaces.
