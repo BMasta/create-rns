@@ -30,8 +30,10 @@ All of the above can be tweaked with KubeJS (or a plain datapack).
 
 ## How do I tweak?
 Please refer to your version of the mod:
-#### [1.1.x (latest) - Minecraft 1.21.1](https://github.com/BMasta/create-rns/blob/1.21-1.1.x/docs/datapack.md)
-#### [1.1.x (latest) - Minecraft 1.20.1](https://github.com/BMasta/create-rns/blob/1.20-1.1.x/docs/datapack.md)
+#### [1.2.x (latest) - Minecraft 1.21.1](https://github.com/BMasta/create-rns/blob/1.21-1.2.x/docs/README.md)
+#### [1.2.x (latest) - Minecraft 1.20.1](https://github.com/BMasta/create-rns/blob/1.20-1.2.x/docs/README.md)
+#### [1.1.x - Minecraft 1.21.1](https://github.com/BMasta/create-rns/blob/1.21-1.1.x/docs/datapack.md)
+#### [1.1.x - Minecraft 1.20.1](https://github.com/BMasta/create-rns/blob/1.20-1.1.x/docs/datapack.md)
 #### [1.0.x - Minecraft 1.21.1](https://github.com/BMasta/create-rns/blob/1.21-1.0.x/docs/datapack.md)
 #### [1.0.x - Minecraft 1.20.1](https://github.com/BMasta/create-rns/blob/1.20-1.0.x/docs/datapack.md)
 
