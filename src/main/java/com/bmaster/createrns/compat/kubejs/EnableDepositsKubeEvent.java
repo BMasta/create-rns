@@ -56,6 +56,6 @@ public class EnableDepositsKubeEvent extends StartupEventJS {
         return overworld != null || nether != null;
     }
 
-    public record AvailableStructure(ResourceLocation id, @Nullable Integer weight, boolean builtIn) {
+    public record AvailableStructure(ResourceLocation id, @Nullable Integer weight, boolean builtIn, boolean valid) {
     }
 }

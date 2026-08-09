@@ -11,8 +11,11 @@ import com.google.gson.JsonPrimitive;
 import dev.latvian.mods.kubejs.client.LangEventJS;
 import dev.latvian.mods.kubejs.generator.DataJsonGenerator;
 import dev.latvian.mods.kubejs.typings.Info;
+import dev.latvian.mods.kubejs.util.ConsoleJS;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Items;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -39,6 +42,7 @@ public class DepositStructureKubeBuilder {
     private boolean mapIconsInherited;
     private boolean templatesInherited;
     private boolean weightChanged;
+    private boolean invalid;
 
     public DepositStructureKubeBuilder(ResourceLocation id) {
         this.id = id;
@@ -111,6 +115,7 @@ public class DepositStructureKubeBuilder {
             Can be called multiple times to add more items as fallbacks in case the original item does not exist.
             """)
     public DepositStructureKubeBuilder scannerIcon(String candidateId) {
+        validateItemCandidate(candidateId);
         if (scannerIconsInherited) {
             scannerIconCandidates.clear();
             scannerIconsInherited = false;
@@ -157,6 +162,7 @@ public class DepositStructureKubeBuilder {
             Can be called multiple times to add more items as fallbacks in case the original item does not exist.
             """)
     public DepositStructureKubeBuilder mapIcon(String candidateId) {
+        validateItemCandidate(candidateId);
         if (mapIconsInherited) {
             mapIconCandidates.clear();
             mapIconsInherited = false;
@@ -203,6 +209,7 @@ public class DepositStructureKubeBuilder {
     }
 
     void generateData(DataJsonGenerator generator, boolean scannable) {
+        if (invalid) return;
         validate();
         generator.json(depositSpecPath(), depositSpecJson(scannable));
         generator.json(processorPath(), processorJson());
@@ -210,6 +217,7 @@ public class DepositStructureKubeBuilder {
     }
 
     void generateLang(LangEventJS lang) {
+        if (invalid) return;
         validate();
         if (displayName != null) {
             lang.add(id.getNamespace(), structureLangKey(), displayName);
@@ -243,6 +251,19 @@ public class DepositStructureKubeBuilder {
 
     boolean isTweak() {
         return builtInSpec != null;
+    }
+
+    boolean isInvalid() {
+        return invalid;
+    }
+
+    boolean validateForKubeJS() {
+        var error = validationError(true);
+        if (error == null) return true;
+
+        invalid = true;
+        ConsoleJS.STARTUP.error(error);
+        return false;
     }
 
     ResourceLocation blockId() {
@@ -289,17 +310,26 @@ public class DepositStructureKubeBuilder {
     }
 
     private void validate() {
-        if (blockId == null) {
-            throw new IllegalStateException("Deposit structure " + id + " must specify a deposit block");
-        }
+        var error = validationError(false);
+        if (error != null) throw new IllegalStateException(error);
+    }
 
+    private @Nullable String validationError(boolean validateItems) {
+        if (blockId == null) return "Deposit structure " + id + " must specify a deposit block";
         if (scannerIconCandidates.isEmpty()) {
-            throw new IllegalStateException("Deposit structure " + id + " must specify at least one scanner icon");
+            return "Deposit structure " + id + " must specify at least one scanner icon";
         }
-
+        if (validateItems && !hasResolvableItem(scannerIconCandidates)) {
+            return "None of the scanner icon items exist for deposit structure " + id + ": "
+                    + scannerIconCandidates;
+        }
         if (weightedTemplates.isEmpty()) {
-            throw new IllegalStateException("Deposit structure " + id + " must specify at least one nbt template");
+            return "Deposit structure " + id + " must specify at least one nbt template";
         }
+        if (validateItems && !mapIconCandidates.isEmpty() && !hasResolvableItem(mapIconCandidates)) {
+            return "None of the map icon items exist for deposit structure " + id + ": " + mapIconCandidates;
+        }
+        return null;
     }
 
     private JsonObject depositSpecJson(boolean scannable) {
@@ -399,6 +429,25 @@ public class DepositStructureKubeBuilder {
             array.add(value);
         }
         return array;
+    }
+
+    private static void validateItemCandidate(String candidateId) {
+        if (candidateId.isBlank()) throw new IllegalArgumentException("Item or item tag id cannot be blank");
+
+        var id = candidateId.startsWith("#") ? candidateId.substring(1) : candidateId;
+        if (id.isBlank() || ResourceLocation.tryParse(id) == null) {
+            throw new IllegalArgumentException("Invalid item or item tag id: " + candidateId);
+        }
+    }
+
+    private static boolean hasResolvableItem(List<String> candidateIds) {
+        for (var candidateId : candidateIds) {
+            if (candidateId.startsWith("#")) return true;
+
+            var item = ForgeRegistries.ITEMS.getValue(ResourceLocation.parse(candidateId));
+            if (item != null && item != Items.AIR) return true;
+        }
+        return false;
     }
 
     private record WeightedTemplate(ResourceLocation template, int weight) {

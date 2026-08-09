@@ -75,6 +75,11 @@ public class DepositStructuresKubeEvent extends StartupEventJS {
         return List.copyOf(tweaked);
     }
 
+    void validateForKubeJS() {
+        created.forEach(DepositStructureKubeBuilder::validateForKubeJS);
+        tweaked.forEach(DepositStructureKubeBuilder::validateForKubeJS);
+    }
+
     private static @Nullable DepositStructureBuilder.ConfiguredEntry findBuiltInStructure(
             ResourceLocation structureId
     ) {

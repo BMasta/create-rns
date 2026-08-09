@@ -9,6 +9,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
@@ -37,6 +38,15 @@ public class DepositStructureBuilder {
             DepositDimension.NETHER, 4, 35, OVERWORLD_UNCOMMON.weightedTemplates());
     public static final Preset NETHER_RARE = new Preset(
             DepositDimension.NETHER, 4, 20, OVERWORLD_RARE.weightedTemplates());
+
+    private static final Map<String, Preset> PRESETS = Map.of(
+            "overworld_common", OVERWORLD_COMMON,
+            "overworld_uncommon", OVERWORLD_UNCOMMON,
+            "overworld_rare", OVERWORLD_RARE,
+            "nether_common", NETHER_COMMON,
+            "nether_uncommon", NETHER_UNCOMMON,
+            "nether_rare", NETHER_RARE
+    );
 
     private static final List<ConfiguredEntry> DEPOSITS = new ArrayList<>();
 
@@ -70,15 +80,11 @@ public class DepositStructureBuilder {
     }
 
     public static Preset getPreset(String presetId) {
-        return switch (presetId) {
-            case "overworld_common" -> OVERWORLD_COMMON;
-            case "overworld_uncommon" -> OVERWORLD_UNCOMMON;
-            case "overworld_rare" -> OVERWORLD_RARE;
-            case "nether_common" -> NETHER_COMMON;
-            case "nether_uncommon" -> NETHER_UNCOMMON;
-            case "nether_rare" -> NETHER_RARE;
-            default -> throw new IllegalArgumentException("Unknown deposit preset: " + presetId);
-        };
+        var preset = PRESETS.get(presetId);
+        if (preset != null) return preset;
+
+        throw new IllegalArgumentException("Unknown deposit preset: " + presetId + "\n" +
+                "Available presets: " + String.join(", ", PRESETS.keySet()));
     }
 
     private final DepositBuildingContext ctx;

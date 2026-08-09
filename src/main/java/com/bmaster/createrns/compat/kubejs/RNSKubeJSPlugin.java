@@ -58,13 +58,16 @@ public class RNSKubeJSPlugin extends KubeJSPlugin {
 
     @Override
     public void generateDataJsons(DataJsonGenerator generator) {
-        RNSKubeJSAssembler.resetDepositSelectionCache();
         RNSKubeJSAssembler.fromCurrentEvents().generateData(generator);
     }
 
     @Override
     public void generateLang(LangEventJS event) {
-        RNSKubeJSAssembler.resetDepositSelectionCache();
         RNSKubeJSAssembler.fromCurrentEvents().generateLang(event);
+    }
+
+    @Override
+    public void clearCaches() {
+        RNSKubeJSAssembler.resetCaches();
     }
 }

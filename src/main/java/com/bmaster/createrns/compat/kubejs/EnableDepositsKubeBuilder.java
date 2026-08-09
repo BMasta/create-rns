@@ -63,6 +63,7 @@ public class EnableDepositsKubeBuilder {
         if (structure == null) {
             throw new IllegalArgumentException("Unknown deposit structure: " + structureId);
         }
+        if (!structure.valid()) return this;
 
         var selected = new SelectedStructure(structure, weight, enableWorldgen);
         if (selectedStructures.putIfAbsent(id, selected) != null) {

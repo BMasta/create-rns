@@ -29,10 +29,12 @@ import java.util.stream.Collectors;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class RNSKubeJSAssembler {
+    private static final Object CURRENT_ASSEMBLER_LOCK = new Object();
     private static final Object DEPOSIT_SELECTION_LOCK = new Object();
     private static final Set<ResourceLocation> DEFAULT_ENABLED_DEPOSIT_BLOCKS =
             Set.of(new DepositBuildingContext("depleted").depositBlockId());
 
+    private static @Nullable RNSKubeJSAssembler cachedCurrentAssembler;
     private static @Nullable DepositSelectionState cachedDepositSelection;
 
     private final Supplier<List<CatalystKubeBuilder>> customCatalysts;
@@ -65,14 +67,22 @@ public class RNSKubeJSAssembler {
     }
 
     public static RNSKubeJSAssembler fromCurrentEvents() {
-        var customCatalystEvent = currentCatalystEvent();
-        var customStructureEvent = currentDepositStructureEvent();
-        var structureSetEvent = currentStructureSetEvent(customStructureEvent);
-        return new RNSKubeJSAssembler(customCatalystEvent::created, customStructureEvent::created,
-                customStructureEvent::tweaked, structureSetEvent);
+        synchronized (CURRENT_ASSEMBLER_LOCK) {
+            if (cachedCurrentAssembler == null) {
+                var customCatalystEvent = currentCatalystEvent();
+                var customStructureEvent = currentDepositStructureEvent();
+                var structureSetEvent = currentStructureSetEvent(customStructureEvent);
+                cachedCurrentAssembler = new RNSKubeJSAssembler(customCatalystEvent::created,
+                        customStructureEvent::created, customStructureEvent::tweaked, structureSetEvent);
+            }
+            return cachedCurrentAssembler;
+        }
     }
 
-    static void resetDepositSelectionCache() {
+    static void resetCaches() {
+        synchronized (CURRENT_ASSEMBLER_LOCK) {
+            cachedCurrentAssembler = null;
+        }
         synchronized (DEPOSIT_SELECTION_LOCK) {
             cachedDepositSelection = null;
         }
@@ -86,7 +96,9 @@ public class RNSKubeJSAssembler {
         generateMinerAttachmentTag(generator, customCatalysts);
 
         var allCustomStructures = List.copyOf(this.allCustomStructures.get());
-        var allTweakedStructures = List.copyOf(this.allTweakedStructures.get());
+        var allTweakedStructures = this.allTweakedStructures.get().stream()
+                .filter(structure -> !structure.isInvalid())
+                .toList();
         var customDepositStructures = customDepositStructuresById(allCustomStructures);
         var tweakedDepositStructures = tweakedDepositStructuresById(allTweakedStructures);
         var assignedDimensions = new HashMap<ResourceLocation, DepositDimension>();
@@ -195,11 +207,13 @@ public class RNSKubeJSAssembler {
             var structureId = DepositStructureBuilder.structureId(entry);
             var tweak = tweaksById.get(structureId);
             var weight = tweak != null ? tweak.structureSetWeight() : entry.structure().weight();
-            putAvailableStructure(structures, structureId, weight, true);
+            putAvailableStructure(structures, structureId, weight, true,
+                    tweak == null || !tweak.isInvalid());
         }
 
         for (var builder : depositStructures) {
-            putAvailableStructure(structures, builder.id(), builder.structureSetWeight(), false);
+            putAvailableStructure(structures, builder.id(), builder.structureSetWeight(), false,
+                    !builder.isInvalid());
         }
 
         return structures;
@@ -215,16 +229,13 @@ public class RNSKubeJSAssembler {
     }
 
     private static DepositSelectionState computeDepositSelection() {
-        if (!RNSStartupKubeEvents.RNS_ENABLE_DEPOSITS.hasListeners()) {
+        var assembler = fromCurrentEvents();
+        var structureSetEvent = assembler.structureSetEvent;
+        if (structureSetEvent == null) {
             return new DepositSelectionState(false, Set.of(), DEFAULT_ENABLED_DEPOSIT_BLOCKS);
         }
 
-        var customStructureEvent = currentDepositStructureEvent();
-        var customStructures = customStructureEvent.created();
-        var tweakedStructures = customStructureEvent.tweaked();
-        var structureSetEvent = new EnableDepositsKubeEvent(
-                () -> availableStructures(customStructures, tweakedStructures));
-        RNSStartupKubeEvents.RNS_ENABLE_DEPOSITS.post(structureSetEvent);
+        var customStructures = List.copyOf(assembler.allCustomStructures.get());
 
         if (!structureSetEvent.hasConfiguredDimensions()) {
             return new DepositSelectionState(false, Set.of(), DEFAULT_ENABLED_DEPOSIT_BLOCKS);
@@ -241,6 +252,7 @@ public class RNSKubeJSAssembler {
                         entry -> entry.structure().depositBlock(),
                         (first, second) -> first));
         var customDepositBlocks = customDepositStructuresById(customStructures).entrySet().stream()
+                .filter(entry -> !entry.getValue().isInvalid())
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().blockId()));
 
         for (var structureId : selectedStructureIds) {
@@ -357,10 +369,10 @@ public class RNSKubeJSAssembler {
 
     private static void putAvailableStructure(
             Map<ResourceLocation, EnableDepositsKubeEvent.AvailableStructure> structures,
-            ResourceLocation structureId, Integer weight, boolean builtIn
+            ResourceLocation structureId, Integer weight, boolean builtIn, boolean valid
     ) {
         var previous = structures.putIfAbsent(structureId,
-                new EnableDepositsKubeEvent.AvailableStructure(structureId, weight, builtIn));
+                new EnableDepositsKubeEvent.AvailableStructure(structureId, weight, builtIn, valid));
         if (previous != null) {
             throw new IllegalStateException("Duplicate deposit structure id registered for KubeJS structure set selection: "
                     + structureId);
@@ -517,6 +529,7 @@ public class RNSKubeJSAssembler {
         if (!RNSStartupKubeEvents.RNS_DEPOSIT_STRUCTURES.hasListeners()) return event;
 
         RNSStartupKubeEvents.RNS_DEPOSIT_STRUCTURES.post(event);
+        event.validateForKubeJS();
         return event;
     }
 
