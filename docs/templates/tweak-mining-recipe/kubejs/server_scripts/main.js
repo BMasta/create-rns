@@ -33,8 +33,6 @@ ServerEvents.recipes(event => {
       .catalyst('create_rns:overclock'))
     // Using the variable defined at the top.
     .yield(nuggetYield)
-    // Empty yields are ignored.
-    .yield()
     .yield(y => y
       .chance(0.05)
       .item('minecraft:raw_iron')
