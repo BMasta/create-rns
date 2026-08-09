@@ -3,7 +3,7 @@ StartupEvents.rnsCatalysts(event => {
     .displayName('Superheated Overclock')
     // A JEI tab with your description will be generated for the representative item.
     .representativeItem('minecraft:lava_bucket')
-    .description('Consumes lava and requires extra resonators before the yield can roll.')
+    .description('Achieved by attaching 6 netherite blocks and supplying the mining contraption with lava.')
     // Multiply the chance of rolling a successful yield by 1.5.
     .chanceMultiplier(1.5)
     // An optional catalyst will only influence the chance of getting a yield.

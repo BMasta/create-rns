@@ -10,7 +10,8 @@ ServerEvents.recipes(event => {
   event.recipes.create_rns.mining()
     // Deposit block to which this recipe applies. Must be a single block.
     .block('mymod:netherite_deposit')
-    // Recipe only works in overworld if omitted.
+    // If there is only one recipe for a deposit block, it works in any dimension.
+    // Use this to create multiple dimension-specific recipes.
     .nether()
     .replaceWhenDepleted('create_rns:depleted_deposit_block')
     // Applicable only if finite deposits are enabled in server config.
@@ -36,8 +37,6 @@ ServerEvents.recipes(event => {
         .catalyst('create_rns:faint_resonance')
         .catalyst('create_rns:overclock')
         .jeiSlotColor("#968CB3"))
-    // Empty yields are ignored
-    .yield()
     // Compat items are allowed to reference non-existent item ids without invalidating the recipe.
     .yield(y => y
         .chance(5.0e-4)

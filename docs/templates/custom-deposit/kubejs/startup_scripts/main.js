@@ -20,17 +20,19 @@ StartupEvents.rnsDepositStructures(event => {
 })
 
 StartupEvents.rnsEnableDeposits(event => {
-  // Configure overworld deposits
   event.overworld()
-    // Enables scanning and worldgen
-    .deposit('create_rns:deposit_iron')
-    // Also configures the weight (if previously set in the deposit itself, overrides that value)
-    .deposit('create_rns:deposit_copper', 20)
-    // Enables scanning, but not worldgen
-    .deposit('create_rns:deposit_zinc', false)
-    .deposit('create_rns:deposit_gold', 10, false)
-    // Omitted deposits will not be scannable and will not generate in the world
-    // ...
+    // Keep the deposits you want. Setting the second argument to false will disable worldgen, but keep the deposit enabled.
+    .deposit('create_rns:deposit_iron', true)
+    .deposit('create_rns:deposit_copper', true)
+    .deposit('create_rns:deposit_zinc', true)
+    .deposit('create_rns:deposit_gold', true)
+    .deposit('create_rns:deposit_redstone', true)
+    .deposit('create_rns:deposit_tin', true)
+    .deposit('create_rns:deposit_lead', true)
+    .deposit('create_rns:deposit_nickel', true)
+    .deposit('create_rns:deposit_silver', true)
+    .deposit('create_rns:deposit_uranium', true)
+    .deposit('create_rns:deposit_thorium', true)
     // Average distance between deposits in chunks
     .spacing(24)
     // Minimum distance between deposits in chunks
@@ -38,7 +40,8 @@ StartupEvents.rnsEnableDeposits(event => {
 
   event.nether()
     .deposit('create_rns:deposit_nether_gold', true)
-    .deposit('create_rns:deposit_nether_quartz', false)
+    .deposit('create_rns:deposit_nether_quartz', true)
+    .deposit('create_rns:deposit_nether_cobalt', true)
     .deposit('mymod:deposit_netherite', true)
     .spacing(8)
     .separation(2)

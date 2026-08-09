@@ -79,7 +79,7 @@ Usage:
 
 ### `yield(callback)`
 Adds one yield entry to the recipe. Can be called multiple times to add more yields.
-Empty yields are ignored. Each yield is independent of other yields.
+Each yield is independent of other yields.
 
 * `callback`: function that receives a yield builder
 
@@ -377,7 +377,7 @@ The exact values depend on the selected preset. For reference:
 * uncommon - lead, nickel
 * rare - redstone, zinc
 
-The preset name identifies the intended dimension defaults, but does not assign the structure to that dimension.
+***IMPORTANT!*** The preset name identifies the intended dimension defaults, but does not assign the structure to that dimension.
 Dimension is assigned when the structure is selected through `event.overworld()` or `event.nether()` in
 `StartupEvents.rnsEnableDeposits`.
 
@@ -442,10 +442,9 @@ Expands to:
 ## Configure deposit generation and visibility
 Create: Rock & Stone adds a custom deposit-enablement event `StartupEvents.rnsEnableDeposits`.
 
-***IMPORTANT!*** Calling either `event.overworld()` or `event.nether()` puts Create: Rock & Stone into KubeJS-managed deposit mode.
-Only the structures selected through these builders stay scannable, only built-in deposit blocks that correspond to them stay visible in the mod's creative tab,
-and only built-in mining recipes for those deposit blocks (plus the depleted deposit block) stay enabled.
-This applies to default deposits as well. Only the dimensions whose builders are called are overridden; omitted dimensions keep their built-in default deposit selection.
+***IMPORTANT!*** Calling either `event.overworld()` or `event.nether()` overrides the default deposit configuration.
+Only the deposits selected through these builders stay enabled.
+For default deposits it also controls if the respective deposit block will be added to the creative menu.
 
 Default deposits (including compat) can be found [here](../src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure).
 
