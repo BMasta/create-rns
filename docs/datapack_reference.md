@@ -1,6 +1,4 @@
-# Datapack Reference - UNRELEASED
-## THIS DOCUMENT IS FOR AN UNRELEASED VERSION OF THE MOD
-## GO TO THE MAIN PAGE AND SELECT THE RIGHT VERSION
+# Datapack Reference - 1.2.x - MC 1.20.1
 
 ## Mining Recipe
 

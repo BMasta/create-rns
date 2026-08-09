@@ -1,6 +1,4 @@
-# KubeJS Reference - UNRELEASED
-## THIS DOCUMENT IS FOR AN UNRELEASED VERSION OF THE MOD
-## GO TO THE MAIN PAGE AND SELECT THE RIGHT VERSION
+# KubeJS Reference - 1.2.x - MC 1.20.1
 
 ## Notes
 * This page only covers the custom KubeJS API added by Create: Rock & Stone.
