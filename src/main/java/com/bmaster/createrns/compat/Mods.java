@@ -5,6 +5,7 @@ import net.neoforged.fml.loading.LoadingModList;
 
 public enum Mods {
     KUBEJS("kubejs"),
+    SABLE("sable"),
     SIMULATED("simulated"),
     EMI("emi"),
     NEW_AGE("create_new_age"),

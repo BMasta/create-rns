@@ -83,7 +83,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
 
     @Override
     public void collect() {
-        if ((process == null && !tryInitProcess(false)) ||
+        if (!tryInitProcess() ||
                 (equipment == null && !refreshEquipment())) return;
         var spoils = process.collect();
         boolean collected = false;
@@ -112,11 +112,9 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
         collect();
 
         // Release claimed blocks and reset equipment, spec, and process
-        claimedDepositBlocks = null;
+        clearOperatingSelection();
         equipment = null;
         spec = null;
-        if (process != null) process.uninitialize();
-        process = null;
 
         var ce = bearing.getMovedContraption();
         if (ce != null && bearing.isRunning()) {
@@ -124,7 +122,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
             claimDepositBlocks();
 
             // Other claimers in the area get what is left
-            var area = getClaimingBoundingBox();
+            var area = getOperatingBoundingBox();
             var level = getLevel();
             assert level != null;
             if (area != null) IDepositBlockClaimer.reclaimArea(level, area, getClaimerType());
@@ -134,13 +132,14 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     @Override
     public void read(CompoundTag nbt, HolderLookup.Provider provider, boolean clientPacket) {
         if (clientPacket) {
-            var level = getLevel();
-            if (level != null && level.isClientSide && effects != null) effects.refresh();
             refreshEquipment();
-            tryInitSpec();
+            refreshSpec();
         }
 
         super.read(nbt, provider, clientPacket);
+
+        var level = getLevel();
+        if (clientPacket && level != null && level.isClientSide && effects != null) effects.refresh();
     }
 
     protected boolean refreshEquipment() {
@@ -166,22 +165,21 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     }
 
     @Override
-    protected boolean tryInitProcess(boolean refresh) {
-        boolean needsInit = process == null || refresh;
-        boolean initialized = super.tryInitProcess(refresh);
+    protected boolean tryReInitProcess() {
+        boolean initialized = super.tryReInitProcess();
         var level = getLevel();
-        if (level != null && level.isClientSide && needsInit && initialized) effects.refresh();
+        if (level != null && level.isClientSide && initialized && effects != null) effects.refresh();
         return initialized;
     }
 
     @Override
-    protected boolean tryInitSpec() {
+    protected boolean refreshSpec() {
         if (!bearing.isRunning() || (equipment == null && !refreshEquipment())) {
             spec = null;
             return false;
         }
         int radius = Math.max(0, ServerConfig.MINING_RADIUS.get() + equipment.mineHeadSize.radiusBonus);
-        var area = new ClaimingArea(radius, ServerConfig.MINING_DEPTH.get());
+        var area = new OperatingDimensions(radius, ServerConfig.MINING_DEPTH.get());
         spec = new MinerSpec(area, ServerConfig.MINING_SPEED.get());
 
         return true;

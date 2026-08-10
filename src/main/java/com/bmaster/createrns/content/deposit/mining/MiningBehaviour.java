@@ -3,13 +3,13 @@ package com.bmaster.createrns.content.deposit.mining;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
-import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
+import com.bmaster.createrns.content.deposit.operating.HybridOperatingBehaviour;
+import com.bmaster.createrns.content.deposit.operating.IDepositBlockOperator;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
-import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -18,40 +18,35 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Tuple;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public abstract class MiningBehaviour extends BlockEntityBehaviour implements IDepositBlockClaimer {
+public abstract class MiningBehaviour extends HybridOperatingBehaviour {
     public static final BehaviourType<MiningBehaviour> BEHAVIOUR_TYPE = new BehaviourType<>(CreateRNS.ID + ":mining");
     public static final ClaimerType CLAIMER_TYPE = new ClaimerType(CreateRNS.ID + ":mining");
 
     protected final KineticBlockEntity kBE;
-    protected final Supplier<Direction> claimingDirection;
-    protected @Nullable Set<BlockPos> claimedDepositBlocks = null;
     protected @Nullable MinerSpec spec = null;
     protected @Nullable MiningProcess process = null;
 
-    // Used by client to defer process sync until it is initialized
-    protected Tuple<CompoundTag, Boolean> pendingProcessTag = null;
+    // Defers disk or client process state until the process can be initialized.
+    protected @Nullable Tuple<CompoundTag, Boolean> pendingProcessTag = null;
 
     private int recipeVersion = 0;
 
-    public MiningBehaviour(KineticBlockEntity be, Supplier<Direction> claimingDirection) {
-        super(be);
+    public MiningBehaviour(KineticBlockEntity be, Supplier<Direction> operatingDirection) {
+        super(be, operatingDirection);
         this.kBE = be;
-        this.claimingDirection = claimingDirection;
     }
 
     public abstract void collect();
 
-    protected abstract boolean tryInitSpec();
+    protected abstract boolean refreshSpec();
 
     @Override
     public void initialize() {
@@ -64,6 +59,8 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
 
     @Override
     public void tick() {
+        super.tick();
+
         var level = getLevel();
         if (level == null) return;
 
@@ -71,11 +68,11 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
         int latestRecipeVersion = MiningRecipeLookup.version(level.isClientSide);
         if (recipeVersion != latestRecipeVersion) {
             recipeVersion = latestRecipeVersion;
-            process = null;
+            unInitProcess();
             claimDepositBlocks();
         }
 
-        if (level.isClientSide || (process == null && !tryInitProcess(false)) || !isMining()) return;
+        if (!tryInitProcess() || level.isClientSide || !isMining()) return;
 
         process.advance(getCurrentProgressIncrement());
         collect();
@@ -100,8 +97,8 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
     @Override
     public void write(CompoundTag nbt, HolderLookup.Provider provider, boolean clientPacket) {
         super.write(nbt, provider, clientPacket);
-        nbt.put("claimer", serializeDepositBlockClaimer(provider));
-        if (process != null || tryInitProcess(false)) {
+
+        if (tryInitProcess()) {
             var processNBT = process.write(provider, clientPacket);
             if (processNBT != null) nbt.put("process", processNBT);
         }
@@ -111,35 +108,43 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
     public void read(CompoundTag nbt, HolderLookup.Provider provider, boolean clientPacket) {
         super.read(nbt, provider, clientPacket);
 
-        if (nbt.get("claimer") instanceof CompoundTag claimerTag) {
-            deserializeDepositBlockClaimer(provider, claimerTag);
-        }
-
+        pendingProcessTag = null;
         if (nbt.contains("process")) {
-            var processTag = nbt.getCompound("process");
-            if (process != null) process.read(processTag, provider, clientPacket);
-            else pendingProcessTag = new Tuple<>(processTag, clientPacket);
+            pendingProcessTag = new Tuple<>(nbt.getCompound("process"), clientPacket);
+            unInitProcess();
         }
     }
 
     public boolean isMining() {
-        if ((process == null && !tryInitProcess(false))) return false;
+        if (!tryInitProcess()) return false;
         return process.isPossible() && kBE.isSpeedRequirementFulfilled();
     }
 
     public @Nullable MinerSpec getSpec() {
-        if (spec == null && !tryInitSpec()) return null;
+        if (spec == null && !refreshSpec()) return null;
         return spec;
     }
 
     public @Nullable MiningProcess getProcess() {
-        if (process == null && !tryInitProcess(false)) return null;
+        if (!tryInitProcess()) return null;
         return process;
     }
 
     @Override
-    public ClaimingMode getClaimingMode() {
-        return ClaimingMode.EXCLUSIVE;
+    protected boolean isDepositBlockOperable(BlockPos pos) {
+        var level = getLevel();
+        if (level == null || level.isClientSide || (spec == null && !refreshSpec())) return false;
+        var catalysts = getCatalysts();
+        if (catalysts == null) return false;
+
+        return MiningRecipeLookup.isDepositMineable(level, level.getBlockState(pos).getBlock(), catalysts);
+    }
+
+    @Override
+    public @Nullable IDepositBlockOperator.OperatingDimensions getOperatingDimensions() {
+        var spec = getSpec();
+        if (spec == null) return null;
+        return spec.miningDimensions();
     }
 
     @Override
@@ -148,76 +153,17 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
     }
 
     @Override
-    public BlockPos getBlockPos() {
-        return getPos();
-    }
-
-    @Override
-    public Direction getClaimingDirection() {
-        return claimingDirection.get();
-    }
-
-    @Override
-    public @Nullable ClaimingArea getClaimingArea() {
-        var spec = getSpec();
-        if (spec == null) return null;
-        return spec.miningArea();
-    }
-
-    @Override
-    public @Nullable Level getLevel() {
-        return kBE.getLevel();
-    }
-
-    @Override
-    public @Nullable Set<BlockPos> getClaimedDepositBlocks() {
-        return claimedDepositBlocks;
-    }
-
-    @Override
-    public void setClaimedDepositBlocks(@Nullable Set<BlockPos> claimedBlocks) {
-        claimedDepositBlocks = claimedBlocks;
-
-        // Recompute mining process based on claimed mining area
-        tryInitProcess(true);
-
+    protected void onOperatingSelectionChanged() {
+        unInitProcess();
         var level = getLevel();
-        if (level != null && !level.isClientSide) {
-            kBE.notifyUpdate();
-        }
-
-        var pos = getPos();
-        CreateRNS.LOGGER.trace("Synced area of miner at {}, {}, {}", pos.getX(), pos.getY(), pos.getZ());
-    }
-
-    @Override
-    public void claimDepositBlocks() {
-        var level = getLevel();
-        if (level == null || level.isClientSide || (spec == null & !tryInitSpec())) return;
-        var catalysts = getCatalysts();
-        if (catalysts == null) return;
-
-        claimedDepositBlocks = getClaimableDepositVein(level).stream()
-                .filter(pos -> MiningRecipeLookup.isDepositMineable(level, level.getBlockState(pos).getBlock(), catalysts))
-                .collect(Collectors.toSet());
-
-        // Recompute mining process based on claimed mining area
-        tryInitProcess(true);
-
-        // Initialize deposit durabilities as needed
-        for (var bp : claimedDepositBlocks) {
+        if (level == null || level.isClientSide || operatingSelection == null) return;
+        for (var bp : operatingSelection.positions) {
             DepositDurabilityManager.initDepositVeinDurability((ServerLevel) level, bp);
         }
-
-        var pos = getPos();
-        CreateRNS.LOGGER.trace("Miner at {}, {}, {} claimed {} deposit blocks", pos.getX(), pos.getY(), pos.getZ(),
-                claimedDepositBlocks.size());
-
-        kBE.notifyUpdate();
     }
 
     public int getCurrentProgressIncrement() {
-        if (spec == null || !tryInitSpec()) return 0;
+        if (spec == null || !refreshSpec()) return 0;
         return (int) (spec.miningSpeed * Math.abs(kBE.getSpeed()));
     }
 
@@ -225,19 +171,24 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
         return new ObjectOpenHashSet<>();
     }
 
-    protected boolean tryInitProcess(boolean refresh) {
-        if (process != null && !refresh) return true;
+    protected boolean tryInitProcess() {
+        if (process != null) return true;
+        return tryReInitProcess();
+    }
+
+    protected boolean tryReInitProcess() {
+        unInitProcess();
         var level = getLevel();
-        if (level == null || (spec == null && !tryInitSpec()) || claimedDepositBlocks == null) return false;
-        for (var bp : claimedDepositBlocks) {
+        if (level == null || (spec == null && !refreshSpec()) || !tryInitOperatingSelection()) return false;
+        for (var bp : operatingSelection.positions) {
             if (!level.isLoaded(bp)) return false;
         }
         var catalysts = getCatalysts();
         if (catalysts == null) return false;
 
-        process = new MiningProcess(level, catalysts, claimedDepositBlocks);
+        process = new MiningProcess(level, catalysts, operatingSelection.positions);
 
-        // If we got mining progress data from NBT, now is the time to set it
+        // Deserialize process state from the pending tag
         if (pendingProcessTag != null) {
             process.read(pendingProcessTag.getA(), level.registryAccess(), pendingProcessTag.getB());
             pendingProcessTag = null;
@@ -246,5 +197,11 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
         return true;
     }
 
-    public record MinerSpec(ClaimingArea miningArea, double miningSpeed) {}
+    protected void unInitProcess() {
+        if (process != null) process.uninitialize();
+        process = null;
+    }
+
+    public record MinerSpec(OperatingDimensions miningDimensions, double miningSpeed) {}
+
 }

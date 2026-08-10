@@ -1,6 +1,7 @@
 package com.bmaster.createrns.serialization;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.content.deposit.operating.IDepositBlockOperator;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.mojang.math.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -68,11 +69,6 @@ public class DepositBlockClaimerSerialization {
         }
 
         @Override
-        public ClaimingMode getClaimingMode() {
-            return ClaimingMode.EXCLUSIVE;
-        }
-
-        @Override
         public ClaimerType getClaimerType() {
             return CLAIMER_TYPE;
         }
@@ -88,7 +84,7 @@ public class DepositBlockClaimerSerialization {
         }
 
         @Override
-        public @Nullable ClaimingArea getClaimingArea() {
+        public @Nullable IDepositBlockOperator.OperatingDimensions getOperatingDimensions() {
             return null;
         }
 
@@ -98,7 +94,7 @@ public class DepositBlockClaimerSerialization {
         }
 
         @Override
-        public Direction getClaimingDirection() {
+        public Direction getOperatingDirection() {
             return Direction.DOWN;
         }
 

@@ -113,8 +113,9 @@ public class MinerEffectsGenerator {
         var MineHeadFacing = be.getBlockState().getValue(MinerBearingBlock.FACING);
         var selectedParticle = particleOptions.get(r.nextInt(0, particleOptions.size()));
 
-        assert be.miningBehaviour.claimedDepositBlocks != null;
-        float mult = Math.min(1f, be.miningBehaviour.claimedDepositBlocks.size() / 75f);
+        var selection = be.miningBehaviour.getOperatingSelection();
+        if (selection == null) return;
+        float mult = Math.min(1f, selection.positions.size() / 75f);
 
         for (int i = 0; i < Math.round(1 + mult * 5); i++) {
             level.addParticle(selectedParticle,
@@ -143,9 +144,12 @@ public class MinerEffectsGenerator {
     }
 
     protected void refreshParticles() {
-        var claimedBlocks = be.miningBehaviour.getClaimedDepositBlocks();
-        if (claimedBlocks == null) return;
-        particleOptions = claimedBlocks.stream()
+        var selection = be.miningBehaviour.getOperatingSelection();
+        if (selection == null) {
+            particleOptions = List.of();
+            return;
+        }
+        particleOptions = selection.positions.stream()
                 .map(bp -> new BlockParticleOption(ParticleTypes.BLOCK, level.getBlockState(bp)))
                 .toList();
     }

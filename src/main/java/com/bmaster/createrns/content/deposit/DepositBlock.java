@@ -125,7 +125,8 @@ public class DepositBlock extends Block {
     }
 
     private void updateNearbyClaimers(Level level, BlockPos pos) {
-        var nearbyClaimers = DepositClaimerInstanceHolder.getInstancesThatCanClaim(level, pos, MiningBehaviour.CLAIMER_TYPE);
+        var nearbyClaimers = DepositClaimerInstanceHolder.getInstancesThatCanClaim(
+                level, pos, MiningBehaviour.CLAIMER_TYPE);
         for (var c : nearbyClaimers) {
             c.claimDepositBlocks();
             var cAnchor = c.getAnchor();

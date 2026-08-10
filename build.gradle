@@ -138,6 +138,7 @@ neoForge.addModdingDependenciesTo(gameTestSourceSet)
 // "optional", meaning it will not be pulled by dependents of this mod.
 configurations {
     runtimeClasspath.extendsFrom localRuntime
+    sableCompileContainer
     named(gameTestSourceSet.implementationConfigurationName) {
         extendsFrom implementation
     }
@@ -149,14 +150,33 @@ configurations {
     }
 }
 
+def sableCompanionJarName = "sable-companion-common.jar"
+def sableCompanionApiDir = layout.buildDirectory.dir("generated/sableCompanionApi")
+def sableCompanionApiJar = sableCompanionApiDir.map { it.file(sableCompanionJarName) }
+def extractSableCompanionApi = tasks.register("extractSableCompanionApi", Sync) {
+    from({ zipTree(configurations.sableCompileContainer.singleFile) }) {
+        include "META-INF/jarjar/sable-companion-common-${minecraft_version}-*.jar"
+        eachFile { details ->
+            details.name = sableCompanionJarName
+            details.path = details.name
+        }
+        includeEmptyDirs = false
+    }
+    into sableCompanionApiDir
+    outputs.file sableCompanionApiJar
+}
+
 dependencies {
+    sableCompileContainer("maven.modrinth:sable:${sable_version}+mc1.21.1")
+
     compileOnly("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
     compileOnly("maven.modrinth:jade:${jade_version}+neoforge")
     compileOnly("info.journeymap:journeymap-api-neoforge:${journeymap_api_version}")
     compileOnly("xaero.map:xaeroworldmap-neoforge-${minecraft_version}:${xaero_worldmap_version}")
     compileOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}")
-    compileOnly("maven.modrinth:create-aeronautics:${create_aeronautics_version}")
-    compileOnly("maven.modrinth:sable:${sable_version}")
+    compileOnly("maven.modrinth:create-aeronautics:${create_aeronautics_version}+mc1.21.1")
+    compileOnly("maven.modrinth:sable:${sable_version}+mc1.21.1")
+    compileOnly(files(sableCompanionApiJar).builtBy(extractSableCompanionApi))
 
     implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
     implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
@@ -168,8 +188,8 @@ dependencies {
 //    localRuntime("dev.emi:emi-neoforge:${emi_version}+${minecraft_version}")
     localRuntime("maven.modrinth:jade:${jade_version}+neoforge")
     localRuntime("dev.latvian.mods:kubejs-neoforge:${kubejs_version}")
-    localRuntime("maven.modrinth:create-aeronautics:${create_aeronautics_version}")
-    localRuntime("maven.modrinth:sable:${sable_version}")
+    localRuntime("maven.modrinth:create-aeronautics:${create_aeronautics_version}+mc1.21.1")
+    localRuntime("maven.modrinth:sable:${sable_version}+mc1.21.1")
 //    localRuntime("maven.modrinth:7pCNymxz:${oei_version}") // One Enough Item
 //    localRuntime("maven.modrinth:7ODqOXka:${oelib_version}") // OELib
 
@@ -190,6 +210,7 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             emi_version            : emi_version,
             jade_version           : jade_version,
             kubejs_version         : kubejs_version,
+            sable_version          : sable_version,
             xaero_worldmap_version : xaero_worldmap_version,
             xaero_minimap_version  : xaero_minimap_version,
             journeymap_api_version : journeymap_api_version,

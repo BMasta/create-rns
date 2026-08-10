@@ -2,6 +2,7 @@ package com.bmaster.createrns.content.deposit.claiming;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer.ClaimerType;
+import com.bmaster.createrns.content.deposit.operating.space.OperatingSpaceAdapterHolder;
 import com.simibubi.create.AllItems;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.createmod.catnip.outliner.Outliner;
@@ -42,9 +43,11 @@ public class DepositClaimerOutlineRenderer {
     public static void addClaimer(IDepositBlockClaimer claimer) {
         if (!outlineActive) return;
         var p = Minecraft.getInstance().player;
+        var level = claimer.getLevel();
         var anchor = claimer.getAnchor();
         var claimedBlocks = claimer.getClaimedDepositBlocks();
-        if (p == null || anchor == null || claimedBlocks == null) return;
+        if (p == null || level == null || anchor == null || claimedBlocks == null) return;
+        if (!OperatingSpaceAdapterHolder.getAdapter().isSameSpace(p.level(), p.blockPosition(), level, anchor)) return;
         if (Math.sqrt(anchor.distManhattan(p.blockPosition())) > OUTLINE_MAX_DIST) return;
 
         if (selectedCluster.addAll(claimedBlocks)) outlineChanged = true;

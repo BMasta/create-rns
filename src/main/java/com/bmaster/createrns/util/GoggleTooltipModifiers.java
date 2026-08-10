@@ -31,8 +31,8 @@ public class GoggleTooltipModifiers {
         var mb = sbe.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
         if (mb == null) return false;
         var process = mb.getProcess();
-        var claimedBlocks = mb.getClaimedDepositBlocks();
-        if (process == null || claimedBlocks == null || claimedBlocks.isEmpty()) return false;
+        var selection = mb.getOperatingSelection();
+        if (process == null || selection == null || selection.positions.isEmpty()) return false;
 
         if (!c.isFirstSection()) {
             CreateRNS.lang().space().forGoggles(tooltip);
@@ -131,7 +131,7 @@ public class GoggleTooltipModifiers {
         }
 
         CreateRNS.lang()
-                .translate("mining.area", spec.miningArea().radius() * 2 + 1, spec.miningArea().length())
+                .translate("mining.area", spec.miningDimensions().radius() * 2 + 1, spec.miningDimensions().length())
                 .style(ChatFormatting.GRAY)
                 .forGoggles(tooltip);
 

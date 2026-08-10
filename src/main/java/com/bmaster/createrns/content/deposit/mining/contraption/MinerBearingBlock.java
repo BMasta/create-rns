@@ -43,7 +43,7 @@ public class MinerBearingBlock extends BearingBlock implements IBE<MinerBearingB
         if (!level.isClientSide && !state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof MinerBearingBlockEntity be) {
             var mb = be.getBehaviour(ContraptionMiningBehaviour.BEHAVIOUR_TYPE);
             type = mb.getClaimerType();
-            area = mb.getClaimingBoundingBox();
+            area = mb.getOperatingBoundingBox();
         }
 
         super.onRemove(state, level, pos, newState, movedByPiston);
