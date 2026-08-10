@@ -155,26 +155,26 @@ public class MinerClaimingCharacterizationGameTest {
             var replacementState = RNSDeposits.DEPLETED_DEPOSIT.getDefaultState();
 
             helper.setBlock(relativePos, depositState);
-            helper.assertTrue(DepositDurabilityManager.setDepositBlockDurability(level, absolutePos, 2),
+            helper.assertTrue(DepositDurabilityManager.set(level, absolutePos, 2),
                     "Finite durability should be stored");
 
             DepositDurabilityManager.useDepositBlock(level, absolutePos, replacementState);
             helper.assertValueEqual(level.getBlockState(absolutePos), depositState,
                     "deposit state after its first finite use");
-            helper.assertValueEqual(DepositDurabilityManager.getDepositBlockDurability(level, absolutePos, false), 1L,
+            helper.assertValueEqual(DepositDurabilityManager.get(level, absolutePos, false), 1L,
                     "durability after the first finite use");
 
             DepositDurabilityManager.useDepositBlock(level, absolutePos, replacementState);
             helper.assertValueEqual(level.getBlockState(absolutePos), replacementState,
                     "deposit state after its final finite use");
-            helper.assertValueEqual(DepositDurabilityManager.getDepositBlockDurability(level, absolutePos, false), -1L,
+            helper.assertValueEqual(DepositDurabilityManager.get(level, absolutePos, false), -1L,
                     "durability entry after depletion");
 
             helper.setBlock(relativePos, depositState);
-            helper.assertTrue(DepositDurabilityManager.setDepositBlockDurability(level, absolutePos, 3),
+            helper.assertTrue(DepositDurabilityManager.set(level, absolutePos, 3),
                     "Durability should be stored before normal removal");
             helper.setBlock(relativePos, Blocks.AIR.defaultBlockState());
-            helper.assertValueEqual(DepositDurabilityManager.getDepositBlockDurability(level, absolutePos, false), -1L,
+            helper.assertValueEqual(DepositDurabilityManager.get(level, absolutePos, false), -1L,
                     "durability entry after normal block removal");
         } finally {
             ServerConfig.INFINITE_DEPOSITS.set(previousInfiniteDeposits);

@@ -13,11 +13,12 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.OptionalLong;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class DepositDurabilityManager {
-    public static int initDepositVeinDurability(ServerLevel sl, BlockPos start) {
+    public static int initVein(ServerLevel sl, BlockPos start) {
         var dd = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
         if (ServerConfig.INFINITE_DEPOSITS.get()) return 0;
         if (dd.depositDurabilities.containsKey(start)) return 0;
@@ -47,27 +48,46 @@ public class DepositDurabilityManager {
     }
 
     /// Returns -1 if not initialized, 0 if infinite, actual durability otherwise.
-    public static long getDepositBlockDurability(ServerLevel sl, BlockPos dbPos, boolean initIfNeeded) {
+    public static long get(ServerLevel sl, BlockPos dbPos, boolean initIfNeeded) {
         var dd = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
         if (ServerConfig.INFINITE_DEPOSITS.get()) return 0;
-        if (initIfNeeded) initDepositVeinDurability(sl, dbPos);
+        if (initIfNeeded) initVein(sl, dbPos);
         if (!dd.depositDurabilities.containsKey(dbPos)) return -1;
         return dd.depositDurabilities.getLong(dbPos);
     }
 
     /// Returns 0 if infinite, actual durability otherwise.
-    public static long getDepositBlockDurability(ServerLevel sl, BlockPos dbPos) {
-        return getDepositBlockDurability(sl, dbPos, true);
+    public static long get(ServerLevel sl, BlockPos dbPos) {
+        return get(sl, dbPos, true);
     }
 
-    public static boolean setDepositBlockDurability(ServerLevel sl, BlockPos dbPos, long durability) {
+    public static boolean set(ServerLevel sl, BlockPos dbPos, long durability) {
         var dd = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
         if (ServerConfig.INFINITE_DEPOSITS.get()) return false;
         dd.depositDurabilities.put(dbPos, durability);
         return true;
     }
 
-    public static void removeDepositBlockDurability(ServerLevel sl, BlockPos dbPos) {
+    /// Returns the exact recorded durability value including the absence of one.
+    public static OptionalLong getRaw(ServerLevel sl, BlockPos dbPos) {
+        var dd = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
+        if (!dd.depositDurabilities.containsKey(dbPos)) return OptionalLong.empty();
+        return OptionalLong.of(dd.depositDurabilities.getLong(dbPos));
+    }
+
+    /// Sets the exact provided durability value including the absence of one.
+    /// Returns the value that was replaced at the destination.
+    public static OptionalLong setRaw(
+            ServerLevel sl, BlockPos dbPos, OptionalLong durability
+    ) {
+        var dd = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
+        var replaced = getRaw(sl, dbPos);
+        if (durability.isPresent()) dd.depositDurabilities.put(dbPos, durability.getAsLong());
+        else dd.depositDurabilities.removeLong(dbPos);
+        return replaced;
+    }
+
+    public static void remove(ServerLevel sl, BlockPos dbPos) {
         var dd = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
         dd.depositDurabilities.removeLong(dbPos);
     }
@@ -75,10 +95,10 @@ public class DepositDurabilityManager {
     public static void useDepositBlock(ServerLevel sl, BlockPos dbPos, BlockState replacementBlock) {
         if (ServerConfig.INFINITE_DEPOSITS.get()) return;
         var dd = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
-        initDepositVeinDurability(sl, dbPos); // No-op if already initialized
+        initVein(sl, dbPos); // No-op if already initialized
         var dur = dd.depositDurabilities.getLong(dbPos);
         if (dur == 1) {
-            removeDepositBlockDurability(sl, dbPos);
+            remove(sl, dbPos);
             sl.setBlockAndUpdate(dbPos, replacementBlock);
             CreateRNS.LOGGER.trace("Depleted deposit at {},{},{}", dbPos.getX(), dbPos.getY(), dbPos.getZ());
         } else if (dur > 1) {

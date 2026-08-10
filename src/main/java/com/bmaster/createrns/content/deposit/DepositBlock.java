@@ -119,7 +119,7 @@ public class DepositBlock extends Block {
         if (level.isClientSide) return;
         // Only non-depleted deposits have durability
         if (state.is(RNSBlockTags.DEPOSIT_BLOCKS)) {
-            DepositDurabilityManager.removeDepositBlockDurability((ServerLevel) level, pos);
+            DepositDurabilityManager.remove((ServerLevel) level, pos);
         }
         updateNearbyClaimers(level, pos);
     }

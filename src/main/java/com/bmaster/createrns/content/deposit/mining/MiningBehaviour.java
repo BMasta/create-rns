@@ -158,7 +158,7 @@ public abstract class MiningBehaviour extends HybridOperatingBehaviour {
         var level = getLevel();
         if (level == null || level.isClientSide || operatingSelection == null) return;
         for (var bp : operatingSelection.positions) {
-            DepositDurabilityManager.initDepositVeinDurability((ServerLevel) level, bp);
+            DepositDurabilityManager.initVein((ServerLevel) level, bp);
         }
     }
 

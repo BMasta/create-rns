@@ -280,7 +280,7 @@ public class MiningProcess {
             AtomicBoolean infinite = new AtomicBoolean(false);
             long totalDur = depositPositions.stream()
                     .map(bp -> {
-                        var dur = DepositDurabilityManager.getDepositBlockDurability((ServerLevel) level, bp);
+                        var dur = DepositDurabilityManager.get((ServerLevel) level, bp);
                         if (dur == 0) infinite.set(true);
                         return dur;
                     })

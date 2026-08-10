@@ -53,7 +53,7 @@ public class MiningProcessSerialization {
         var absoluteDepositPos = helper.absolutePos(DEPOSIT_POS);
 
         helper.setBlock(DEPOSIT_POS, RNSDeposits.IRON_DEPOSIT.get().defaultBlockState());
-        boolean durabilitySeeded = DepositDurabilityManager.setDepositBlockDurability(level, absoluteDepositPos, REMAINING_USES);
+        boolean durabilitySeeded = DepositDurabilityManager.set(level, absoluteDepositPos, REMAINING_USES);
         helper.assertValueEqual(durabilitySeeded, expectDurabilitySeeded,
                 "whether deposit durability seeding should succeed");
 
@@ -89,7 +89,7 @@ public class MiningProcessSerialization {
         var absoluteDepositPos = helper.absolutePos(DEPOSIT_POS);
 
         helper.setBlock(DEPOSIT_POS, RNSDeposits.IRON_DEPOSIT.get().defaultBlockState());
-        boolean durabilitySeeded = DepositDurabilityManager.setDepositBlockDurability(level, absoluteDepositPos, REMAINING_USES);
+        boolean durabilitySeeded = DepositDurabilityManager.set(level, absoluteDepositPos, REMAINING_USES);
         helper.assertValueEqual(durabilitySeeded, expectDurabilitySeeded,
                 "whether deposit durability seeding should succeed");
 

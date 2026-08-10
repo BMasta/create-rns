@@ -86,11 +86,16 @@
 
 ## Deposit Mobility
 * Player perspective: when `movableDeposits` is disabled, deposit blocks cannot be moved by pistons or assembled into Create or Create Aeronautics physics contraptions. Enabling it restores the movement behavior supplied by those systems.
+* Player perspective: with Sable physics movement enabled, assembling and disassembling initialized deposits preserves each moved block's exact remaining durability. Uninitialized and infinite deposits remain uninitialized instead of receiving a newly rolled value.
 * Edge behavior: the setting is checked when movement or assembly is attempted; changing it does not forcibly disassemble a contraption that already contains a deposit block.
+* Edge behavior: source durability is authoritative when stale durability already exists at a movement destination. The source state replaces the destination state and an error is logged rather than silently retaining or overwriting conflicting data.
 * Core behavior: piston and Create movement use the deposit block's push reaction, while Create Aeronautics compatibility rejects deposits through Simulated's physics-assembly movement check.
+* Core behavior: Sable's assembly callbacks capture stored durability without initializing a vein, restore it after destination placement, and allow normal source removal to delete the old entry. The same path supports movement within one level data object and between distinct server-level data objects.
 * System interaction: the optional physics hook loads only with the `simulated` mod bundled by Create Aeronautics and otherwise has no effect.
+* System interaction: durability movement uses a separate optional Sable listener mixin and does not depend on a miner targeting the moved deposit. Normal destruction receives no assembly callback and continues to delete stored durability.
 * Data and assets: mobility is code- and server-config-driven; all blocks in `#create_rns:deposit_blocks`, including KubeJS-authored deposits, follow the same rule.
 * Maintenance invariant: optional movement integrations must consult `movableDeposits` and the shared deposit block tag so enabling movement remains a single global choice.
+* Maintenance invariant: an `afterMove` callback may consume captured durability only when its source level, destination level, block state, and positions exactly match the pending callback. Sable exposes no failure callback, so an interrupted final move may retain one inert capture until another move replaces it; that capture holds no level references and cannot duplicate durability by itself.
 
 ## Miner Claim and Active Target State
 * Player perspective: local miners still mine exactly the deposit blocks they claim exclusively. With Sable installed, miners in the same sublevel compete for deposits normally, while miners in the main world or another sublevel neither reserve those deposits nor cause claim refreshes there.

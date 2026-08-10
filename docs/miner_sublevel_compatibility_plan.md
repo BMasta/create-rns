@@ -163,8 +163,14 @@ Use Sable's `BlockSubLevelAssemblyListener` through an optional mixin applied to
 4. The same callback path handles disassembly by reversing the source and destination.
 
 Infinite deposits have no finite stored value to transfer. An absent source value must stay absent instead of being
-initialized or rerolled. A failed or partial move must clear or roll back pending transfer state, and a pre-existing
-destination entry must not be silently overwritten. Each block in a moved vein retains its independently rolled value.
+initialized or rerolled. A pre-existing destination entry is replaced by the authoritative source state and reported as
+an error rather than being overwritten silently. Each block in a moved vein retains its independently rolled value.
+
+Sable 2.0.3 catches movement failures internally and does not invoke `afterMove` or expose a failure callback. A failed
+move may therefore leave one inert in-memory capture until the next `beforeMove` replaces it. The capture contains no
+level references, an `afterMove` must match its complete immutable callback tuple before consuming it, and no destination
+durability is written when `afterMove` is skipped. Strict immediate failure cleanup would require another mixin into
+Sable's assembly internals or an upstream lifecycle callback.
 
 Moving durability is independent of target-space selection: it preserves world data whenever a deposit moves, whether
 or not any miner currently sees that deposit.
@@ -388,13 +394,16 @@ independently of miner compatibility.
   `RNSMixinPlugin` and `Mods.SABLE`.
 - Capture source durability before normal removal and restore it after placement. Support moves within one
   `ServerLevel` and moves between distinct `ServerLevel` data objects.
-- Preserve absent/infinite state, reject or report a conflicting destination entry, and clean up or roll back transfer
-  state when a move fails partway through.
+- Preserve absent/infinite state and replace a conflicting destination entry with the source state while reporting an
+  error.
+- Match `afterMove` against the complete captured callback tuple so unrelated callbacks cannot consume stale state. If
+  Sable skips `afterMove` after an internal failure, leave the inert capture until the next `beforeMove` replaces it.
 - Verify that normal destruction still removes durability rather than transferring it.
 - Document the completed movement behavior in `implementation.md` and its optional mixin boundary in `AGENTS.md`.
 
 **Verification gate:** round-trip assembly/disassembly preserves every finite value exactly, uninitialized/infinite
-deposits do not gain entries, failed moves do not duplicate values, and Sable-absent startup remains unaffected.
+deposits do not gain entries, failed moves do not duplicate values or leak level references, unrelated callbacks cannot
+consume stale captures, and Sable-absent startup remains unaffected.
 
 ### Stage 6: Make deposit consumption safe for shared targets
 
@@ -501,8 +510,8 @@ and the codebase contains one authoritative selected-space path rather than reta
   stale-target validation.
 - Physics assembly transfers every initialized finite durability from the old level/position to the new level/position;
   disassembly transfers it back without rerolling, duplicating, or dropping the value.
-- Moving an uninitialized or infinite deposit does not create a finite durability entry, and a failed move does not
-  leave duplicated or pending durability state.
+- Moving an uninitialized or infinite deposit does not create a finite durability entry. A failed move does not duplicate
+  durability or let unrelated callbacks consume its inert capture, which is replaced by the next `beforeMove`.
 - Save/load infers local active targets from the saved claim and recomputes pose-dependent remote selection without
   loading saved active positions or a saved selected identity. `/reload` retains the in-memory selected space when it
   remains mineable and preserves recipe progress where possible.

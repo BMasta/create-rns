@@ -46,7 +46,7 @@ public enum DepositBlockComponentProvider implements IBlockComponentProvider, IS
 
     @Override
     public void appendServerData(CompoundTag nbt, BlockAccessor accessor) {
-        nbt.putLong("durability", DepositDurabilityManager.getDepositBlockDurability((ServerLevel) accessor.getLevel(),
+        nbt.putLong("durability", DepositDurabilityManager.get((ServerLevel) accessor.getLevel(),
                 accessor.getPosition(), false));
     }
 }

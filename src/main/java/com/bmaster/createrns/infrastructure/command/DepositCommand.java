@@ -66,7 +66,7 @@ public class DepositCommand {
                     long amount;
                     if (infinite) amount = 0;
                     else amount = ctx.getArgument("resource_amount", Long.class);
-                    boolean isSet = DepositDurabilityManager.setDepositBlockDurability(sl, pos, amount);
+                    boolean isSet = DepositDurabilityManager.set(sl, pos, amount);
                     if (isSet) {
                         src.sendSuccess(() -> Component.literal("Success!"), false);
                     } else {
@@ -80,7 +80,7 @@ public class DepositCommand {
                     var vein = DepositBlock.getVein(sl, pos);
                     boolean isSet = true;
                     for (var bp : vein.keySet()) {
-                        if (!DepositDurabilityManager.setDepositBlockDurability(sl, bp, amount)) isSet = false;
+                        if (!DepositDurabilityManager.set(sl, bp, amount)) isSet = false;
                     }
                     if (isSet) {
                         src.sendSuccess(() -> Component.literal("Success!"), false);
@@ -89,18 +89,18 @@ public class DepositCommand {
                     }
                 }
                 case UNSET -> {
-                    DepositDurabilityManager.removeDepositBlockDurability(sl, pos);
+                    DepositDurabilityManager.remove(sl, pos);
                     src.sendSuccess(() -> Component.literal("Success!"), false);
                 }
                 case UNSET_VEIN -> {
                     var vein = DepositBlock.getVein(sl, pos);
                     for (var bp : vein.keySet()) {
-                        DepositDurabilityManager.removeDepositBlockDurability(sl, bp);
+                        DepositDurabilityManager.remove(sl, bp);
                     }
                     src.sendSuccess(() -> Component.literal("Success!"), false);
                 }
                 case COMPUTE_VEIN -> {
-                    int initCount = DepositDurabilityManager.initDepositVeinDurability(sl, pos);
+                    int initCount = DepositDurabilityManager.initVein(sl, pos);
                     src.sendSuccess(() -> Component.literal("Initialized " + initCount + " blocks!"), true);
                 }
             }
