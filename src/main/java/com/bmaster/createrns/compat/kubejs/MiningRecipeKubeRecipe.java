@@ -21,7 +21,7 @@ public class MiningRecipeKubeRecipe extends RecipeJS {
         try {
             return super.createRecipe();
         } catch (JsonSyntaxException e) {
-            ConsoleJS.SERVER.warn(e.getMessage());
+            ConsoleJS.SERVER.error(e.getMessage());
             type.event.failedCount.incrementAndGet();
             return null;
         }
