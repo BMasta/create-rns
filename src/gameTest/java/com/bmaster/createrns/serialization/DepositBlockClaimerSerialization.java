@@ -57,8 +57,6 @@ public class DepositBlockClaimerSerialization {
     @ParametersAreNonnullByDefault
     @MethodsReturnNonnullByDefault
     private static class FakeClaimer implements IDepositBlockClaimer {
-        private static final ClaimerType CLAIMER_TYPE = new ClaimerType("create_rns:test_claimer");
-
         private final ServerLevel level;
         private final BlockPos pos;
         private @Nullable Set<BlockPos> claimedBlocks;
@@ -66,11 +64,6 @@ public class DepositBlockClaimerSerialization {
         private FakeClaimer(ServerLevel level, BlockPos pos) {
             this.level = level;
             this.pos = pos;
-        }
-
-        @Override
-        public ClaimerType getClaimerType() {
-            return CLAIMER_TYPE;
         }
 
         @Override

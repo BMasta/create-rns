@@ -4,7 +4,6 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
-import com.bmaster.createrns.content.deposit.mining.behaviour.MiningBehaviour;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -125,8 +124,7 @@ public class DepositBlock extends Block {
     }
 
     private void updateNearbyClaimers(Level level, BlockPos pos) {
-        var nearbyClaimers = DepositClaimerInstanceHolder.getInstancesThatCanClaim(
-                level, pos, MiningBehaviour.CLAIMER_TYPE);
+        var nearbyClaimers = DepositClaimerInstanceHolder.getInstancesThatCanClaim(level, pos);
         for (var c : nearbyClaimers) {
             c.claimDepositBlocks();
             var cAnchor = c.getAnchor();

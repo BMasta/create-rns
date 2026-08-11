@@ -1,7 +1,6 @@
 package com.bmaster.createrns.content.deposit.claiming;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer.ClaimerType;
 import com.bmaster.createrns.content.deposit.mining.behaviour.MiningBehaviour;
 import com.bmaster.createrns.content.deposit.operating.space.OperatingSpaceAdapterHolder;
 import com.bmaster.createrns.util.SidedDimension;
@@ -20,14 +19,11 @@ import java.util.stream.Collectors;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class DepositClaimerInstanceHolder {
-    private static final Object2ObjectOpenHashMap<ClaimerType,
-            Object2ObjectOpenHashMap<SidedDimension, ObjectOpenHashSet<BlockPos>>> INSTANCES = new Object2ObjectOpenHashMap<>();
+    private static final Object2ObjectOpenHashMap<SidedDimension, ObjectOpenHashSet<BlockPos>> instances = new Object2ObjectOpenHashMap<>();
 
     /// Sublevel-aware
-    public static Set<IDepositBlockClaimer> getInstancesWithinManhattanDistance(
-            Level level, BlockPos pos, int distance, ClaimerType type
-    ) {
-        return getClaimersFromLevelAndType(level, pos, type, true).stream()
+    public static Set<IDepositBlockClaimer> getInstancesWithinManhattanDistance(Level level, BlockPos pos, int distance) {
+        return getClaimers(level, pos, true).stream()
                 .filter(i -> {
                     var anchor = i.getAnchor();
                     return anchor != null && OperatingSpaceAdapterHolder.getAdapter().distManhattan(level, anchor, pos) <= distance;
@@ -36,14 +32,12 @@ public class DepositClaimerInstanceHolder {
     }
 
     /// Does not add passed claimer to the set
-    public static Set<IDepositBlockClaimer> getInstancesWithIntersectingArea(
-            IDepositBlockClaimer claimer, Level level, ClaimerType type
-    ) {
+    public static Set<IDepositBlockClaimer> getInstancesWithIntersectingArea(IDepositBlockClaimer claimer, Level level) {
         var anchor = claimer.getAnchor();
         var bb = claimer.getOperatingBoundingBox();
         if (anchor == null || bb == null) return Set.of();
 
-        return getClaimersFromLevelAndType(level, anchor, type, false).stream()
+        return getClaimers(level, anchor, false).stream()
                 .filter(c -> {
                     var cur_bb = c.getOperatingBoundingBox();
                     var cAnchor = c.getAnchor();
@@ -52,11 +46,9 @@ public class DepositClaimerInstanceHolder {
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-    public static Set<IDepositBlockClaimer> getInstancesWithIntersectingArea(
-            Level level, BoundingBox area, ClaimerType type
-    ) {
+    public static Set<IDepositBlockClaimer> getInstancesWithIntersectingArea(Level level, BoundingBox area) {
         var referencePos = new BlockPos(area.minX(), area.minY(), area.minZ());
-        return getClaimersFromLevelAndType(level, referencePos, type, false).stream()
+        return getClaimers(level, referencePos, false).stream()
                 .filter(c -> {
                     var cur_bb = c.getOperatingBoundingBox();
                     return cur_bb != null && area.intersects(cur_bb);
@@ -64,10 +56,8 @@ public class DepositClaimerInstanceHolder {
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-    public static Set<IDepositBlockClaimer> getInstancesThatCanClaim(
-            Level level, BlockPos pos, ClaimerType type
-    ) {
-        return getClaimersFromLevelAndType(level, pos, type, false).stream()
+    public static Set<IDepositBlockClaimer> getInstancesThatCanClaim(Level level, BlockPos pos) {
+        return getClaimers(level, pos, false).stream()
                 .filter(m -> {
                     var cur_ma = m.getOperatingBoundingBox();
                     return cur_ma != null && cur_ma.isInside(pos);
@@ -76,38 +66,28 @@ public class DepositClaimerInstanceHolder {
     }
 
     public static void addClaimer(IDepositBlockClaimer claimer, Level level) {
-        DepositClaimerInstanceHolder.INSTANCES
-                .computeIfAbsent(claimer.getClaimerType(), k -> new Object2ObjectOpenHashMap<>())
+        DepositClaimerInstanceHolder.instances
                 .computeIfAbsent(SidedDimension.of(level), k -> new ObjectOpenHashSet<>())
                 .add(claimer.getBlockPos());
     }
 
     public static void removeClaimer(IDepositBlockClaimer claimer, Level level) {
         var sd = SidedDimension.of(level);
-        var type = claimer.getClaimerType();
-        var typeMap = DepositClaimerInstanceHolder.INSTANCES.get(type);
-        if (typeMap == null) {
-            CreateRNS.LOGGER.error("Could not get a set of deposit claimer instances of type {}", type.name());
-            return;
-        }
-        var levelSet = typeMap.get(sd);
+        var levelSet = DepositClaimerInstanceHolder.instances.get(sd);
         if (levelSet == null) {
             CreateRNS.LOGGER.error("Could not get a set of deposit claimer instances at level {}", level);
             return;
         }
         levelSet.remove(claimer.getBlockPos());
-        if (levelSet.isEmpty()) typeMap.remove(sd);
-        if (typeMap.isEmpty()) INSTANCES.remove(type);
+        if (levelSet.isEmpty()) DepositClaimerInstanceHolder.instances.remove(sd);
     }
 
     /// Reference position may be used to resolve a sublevel
-    private static Set<IDepositBlockClaimer> getClaimersFromLevelAndType(
-            Level level, BlockPos referencePos, ClaimerType type, boolean crossSublevel
+    private static Set<IDepositBlockClaimer> getClaimers(
+            Level level, BlockPos referencePos, boolean crossSublevel
     ) {
         var sd = SidedDimension.of(level);
-        var typeMap = INSTANCES.get(type);
-        if (typeMap == null) return Set.of();
-        var levelSet = typeMap.get(sd);
+        var levelSet = instances.get(sd);
         if (levelSet == null) return Set.of();
 
         var claimers = new ObjectOpenHashSet<IDepositBlockClaimer>();
@@ -131,9 +111,7 @@ public class DepositClaimerInstanceHolder {
             }
         }
 
-        // Clean up collections if removing elements left them empty
-        if (levelSet.isEmpty()) typeMap.remove(sd);
-        if (typeMap.isEmpty()) INSTANCES.remove(type);
+        if (levelSet.isEmpty()) instances.remove(sd);
 
         return claimers;
     }

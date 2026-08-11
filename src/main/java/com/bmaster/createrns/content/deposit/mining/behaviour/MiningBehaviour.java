@@ -29,7 +29,6 @@ import java.util.function.Supplier;
 @ParametersAreNonnullByDefault
 public abstract class MiningBehaviour extends HybridOperatingBehaviour {
     public static final BehaviourType<MiningBehaviour> BEHAVIOUR_TYPE = new BehaviourType<>(CreateRNS.ID + ":mining");
-    public static final ClaimerType CLAIMER_TYPE = new ClaimerType(CreateRNS.ID + ":mining");
 
     protected final KineticBlockEntity kBE;
     protected @Nullable MinerSpec spec = null;
@@ -146,11 +145,6 @@ public abstract class MiningBehaviour extends HybridOperatingBehaviour {
         var spec = getSpec();
         if (spec == null) return null;
         return spec.miningDimensions();
-    }
-
-    @Override
-    public ClaimerType getClaimerType() {
-        return CLAIMER_TYPE;
     }
 
     @Override

@@ -125,7 +125,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
             var area = getOperatingBoundingBox();
             var level = getLevel();
             assert level != null;
-            if (area != null) IDepositBlockClaimer.reclaimArea(level, area, getClaimerType());
+            if (area != null) IDepositBlockClaimer.reclaimArea(level, area);
         }
     }
 

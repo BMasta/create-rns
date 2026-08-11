@@ -1,6 +1,5 @@
 package com.bmaster.createrns.content.deposit.claiming;
 
-import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer.ClaimerType;
 import com.bmaster.createrns.content.deposit.operating.space.OperatingSpaceAdapter.OperatingSpace;
 import com.bmaster.createrns.content.deposit.operating.space.OperatingSpaceAdapterHolder;
 import com.simibubi.create.AllItems;
@@ -29,7 +28,7 @@ public class DepositClaimerOutlineRenderer {
     private static int ttl = 0;
 
     @ParametersAreNonnullByDefault
-    public static void clearAndAddNearbyClaimers(ClaimerType type) {
+    public static void clearAndAddNearbyClaimers() {
         if (!outlineActive) return;
         Player p = Minecraft.getInstance().player;
         if (p == null) return;
@@ -37,7 +36,7 @@ public class DepositClaimerOutlineRenderer {
 
         selectedClusters.clear();
         outlineChanged = true;
-        DepositClaimerInstanceHolder.getInstancesWithinManhattanDistance(l, p.blockPosition(), OUTLINE_MAX_DIST, type)
+        DepositClaimerInstanceHolder.getInstancesWithinManhattanDistance(l, p.blockPosition(), OUTLINE_MAX_DIST)
                 .forEach(DepositClaimerOutlineRenderer::addClaimer);
     }
 
@@ -127,7 +126,7 @@ public class DepositClaimerOutlineRenderer {
 
         ttl = MAX_TTL;
         outlineActive = true;
-        clearAndAddNearbyClaimers(target.getClaimerType());
+        clearAndAddNearbyClaimers();
     }
 
     private record OutlineSlot(OperatingSpace space) {}

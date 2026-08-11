@@ -308,7 +308,6 @@ public class MinerClaimingCharacterizationGameTest {
     }
 
     private static class FixedAreaClaimer implements IDepositBlockClaimer {
-        private static final ClaimerType CLAIMER_TYPE = new ClaimerType(CreateRNS.ID + ":fixed_area_test");
         private static final OperatingDimensions CLAIMING_AREA = new OperatingDimensions(1, 2);
 
         private final Level level;
@@ -318,11 +317,6 @@ public class MinerClaimingCharacterizationGameTest {
         private FixedAreaClaimer(Level level, BlockPos anchor) {
             this.level = level;
             this.anchor = anchor;
-        }
-
-        @Override
-        public ClaimerType getClaimerType() {
-            return CLAIMER_TYPE;
         }
 
         @Override
