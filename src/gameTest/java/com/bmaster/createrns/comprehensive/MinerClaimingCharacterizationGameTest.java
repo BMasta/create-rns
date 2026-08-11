@@ -6,6 +6,7 @@ import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.operating.space.OperatingSpaceAdapter;
 import com.bmaster.createrns.content.deposit.operating.space.OperatingSpaceAdapterHolder;
+import com.bmaster.createrns.content.deposit.operating.space.VanillaOperatingSpaceAdapter;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.bmaster.createrns.util.MinerSetup;
 import com.bmaster.createrns.util.MinerSetupBuilder;
@@ -238,6 +239,19 @@ public class MinerClaimingCharacterizationGameTest {
                     "Stage 4 operating-space adapter must not expose remote targets");
             helper.succeed();
         });
+    }
+
+    @GameTest(template = "empty16x16")
+    public void vanillaOperatingSpaceAdapterPreservesBlockPosDistances(GameTestHelper helper) {
+        var adapter = new VanillaOperatingSpaceAdapter();
+        var firstPos = new BlockPos(2, 3, 4);
+        var secondPos = new BlockPos(-3, 8, 1);
+
+        helper.assertValueEqual(adapter.distManhattan(helper.getLevel(), firstPos, secondPos),
+                (double) firstPos.distManhattan(secondPos), "vanilla Manhattan distance");
+        helper.assertValueEqual(adapter.distSqr(helper.getLevel(), firstPos, secondPos),
+                firstPos.distSqr(secondPos), "vanilla squared distance");
+        helper.succeed();
     }
 
     private static MinerSetupBuilder miner(GameTestHelper helper, int x, int y, int z) {

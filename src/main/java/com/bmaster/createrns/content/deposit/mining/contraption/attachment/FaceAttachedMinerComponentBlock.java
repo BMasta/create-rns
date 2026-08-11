@@ -2,7 +2,7 @@ package com.bmaster.createrns.content.deposit.mining.contraption.attachment;
 
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer.ClaimerType;
 import com.bmaster.createrns.content.deposit.claiming.IDepositClaimerOutlineTarget;
-import com.bmaster.createrns.content.deposit.mining.MiningBehaviour;
+import com.bmaster.createrns.content.deposit.mining.behaviour.MiningBehaviour;
 import com.mojang.serialization.MapCodec;
 import com.simibubi.create.foundation.block.ProperWaterloggedBlock;
 import net.minecraft.MethodsReturnNonnullByDefault;

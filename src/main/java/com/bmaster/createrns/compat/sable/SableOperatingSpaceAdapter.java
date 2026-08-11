@@ -26,6 +26,17 @@ public final class SableOperatingSpaceAdapter implements OperatingSpaceAdapter {
     }
 
     @Override
+    public double distManhattan(Level level, BlockPos firstPos, BlockPos secondPos) {
+        return SableCompanion.INSTANCE.rectilinearDistanceWithSubLevels(
+                level, firstPos.getCenter(), secondPos.getCenter());
+    }
+
+    @Override
+    public double distSqr(Level level, BlockPos firstPos, BlockPos secondPos) {
+        return SableCompanion.INSTANCE.distanceSquaredWithSubLevels(level, firstPos.getCenter(), secondPos.getCenter());
+    }
+
+    @Override
     public List<DepositGroupCandidate> findRemoteDepositGroup(OperatingSpaceScanContext context) {
         return List.of();
     }

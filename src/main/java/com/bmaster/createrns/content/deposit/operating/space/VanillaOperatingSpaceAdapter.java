@@ -16,6 +16,16 @@ public class VanillaOperatingSpaceAdapter implements OperatingSpaceAdapter {
     }
 
     @Override
+    public double distManhattan(Level level, BlockPos firstPos, BlockPos secondPos) {
+        return firstPos.distManhattan(secondPos);
+    }
+
+    @Override
+    public double distSqr(Level level, BlockPos firstPos, BlockPos secondPos) {
+        return firstPos.distSqr(secondPos);
+    }
+
+    @Override
     public List<DepositGroupCandidate> findRemoteDepositGroup(OperatingSpaceScanContext context) {
         return List.of();
     }

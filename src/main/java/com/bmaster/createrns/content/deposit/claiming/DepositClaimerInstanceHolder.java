@@ -2,7 +2,7 @@ package com.bmaster.createrns.content.deposit.claiming;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer.ClaimerType;
-import com.bmaster.createrns.content.deposit.mining.MiningBehaviour;
+import com.bmaster.createrns.content.deposit.mining.behaviour.MiningBehaviour;
 import com.bmaster.createrns.content.deposit.operating.space.OperatingSpaceAdapterHolder;
 import com.bmaster.createrns.util.SidedDimension;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
@@ -23,13 +23,14 @@ public class DepositClaimerInstanceHolder {
     private static final Object2ObjectOpenHashMap<ClaimerType,
             Object2ObjectOpenHashMap<SidedDimension, ObjectOpenHashSet<BlockPos>>> INSTANCES = new Object2ObjectOpenHashMap<>();
 
+    /// Sublevel-aware
     public static Set<IDepositBlockClaimer> getInstancesWithinManhattanDistance(
             Level level, BlockPos pos, int distance, ClaimerType type
     ) {
-        return getClaimersFromLevelAndType(level, pos, type).stream()
+        return getClaimersFromLevelAndType(level, pos, type, true).stream()
                 .filter(i -> {
                     var anchor = i.getAnchor();
-                    return anchor != null && anchor.distManhattan(pos) <= distance;
+                    return anchor != null && OperatingSpaceAdapterHolder.getAdapter().distManhattan(level, anchor, pos) <= distance;
                 })
                 .collect(Collectors.toUnmodifiableSet());
     }
@@ -42,7 +43,7 @@ public class DepositClaimerInstanceHolder {
         var bb = claimer.getOperatingBoundingBox();
         if (anchor == null || bb == null) return Set.of();
 
-        return getClaimersFromLevelAndType(level, anchor, type).stream()
+        return getClaimersFromLevelAndType(level, anchor, type, false).stream()
                 .filter(c -> {
                     var cur_bb = c.getOperatingBoundingBox();
                     var cAnchor = c.getAnchor();
@@ -55,7 +56,7 @@ public class DepositClaimerInstanceHolder {
             Level level, BoundingBox area, ClaimerType type
     ) {
         var referencePos = new BlockPos(area.minX(), area.minY(), area.minZ());
-        return getClaimersFromLevelAndType(level, referencePos, type).stream()
+        return getClaimersFromLevelAndType(level, referencePos, type, false).stream()
                 .filter(c -> {
                     var cur_bb = c.getOperatingBoundingBox();
                     return cur_bb != null && area.intersects(cur_bb);
@@ -66,7 +67,7 @@ public class DepositClaimerInstanceHolder {
     public static Set<IDepositBlockClaimer> getInstancesThatCanClaim(
             Level level, BlockPos pos, ClaimerType type
     ) {
-        return getClaimersFromLevelAndType(level, pos, type).stream()
+        return getClaimersFromLevelAndType(level, pos, type, false).stream()
                 .filter(m -> {
                     var cur_ma = m.getOperatingBoundingBox();
                     return cur_ma != null && cur_ma.isInside(pos);
@@ -101,7 +102,7 @@ public class DepositClaimerInstanceHolder {
 
     /// Reference position may be used to resolve a sublevel
     private static Set<IDepositBlockClaimer> getClaimersFromLevelAndType(
-            Level level, BlockPos referencePos, ClaimerType type
+            Level level, BlockPos referencePos, ClaimerType type, boolean crossSublevel
     ) {
         var sd = SidedDimension.of(level);
         var typeMap = INSTANCES.get(type);
@@ -124,8 +125,8 @@ public class DepositClaimerInstanceHolder {
 
             var claimerLevel = claimer.getLevel();
             var claimerAnchor = claimer.getAnchor();
-            if (claimerLevel != null && claimerAnchor != null && OperatingSpaceAdapterHolder.getAdapter()
-                    .isSameSpace(level, referencePos, claimerLevel, claimerAnchor)) {
+            if (claimerLevel != null && claimerAnchor != null && (crossSublevel || OperatingSpaceAdapterHolder.getAdapter()
+                    .isSameSpace(level, referencePos, claimerLevel, claimerAnchor))) {
                 claimers.add(claimer);
             }
         }

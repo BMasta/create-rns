@@ -4,6 +4,7 @@ import com.bmaster.createrns.RNSSoundEvents;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadSize;
+import com.bmaster.createrns.content.deposit.operating.space.OperatingSpaceAdapterHolder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -37,30 +38,32 @@ public class MinerEffectsGenerator {
         lastPlayed++;
 
         var instance = Minecraft.getInstance();
+        var l = instance.level;
         var p = instance.player;
-        if (instance.isPaused() || p == null || lastPlayed < SOUND_SEQUENCE_INTERVAL) return;
+        if (instance.isPaused() || l == null || p == null || lastPlayed < SOUND_SEQUENCE_INTERVAL) return;
+        var adapter = OperatingSpaceAdapterHolder.getAdapter();
 
         var miners = MINERS.get(p.level().dimension());
         if (miners == null) return;
         miners.stream()
-                .filter(bp -> bp.distManhattan(p.blockPosition()) <= MAX_SOUND_DISTANCE)
+                .filter(bp -> adapter.distManhattan(l, bp, p.blockPosition()) <= MAX_SOUND_DISTANCE)
                 .map(bp -> {
-                    var be = instance.level.getBlockEntity(bp);
+                    var be = l.getBlockEntity(bp);
                     if (!(be instanceof MinerBearingBlockEntity miner)) return null;
                     return miner;
                 })
                 .filter(miner -> {
                     if (miner == null) return false;
-                    if (miner.miningBehaviour.equipment == null) return false;
-                    if (miner.miningBehaviour.process == null) return false;
+                    var process = miner.miningBehaviour.getProcess();
+                    if (process == null || miner.miningBehaviour.equipment == null) return false;
                     return miner.miningBehaviour.isMining();
                 })
-                .min(Comparator.comparing(miner ->
-                        miner.miningBehaviour.equipment.mineHeadPos.distSqr(p.blockPosition()))
+                .min(Comparator.comparing(miner -> adapter.distSqr(
+                        l, miner.miningBehaviour.equipment.mineHeadPos, p.blockPosition()))
                 )
                 .ifPresent(miner -> {
                     var mineHeadPos = miner.miningBehaviour.equipment.mineHeadPos;
-                    var crsList = miner.miningBehaviour.process.getLastSatisfiedCRSes();
+                    var crsList = miner.miningBehaviour.getProcess().getLastSatisfiedCRSes();
                     float pitch = 0.5f + Math.min(1, Math.abs(miner.getTheoreticalSpeed()) / 256f) / 2;
                     RNSSoundEvents.MINING.playClient(p.level(), mineHeadPos, 1, pitch, false);
                     if (miner.miningBehaviour.equipment.mineHeadSize == MineHeadSize.HUGE) {
@@ -100,7 +103,7 @@ public class MinerEffectsGenerator {
     public void tick() {
         if (be.miningBehaviour.equipment == null) return;
         // Add miner to sound producers
-        if (!registeredSound && be.miningBehaviour.process != null) {
+        if (!registeredSound && be.miningBehaviour.getProcess() != null) {
             refreshSound();
             registeredSound = true;
         }
@@ -137,7 +140,7 @@ public class MinerEffectsGenerator {
     }
 
     protected void refreshSound() {
-        if (be.miningBehaviour.process == null || be.miningBehaviour.equipment == null) return;
+        if (be.miningBehaviour.getProcess() == null || be.miningBehaviour.equipment == null) return;
         var l = be.getLevel();
         if (l == null) return;
         MINERS.computeIfAbsent(l.dimension(), ignored -> new ObjectOpenHashSet<>()).add(be.getBlockPos());

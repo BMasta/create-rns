@@ -20,6 +20,10 @@ public interface OperatingSpaceAdapter {
         return getOperatingSpace(firstLevel, firstPos).equals(getOperatingSpace(secondLevel, secondPos));
     }
 
+    double distManhattan(Level level, BlockPos firstPos, BlockPos secondPos);
+
+    double distSqr(Level level, BlockPos firstPos, BlockPos secondPos);
+
     List<DepositGroupCandidate> findRemoteDepositGroup(OperatingSpaceScanContext context);
 
     record OperatingSpace(ResourceKey<Level> dimension, String identity) {
