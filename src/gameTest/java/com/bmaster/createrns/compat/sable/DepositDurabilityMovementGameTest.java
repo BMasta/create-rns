@@ -8,8 +8,10 @@ import dev.ryanhcode.sable.api.block.BlockSubLevelAssemblyListener;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -34,15 +36,14 @@ public class DepositDurabilityMovementGameTest {
             var sourcePos = helper.absolutePos(SOURCE_POS);
             var destinationPos = helper.absolutePos(DESTINATION_POS);
             var state = RNSDeposits.IRON_DEPOSIT.getDefaultState();
-            var listener = listener();
 
             helper.setBlock(SOURCE_POS, state);
             helper.assertTrue(DepositDurabilityManager.set(level, sourcePos, SOURCE_DURABILITY),
                     "Source durability should be stored");
 
-            listener.beforeMove(level, level, state, sourcePos, destinationPos);
+            beforeMove(level, level, state, sourcePos, destinationPos);
             helper.setBlock(DESTINATION_POS, state);
-            listener.afterMove(level, level, state, sourcePos, destinationPos);
+            afterMove(level, level, state, sourcePos, destinationPos);
             helper.setBlock(SOURCE_POS, Blocks.AIR.defaultBlockState());
 
             helper.assertValueEqual(stored(level, sourcePos), OptionalLong.empty(),
@@ -59,15 +60,14 @@ public class DepositDurabilityMovementGameTest {
             var sourcePos = helper.absolutePos(SOURCE_POS);
             var destinationPos = helper.absolutePos(DESTINATION_POS);
             var state = RNSDeposits.IRON_DEPOSIT.getDefaultState();
-            var listener = listener();
 
             helper.setBlock(SOURCE_POS, state);
             DepositDurabilityManager.setRaw(
                     level, destinationPos, OptionalLong.of(DESTINATION_DURABILITY));
 
-            listener.beforeMove(level, level, state, sourcePos, destinationPos);
+            beforeMove(level, level, state, sourcePos, destinationPos);
             helper.setBlock(DESTINATION_POS, state);
-            listener.afterMove(level, level, state, sourcePos, destinationPos);
+            afterMove(level, level, state, sourcePos, destinationPos);
             helper.setBlock(SOURCE_POS, Blocks.AIR.defaultBlockState());
 
             helper.assertValueEqual(stored(level, destinationPos), OptionalLong.empty(),
@@ -83,14 +83,13 @@ public class DepositDurabilityMovementGameTest {
             var sourcePos = helper.absolutePos(SOURCE_POS);
             var destinationPos = helper.absolutePos(DESTINATION_POS);
             var state = RNSDeposits.IRON_DEPOSIT.getDefaultState();
-            var listener = listener();
 
             helper.setBlock(SOURCE_POS, state);
             helper.assertTrue(DepositDurabilityManager.set(
                     sourceLevel, sourcePos, SOURCE_DURABILITY), "Source durability should be stored");
 
-            listener.beforeMove(sourceLevel, destinationLevel, state, sourcePos, destinationPos);
-            listener.afterMove(sourceLevel, destinationLevel, state, sourcePos, destinationPos);
+            beforeMove(sourceLevel, destinationLevel, state, sourcePos, destinationPos);
+            afterMove(sourceLevel, destinationLevel, state, sourcePos, destinationPos);
             helper.setBlock(SOURCE_POS, Blocks.AIR.defaultBlockState());
 
             helper.assertValueEqual(stored(sourceLevel, sourcePos), OptionalLong.empty(),
@@ -110,7 +109,6 @@ public class DepositDurabilityMovementGameTest {
             var otherSourcePos = helper.absolutePos(OTHER_SOURCE_POS);
             var otherDestinationPos = helper.absolutePos(OTHER_DESTINATION_POS);
             var state = RNSDeposits.IRON_DEPOSIT.getDefaultState();
-            var listener = listener();
 
             helper.setBlock(SOURCE_POS, state);
             helper.setBlock(OTHER_SOURCE_POS, state);
@@ -119,10 +117,10 @@ public class DepositDurabilityMovementGameTest {
             helper.assertTrue(DepositDurabilityManager.set(
                     level, otherSourcePos, OTHER_SOURCE_DURABILITY), "Second source durability should be stored");
 
-            listener.beforeMove(level, level, state, sourcePos, destinationPos);
-            listener.beforeMove(level, level, state, otherSourcePos, otherDestinationPos);
-            listener.afterMove(level, level, state, sourcePos, destinationPos);
-            listener.afterMove(level, level, state, otherSourcePos, otherDestinationPos);
+            beforeMove(level, level, state, sourcePos, destinationPos);
+            beforeMove(level, level, state, otherSourcePos, otherDestinationPos);
+            afterMove(level, level, state, sourcePos, destinationPos);
+            afterMove(level, level, state, otherSourcePos, otherDestinationPos);
             helper.setBlock(SOURCE_POS, Blocks.AIR.defaultBlockState());
             helper.setBlock(OTHER_SOURCE_POS, Blocks.AIR.defaultBlockState());
 
@@ -133,8 +131,19 @@ public class DepositDurabilityMovementGameTest {
         });
     }
 
-    private static BlockSubLevelAssemblyListener listener() {
-        return (BlockSubLevelAssemblyListener) RNSDeposits.IRON_DEPOSIT.get();
+    // NeoForge reflects every GameTest class during dev launches, so optional API types cannot appear in descriptors.
+    private static void beforeMove(
+            ServerLevel oldLevel, ServerLevel newLevel, BlockState state, BlockPos oldPos, BlockPos newPos
+    ) {
+        ((BlockSubLevelAssemblyListener) RNSDeposits.IRON_DEPOSIT.get())
+                .beforeMove(oldLevel, newLevel, state, oldPos, newPos);
+    }
+
+    private static void afterMove(
+            ServerLevel oldLevel, ServerLevel newLevel, BlockState state, BlockPos oldPos, BlockPos newPos
+    ) {
+        ((BlockSubLevelAssemblyListener) RNSDeposits.IRON_DEPOSIT.get())
+                .afterMove(oldLevel, newLevel, state, oldPos, newPos);
     }
 
     private static OptionalLong stored(net.minecraft.server.level.ServerLevel level, BlockPos pos) {

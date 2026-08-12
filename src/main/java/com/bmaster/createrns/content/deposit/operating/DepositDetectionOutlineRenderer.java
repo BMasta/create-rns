@@ -1,5 +1,6 @@
 package com.bmaster.createrns.content.deposit.operating;
 
+import com.bmaster.createrns.content.deposit.claiming.ClaimingBehaviour;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
 import com.bmaster.createrns.content.deposit.operating.sublevel.OperatingSublevelAdapter.OperatingSublevel;
 import com.bmaster.createrns.content.deposit.operating.sublevel.OperatingSublevelAdapterHolder;
@@ -46,7 +47,7 @@ public final class DepositDetectionOutlineRenderer {
         var currentSlots = new ObjectOpenHashSet<DetectionAreaSlot>();
         for (var claimer : DepositClaimerInstanceHolder.getInstancesWithinManhattanDistance(
                 level, player.blockPosition(), OUTLINE_MAX_DIST)) {
-            if (!(claimer instanceof HybridOperatingBehaviour operatingBehaviour)) continue;
+            if (!(claimer instanceof ClaimingBehaviour operatingBehaviour)) continue;
 
             var anchor = operatingBehaviour.getOperatingAnchor();
             var direction = operatingBehaviour.getOperatingDirection();

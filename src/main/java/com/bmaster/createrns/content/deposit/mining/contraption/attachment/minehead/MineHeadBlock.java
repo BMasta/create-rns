@@ -2,6 +2,7 @@ package com.bmaster.createrns.content.deposit.mining.contraption.attachment.mine
 
 import com.bmaster.createrns.RNSBlockEntities;
 import com.bmaster.createrns.RNSBlocks;
+import com.bmaster.createrns.content.deposit.claiming.IDepositClaimerOutlineTarget;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.FaceAttachedMinerComponentBlock;
 import com.simibubi.create.AllShapes;
 import com.simibubi.create.foundation.block.IBE;
@@ -28,7 +29,8 @@ import java.util.List;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class MineHeadBlock extends FaceAttachedMinerComponentBlock implements IBE<MineHeadBlockEntity> {
+public class MineHeadBlock extends FaceAttachedMinerComponentBlock
+        implements IBE<MineHeadBlockEntity>, IDepositClaimerOutlineTarget {
     public static final VoxelShaper SHAPE = new AllShapes.Builder(Block.box(0, 0, 0, 16, 8, 16)).forDirectional();
     public static final EnumProperty<MineHeadSize> SIZE = EnumProperty.create("size", MineHeadSize.class);
 

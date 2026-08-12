@@ -1,6 +1,7 @@
 package com.bmaster.createrns.content.deposit.operating;
 
 import com.bmaster.createrns.RNSTags;
+import com.bmaster.createrns.content.deposit.operating.sublevel.OperatingSublevelAdapter.OperatingSublevel;
 import com.bmaster.createrns.util.Utils;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -43,6 +44,8 @@ public interface IDepositBlockOperator {
 
     @Nullable Level getLevel();
 
+    @Nullable OperatingSublevel getSublevel();
+
     @Nullable BlockPos getOperatingAnchor();
 
     @Nullable OperatingDimensions getOperatingDimensions();
@@ -54,20 +57,23 @@ public interface IDepositBlockOperator {
     Direction getOperatingDirection();
 
     default @Nullable BoundingBox getOperatingBoundingBox() {
-        var spec = getOperatingDimensions();
-        if (spec == null) return null;
         var anchor = getOperatingAnchor();
-        if (anchor == null) return null;
+        var dimensions = getOperatingDimensions();
+        if (anchor == null || dimensions == null) return null;
+        return getOperatingBoundingBox(anchor, dimensions);
+    }
+
+    default BoundingBox getOperatingBoundingBox(BlockPos anchor, OperatingDimensions dimensions) {
         var dir = getOperatingDirection();
         Vec3i pos = new Vec3i(anchor.getX(), anchor.getY(), anchor.getZ());
 
         var minOffset = dir.getNormal().multiply(
-                dir.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 1 : spec.length);
+                dir.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 1 : dimensions.length);
         var maxOffset = dir.getNormal().multiply(
-                dir.getAxisDirection() == Direction.AxisDirection.NEGATIVE ? 1 : spec.length);
+                dir.getAxisDirection() == Direction.AxisDirection.NEGATIVE ? 1 : dimensions.length);
 
-        var minRadiusDelta = Utils.normalVecFlip(dir, false).multiply(spec.radius);
-        var maxRadiusDelta = Utils.normalVecFlip(dir, true).multiply(spec.radius);
+        var minRadiusDelta = Utils.normalVecFlip(dir, false).multiply(dimensions.radius);
+        var maxRadiusDelta = Utils.normalVecFlip(dir, true).multiply(dimensions.radius);
 
         var minPos = pos.offset(minOffset).offset(minRadiusDelta);
         var maxPos = pos.offset(maxOffset).offset(maxRadiusDelta);

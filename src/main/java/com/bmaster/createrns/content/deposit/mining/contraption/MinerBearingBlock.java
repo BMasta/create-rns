@@ -1,7 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.contraption;
 
 import com.bmaster.createrns.RNSBlockEntities;
-import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.bmaster.createrns.content.deposit.claiming.IDepositClaimerOutlineTarget;
 import com.simibubi.create.content.contraptions.bearing.BearingBlock;
 import com.simibubi.create.foundation.block.IBE;
@@ -15,7 +14,6 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.BlockHitResult;
 
 import javax.annotation.Nullable;
@@ -23,7 +21,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class MinerBearingBlock extends BearingBlock implements IBE<MinerBearingBlockEntity>, IDepositClaimerOutlineTarget {
+public class MinerBearingBlock extends BearingBlock
+        implements IBE<MinerBearingBlockEntity>, IDepositClaimerOutlineTarget {
     public MinerBearingBlock(Properties properties) {
         super(properties);
     }
@@ -31,21 +30,6 @@ public class MinerBearingBlock extends BearingBlock implements IBE<MinerBearingB
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
         return super.getStateForPlacement(context);
-    }
-
-    @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        // Area must be collected from this BE before it's removed
-        BoundingBox area = null;
-        if (!level.isClientSide && !state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof MinerBearingBlockEntity be) {
-            var mb = be.getBehaviour(ContraptionMiningBehaviour.BEHAVIOUR_TYPE);
-            area = mb.getOperatingBoundingBox();
-        }
-
-        super.onRemove(state, level, pos, newState, movedByPiston);
-
-        // Area must be reclaimed after this BE is removed
-        if (area != null) IDepositBlockClaimer.reclaimArea(level, area);
     }
 
     @Override

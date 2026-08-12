@@ -1,7 +1,7 @@
 package com.bmaster.createrns.compat.map;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSGuiTextures;
+import com.bmaster.createrns.RNSTextures;
 import com.bmaster.createrns.RNSItems;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.simibubi.create.foundation.gui.RemovedGuiUtils;
@@ -62,7 +62,7 @@ public class RNSMapToggleRenderer {
         var pose = gui.pose();
         pose.pushPose();
         pose.translate(x, y, 1000);
-        RNSGuiTextures.DEPOSIT_MAP_TOGGLE_BG.render(gui, 0, 0);
+        RNSTextures.DEPOSIT_MAP_TOGGLE_BG.render(gui, 0, 0);
         pose.translate(ICON_OFFSET, ICON_OFFSET, 0);
         pose.scale(ICON_SCALE, ICON_SCALE, ICON_SCALE);
         pose.translate(-ICON_OFFSET, -ICON_OFFSET, 900);
@@ -89,8 +89,8 @@ public class RNSMapToggleRenderer {
         XAERO(3, 64, Anchor.LEFT, Anchor.BOTTOM),
         JOURNEY(7, -58, Anchor.LEFT, Anchor.CENTER);
 
-        public static final int TOGGLE_WIDTH = RNSGuiTextures.DEPOSIT_MAP_TOGGLE_BG.getWidth();
-        public static final int TOGGLE_HEIGHT = RNSGuiTextures.DEPOSIT_MAP_TOGGLE_BG.getHeight();
+        public static final int TOGGLE_WIDTH = RNSTextures.DEPOSIT_MAP_TOGGLE_BG.getWidth();
+        public static final int TOGGLE_HEIGHT = RNSTextures.DEPOSIT_MAP_TOGGLE_BG.getHeight();
 
         public final int x;
         public final int y;

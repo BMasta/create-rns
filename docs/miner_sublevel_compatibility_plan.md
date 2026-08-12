@@ -13,24 +13,26 @@ I now changed my mind to the following design:
 Support miners whose physical mining footprint reaches deposit blocks in the main world or another Sable sublevel while
 preserving the following rules:
 
-1. A miner has exactly one active target space at a time. It cannot simultaneously mine deposits from its own sublevel
+1. A miner has exactly one claimed target space at a time. It cannot simultaneously mine deposits from its own sublevel
    and another sublevel, or from multiple remote sublevels.
 2. Deposits in the miner's own sublevel are exclusively claimed using the current ownership rules.
-3. Deposits in a different sublevel are shared targets and are never added to the miner's exclusive claim set.
-4. An active target space remains selected while it contains mineable deposits. Other local or remote spaces do not
+3. Deposits in a different sublevel are exclusively claimed by block, with a configured claim-count limit replacing the
+   local mining-area restriction.
+4. A claimed target space remains active while it contains mineable deposits. Other local or remote spaces do not
    preempt it.
-5. Starting, refreshing, stopping, or removing a remote-mode miner must not cause peer miners to reclaim merely because
-   they share cross-sublevel targets.
+5. Starting, refreshing, stopping, or removing a remote miner refreshes only miners competing for claims in the same
+   target operating space.
 6. The main world is treated as one operating space. Two main-world miners are in the same space; a main-world miner and a
    sublevel deposit are not.
 7. Physics assembly and disassembly preserve each moved deposit block's exact stored durability.
 8. Behavior without Sable/Simulated installed remains unchanged, and optional compatibility classes must not be loaded
    when their dependency is absent.
 
-## Current Assumptions That Must Be Split
+## Current Assumptions That Must Be Generalized
 
-The current implementation uses `claimedDepositBlocks` for two different concepts: exclusive ownership and the blocks
-passed to `MiningProcess`. That works only while every mineable block is also exclusively claimed.
+The current implementation uses `claimedDepositBlocks` for both exclusive ownership and the blocks passed to
+`MiningProcess`. That remains intentional because every mineable block must be claimed, but the claim must now carry a
+target operating-space identity and support different local and cross-sublevel traversal limits.
 
 The current code also assumes that the miner, its integer mining `BoundingBox`, and every deposit position share one
 coordinate space:
@@ -69,56 +71,47 @@ two positions are in the same space.
 Sable-specific types must stay behind an optional adapter under `compat/sable`. Common mining and claiming classes
 should depend only on the mod-owned abstraction. A vanilla adapter must preserve current behavior.
 
-### One active target space
+### One claimed target space
 
-Track one `OperatingSelection` in `HybridOperatingBehaviour`. It atomically contains the selected operating-space identity,
-active deposit positions, and one of two mutually exclusive modes:
+Track one authoritative claimed target group in `ClaimingBehaviour`. It atomically contains the target operating-space
+identity, whether that space differs from the mine head's source space, and the claimed deposit positions. Local and
+cross-sublevel targets both use exclusive ownership; there is no separate active-target or remote shared mode.
 
-- **Local exclusive mode:** the selected space is the mine head's own sublevel. Active deposits are also the miner's
-  exclusive claim and participate in holder conflict filtering, claim serialization, outlines, and peer reclamation.
-- **Remote shared mode:** the selected space differs from the mine head's sublevel. Active deposits drive mining but the
-  exclusive claim set is empty, and no peer reclamation occurs when the active set changes.
+The claim's positions drive `MiningProcess`, rates, remaining uses, effects, serialization, outlines, and target
+validation. They are never a union of positions from multiple spaces. Conflict filtering must compare target-space
+identity so miners in different source spaces still compete when they target the same remote space.
 
-The selection's positions drive `MiningProcess`, rates, remaining uses, effects, and target validation. They are never a
-union of positions from multiple spaces. In local mode they mirror the claimed set; in remote mode they contain only
-shared positions from the one selected remote space.
+Local claims can derive their target identity from the effective mine-head tip after load. Cross-sublevel claims must
+either serialize their target identity and mode with the positions or be rediscovered before rebuilding the process;
+they must never be restored as a claim in the source space. Server-to-client synchronization must carry the same
+authoritative claim used by presentation and process state.
 
-`OperatingSelection` is runtime state and is never written to disk NBT. After load, a local selection is inferred from
-the deserialized exclusive claim; remote selection and targets are rediscovered from the current relative
-mine-head/deposit geometry before rebuilding the process. The complete selection is synchronized transiently from
-server to client for presentation, but that client packet is not persistent ownership.
+Claim choice is sticky:
 
-Cross-sublevel targets must never be passed through the exclusive claim resolver. Do not add a dynamic claiming mode to
-`IDepositBlockClaimer`; the selection's local/remote state decides whether its active positions are claimed or shared.
+1. If the current claimed space still has at least one valid mineable deposit, retain it and ignore other spaces.
+2. If no claimed block remains mineable, release the claim and notify competitors in that target space.
+3. When claiming again, try the mine head's own sublevel first using normal exclusive filtering.
+4. If no local block can be claimed, choose one remote candidate deterministically and resolve it through exclusive
+   target-space conflict filtering. Prefer the nearest seed intersection, then stable operating-space identity.
 
-Selection is sticky:
-
-1. If the current selected space still has at least one valid mineable deposit, retain it and ignore other spaces.
-2. If no selected space remains mineable, clear it and release its state. Only local mode releases exclusive claims and
-   notifies same-space peers.
-3. When selecting again, try the mine head's own sublevel first using normal exclusive filtering.
-4. If no local block can be claimed, select one remote candidate deterministically. Prefer the candidate whose seed
-   intersection is nearest the mine-head tip, then use stable operating-space identity as the tie-breaker.
-
-A selected space becomes unmineable when it has no qualifying connected deposit blocks because of depletion,
+A claimed space becomes unmineable when it has no qualifying connected deposit blocks because of depletion,
 replacement, movement out of the mining prism, recipe/catalyst eligibility changes, or unload. Pose-dependent remote
-selection is runtime state and is recomputed after save/load rather than treated as persistent ownership.
+claims must be validated against current geometry after save/load rather than trusting stale storage positions.
 
 ### Candidate discovery
 
 Keep the existing local flood-fill semantics for same-sublevel claims. For other spaces, add a Sable-backed scan that
 returns candidates grouped by operating-space identity rather than flattening them into one set:
 
-1. Build the miner's seed cell directly in front of the mine head and its complete mining prism in the source
-   sublevel's coordinates.
-2. Transform those volumes through the source sublevel's logical pose into global coordinates. Main-world miners use an
+1. Build the miner's seed cell directly in front of the mine head in the source sublevel's coordinates.
+2. Transform that cell through the source sublevel's logical pose into global coordinates. Main-world miners use an
    identity transform.
-3. Query the main world and Sable sublevels intersecting the global volume.
+3. Query the main world and Sable sublevels intersecting the transformed seed cell.
 4. Exclude the source operating space from the remote pass; it is handled by normal exclusive claiming when a new target
    space must be selected.
-5. Transform the seed and mining volumes into each target space and find deposit blocks touching the seed volume.
-6. Flood-fill face-connected deposit blocks in that target space, retaining only blocks whose transformed block volume
-   intersects the mining prism and whose chunks are loaded.
+5. Transform the seed cell into each target space and find deposit blocks touching it.
+6. Breadth-first traverse face-connected, loaded deposit blocks in that target space, skipping blocks already claimed
+   by competitors and stopping when the remote claim-count limit is reached. Do not apply the local mining prism.
 7. Return one candidate group per target space, including the positions needed by recipe, durability, load-state, and
    block-state lookups.
 
@@ -126,29 +119,29 @@ For Sable, the main world and its sublevels share one parent `Level`, while cand
 plot/storage coordinates. The separate operating-space identity distinguishes logical sublevels within that level.
 
 Using the seed volume preserves the current rule that a miner must contact a deposit immediately in front of its mine
-head; merely being somewhere deeper inside the configured mining depth is not sufficient. Exact transformed-volume
-intersection should be used after broad integer-bounds collection so rotated sublevels do not gain false-positive
-corner blocks from an enclosing AABB.
+head. Exact transformed-volume intersection should be used after broad integer-bounds collection so rotated sublevels
+do not gain false-positive contact blocks from an enclosing AABB.
 
 ### Refresh lifecycle and CPU cost
 
-`HybridOperatingBehaviour` owns the selected-space state machine, with mining-specific local-claim and remote-target
+`ClaimingBehaviour` owns the claimed-space state machine, with mining-specific local and remote claim
 refresh triggers supplied by `ContraptionMiningBehaviour`.
 
 - Assembly, disassembly, recipe reload, equipment/spec changes, and effective mine-head source-space changes invalidate
-  the selected space or force it to be revalidated.
+  the claimed space or force it to be revalidated.
 - Same-sublevel deposit placement/removal continues to refresh local claimers through `DepositBlock` and the holder.
 - Moving sublevels require the owning miner to discover when its transformed seed/mining volume changes or when the set
   of intersecting target sublevels changes.
 - A lightweight pose/intersection fingerprint may run each server tick. Full block enumeration and flood filling should
   run only when that fingerprint changes, after a relevant deposit mutation, or at a bounded fallback interval needed
   to discover a target sublevel moving into range.
-- While a selected space remains valid, rescan only that space as needed. Do not scan and combine all candidate spaces
+- While a claimed space remains valid, rescan only that space as needed. Do not scan and combine all candidate spaces
   merely because another target becomes physically reachable.
-- If the selected space becomes invalid, clear its process and choose a new space using the sticky selection policy.
-- A remote target-set change rebuilds only this miner's process and client state. It must not call holder-wide reclaim
-  operations or cause newly available local deposits to preempt a still-valid remote selection.
-- If a target sublevel unloads or cannot be resolved, treat that selected space as unmineable and select again rather
+- If the claimed space becomes invalid, release it, clear its process, and choose a new space using the sticky claim
+  policy.
+- A remote claim change rebuilds this miner's process and client state and notifies competitors in the target space.
+  Newly available local deposits must not preempt a still-valid remote claim.
+- If a target sublevel unloads or cannot be resolved, treat that claimed space as unmineable and claim again rather
   than retaining its storage positions as valid remote deposits.
 
 The fingerprint must include enough information to detect motion of both the miner's source sublevel and intersecting
@@ -180,14 +173,13 @@ level references, an `afterMove` must match its complete immutable callback tupl
 durability is written when `afterMove` is skipped. Strict immediate failure cleanup would require another mixin into
 Sable's assembly internals or an upstream lifecycle callback.
 
-Moving durability is independent of target-space selection: it preserves world data whenever a deposit moves, whether
+Moving durability is independent of target-space claiming: it preserves world data whenever a deposit moves, whether
 or not any miner currently sees that deposit.
 
-### Shared-target depletion safety
+### Stale-claim depletion safety
 
-Remote shared mode allows multiple miners to hold the same deposit position even though each miner has only one active
-target space. Proactive peer refresh is neither sufficient nor desired, so consumption must defend against stale
-targets.
+Exclusive resolution prevents two live claims from intentionally owning the same block, but process state can still be
+stale after movement, replacement, or a competing refresh. Consumption must therefore validate ownership targets.
 
 - Before producing a yield, `MiningProcess.InnerProcess` must verify that a selected position still contains the
   deposit block expected by that inner process.
@@ -199,8 +191,8 @@ targets.
 - Because mining runs on the server thread, sequential `tryUse` calls are sufficient to prevent two miners from both
   receiving the final use. The second call must observe the replacement block and fail without yielding.
 
-This self-validation permits remote miners to converge after actual deposit depletion without notifying them when an
-unrelated miner merely starts or stops targeting the same deposit.
+This self-validation prevents stale processes from yielding after the target changed while normal claim refreshes
+redistribute released blocks among competitors.
 
 `tryUse` does not provide cross-sublevel access. Candidate discovery supplies positions in the selected logical space;
 `tryUse` only makes the final validation and durability update authoritative before catalysts or output are consumed.
@@ -229,9 +221,10 @@ unrelated miner merely starts or stops targeting the same deposit.
 - Make same-space filtering an explicit invariant of `getClaimableDepositVein(...)`.
 - Reclaim helpers derive their source operating-space identity from a representative position in the operating area. This
   relies on the invariant that a local operating `BoundingBox` is wholly contained in one operating space.
-- Keep claim serialization limited to local exclusive mode. A remote active set and selected remote identity are
-  pose-dependent runtime state and must be rediscovered after load.
-- Preserve the existing local seed-block flood fill and claiming modes.
+- Keep local and remote claims in one serialized shape, including enough target-space metadata to avoid restoring remote
+  positions as local. Pose-dependent reachability must still be revalidated after load.
+- Preserve the existing local seed-block flood fill and area restriction. Add a remote breadth-first traversal limited
+  by claim count rather than the local operating box.
 
 ### `DepositClaimerInstanceHolder`
 
@@ -249,57 +242,49 @@ unrelated miner merely starts or stops targeting the same deposit.
 
 ### Operating and mining behaviours
 
-- Retain `claimedDepositBlocks` as the exclusive local-mode set; it is empty while remote shared mode is active.
-- Keep one `OperatingSelection` in `HybridOperatingBehaviour`; it owns the selected identity, mode, and active positions.
-  Build `MiningProcess` only from those positions, never from a union of local and remote candidates or candidates
-  belonging to multiple remote spaces.
-- In local mode, create the selection from an equal defensive copy of the exclusive claim. In remote mode, keep the
-  selection positions separate and leave the exclusive claim set empty.
-- Split selected-space validation, local claiming, remote discovery, and process recomputation so a remote rescan cannot
-  cause peer reclamation.
-- Keep `MiningBehaviour` responsible for translating selection changes into process reconstruction, durability
+- Keep one immutable claimed target group in `ClaimingBehaviour`; it owns the target identity, local/cross-sublevel mode,
+  and positions. Build `MiningProcess` only from those positions, never from a union of candidates in multiple spaces.
+- Route local and remote candidates through exclusive claim resolution in their target space. A remote rescan may cause
+  peer reclamation only for miners competing in that same target space.
+- Keep `MiningBehaviour` responsible for translating claim changes into process reconstruction, durability
   initialization, process ticking, and collection.
-- Initialize durability for deposits in the selected active set, regardless of whether local or remote mode selected
-  them. Do not initialize deposits in unselected candidate spaces.
-- Synchronize enough active-target state from server to client for effects and tooltips, but never write active positions
-  or selected-space identity to disk NBT.
+- Initialize durability only for deposits in the authoritative claim, not unclaimed candidates.
+- Synchronize and persist enough claim metadata to restore the target space without misclassifying remote positions as
+  local ownership.
 - Preserve pending process progress across a target rebuild where the corresponding deposit recipe still exists.
 
 ### `ContraptionMiningBehaviour`
 
 - Resolve source identity and mining geometry from `equipment.mineHeadPos`, which already includes the size-specific tip
   offset. Continue using the bearing position only to locate the owning block entity.
-- Implement the sticky selected-space state machine and invoke the optional remote scanner only when the current space
+- Implement the sticky claimed-space state machine and invoke the optional remote scanner only when the current space
   needs validation or a new space must be selected.
 - Track the transformed-volume fingerprint and schedule remote rescans without a full per-tick block search.
-- Refactor `refresh()` into equipment/spec validation, selected-space validation, optional reselection, claim update,
+- Refactor `refresh()` into equipment/spec validation, claimed-space validation, optional reselection, claim update,
   and process rebuild stages.
-- Call `reclaimArea` only when local exclusive mode changes or releases claims in the mine head's source space.
-- On disassembly/unload, discard remote targets without notifying miners in their target spaces.
+- Resolve reclamation in the claim's target space, including when a remote claim changes or is released.
+- On disassembly/unload, release remote claims and notify competitors in their target spaces.
 
 ### Deposit and bearing lifecycle
 
-- `DepositBlock.updateNearbyClaimers(...)` should refresh exclusive claimers only in the deposit's own operating space.
-  Remote-mode miners rely on their selected-space scan/consumption validation and are not registered as claimers of
-  that block. Such an update must not preempt a still-mineable remote selection.
-- `MinerBearingBlock.onRemove(...)` must capture the active local exclusive area before block-entity removal and reclaim
-  only that area. The area's representative position resolves its operating space; remote mode has no claim to release.
+- `DepositBlock.updateNearbyClaimers(...)` should refresh claimers targeting the deposit's operating space, including
+  miners whose source is in another sublevel.
+- `MinerBearingBlock.onRemove(...)` must capture and release its target-space claim before block-entity removal, then
+  refresh competitors for that target space.
 - Add durability-manager operations that capture an existing value without initialization and restore it at a moved
   block's destination. Invoke them from the optional Sable assembly listener on both assembly and disassembly.
-- Recipe reloads must revalidate the selected active set. Reselect only if the current space no longer contains a
+- Recipe reloads must revalidate the claimed set. Reselect only if the current space no longer contains a
   mineable block.
 
 ### Mining process, durability, and client visuals
 
 - Keep `MiningProcess` on the miner's parent `Level`; Sable sublevels are partitions of that same level. Pass positions
   from exactly one logical space.
-- Update `MiningProcess` to prune stale shared targets and to produce output only after successful durability use.
-- Update `DepositDurabilityManager` with an unambiguous success-returning consumption operation. This validates shared
+- Update `MiningProcess` to prune stale claimed targets and to produce output only after successful durability use.
+- Update `DepositDurabilityManager` with an unambiguous success-returning consumption operation. This validates stale
   targets; it is not responsible for resolving or transforming cross-sublevel positions.
-- Update `MinerEffectsGenerator` to scale from the one selection's active positions rather than exclusive claims.
-- Keep `DepositClaimerOutlineRenderer` claim-oriented: it should show only exclusive same-sublevel blocks. If a future
-  UI needs to visualize remote reach, add a separate transformed mining-volume visualization rather than presenting
-  shared targets as owned claims.
+- Update `MinerEffectsGenerator` to scale from the authoritative claimed positions.
+- Keep `DepositClaimerOutlineRenderer` claim-oriented and render remote claims in their target operating space.
 
 ## Delivery Order
 
@@ -324,34 +309,27 @@ depends on a later stage to avoid crashes or data loss.
 **Verification gate:** production sources are unchanged; existing miner GameTests and the new characterization tests
 pass. The compile-only Sable dependency is not referenced by always-loaded classes.
 
-### Stage 2: Separate exclusive claims from active process input
+### Stage 2: Consolidate claims and process input
 
-**Outcome:** behavior remains vanilla-equivalent, but ownership and mining input are no longer represented by the same
-field or lifecycle operation.
+**Outcome:** behavior remains vanilla-equivalent and one authoritative claim represents both ownership and mining input.
 
-- Retain `claimedDepositBlocks` as the exclusive ownership set.
-- Add one transient active selection and make `MiningProcess`, rate calculations, remaining uses, effects, and process
-  validation consume its position set.
-- During this stage, always create the local selection from a defensive copy of the exclusive claim. There is no remote
-  mode and no behavior difference for players.
-- Extract claim recomputation, active-set replacement, process rebuild, client notification, and process-progress
-  restoration into explicit steps. A claim refresh should no longer rebuild unrelated state implicitly.
-- Keep claim NBT and outline behavior based only on `claimedDepositBlocks`; add serialization regression coverage
-  proving the refactor does not change saved data. Reconstruct the local active set from that claim after disk load
-  rather than persisting it separately.
-- For transient server-to-client updates, serialize the active selection independently of the exclusive claim. Client
-  packet reads must use its mode, space, and positions as process and presentation input rather than inferring them from
-  the packet's claim.
+- Retain `claimedDepositBlocks` as the exclusive ownership and process-input set.
+- Make `MiningProcess`, rate calculations, remaining uses, effects, and process validation consume the claim directly.
+- Remove transient active-selection state and its independent serialization.
+- Extract claim recomputation, process rebuild, client notification, and process-progress restoration into explicit
+  steps. Each actual claim change must invalidate the process exactly once.
+- Add disk and client-packet serialization regression coverage proving that claims restore process targets without a
+  second target representation.
 
-**Verification gate:** all Stage 1 tests still pass unchanged, and additional assertions prove that active and claimed
-sets remain equal throughout assembly, refresh, reload, disassembly, and reconstruction after save/load.
+**Verification gate:** all Stage 1 tests still pass unchanged, and additional assertions prove that claim and process
+targets remain equal throughout assembly, refresh, reload, disassembly, and reconstruction after save/load.
 
 ### Stage 3: Introduce dependency-free operating-space seams
 
-**Outcome:** common code can represent one selected target space and its positions within the miner's parent `Level`,
+**Outcome:** common code can represent one claimed target space and its positions within the miner's parent `Level`,
 but the only available implementation still behaves exactly like the current dimension-local miner.
 
-- Add mod-owned `OperatingSublevel`, selected-space/active-mode state, and a candidate group containing one space identity and
+- Add mod-owned `OperatingSublevel`, claimed-space/mode state, and a candidate group containing one space identity and
   its positions.
 - Add a common operating-space adapter interface and a vanilla implementation. The vanilla implementation exposes only the
   miner's current dimension as one local space and never returns remote candidates.
@@ -359,9 +337,9 @@ but the only available implementation still behaves exactly like the current dim
   representative position from their bounding box. Preserve `SidedDimension` as the effective vanilla filter.
 - Make the effective mine-head tip the source anchor throughout claiming and process setup. The bearing position remains
   only the block-entity registry location.
-- Introduce the sticky selected-space state machine with only local exclusive mode reachable. This validates state
+- Introduce the sticky claimed-space state machine with only local exclusive mode reachable. This validates state
   transitions before optional compatibility adds another mode.
-- Keep `MiningProcess` on the bearing's parent `Level`; the selected space partitions positions within that level.
+- Keep `MiningProcess` on the bearing's parent `Level`; the claimed space partitions positions within that level.
 
 **Verification gate:** Stage 1 and Stage 2 behavior remains unchanged, Sable is not required at runtime, and a no-Sable
 startup/compile check proves that no optional type leaked into common signatures or static initialization.
@@ -379,10 +357,12 @@ sublevels and the main world are not yet candidates for that miner.
 - Add dynamic same-sublevel filtering to `DepositClaimerInstanceHolder` after its existing sided-dimension filter.
 - Scope overlap, point-containment, nearby-claimer, deposit-change, reclaim, removal, and client-outline queries to the
   mine head/deposit's current logical space.
-- Revalidate local claims if sublevel reconstruction, split/merge, reload, or equipment reconstruction changes the
-  resolved source identity. While a local selection exists, a constant-time identity lookup before server mining may
-  trigger a local re-claim; it must not perform deposit or remote-sublevel discovery. Dynamic query filtering must
-  prevent stale registrations from crossing space boundaries.
+- Do not cache or poll a separate local source-space identity. The bearing and effective mine-head tip must occupy the
+  same operating space, so resolve fresh local claims from the bearing position. Sable assembly/disassembly recreates
+  the bearing block entity but loads its source NBT, so validate a local claim restored into an uninitialized owner
+  once on the next tick against a representative target position. Retain same-space claims without rescanning; rebuild
+  changed-space or empty claims. Dynamic query filtering must still resolve current anchors so stale holder
+  registrations cannot cross space boundaries.
 - Keep the remote candidate API returning no candidates. This stage must not introduce cross-sublevel mining.
 - Update `implementation.md` and `AGENTS.md` with the completed same-sublevel ownership behavior and optional adapter
   boundary.
@@ -413,10 +393,10 @@ independently of miner compatibility.
 deposits do not gain entries, failed moves do not duplicate values or leak level references, unrelated callbacks cannot
 consume stale captures, and Sable-absent startup remains unaffected.
 
-### Stage 6: Make deposit consumption safe for shared targets
+### Stage 6: Make deposit consumption authoritative
 
-**Outcome:** process consumption is authoritative and safe for future non-exclusive mining, but miners still select only
-their local sublevel.
+**Outcome:** process consumption is authoritative and safe against stale claims, but miners still claim only their local
+sublevel.
 
 - Replace void durability use with `tryUse`, accepting the expected deposit identity, target `ServerLevel`, and target
   position.
@@ -430,38 +410,38 @@ their local sublevel.
 **Verification gate:** all earlier behavior remains functional, local mining produces identical valid output, and stale
 or competing process state cannot create output from a replaced deposit.
 
-### Stage 7: Add one-space remote mining with conservative refresh
+### Stage 7: Add exclusive one-space remote mining with conservative refresh
 
-**Outcome:** cross-sublevel mining becomes player-visible and correct. Each miner selects either its own local space or
-one remote space, never a union, using a correctness-first refresh strategy.
+**Outcome:** cross-sublevel mining becomes player-visible and correct. Each miner exclusively claims either its own
+local space or one remote space, never a union, using a correctness-first refresh strategy.
 
 - Implement Sable transformed seed/prism discovery and return remote candidates grouped by operating-space identity.
-- Apply exact transformed-volume intersection after broad bounds collection and preserve the root-contact plus confined
-  face-connected vein semantics.
-- Activate sticky selection: retain a valid selected space, prefer local exclusive mining when selecting from no state,
-  and otherwise choose one remote group deterministically.
-- In local mode, mirror the active set into exclusive claims. In remote mode, keep claims empty and build the process
-  solely from the selected remote group.
-- Ensure remote assembly, refresh, disassembly, and removal never call peer reclaim operations in the target space.
+- Apply exact transformed-volume intersection to find the root contact, then breadth-first traverse the remote vein up
+  to the configured cross-sublevel claim-count limit without applying the local mining prism.
+- Activate sticky claiming: retain a valid claimed space, prefer local mining when claiming from no state, and otherwise
+  choose and exclusively resolve one remote group deterministically.
+- Store local and remote targets in the same authoritative claim representation and build the process solely from it.
+- Ensure remote assembly, refresh, disassembly, and removal release ownership and notify competing claimers in the
+  target space.
 - Initially use a conservative bounded rescan interval plus immediate refresh on known lifecycle changes. This may do
   more work than the final design, but it must correctly notice source/target motion, unload, depletion, and re-entry.
-- Complete required transient server/client synchronization so effects and tooltips use the one active set, while
-  outlines remain exclusive-claim-only and active positions remain absent from disk NBT.
-- Update `implementation.md` with the completed one-space selection and shared remote-mining rules.
+- Complete server/client and disk synchronization or deterministic rediscovery so effects, tooltips, outlines, and
+  processes use the same remote claim without restoring it into the wrong space.
+- Update `implementation.md` with the completed one-space exclusive remote-claim rules.
 
-**Verification gate:** local and remote positions never coexist in one process; two remote miners may share a target;
-starting/stopping one does not refresh the other; moving out of range eventually clears/reselects; save/load and reload
-recompute remote state without phantom output or stale claims.
+**Verification gate:** local and remote positions never coexist in one process; two miners targeting the same remote
+deposit receive disjoint claims; releasing one refreshes the other; moving out of range eventually clears/reclaims;
+save/load and reload preserve or safely rediscover remote ownership without phantom output or stale claims.
 
 ### Stage 8: Replace conservative rescans with dirty/fingerprint refresh
 
 **Outcome:** Stage 7 behavior is preserved while unchanged physics contraptions avoid repeated block enumeration and
 flood filling.
 
-- Add a lightweight per-tick fingerprint covering source identity/pose, selected target identity/pose, transformed seed
-  bounds, mining-prism block bounds, and selected-space load state.
-- Rescan the selected space only when quantized block coverage or relevant eligibility state changes.
-- When no selected space is valid, use the broad intersecting-space query only as needed to select a replacement.
+- Add a lightweight per-tick fingerprint covering source identity/pose, claimed target identity/pose, transformed seed
+  bounds, and claimed-space load state.
+- Rescan the claimed space only when seed contact or relevant eligibility state changes.
+- When no claimed space is valid, use the broad intersecting-space query only as needed to claim a replacement.
 - Retain a low-frequency fallback scan if Sable exposes no reliable event for a previously unrelated sublevel moving
   into range.
 - Add counters or test instrumentation that distinguish fingerprint checks from full scans.
@@ -477,18 +457,17 @@ presentation, with no temporary implementation scaffolding remaining.
 
 - Exercise assembly/disassembly of miners and deposits, bearing removal, chunk/sublevel unload, sublevel reconstruction,
   recipe reload, catalyst changes, finite depletion, infinite deposits, and save/load.
-- Verify sticky selection across normal refreshes and deliberate reselection after the active space becomes unmineable.
-- Verify local claim NBT remains authoritative, active target positions and selected-space identity are never persisted
-  to disk, and pending process progress is restored only where runtime reconstruction selects targets for which the
-  saved recipes remain applicable.
+- Verify sticky claiming across normal refreshes and deliberate reselection after the claimed space becomes unmineable.
+- Verify claim NBT or deterministic rediscovery preserves target-space ownership, and pending process progress is
+  restored only where runtime reconstruction claims targets for which the saved recipes remain applicable.
 - Remove temporary compatibility diagnostics or migrate useful scan counters behind normal debug logging.
-- Complete `implementation.md` and `AGENTS.md` maintenance notes, including optional classloading, selection invariants,
+- Complete `implementation.md` and `AGENTS.md` maintenance notes, including optional classloading, claim invariants,
   durability transfer, refresh performance, and known limitations.
 - Run the full compile and GameTest suites, then perform the manual Sable scenarios that cannot be constructed reliably
   in the existing GameTest harness.
 
 **Verification gate:** the complete test matrix below passes, Sable-absent and Sable-present configurations both load,
-and the codebase contains one authoritative selected-space path rather than retained pre-compatibility branches.
+and the codebase contains one authoritative claimed-space path rather than retained pre-compatibility branches.
 
 ## Test Matrix
 
@@ -496,32 +475,30 @@ and the codebase contains one authoritative selected-space path rather than reta
 - Two overlapping miners in one Sable sublevel still receive disjoint exclusive claims.
 - Claim queries never compare or subtract claims belonging to another sublevel, even when local coordinates or broad
   transformed bounds overlap.
-- A sublevel miner can mine a main-world deposit intersecting its physical mining prism, with an empty claim for that
-  remote block.
-- A miner in sublevel A can mine a deposit in sublevel B without claiming it.
-- Two miners in different spaces can mine the same remote deposit; starting or stopping either miner does not call the
-  other's claim refresh.
-- When both local and remote candidates exist during initial selection, the miner selects only the local claim and its
+- A sublevel miner can exclusively claim and mine a main-world deposit intersecting its physical mining prism.
+- A miner in sublevel A can exclusively claim and mine a deposit in sublevel B.
+- Two miners in different source spaces targeting the same remote deposit receive disjoint claims; releasing either
+  refreshes the other in the target space.
+- When both local and remote candidates exist during initial claiming, the miner claims only the local group and its
   process contains no remote positions.
-- A valid local selection is not expanded with remote candidates, and a valid remote selection is not expanded or
+- A valid local claim is not expanded with remote candidates, and a valid remote claim is not expanded or
   preempted by newly reachable local or other remote candidates.
-- After the selected space becomes unmineable, the miner releases only that mode's state and deterministically selects
+- After the claimed space becomes unmineable, the miner releases that target-space ownership and deterministically claims
   at most one replacement space.
-- In remote mode, the exclusive claim set and claim serialization remain empty while the active/process set contains
-  only positions from the selected remote space.
+- In remote mode, claim serialization or deterministic rediscovery preserves the target-space identity, and the claim
+  and process contain only positions from that remote space.
 - Moving or rotating either sublevel across a block-boundary threshold refreshes only affected miners and does not run a
   full deposit scan on every unchanged tick.
 - A target sublevel moving out of range or unloading removes its targets without crashes, phantom yields, or peer
   reclamation.
 - When two miners attempt the final durability use, exactly one receives output and consumes catalysts.
-- Deposit placement/removal updates same-space exclusive claimers; remote miners converge through their own refresh and
-  stale-target validation.
+- Deposit placement/removal updates all claimers targeting that operating space, including remote miners.
 - Physics assembly transfers every initialized finite durability from the old level/position to the new level/position;
   disassembly transfers it back without rerolling, duplicating, or dropping the value.
 - Moving an uninitialized or infinite deposit does not create a finite durability entry. A failed move does not duplicate
   durability or let unrelated callbacks consume its inert capture, which is replaced by the next `beforeMove`.
-- Save/load infers local active targets from the saved claim and recomputes pose-dependent remote selection without
-  loading saved active positions or a saved selected identity. `/reload` retains the in-memory selected space when it
+- Save/load restores local claims and safely restores or recomputes pose-dependent remote claims without losing their
+  target-space identity. `/reload` retains the in-memory claimed space when it
   remains mineable and preserves recipe progress where possible.
 - With Sable absent, classloading succeeds and all existing miner GameTests retain their current behavior.
 

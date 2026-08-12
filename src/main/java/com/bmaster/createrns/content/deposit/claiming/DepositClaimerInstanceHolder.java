@@ -38,10 +38,9 @@ public class DepositClaimerInstanceHolder {
         if (anchor == null || bb == null) return Set.of();
 
         return getClaimers(level, anchor, false).stream()
-                .filter(c -> {
-                    var cur_bb = c.getOperatingBoundingBox();
-                    var cAnchor = c.getOperatingAnchor();
-                    return cAnchor != null && !cAnchor.equals(anchor) && cur_bb != null && bb.intersects(cur_bb);
+                .filter(cur_c -> {
+                    var cur_bb = cur_c.getOperatingBoundingBox();
+                    return !cur_c.equals(claimer) && cur_bb != null && bb.intersects(cur_bb);
                 })
                 .collect(Collectors.toUnmodifiableSet());
     }

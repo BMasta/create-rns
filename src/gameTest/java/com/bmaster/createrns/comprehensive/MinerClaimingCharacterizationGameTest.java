@@ -5,7 +5,7 @@ import com.bmaster.createrns.RNSDeposits;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.operating.IDepositBlockOperator;
-import com.bmaster.createrns.content.deposit.operating.sublevel.OperatingSublevelAdapter;
+import com.bmaster.createrns.content.deposit.operating.sublevel.OperatingSublevelAdapter.OperatingSublevel;
 import com.bmaster.createrns.content.deposit.operating.sublevel.OperatingSublevelAdapterHolder;
 import com.bmaster.createrns.content.deposit.operating.sublevel.VanillaOperatingSublevelAdapter;
 import com.bmaster.createrns.infrastructure.ServerConfig;
@@ -185,7 +185,7 @@ public class MinerClaimingCharacterizationGameTest {
     }
 
     @GameTest(template = "empty16x16", timeoutTicks = 15)
-    public void disassemblyClearsClaimActiveTargetsAndProcess(GameTestHelper helper) {
+    public void disassemblyClearsClaimAndProcess(GameTestHelper helper) {
         var miner = miner(helper, 5, 5, 5)
                 .deposit(5, 2, 5)
                 .place();
@@ -199,17 +199,17 @@ public class MinerClaimingCharacterizationGameTest {
         });
 
         helper.runAtTickTime(4, () -> {
-            helper.assertTrue(miner.behavior().getClaimedDepositBlocks() == null,
+            helper.assertTrue(miner.behavior().getClaimedDepositBlocks() != null,
+                    "Disassembled miner should have a finalized claim");
+            helper.assertTrue(miner.behavior().getClaimedDepositBlocks().positions().isEmpty(),
                     "Disassembled miner should release its exclusive claim");
-            helper.assertTrue(miner.behavior().getOperatingSelection() == null,
-                    "Disassembled miner should clear its active targets");
             helper.assertTrue(miner.process() == null, "Disassembled miner should clear its mining process");
             helper.succeed();
         });
     }
 
     @GameTest(template = "empty16x16", timeoutTicks = 15)
-    public void localSelectionUsesMineHeadSpaceAndMinerLevel(GameTestHelper helper) {
+    public void localClaimUsesMineHeadSpaceAndMinerLevel(GameTestHelper helper) {
         var miner = miner(helper, 5, 5, 5)
                 .deposit(5, 2, 5)
                 .place();
@@ -222,23 +222,22 @@ public class MinerClaimingCharacterizationGameTest {
             var anchor = behavior.getOperatingAnchor();
             var bounds = behavior.getOperatingBoundingBox();
             var detectionDimensions = behavior.getCrossSublevelOperatingDimensions();
-            var selection = behavior.getOperatingSelection();
+            var claimedBlocks = behavior.getClaimedDepositBlocks();
             helper.assertTrue(anchor != null, "Assembled miner should have an effective mine-head tip");
             helper.assertTrue(bounds != null, "Assembled miner should have mining bounds");
             helper.assertTrue(detectionDimensions != null,
                     "Assembled miner should have deposit detection dimensions");
-            helper.assertTrue(selection != null, "Assembled miner should select its local operating sublevel");
-            helper.assertFalse(selection.crossSublevel, "selected operating mode");
+            helper.assertTrue(claimedBlocks != null, "Assembled miner should initialize its local claim");
+            helper.assertFalse(claimedBlocks.crossSublevel(), "Local claims should not be marked cross-sublevel");
 
             var adapter = OperatingSublevelAdapterHolder.getAdapter();
-            helper.assertValueEqual(selection.sublevel, adapter.getOperatingSublevel(level, anchor),
-                    "sublevel resolved from the effective mine-head tip");
-            helper.assertValueEqual(selection.sublevel.identity(), OperatingSublevelAdapter.OperatingSublevel.MAIN_ID,
+            var operatingSublevel = adapter.getOperatingSublevel(level, anchor);
+            helper.assertValueEqual(operatingSublevel.identity(), OperatingSublevel.MAIN_ID,
                     "positions outside a Sable sublevel should use the main-sublevel identity");
             helper.assertTrue(miner.process().level == level, "Mining process should use the miner's level");
 
             helper.assertTrue(adapter.getCrossSublevelDepositBlocks(
-                    level, selection.sublevel, anchor, behavior.getOperatingDirection(), detectionDimensions).isEmpty(),
+                    level, operatingSublevel, anchor, behavior.getOperatingDirection(), detectionDimensions).isEmpty(),
                     "Stage 4 operating-sublevel adapter must not expose cross-sublevel targets");
             helper.succeed();
         });
@@ -262,12 +261,15 @@ public class MinerClaimingCharacterizationGameTest {
     @GameTest(template = "empty16x16")
     public void vanillaOperatingSublevelAdapterPreservesBlockPosDistances(GameTestHelper helper) {
         var adapter = new VanillaOperatingSublevelAdapter();
+        var level = helper.getLevel();
         var firstPos = new BlockPos(2, 3, 4);
         var secondPos = new BlockPos(-3, 8, 1);
 
-        helper.assertValueEqual(adapter.distManhattan(helper.getLevel(), firstPos, secondPos),
+        helper.assertValueEqual(adapter.getOperatingSublevel(level, firstPos),
+                adapter.getOperatingSublevel(level, secondPos), "vanilla operating sublevel");
+        helper.assertValueEqual(adapter.distManhattan(level, firstPos, secondPos),
                 (double) firstPos.distManhattan(secondPos), "vanilla Manhattan distance");
-        helper.assertValueEqual(adapter.distSqr(helper.getLevel(), firstPos, secondPos),
+        helper.assertValueEqual(adapter.distSqr(level, firstPos, secondPos),
                 firstPos.distSqr(secondPos), "vanilla squared distance");
         helper.succeed();
     }
@@ -282,22 +284,15 @@ public class MinerClaimingCharacterizationGameTest {
     private static Set<BlockPos> getClaimedBlocks(GameTestHelper helper, MinerSetup miner) {
         var claimedBlocks = miner.behavior().getClaimedDepositBlocks();
         helper.assertTrue(claimedBlocks != null, "Assembled miner should have initialized its claim");
-        return Set.copyOf(claimedBlocks);
+        return claimedBlocks.positions();
     }
 
     private static void assertProcessTargetsMatchClaim(
             GameTestHelper helper, MinerSetup miner, Set<BlockPos> expectedClaim
     ) {
         var claimedBlocks = miner.behavior().getClaimedDepositBlocks();
-        var selection = miner.behavior().getOperatingSelection();
         helper.assertTrue(claimedBlocks != null, "Assembled miner should have initialized its claim");
-        helper.assertTrue(selection != null, "Assembled miner should have initialized its active targets");
-        var activeBlocks = selection.positions;
-        helper.assertTrue(activeBlocks.equals(expectedClaim),
-                "Active targets should match the claim (expected %s blocks, got %s)"
-                        .formatted(expectedClaim.size(), activeBlocks.size()));
-        helper.assertFalse(claimedBlocks == activeBlocks,
-                "Exclusive claims and active targets should not share a set instance");
+        helper.assertValueEqual(claimedBlocks.positions(), expectedClaim, "miner claim");
 
         var processTargets = getProcessTargets(helper, miner);
         helper.assertTrue(processTargets.equals(expectedClaim),
@@ -330,7 +325,7 @@ public class MinerClaimingCharacterizationGameTest {
 
         private final Level level;
         private final BlockPos anchor;
-        private @Nullable Set<BlockPos> claimedBlocks;
+        private @Nullable ClaimedDepositBlocks claimedBlocks;
 
         private FixedAreaClaimer(Level level, BlockPos anchor) {
             this.level = level;
@@ -345,6 +340,11 @@ public class MinerClaimingCharacterizationGameTest {
         @Override
         public Level getLevel() {
             return level;
+        }
+
+        @Override
+        public OperatingSublevel getSublevel() {
+            return OperatingSublevelAdapterHolder.getAdapter().getOperatingSublevel(level, anchor);
         }
 
         @Override
@@ -363,12 +363,12 @@ public class MinerClaimingCharacterizationGameTest {
         }
 
         @Override
-        public @Nullable Set<BlockPos> getClaimedDepositBlocks() {
+        public @Nullable ClaimedDepositBlocks getClaimedDepositBlocks() {
             return claimedBlocks;
         }
 
         @Override
-        public void setClaimedDepositBlocks(@Nullable Set<BlockPos> claimedBlocks) {
+        public void setClaimedDepositBlocks(@Nullable ClaimedDepositBlocks claimedBlocks) {
             this.claimedBlocks = claimedBlocks;
         }
 

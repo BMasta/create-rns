@@ -1,6 +1,5 @@
 package com.bmaster.createrns.content.deposit.mining.contraption.attachment;
 
-import com.bmaster.createrns.content.deposit.claiming.IDepositClaimerOutlineTarget;
 import com.mojang.serialization.MapCodec;
 import com.simibubi.create.foundation.block.ProperWaterloggedBlock;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -22,7 +21,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class FaceAttachedMinerComponentBlock extends FaceAttachedHorizontalDirectionalBlock
-        implements IDepositClaimerOutlineTarget, ProperWaterloggedBlock {
+        implements ProperWaterloggedBlock {
     public static final MapCodec<FaceAttachedMinerComponentBlock> CODEC = simpleCodec(FaceAttachedMinerComponentBlock::new);
 
     public static Direction getConnectedDirection(BlockState state) {

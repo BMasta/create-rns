@@ -34,15 +34,10 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
         this.bearing = bearing;
     }
 
-    public boolean isMiningOrStalled() {
-        var mc = bearing.getMovedContraption();
-        return mc != null && bearing.isRunning() && super.isMining();
-    }
-
     @Override
     public boolean isRunning() {
         var mc = bearing.getMovedContraption();
-        return bearing.isRunning() && !mc.isStalled();
+        return bearing.isRunning() && mc != null && !mc.isStalled();
     }
 
     public boolean isMining() {
@@ -50,15 +45,25 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
         return isMiningOrStalled() && !mc.isStalled();
     }
 
+    public boolean isRunningOrStalled() {
+        var mc = bearing.getMovedContraption();
+        return bearing.isRunning() && mc != null;
+    }
+
+    public boolean isMiningOrStalled() {
+        var mc = bearing.getMovedContraption();
+        return mc != null && bearing.isRunning() && super.isMining();
+    }
+
     @Override
     public @Nullable BlockPos getOperatingAnchor() {
-        if (equipment == null) return null;
+        if (equipment == null && !refreshEquipment()) return null;
         return equipment.mineHeadTipPos;
     }
 
     @Override
     public @Nullable Set<Catalyst> getCatalysts() {
-        if (equipment == null) return null;
+        if (equipment == null && !refreshEquipment()) return null;
         return equipment.catalysts;
     }
 
@@ -88,8 +93,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
 
     @Override
     public void collect() {
-        if (!tryInitProcess() ||
-                (equipment == null && !refreshEquipment())) return;
+        if (!tryInitProcess() || (equipment == null && !refreshEquipment())) return;
         var spoils = process.collect();
         boolean collected = false;
         while (!spoils.isEmpty()) {
@@ -107,30 +111,48 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     }
 
     @Override
-    public void claimDepositBlocks() {
-        if (!bearing.isRunning()) return;
-        super.claimDepositBlocks();
+    public @Nullable MinerSpec getSpec() {
+        if (equipment == null && !refreshEquipment()) return null;
+
+        var size = equipment.mineHeadSize;
+        int radius = Math.max(0, ServerConfig.MINING_RADIUS.get() + size.radiusBonus);
+        var dims = new OperatingDimensions(radius, ServerConfig.MINING_DEPTH.get());
+        var csDims = new CrossSublevelOperatingDimensions(
+                size.detectionRadius, size.detectionLength, size.detectionOffset);
+        spec = new MinerSpec(dims, csDims, ServerConfig.MINING_SPEED.get());
+
+        return spec;
     }
 
     public void refresh() {
+        var level = getLevel();
+        assert level != null;
+        if (level.isClientSide) return;
+
         // Make sure all items are collected before destroying existing process
         collect();
 
-        // Release claimed blocks and reset equipment, spec, and process
-        clearOperatingSelection();
-        equipment = null;
-        spec = null;
+        if (isRunningOrStalled()) {
+            // Reset miner state
+            setClaimedDepositBlocks(null);
+            equipment = null;
 
-        var ce = bearing.getMovedContraption();
-        if (ce != null && bearing.isRunning()) {
-            // We get the first opportunity to reclaim
+            // Grab the first opportunity to reclaim
             claimDepositBlocks();
 
             // Other claimers in the area get what is left
             var area = getOperatingBoundingBox();
-            var level = getLevel();
-            assert level != null;
-            if (area != null) IDepositBlockClaimer.reclaimArea(level, area);
+            if (area != null) IDepositBlockClaimer.reclaimArea(level, area, this);
+        } else {
+            // Get area before resetting the miner state
+            var area = getOperatingBoundingBox();
+
+            // Reset miner state
+            setClaimedDepositBlocks(ClaimedDepositBlocks.NONE);
+            equipment = null;
+
+            // Let other miners reclaim the cleared area
+            if (area != null) IDepositBlockClaimer.reclaimArea(level, area, this);
         }
     }
 
@@ -138,7 +160,6 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     public void read(CompoundTag nbt, HolderLookup.Provider provider, boolean clientPacket) {
         if (clientPacket) {
             refreshEquipment();
-            refreshSpec();
         }
 
         super.read(nbt, provider, clientPacket);
@@ -150,7 +171,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     protected boolean refreshEquipment() {
         var ce = bearing.getMovedContraption();
         var level = getLevel();
-        assert level != null;
+        if (level == null) return false;
         if ((!level.isClientSide || wasAssembled) && (!bearing.isRunning() || ce == null)) {
             equipment = null;
             wasAssembled = false;
@@ -175,21 +196,5 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
         var level = getLevel();
         if (level != null && level.isClientSide && initialized && effects != null) effects.refresh();
         return initialized;
-    }
-
-    @Override
-    protected boolean refreshSpec() {
-        if (!bearing.isRunning() || (equipment == null && !refreshEquipment())) {
-            spec = null;
-            return false;
-        }
-        var size = equipment.mineHeadSize;
-        int radius = Math.max(0, ServerConfig.MINING_RADIUS.get() + size.radiusBonus);
-        var dims = new OperatingDimensions(radius, ServerConfig.MINING_DEPTH.get());
-        var csDims = new CrossSublevelOperatingDimensions(
-                size.detectionRadius, size.detectionLength, size.detectionOffset);
-        spec = new MinerSpec(dims, csDims, ServerConfig.MINING_SPEED.get());
-
-        return true;
     }
 }

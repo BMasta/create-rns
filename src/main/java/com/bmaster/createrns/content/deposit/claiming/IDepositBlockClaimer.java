@@ -3,32 +3,33 @@ package com.bmaster.createrns.content.deposit.claiming;
 import com.bmaster.createrns.content.deposit.operating.IDepositBlockOperator;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup.Provider;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.LongTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.HashSet;
 import java.util.Set;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public interface IDepositBlockClaimer extends IDepositBlockOperator {
     /// All claimers whose area intersects the provided area will reclaim their blocks
-    static void reclaimArea(Level level, BoundingBox area) {
+
+    static void reclaimArea(Level level, BoundingBox area, @Nullable IDepositBlockClaimer except) {
         var claimers = DepositClaimerInstanceHolder.getInstancesWithIntersectingArea(level, area);
         for (var c : claimers) {
+            if (except != null && except.equals(c)) continue;
             c.claimDepositBlocks();
         }
     }
 
-    @Nullable Set<BlockPos> getClaimedDepositBlocks();
+    static void reclaimArea(Level level, BoundingBox area) {
+        reclaimArea(level, area, null);
+    }
 
-    void setClaimedDepositBlocks(@Nullable Set<BlockPos> claimedBlocks);
+    @Nullable ClaimedDepositBlocks getClaimedDepositBlocks();
+
+    void setClaimedDepositBlocks(@Nullable ClaimedDepositBlocks claimedBlocks);
 
     void claimDepositBlocks();
 
@@ -37,46 +38,16 @@ public interface IDepositBlockClaimer extends IDepositBlockOperator {
         // Remove blocks claimed by other claimers of the same type
         for (var c : DepositClaimerInstanceHolder.getInstancesWithIntersectingArea(this, level)) {
             var claimedBlocks = c.getClaimedDepositBlocks();
-            if (claimedBlocks != null) vein.removeAll(claimedBlocks);
+            if (claimedBlocks != null) vein.removeAll(claimedBlocks.positions());
         }
         return vein;
     }
 
-    default CompoundTag serializeDepositBlockClaimer(Provider provider) {
-        var root = new CompoundTag();
+    record ClaimedDepositBlocks(Set<BlockPos> positions, boolean crossSublevel) {
+        public static final ClaimedDepositBlocks NONE = new  ClaimedDepositBlocks(Set.of(), false);
 
-        var list = new ListTag();
-        var claimedBlocks = getClaimedDepositBlocks();
-        if (claimedBlocks != null) {
-            for (var bp : claimedBlocks) {
-                list.add(LongTag.valueOf(bp.asLong()));
-            }
-            root.put("claimed_blocks", list);
+        public ClaimedDepositBlocks {
+            positions = Set.copyOf(positions);
         }
-        return root;
-    }
-
-    default void deserializeDepositBlockClaimer(Provider provider, CompoundTag nbt) {
-        var alreadyClaimedBlocks = getClaimedDepositBlocks();
-        Set<BlockPos> newlyClaimedBlocks = null;
-
-        // If list exists (even if empty), the claimer has finished claiming
-        if (nbt.get("claimed_blocks") instanceof ListTag list) {
-            newlyClaimedBlocks = new HashSet<BlockPos>(nbt.size());
-            for (var t : list) {
-                if (!(t instanceof LongTag lt)) continue;
-                newlyClaimedBlocks.add(BlockPos.of(lt.getAsLong()));
-            }
-            if (alreadyClaimedBlocks != null && alreadyClaimedBlocks.equals(newlyClaimedBlocks)) return;
-        } else if (alreadyClaimedBlocks == null) {
-            return;
-        }
-
-        var level = getLevel();
-        boolean updateOutline = level != null && level.isClientSide;
-
-        if (updateOutline) DepositClaimerOutlineRenderer.removeClaimer(this);
-        setClaimedDepositBlocks(newlyClaimedBlocks);
-        if (updateOutline) DepositClaimerOutlineRenderer.addClaimer(this);
     }
 }
