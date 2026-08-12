@@ -73,8 +73,8 @@ public class MiningBehaviourSerialization {
                     "claim deserialized independently from the client packet");
             var restoredSelection = behavior.getOperatingSelection();
             helper.assertTrue(restoredSelection != null, "Client packet should restore the operating selection");
-            helper.assertValueEqual(restoredSelection.remote, originalSelection.remote, "operating mode");
-            helper.assertValueEqual(restoredSelection.space, originalSelection.space, "operating space");
+            helper.assertValueEqual(restoredSelection.crossSublevel, originalSelection.crossSublevel, "operating mode");
+            helper.assertValueEqual(restoredSelection.sublevel, originalSelection.sublevel, "operating sublevel");
             helper.assertValueEqual(restoredSelection.positions, originalSelection.positions,
                     "active deposit positions");
             helper.succeed();

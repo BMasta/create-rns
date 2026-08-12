@@ -1,7 +1,7 @@
 package com.bmaster.createrns.content.deposit.claiming;
 
-import com.bmaster.createrns.content.deposit.operating.space.OperatingSpaceAdapter.OperatingSpace;
-import com.bmaster.createrns.content.deposit.operating.space.OperatingSpaceAdapterHolder;
+import com.bmaster.createrns.content.deposit.operating.sublevel.OperatingSublevelAdapter.OperatingSublevel;
+import com.bmaster.createrns.content.deposit.operating.sublevel.OperatingSublevelAdapterHolder;
 import com.simibubi.create.AllItems;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -21,7 +21,7 @@ public class DepositClaimerOutlineRenderer {
     private static final int MAX_TTL = 120;
     private static final int OUTLINE_MAX_DIST = 64;
 
-    private static final Object2ObjectOpenHashMap<OperatingSpace, ObjectOpenHashSet<BlockPos>> selectedClusters =
+    private static final Object2ObjectOpenHashMap<OperatingSublevel, ObjectOpenHashSet<BlockPos>> selectedClusters =
             new Object2ObjectOpenHashMap<>();
     private static boolean outlineActive = false;
     private static boolean outlineChanged = true;
@@ -44,14 +44,14 @@ public class DepositClaimerOutlineRenderer {
         if (!outlineActive) return;
         var p = Minecraft.getInstance().player;
         var level = claimer.getLevel();
-        var anchor = claimer.getAnchor();
+        var anchor = claimer.getOperatingAnchor();
         var claimedBlocks = claimer.getClaimedDepositBlocks();
         if (p == null || level == null || anchor == null || claimedBlocks == null) return;
-        var adapter = OperatingSpaceAdapterHolder.getAdapter();
+        var adapter = OperatingSublevelAdapterHolder.getAdapter();
         if (adapter.distManhattan(level, anchor, p.blockPosition()) > OUTLINE_MAX_DIST) return;
 
-        var space = adapter.getOperatingSpace(level, anchor);
-        var cluster = selectedClusters.computeIfAbsent(space, ignored -> new ObjectOpenHashSet<>());
+        var sublevel = adapter.getOperatingSublevel(level, anchor);
+        var cluster = selectedClusters.computeIfAbsent(sublevel, ignored -> new ObjectOpenHashSet<>());
         if (cluster.addAll(claimedBlocks)) outlineChanged = true;
     }
 
@@ -92,23 +92,32 @@ public class DepositClaimerOutlineRenderer {
 
         if (outlineChanged) {
             outlineChanged = false;
-            selectedClusters.forEach((space, cluster) ->
-                    Outliner.getInstance().showCluster(new OutlineSlot(space), cluster));
+            selectedClusters.forEach((sublevel, cluster) ->
+                    Outliner.getInstance().showCluster(new OutlineSlot(sublevel), cluster));
         } else {
-            selectedClusters.keySet().forEach(space ->
-                    Outliner.getInstance().keep(new OutlineSlot(space)));
+            selectedClusters.keySet().forEach(sublevel ->
+                    Outliner.getInstance().keep(new OutlineSlot(sublevel)));
         }
     }
 
     private static boolean holdingCorrectItem(Player p) {
         var mainHandItem = p.getMainHandItem();
-        // Wrench
-        if (AllItems.WRENCH.isIn(mainHandItem)) return true;
+        var offhandItem = p.getOffhandItem();
 
-        if (!(mainHandItem.getItem() instanceof BlockItem mainHandBlockItem)) return false;
+        // Wrench
+        if (AllItems.WRENCH.isIn(mainHandItem) || AllItems.WRENCH.isIn(offhandItem)) return true;
 
         // Or any block that acts as an outline target
-        return IDepositClaimerOutlineTarget.class.isAssignableFrom(mainHandBlockItem.getBlock().getClass());
+        if (mainHandItem.getItem() instanceof BlockItem mainHandBlockItem &&
+                IDepositClaimerOutlineTarget.class.isAssignableFrom(mainHandBlockItem.getBlock().getClass())) {
+            return true;
+        }
+        if (offhandItem.getItem() instanceof BlockItem offhandBlockItem &&
+                IDepositClaimerOutlineTarget.class.isAssignableFrom(offhandBlockItem.getBlock().getClass())) {
+            return true;
+        }
+
+        return  false;
     }
 
     private static void activateOutlineIfNeeded() {
@@ -129,5 +138,5 @@ public class DepositClaimerOutlineRenderer {
         clearAndAddNearbyClaimers();
     }
 
-    private record OutlineSlot(OperatingSpace space) {}
+    private record OutlineSlot(OperatingSublevel sublevel) {}
 }

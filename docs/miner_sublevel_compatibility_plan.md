@@ -1,5 +1,13 @@
 # Miner Sublevel Compatibility Plan
 
+NOTE:
+I'm currently in the middle of implementing miner_sublevel_compatibility_plan.md (stages 1-5 are implemented), but I decided to change up the design. I previously wanted miners that would mine from a different sublevel to not claim deposits at all and mine independently without forcing any deposit exclusivity.
+
+I now changed my mind to the following design:
+* Miners in the same sublevel as their claimed deposits mine like normal.
+* Miners that mine from a different sublevel also claim deposits, but in a different way. Instead of having a confined area, they claim the deposit vein starting from the source block (where the mine head tip touches a deposit block), and do a breadth-first traversal across the vein, counting up the blocks that haven't been claimed. Instead of the area restriction, they are instead restricted by the number of blocks they can claim at a time.
+* Miners across all sublevels that mine a deposit vein in the same sublevel have to ensure that each deposit block is claimed exclusively by a single miner.
+
 ## Goals
 
 Support miners whose physical mining footprint reaches deposit blocks in the main world or another Sable sublevel while
@@ -343,7 +351,7 @@ sets remain equal throughout assembly, refresh, reload, disassembly, and reconst
 **Outcome:** common code can represent one selected target space and its positions within the miner's parent `Level`,
 but the only available implementation still behaves exactly like the current dimension-local miner.
 
-- Add mod-owned `OperatingSpace`, selected-space/active-mode state, and a candidate group containing one space identity and
+- Add mod-owned `OperatingSublevel`, selected-space/active-mode state, and a candidate group containing one space identity and
   its positions.
 - Add a common operating-space adapter interface and a vanilla implementation. The vanilla implementation exposes only the
   miner's current dimension as one local space and never returns remote candidates.

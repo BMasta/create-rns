@@ -127,7 +127,7 @@ public class DepositBlock extends Block {
         var nearbyClaimers = DepositClaimerInstanceHolder.getInstancesThatCanClaim(level, pos);
         for (var c : nearbyClaimers) {
             c.claimDepositBlocks();
-            var cAnchor = c.getAnchor();
+            var cAnchor = c.getOperatingAnchor();
             if (cAnchor == null) continue;
             var cState = level.getBlockState(cAnchor);
             level.sendBlockUpdated(cAnchor, cState, cState, Block.UPDATE_CLIENTS);

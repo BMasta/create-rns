@@ -40,15 +40,20 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     }
 
     @Override
+    public boolean isRunning() {
+        var mc = bearing.getMovedContraption();
+        return bearing.isRunning() && !mc.isStalled();
+    }
+
     public boolean isMining() {
         var mc = bearing.getMovedContraption();
         return isMiningOrStalled() && !mc.isStalled();
     }
 
     @Override
-    public @Nullable BlockPos getAnchor() {
+    public @Nullable BlockPos getOperatingAnchor() {
         if (equipment == null) return null;
-        return equipment.mineHeadPos;
+        return equipment.mineHeadTipPos;
     }
 
     @Override
@@ -97,7 +102,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
         if (collected) {
             var level = getLevel();
             assert level != null;
-            RNSSoundEvents.MINED.playServer(level, equipment.mineHeadPos);
+            RNSSoundEvents.MINED.playServer(level, equipment.mineHeadTipPos);
         }
     }
 
@@ -178,9 +183,12 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
             spec = null;
             return false;
         }
-        int radius = Math.max(0, ServerConfig.MINING_RADIUS.get() + equipment.mineHeadSize.radiusBonus);
-        var area = new OperatingDimensions(radius, ServerConfig.MINING_DEPTH.get());
-        spec = new MinerSpec(area, ServerConfig.MINING_SPEED.get());
+        var size = equipment.mineHeadSize;
+        int radius = Math.max(0, ServerConfig.MINING_RADIUS.get() + size.radiusBonus);
+        var dims = new OperatingDimensions(radius, ServerConfig.MINING_DEPTH.get());
+        var csDims = new CrossSublevelOperatingDimensions(
+                size.detectionRadius, size.detectionLength, size.detectionOffset);
+        spec = new MinerSpec(dims, csDims, ServerConfig.MINING_SPEED.get());
 
         return true;
     }

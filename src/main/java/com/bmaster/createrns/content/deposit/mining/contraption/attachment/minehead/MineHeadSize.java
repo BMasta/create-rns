@@ -15,9 +15,9 @@ import java.util.Set;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public enum MineHeadSize implements StringRepresentable {
-    SMALL(0, 0, "block/mine_head", 1, 0f),
-    LARGE(1, 1, "block/mine_head_large", 2, 0.248f),
-    HUGE(2, 3, "block/mine_head_large", 3.63f, 0.3604f);
+    SMALL(0, 0, "block/mine_head", 1, 0f, 0.25f, 0.6f, 0.5f),
+    LARGE(1, 1, "block/mine_head_large", 2, 0.248f, 0.5f, 1.2f, 0.5f),
+    HUGE(2, 3, "block/mine_head_large", 3.63f, 0.3604f, 0.8f, 2.3f, 0.2f);
 
     public final int radiusBonus;
     public final int tipOffset;
@@ -25,13 +25,22 @@ public enum MineHeadSize implements StringRepresentable {
     public final float modelScale;
     public final float modelOffset;
 
+    // Used for cross-sublevel mining
+    public final float detectionRadius;
+    public final float detectionLength;
+    public final float detectionOffset;
 
-    MineHeadSize(int radiusBonus, int tipOffset, String modelPath, float modelScale, float modelOffset) {
+    MineHeadSize(
+            int radiusBonus, int tipOffset, String modelPath, float modelScale, float modelOffset,
+            float detectionRadius, float detectionLength, float detectionOffset) {
         this.radiusBonus = radiusBonus;
         this.tipOffset = tipOffset;
         this.model = CreateRNS.asResource(modelPath);
         this.modelScale = modelScale;
         this.modelOffset = modelOffset;
+        this.detectionRadius = detectionRadius;
+        this.detectionLength = detectionLength;
+        this.detectionOffset = detectionOffset;
     }
 
     public BlockPos getControllerPos(BlockPos tipPos, Direction facing) {

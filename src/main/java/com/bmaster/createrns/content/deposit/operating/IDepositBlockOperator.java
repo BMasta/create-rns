@@ -9,6 +9,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -20,20 +21,42 @@ import java.util.stream.Collectors;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public interface IDepositBlockOperator {
+    static AABB createCrossSublevelOperatingArea(
+            BlockPos anchor, Direction operatingDirection, CrossSublevelOperatingDimensions operatingDimensions
+    ) {
+        var center = anchor.getCenter().relative(operatingDirection, operatingDimensions.offset());
+        var halfLength = operatingDimensions.length() / 2;
+        var xRadius = operatingDirection.getAxis() == Direction.Axis.X ? halfLength : operatingDimensions.radius();
+        var yRadius = operatingDirection.getAxis() == Direction.Axis.Y ? halfLength : operatingDimensions.radius();
+        var zRadius = operatingDirection.getAxis() == Direction.Axis.Z ? halfLength : operatingDimensions.radius();
+        return new AABB(
+                center.x - xRadius,
+                center.y - yRadius,
+                center.z - zRadius,
+                center.x + xRadius,
+                center.y + yRadius,
+                center.z + zRadius
+        );
+    }
+
     BlockPos getBlockPos();
 
     @Nullable Level getLevel();
 
-    @Nullable BlockPos getAnchor();
+    @Nullable BlockPos getOperatingAnchor();
 
     @Nullable OperatingDimensions getOperatingDimensions();
+
+    default @Nullable CrossSublevelOperatingDimensions getCrossSublevelOperatingDimensions() {
+        return null;
+    }
 
     Direction getOperatingDirection();
 
     default @Nullable BoundingBox getOperatingBoundingBox() {
         var spec = getOperatingDimensions();
         if (spec == null) return null;
-        var anchor = getAnchor();
+        var anchor = getOperatingAnchor();
         if (anchor == null) return null;
         var dir = getOperatingDirection();
         Vec3i pos = new Vec3i(anchor.getX(), anchor.getY(), anchor.getZ());
@@ -57,7 +80,7 @@ public interface IDepositBlockOperator {
         if (level == null) return Set.of();
         var spec = getOperatingDimensions();
         if (spec == null) return Set.of();
-        var anchor = getAnchor();
+        var anchor = getOperatingAnchor();
         if (anchor == null) return Set.of();
         var ma = getOperatingBoundingBox();
         if (ma == null) return Set.of();
@@ -81,4 +104,6 @@ public interface IDepositBlockOperator {
     }
 
     record OperatingDimensions(int radius, int length) {}
+
+    record CrossSublevelOperatingDimensions(double radius, double length, double offset) {}
 }

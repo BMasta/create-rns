@@ -4,9 +4,10 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSDeposits;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
-import com.bmaster.createrns.content.deposit.operating.space.OperatingSpaceAdapter;
-import com.bmaster.createrns.content.deposit.operating.space.OperatingSpaceAdapterHolder;
-import com.bmaster.createrns.content.deposit.operating.space.VanillaOperatingSpaceAdapter;
+import com.bmaster.createrns.content.deposit.operating.IDepositBlockOperator;
+import com.bmaster.createrns.content.deposit.operating.sublevel.OperatingSublevelAdapter;
+import com.bmaster.createrns.content.deposit.operating.sublevel.OperatingSublevelAdapterHolder;
+import com.bmaster.createrns.content.deposit.operating.sublevel.VanillaOperatingSublevelAdapter;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.bmaster.createrns.util.MinerSetup;
 import com.bmaster.createrns.util.MinerSetupBuilder;
@@ -218,32 +219,49 @@ public class MinerClaimingCharacterizationGameTest {
         helper.runAtTickTime(2, () -> {
             var behavior = miner.behavior();
             var level = helper.getLevel();
-            var anchor = behavior.getAnchor();
+            var anchor = behavior.getOperatingAnchor();
             var bounds = behavior.getOperatingBoundingBox();
+            var detectionDimensions = behavior.getCrossSublevelOperatingDimensions();
             var selection = behavior.getOperatingSelection();
             helper.assertTrue(anchor != null, "Assembled miner should have an effective mine-head tip");
             helper.assertTrue(bounds != null, "Assembled miner should have mining bounds");
-            helper.assertTrue(selection != null, "Assembled miner should select its local operating space");
-            helper.assertFalse(selection.remote, "selected operating mode");
+            helper.assertTrue(detectionDimensions != null,
+                    "Assembled miner should have deposit detection dimensions");
+            helper.assertTrue(selection != null, "Assembled miner should select its local operating sublevel");
+            helper.assertFalse(selection.crossSublevel, "selected operating mode");
 
-            var adapter = OperatingSpaceAdapterHolder.getAdapter();
-            helper.assertValueEqual(selection.space, adapter.getOperatingSpace(level, anchor),
-                    "space resolved from the effective mine-head tip");
-            helper.assertValueEqual(selection.space.identity(), OperatingSpaceAdapter.OperatingSpace.MAIN_SPACE,
-                    "positions outside a Sable sublevel should use the main-space identity");
+            var adapter = OperatingSublevelAdapterHolder.getAdapter();
+            helper.assertValueEqual(selection.sublevel, adapter.getOperatingSublevel(level, anchor),
+                    "sublevel resolved from the effective mine-head tip");
+            helper.assertValueEqual(selection.sublevel.identity(), OperatingSublevelAdapter.OperatingSublevel.MAIN_ID,
+                    "positions outside a Sable sublevel should use the main-sublevel identity");
             helper.assertTrue(miner.process().level == level, "Mining process should use the miner's level");
 
-            var scanContext = new OperatingSpaceAdapter.OperatingSpaceScanContext(
-                    level, selection.space, anchor, behavior.getOperatingDirection(), bounds);
-            helper.assertTrue(adapter.findRemoteDepositGroup(scanContext).isEmpty(),
-                    "Stage 4 operating-space adapter must not expose remote targets");
+            helper.assertTrue(adapter.getCrossSublevelDepositBlocks(
+                    level, selection.sublevel, anchor, behavior.getOperatingDirection(), detectionDimensions).isEmpty(),
+                    "Stage 4 operating-sublevel adapter must not expose cross-sublevel targets");
             helper.succeed();
         });
     }
 
     @GameTest(template = "empty16x16")
-    public void vanillaOperatingSpaceAdapterPreservesBlockPosDistances(GameTestHelper helper) {
-        var adapter = new VanillaOperatingSpaceAdapter();
+    public void crossSublevelOperatingAreaUsesRadiusLengthAndOffset(GameTestHelper helper) {
+        var dimensions = new IDepositBlockOperator.CrossSublevelOperatingDimensions(2, 6, 4);
+        var area = IDepositBlockOperator.createCrossSublevelOperatingArea(
+                new BlockPos(10, 20, 30), Direction.DOWN, dimensions);
+
+        helper.assertValueEqual(area.minX, 8.5, "detection area minimum X");
+        helper.assertValueEqual(area.minY, 13.5, "detection area minimum Y");
+        helper.assertValueEqual(area.minZ, 28.5, "detection area minimum Z");
+        helper.assertValueEqual(area.maxX, 12.5, "detection area maximum X");
+        helper.assertValueEqual(area.maxY, 19.5, "detection area maximum Y");
+        helper.assertValueEqual(area.maxZ, 32.5, "detection area maximum Z");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty16x16")
+    public void vanillaOperatingSublevelAdapterPreservesBlockPosDistances(GameTestHelper helper) {
+        var adapter = new VanillaOperatingSublevelAdapter();
         var firstPos = new BlockPos(2, 3, 4);
         var secondPos = new BlockPos(-3, 8, 1);
 
@@ -335,7 +353,7 @@ public class MinerClaimingCharacterizationGameTest {
         }
 
         @Override
-        public BlockPos getAnchor() {
+        public BlockPos getOperatingAnchor() {
             return anchor;
         }
 

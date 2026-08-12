@@ -2,7 +2,7 @@ package com.bmaster.createrns.content.deposit.claiming;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.mining.behaviour.MiningBehaviour;
-import com.bmaster.createrns.content.deposit.operating.space.OperatingSpaceAdapterHolder;
+import com.bmaster.createrns.content.deposit.operating.sublevel.OperatingSublevelAdapterHolder;
 import com.bmaster.createrns.util.SidedDimension;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -25,22 +25,22 @@ public class DepositClaimerInstanceHolder {
     public static Set<IDepositBlockClaimer> getInstancesWithinManhattanDistance(Level level, BlockPos pos, int distance) {
         return getClaimers(level, pos, true).stream()
                 .filter(i -> {
-                    var anchor = i.getAnchor();
-                    return anchor != null && OperatingSpaceAdapterHolder.getAdapter().distManhattan(level, anchor, pos) <= distance;
+                    var anchor = i.getOperatingAnchor();
+                    return anchor != null && OperatingSublevelAdapterHolder.getAdapter().distManhattan(level, anchor, pos) <= distance;
                 })
                 .collect(Collectors.toUnmodifiableSet());
     }
 
     /// Does not add passed claimer to the set
     public static Set<IDepositBlockClaimer> getInstancesWithIntersectingArea(IDepositBlockClaimer claimer, Level level) {
-        var anchor = claimer.getAnchor();
+        var anchor = claimer.getOperatingAnchor();
         var bb = claimer.getOperatingBoundingBox();
         if (anchor == null || bb == null) return Set.of();
 
         return getClaimers(level, anchor, false).stream()
                 .filter(c -> {
                     var cur_bb = c.getOperatingBoundingBox();
-                    var cAnchor = c.getAnchor();
+                    var cAnchor = c.getOperatingAnchor();
                     return cAnchor != null && !cAnchor.equals(anchor) && cur_bb != null && bb.intersects(cur_bb);
                 })
                 .collect(Collectors.toUnmodifiableSet());
@@ -104,9 +104,9 @@ public class DepositClaimerInstanceHolder {
             }
 
             var claimerLevel = claimer.getLevel();
-            var claimerAnchor = claimer.getAnchor();
-            if (claimerLevel != null && claimerAnchor != null && (crossSublevel || OperatingSpaceAdapterHolder.getAdapter()
-                    .isSameSpace(level, referencePos, claimerLevel, claimerAnchor))) {
+            var claimerAnchor = claimer.getOperatingAnchor();
+            if (claimerLevel != null && claimerAnchor != null && (crossSublevel || OperatingSublevelAdapterHolder.getAdapter()
+                    .isSameSublevel(level, referencePos, claimerLevel, claimerAnchor))) {
                 claimers.add(claimer);
             }
         }

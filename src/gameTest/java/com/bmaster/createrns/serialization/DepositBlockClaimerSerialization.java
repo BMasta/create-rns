@@ -82,7 +82,7 @@ public class DepositBlockClaimerSerialization {
         }
 
         @Override
-        public @Nullable BlockPos getAnchor() {
+        public @Nullable BlockPos getOperatingAnchor() {
             return null;
         }
 

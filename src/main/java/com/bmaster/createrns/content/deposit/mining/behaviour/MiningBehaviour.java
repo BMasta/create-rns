@@ -142,9 +142,14 @@ public abstract class MiningBehaviour extends HybridOperatingBehaviour {
 
     @Override
     public @Nullable IDepositBlockOperator.OperatingDimensions getOperatingDimensions() {
-        var spec = getSpec();
-        if (spec == null) return null;
+        if (spec == null && !refreshSpec()) return null;
         return spec.miningDimensions();
+    }
+
+    @Override
+    public @Nullable CrossSublevelOperatingDimensions getCrossSublevelOperatingDimensions() {
+        if (spec == null && !refreshSpec()) return null;
+        return spec.crossSublevelMiningDimensions();
     }
 
     @Override
@@ -197,6 +202,9 @@ public abstract class MiningBehaviour extends HybridOperatingBehaviour {
         process = null;
     }
 
-    public record MinerSpec(OperatingDimensions miningDimensions, double miningSpeed) {}
+    public record MinerSpec(
+            OperatingDimensions miningDimensions,
+            CrossSublevelOperatingDimensions crossSublevelMiningDimensions,
+            double miningSpeed) {}
 
 }

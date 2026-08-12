@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.operating;
 
-import com.bmaster.createrns.content.deposit.operating.space.OperatingSpaceAdapter.OperatingSpace;
+import com.bmaster.createrns.content.deposit.operating.sublevel.OperatingSublevelAdapter.OperatingSublevel;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -17,36 +17,36 @@ import java.util.stream.Collectors;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class OperatingSelection {
-    public final boolean remote;
-    public final OperatingSpace space;
+    public final boolean crossSublevel;
+    public final OperatingSublevel sublevel;
     public final Set<BlockPos> positions;
 
     public static CompoundTag toNBT(OperatingSelection selection) {
         var result = new CompoundTag(4);
-        result.putBoolean("remote", selection.remote);
-        result.putString("space_dim", selection.space.dimension().location().toString());
-        result.putString("space_id", selection.space.identity());
+        result.putString("dimension", selection.sublevel.dimension().location().toString());
+        result.putBoolean("cross_sublevel", selection.crossSublevel);
+        result.putString("sublevel_id", selection.sublevel.identity());
         result.putLongArray("positions", selection.positions.stream().mapToLong(BlockPos::asLong).toArray());
 
         return result;
     }
 
     public static @Nullable OperatingSelection fromNBT(CompoundTag tag) {
-        if (!tag.contains("remote") || !tag.contains("space_dim") || !tag.contains("space_id") ||
+        if (!tag.contains("dimension") || !tag.contains("cross_sublevel") || !tag.contains("sublevel_id") ||
                 !tag.contains("positions")) {
             return null;
         }
-        var dimKey = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(tag.getString("space_dim")));
+        var dimKey = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(tag.getString("dimension")));
         var positions = Arrays.stream(tag.getLongArray("positions"))
                 .mapToObj(BlockPos::of)
                 .collect(Collectors.toSet());
-        return new OperatingSelection(tag.getBoolean("remote"),
-                new OperatingSpace(dimKey, tag.getString("space_id")), positions);
+        return new OperatingSelection(tag.getBoolean("cross_sublevel"),
+                new OperatingSublevel(dimKey, tag.getString("sublevel_id")), positions);
     }
 
-    public OperatingSelection(boolean remote, OperatingSpace space, Set<BlockPos> positions) {
-        this.remote = remote;
-        this.space = space;
+    public OperatingSelection(boolean crossSublevel, OperatingSublevel sublevel, Set<BlockPos> positions) {
+        this.crossSublevel = crossSublevel;
+        this.sublevel = sublevel;
         this.positions = Set.copyOf(positions);
     }
 }

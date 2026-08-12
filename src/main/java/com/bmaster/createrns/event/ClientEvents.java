@@ -9,7 +9,9 @@ import com.bmaster.createrns.content.deposit.info.FoundDepositClientCache;
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsSnapshotC2SPayload;
 import com.bmaster.createrns.content.deposit.mining.MinerEffectsGenerator;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
+import com.bmaster.createrns.content.deposit.operating.DepositDetectionOutlineRenderer;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler;
+import com.bmaster.createrns.infrastructure.command.DebugCommand;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
@@ -36,9 +38,15 @@ import java.util.function.Supplier;
 @ParametersAreNonnullByDefault
 public class ClientEvents {
     @SubscribeEvent
+    public static void onRegisterClientCommands(RegisterClientCommandsEvent event) {
+        DebugCommand.register(event);
+    }
+
+    @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Pre event) {
         DepositScannerClientHandler.tick();
         DepositClaimerOutlineRenderer.tick();
+        DepositDetectionOutlineRenderer.tick();
         MinerEffectsGenerator.globalTick();
     }
 
@@ -49,6 +57,7 @@ public class ClientEvents {
 
     @SubscribeEvent
     public static void onClientLogin(ClientPlayerNetworkEvent.LoggingIn e) {
+        DepositDetectionOutlineRenderer.reset();
         PacketDistributor.sendToServer(FoundDepositsSnapshotC2SPayload.INSTANCE);
     }
 
@@ -63,6 +72,7 @@ public class ClientEvents {
         FoundDepositClientCache.clear();
         DepositScannerClientHandler.clearState();
         DepositClaimerOutlineRenderer.clearOutline();
+        DepositDetectionOutlineRenderer.reset();
         MinerEffectsGenerator.clearState();
     }
 

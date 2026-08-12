@@ -4,7 +4,7 @@ import com.bmaster.createrns.RNSSoundEvents;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlock;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadSize;
-import com.bmaster.createrns.content.deposit.operating.space.OperatingSpaceAdapterHolder;
+import com.bmaster.createrns.content.deposit.operating.sublevel.OperatingSublevelAdapterHolder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -41,7 +41,7 @@ public class MinerEffectsGenerator {
         var l = instance.level;
         var p = instance.player;
         if (instance.isPaused() || l == null || p == null || lastPlayed < SOUND_SEQUENCE_INTERVAL) return;
-        var adapter = OperatingSpaceAdapterHolder.getAdapter();
+        var adapter = OperatingSublevelAdapterHolder.getAdapter();
 
         var miners = MINERS.get(p.level().dimension());
         if (miners == null) return;
@@ -59,10 +59,10 @@ public class MinerEffectsGenerator {
                     return miner.miningBehaviour.isMining();
                 })
                 .min(Comparator.comparing(miner -> adapter.distSqr(
-                        l, miner.miningBehaviour.equipment.mineHeadPos, p.blockPosition()))
+                        l, miner.miningBehaviour.equipment.mineHeadTipPos, p.blockPosition()))
                 )
                 .ifPresent(miner -> {
-                    var mineHeadPos = miner.miningBehaviour.equipment.mineHeadPos;
+                    var mineHeadPos = miner.miningBehaviour.equipment.mineHeadTipPos;
                     var crsList = miner.miningBehaviour.getProcess().getLastSatisfiedCRSes();
                     float pitch = 0.5f + Math.min(1, Math.abs(miner.getTheoreticalSpeed()) / 256f) / 2;
                     RNSSoundEvents.MINING.playClient(p.level(), mineHeadPos, 1, pitch, false);
@@ -112,7 +112,7 @@ public class MinerEffectsGenerator {
         if (particleOptions.isEmpty()) return;
 
         var r = level.random;
-        var mineHeadPos = be.miningBehaviour.equipment.mineHeadPos.getCenter();
+        var mineHeadPos = be.miningBehaviour.equipment.mineHeadTipPos.getCenter();
         var MineHeadFacing = be.getBlockState().getValue(MinerBearingBlock.FACING);
         var selectedParticle = particleOptions.get(r.nextInt(0, particleOptions.size()));
 
