@@ -37,6 +37,18 @@ Please refer to your version of the mod:
 #### [1.0.x - Minecraft 1.21.1](https://github.com/BMasta/create-rns/blob/1.21-1.0.x/docs/datapack.md)
 #### [1.0.x - Minecraft 1.20.1](https://github.com/BMasta/create-rns/blob/1.20-1.0.x/docs/datapack.md)
 
+## AI Usage
+
+This project uses AI for the following:
+* Game test generation
+* Drafting new features (most of it gets fully rewritten, all of it gets reviewed and thoughtfully integrated into the mod by a human (me))
+* Code review
+
+This project does not use AI for the following:
+* Architecture and design of features (god forbid)
+* Asset generation
+* Documentation, project description, icons, and banners
+
 ## Credits
 * Some models and textures in this mod make partial use of Create assets. All used Create assets are licensed under the [MIT license](https://github.com/Creators-of-Create/Create/blob/6cd9c9be090b2aece847df6783f9b55b358c5ad6/LICENSE)
 * Uranium and lead deposit blocks make partial use of the respective ore blocks from Create Nuclear, and are licensed under the [MIT license](https://github.com/Create-Nuclear-Team/CreateNuclearNeoForge/blob/5201c55571e1a72438f3e31c781ee4f63943c3c3/LICENCE)
