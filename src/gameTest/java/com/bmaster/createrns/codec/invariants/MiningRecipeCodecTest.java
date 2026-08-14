@@ -117,8 +117,8 @@ public class MiningRecipeCodecTest {
     }
 
     @GameTest(template = "empty16x16")
-    public void rejectsRecipeWithUntaggedDepositBlock(GameTestHelper helper) {
-        CodecHelper.assertFails(helper, MiningRecipe.CODEC.codec(), CodecHelper.registries(helper), """
+    public void parsesRecipeWithUntaggedDepositBlock(GameTestHelper helper) {
+        var recipe = CodecHelper.assertParses(helper, MiningRecipe.CODEC.codec(), CodecHelper.registries(helper), """
                 {
                   "deposit_block": "minecraft:stone",
                   "yields": [
@@ -131,7 +131,9 @@ public class MiningRecipeCodecTest {
                     }
                   ]
                 }
-                """, "Deposit block must be tagged #create_rns:deposit_blocks: minecraft:stone");
+                """, "mining recipe with untagged deposit block");
+
+        CodecHelper.assertSame(helper, Blocks.STONE, recipe.getDepositBlock(), "untagged deposit block");
         helper.succeed();
     }
 }

@@ -46,29 +46,31 @@ public class MiningBehaviourSerialization {
     @GameTest(template = "empty16x16", timeoutTicks = 15)
     public void claimingBehaviourDiskDefersNewOwnerValidation(GameTestHelper helper) {
         var miner = createMiner(helper);
-        var restoredClaim = new AtomicReference<Set<BlockPos>>();
+        var expectedClaim = new AtomicReference<Set<BlockPos>>();
         miner.assemble(TEST_RPM);
 
         helper.runAtTickTime(2, () -> {
             var behavior = miner.behavior();
+            var originalClaim = behavior.getClaimedDepositBlocks();
+            helper.assertTrue(originalClaim != null, "Assembled miner should have an exclusive claim");
+            expectedClaim.set(Set.copyOf(originalClaim));
+
             var diskTag = new CompoundTag();
             behavior.write(diskTag, helper.getLevel().registryAccess(), false);
 
             behavior.setClaimedDepositBlocks(null, false);
             behavior.read(diskTag, helper.getLevel().registryAccess(), false);
-            restoredClaim.set(behavior.getClaimedDepositBlocks());
             behavior.read(diskTag, helper.getLevel().registryAccess(), false);
 
-            helper.assertTrue(restoredClaim.get() != null, "Disk data should restore a claim pending validation");
-            helper.assertTrue(behavior.getClaimedDepositBlocks() == restoredClaim.get(),
-                    "A repeated read before validation should retain the equal claim instance");
+            helper.assertTrue(behavior.getClaimedDepositBlocks() == null,
+                    "Disk claim deserialization should remain deferred until the next behavior tick");
             helper.assertTrue(miner.process() == null,
                     "Process reconstruction should wait for restored claim validation");
         });
 
         helper.runAtTickTime(3, () -> {
-            helper.assertTrue(miner.behavior().getClaimedDepositBlocks() == restoredClaim.get(),
-                    "A valid restored claim should not be rebuilt");
+            helper.assertValueEqual(miner.behavior().getClaimedDepositBlocks(), expectedClaim.get(),
+                    "claim restored and validated on the next behavior tick");
             helper.assertTrue(miner.process() != null, "Process should reconstruct after claim validation");
             helper.succeed();
         });
@@ -77,13 +79,14 @@ public class MiningBehaviourSerialization {
     @GameTest(template = "empty16x16", timeoutTicks = 15)
     public void claimingBehaviourClientPacketSynchronizesClaim(GameTestHelper helper) {
         var miner = createMiner(helper);
+        var expectedClaim = new AtomicReference<Set<BlockPos>>();
         miner.assemble(TEST_RPM);
 
         helper.runAtTickTime(2, () -> {
             var behavior = miner.behavior();
             var originalClaim = behavior.getClaimedDepositBlocks();
             helper.assertTrue(originalClaim != null, "Assembled miner should have a claim");
-            var expectedClaim = originalClaim;
+            expectedClaim.set(Set.copyOf(originalClaim));
 
             var clientPacket = new CompoundTag();
             behavior.write(clientPacket, helper.getLevel().registryAccess(), true);
@@ -93,8 +96,13 @@ public class MiningBehaviourSerialization {
             clientPacket.remove("process");
             behavior.read(clientPacket, helper.getLevel().registryAccess(), true);
 
-            helper.assertValueEqual(behavior.getClaimedDepositBlocks(), expectedClaim,
-                    "claim deserialized from the client packet");
+            helper.assertTrue(behavior.getClaimedDepositBlocks().isEmpty(),
+                    "Client claim deserialization should remain deferred until the next behavior tick");
+        });
+
+        helper.runAtTickTime(3, () -> {
+            helper.assertValueEqual(miner.behavior().getClaimedDepositBlocks(), expectedClaim.get(),
+                    "claim deserialized from the client packet on the next behavior tick");
             helper.succeed();
         });
     }
@@ -118,8 +126,8 @@ public class MiningBehaviourSerialization {
 
             behavior.setClaimedDepositBlocks(null, false);
             behavior.read(diskTag, helper.getLevel().registryAccess(), false);
-            helper.assertTrue(behavior.getClaimedDepositBlocks() != null,
-                    "Disk read should restore the claim pending validation");
+            helper.assertTrue(behavior.getClaimedDepositBlocks() == null,
+                    "Disk claim deserialization should remain deferred until the next behavior tick");
             helper.assertTrue(miner.process() == null,
                     "Process should not reconstruct before restored claim validation");
         });
