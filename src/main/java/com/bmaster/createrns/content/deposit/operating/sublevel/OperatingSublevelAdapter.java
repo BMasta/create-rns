@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Set;
@@ -17,7 +18,7 @@ public interface OperatingSublevelAdapter {
 
     SidedOperatingSublevel getSidedOperatingSublevel(Level level, BlockPos pos);
 
-    Direction getLogicalDirection(Level level, BlockPos pos, Direction direction);
+    Direction getLogicalDirection(Level level, BlockPos pos, BlockPos relativeTo, Direction direction);
 
     default boolean isSameSublevel(Level firstLevel, BlockPos firstPos, Level secondLevel, BlockPos secondPos) {
         return getOperatingSublevel(firstLevel, firstPos).equals(getOperatingSublevel(secondLevel, secondPos));
@@ -27,10 +28,23 @@ public interface OperatingSublevelAdapter {
 
     double distSqr(Level level, BlockPos firstPos, BlockPos secondPos);
 
-    Set<BlockPos> getCrossSublevelDepositBlocks(
+    CrossSublevelDepositBlocks getCrossSublevelDepositBlocks(
             Level level, OperatingSublevel operatorSublevel, BlockPos contact,
             Direction operatingDirection, DetectionDimensions operatingDimensions
     );
+
+    record CrossSublevelDepositBlocks(@Nullable BlockPos closest, Set<BlockPos> blocks) {
+        public static final CrossSublevelDepositBlocks EMPTY =
+                new CrossSublevelDepositBlocks(null, Set.of());
+
+        public boolean isEmpty() {
+            return blocks.isEmpty();
+        }
+
+        public boolean contains(BlockPos pos) {
+            return blocks.contains(pos);
+        }
+    }
 
     record OperatingSublevel(ResourceKey<Level> dimension, String identity) {
         public static final String MAIN_ID = "main";

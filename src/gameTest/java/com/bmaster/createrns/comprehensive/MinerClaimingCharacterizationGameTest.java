@@ -273,7 +273,7 @@ public class MinerClaimingCharacterizationGameTest {
 
         helper.assertValueEqual(adapter.getOperatingSublevel(level, firstPos),
                 adapter.getOperatingSublevel(level, secondPos), "vanilla operating sublevel");
-        helper.assertValueEqual(adapter.getLogicalDirection(level, firstPos, Direction.WEST), Direction.WEST,
+        helper.assertValueEqual(adapter.getLogicalDirection(level, firstPos, secondPos, Direction.WEST), Direction.WEST,
                 "vanilla logical direction");
         helper.assertValueEqual(adapter.distManhattan(level, firstPos, secondPos),
                 (double) firstPos.distManhattan(secondPos), "vanilla Manhattan distance");

@@ -7,7 +7,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Set;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
@@ -23,7 +22,7 @@ public class VanillaOperatingSublevelAdapter implements OperatingSublevelAdapter
     }
 
     @Override
-    public Direction getLogicalDirection(Level level, BlockPos pos, Direction direction) {
+    public Direction getLogicalDirection(Level level, BlockPos pos, BlockPos relativeTo, Direction direction) {
         return direction;
     }
 
@@ -38,11 +37,11 @@ public class VanillaOperatingSublevelAdapter implements OperatingSublevelAdapter
     }
 
     @Override
-    public Set<BlockPos> getCrossSublevelDepositBlocks(
+    public CrossSublevelDepositBlocks getCrossSublevelDepositBlocks(
             Level level, OperatingSublevel operatorSublevel, BlockPos contact,
             Direction operatingDirection, IDepositBlockOperator.DetectionDimensions operatingDimensions
     ) {
         // No sublevels in vanilla
-        return Set.of();
+        return CrossSublevelDepositBlocks.EMPTY;
     }
 }

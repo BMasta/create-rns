@@ -13,9 +13,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Set;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
@@ -41,12 +41,16 @@ public final class SableOperatingSublevelAdapter implements OperatingSublevelAda
     }
 
     @Override
-    public Direction getLogicalDirection(Level level, BlockPos pos, Direction direction) {
-        var sublevel = SableCompanion.INSTANCE.getContaining(level, pos);
-        if (sublevel == null) return direction;
+    public Direction getLogicalDirection(Level level, BlockPos pos, BlockPos relativeTo, Direction direction) {
+        var relativeNormal = Vec3.atLowerCornerOf(direction.getNormal());
 
-        var logicalNormal = sublevel.logicalPose().transformNormal(Vec3.atLowerCornerOf(direction.getNormal()));
-        return Direction.getNearest(logicalNormal);
+        var sourceSublevel = SableCompanion.INSTANCE.getContaining(level, pos);
+        if (sourceSublevel != null) relativeNormal = sourceSublevel.logicalPose().transformNormal(relativeNormal);
+
+        var targetSublevel = SableCompanion.INSTANCE.getContaining(level, relativeTo);
+        if (targetSublevel != null) relativeNormal = targetSublevel.logicalPose().transformNormalInverse(relativeNormal);
+
+        return Direction.getNearest(relativeNormal);
     }
 
     @Override
@@ -61,20 +65,34 @@ public final class SableOperatingSublevelAdapter implements OperatingSublevelAda
     }
 
     @Override
-    public Set<BlockPos> getCrossSublevelDepositBlocks(
+    public CrossSublevelDepositBlocks getCrossSublevelDepositBlocks(
             Level level, OperatingSublevel operatorSublevel, BlockPos contact,
             Direction operatingDirection, DetectionDimensions operatingDimensions
     ) {
         var blocks = new ObjectOpenHashSet<BlockPos>();
+        @Nullable BlockPos closest = null;
+        double closestDistance = Double.MAX_VALUE;
 
         var operatorSableSublevel = SableCompanion.INSTANCE.getContaining(level, contact);
+        var logicalContact = contact.getCenter();
+        if (operatorSableSublevel != null) {
+            logicalContact = operatorSableSublevel.logicalPose().transformPosition(logicalContact);
+        }
+
         var operatingBounds = new BoundingBox3d(IDepositBlockOperator.createCrossSublevelDetectionArea(
                 contact, operatingDirection, operatingDimensions));
         if (operatorSableSublevel != null) operatingBounds.transform(operatorSableSublevel.logicalPose());
 
         if (!operatorSublevel.identity().equals(OperatingSublevel.MAIN_ID)) {
-            blocks.addAll(findDepositBlocks(level, new OperatingSublevel(level.dimension(), OperatingSublevel.MAIN_ID),
-                    new BoundingBox3i(operatingBounds)));
+            var detectedBlocks = findDepositBlocks(level,
+                    new OperatingSublevel(level.dimension(), OperatingSublevel.MAIN_ID),
+                    new BoundingBox3i(operatingBounds), logicalContact);
+            blocks.addAll(detectedBlocks.blocks());
+            closest = detectedBlocks.closest();
+            if (closest != null) {
+                closestDistance = SableCompanion.INSTANCE.distanceSquaredWithSubLevels(
+                        level, contact.getCenter(), closest.getCenter());
+            }
         }
 
         for (var targetSubLevel : SableCompanion.INSTANCE.getAllIntersecting(level, operatingBounds)) {
@@ -82,30 +100,60 @@ public final class SableOperatingSublevelAdapter implements OperatingSublevelAda
             if (targetSublevel.equals(operatorSublevel)) continue;
 
             var targetBounds = new BoundingBox3d(operatingBounds).transformInverse(targetSubLevel.logicalPose());
-            blocks.addAll(findDepositBlocks(level, targetSublevel, new BoundingBox3i(targetBounds)));
+            var targetContact = targetSubLevel.logicalPose().transformPositionInverse(logicalContact);
+            var detectedBlocks = findDepositBlocks(
+                    level, targetSublevel, new BoundingBox3i(targetBounds), targetContact);
+            blocks.addAll(detectedBlocks.blocks());
+
+            var candidate = detectedBlocks.closest();
+            if (candidate == null) continue;
+            double candidateDistance = SableCompanion.INSTANCE.distanceSquaredWithSubLevels(
+                    level, contact.getCenter(), candidate.getCenter());
+            if (candidateDistance >= closestDistance) continue;
+
+            closest = candidate;
+            closestDistance = candidateDistance;
         }
 
-        return blocks;
+        return new CrossSublevelDepositBlocks(closest, blocks);
     }
 
-    private static Set<BlockPos> findDepositBlocks(Level level, OperatingSublevel sublevel, BoundingBox3i bounds) {
+    private static CrossSublevelDepositBlocks findDepositBlocks(
+            Level level, OperatingSublevel sublevel, BoundingBox3i bounds, Vec3 contact
+    ) {
         var positions = new ObjectOpenHashSet<BlockPos>();
+        @Nullable BlockPos closest = null;
+        double closestDistance = Double.MAX_VALUE;
         var mutablePos = new BlockPos.MutableBlockPos();
+
         for (int x = bounds.minX(); x <= bounds.maxX(); x++) {
             for (int z = bounds.minZ(); z <= bounds.maxZ(); z++) {
                 for (int y = bounds.minY(); y <= bounds.maxY(); y++) {
                     mutablePos.set(x, y, z);
-                    var containingSubLevel = SableCompanion.INSTANCE.getContaining(level, mutablePos);
-                    var containingIdentity = containingSubLevel == null ? OperatingSublevel.MAIN_ID :
-                            containingSubLevel.getUniqueId().toString();
-                    if (!sublevel.identity().equals(containingIdentity) || !level.isLoaded(mutablePos) ||
-                            !level.getBlockState(mutablePos).is(RNSTags.RNSBlockTags.DEPOSIT_BLOCKS)) {
-                        continue;
-                    }
-                    positions.add(mutablePos.immutable());
+                    if (!level.isLoaded(mutablePos)) continue;
+
+                    var containingSublevel = SableCompanion.INSTANCE.getContaining(level, mutablePos);
+                    var containingIdentity = containingSublevel == null ? OperatingSublevel.MAIN_ID :
+                            containingSublevel.getUniqueId().toString();
+                    if (!sublevel.identity().equals(containingIdentity) ||
+                            !level.getBlockState(mutablePos).is(RNSTags.RNSBlockTags.DEPOSIT_BLOCKS)) continue;
+
+                    var position = mutablePos.immutable();
+                    positions.add(position);
+
+                    double xDistance = position.getX() + 0.5 - contact.x;
+                    double yDistance = position.getY() + 0.5 - contact.y;
+                    double zDistance = position.getZ() + 0.5 - contact.z;
+                    double distance = xDistance * xDistance + yDistance * yDistance + zDistance * zDistance;
+                    if (distance >= closestDistance) continue;
+
+                    closest = position;
+                    closestDistance = distance;
                 }
             }
         }
-        return positions;
+
+        return new CrossSublevelDepositBlocks(closest, positions);
     }
+
 }

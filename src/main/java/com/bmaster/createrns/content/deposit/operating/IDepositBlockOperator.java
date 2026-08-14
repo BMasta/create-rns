@@ -82,12 +82,13 @@ public interface IDepositBlockOperator {
 
     Direction getOperatingDirection();
 
-    default Direction getLogicalOperatingDirection() {
+    default Direction getLogicalOperatingDirection(BlockPos relativeTo) {
         var level = getLevel();
         var contact = getOperatingContact();
         var direction = getOperatingDirection();
         if (level == null || contact == null) return direction;
-        return OperatingSublevelAdapterHolder.getAdapter().getLogicalDirection(level, contact, direction);
+        return OperatingSublevelAdapterHolder.getAdapter().getLogicalDirection(
+                level, contact, relativeTo, direction);
     }
 
     default @Nullable BoundingBox getOperatingBoundingBox() {
@@ -95,7 +96,7 @@ public interface IDepositBlockOperator {
         var dims = getOperatingDimensions();
         if (start == null || dims == null) return null;
 
-        var dir = getLogicalOperatingDirection();
+        var dir = getLogicalOperatingDirection(start);
         Vec3i pos = new Vec3i(start.getX(), start.getY(), start.getZ());
 
         var minOffset = dir.getNormal().multiply(

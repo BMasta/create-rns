@@ -254,7 +254,7 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
 
         var detectedBlocks = adapter.getCrossSublevelDepositBlocks(level, ownSublevel, contact, direction, dimensions);
         if (crossSublevelStart == null && detectedBlocks.isEmpty()) return;
-        if (crossSublevelStart != null && detectedBlocks.contains(crossSublevelStart)) return;
+        if (crossSublevelStart != null && crossSublevelStart.equals(detectedBlocks.closest())) return;
 
         // Operating source changed
 
@@ -266,8 +266,7 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
         }
 
         // Update operating source
-        if (detectedBlocks.isEmpty()) crossSublevelStart = null;
-        else crossSublevelStart = detectedBlocks.iterator().next();
+        crossSublevelStart = detectedBlocks.closest();
 
         // Claim new blocks
         claimCrossSublevelDepositBlocks();

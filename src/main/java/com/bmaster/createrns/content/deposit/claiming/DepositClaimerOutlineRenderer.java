@@ -1,5 +1,6 @@
 package com.bmaster.createrns.content.deposit.claiming;
 
+import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTextures;
 import com.bmaster.createrns.content.deposit.operating.sublevel.OperatingSublevelAdapterHolder;
 import com.bmaster.createrns.util.Utils;
@@ -7,6 +8,7 @@ import com.simibubi.create.AllItems;
 import net.createmod.catnip.outliner.Outliner;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.phys.BlockHitResult;
@@ -14,22 +16,28 @@ import net.minecraft.world.phys.BlockHitResult;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class DepositClaimerOutlineRenderer {
     private static final int MAX_TTL = 30;
     private static final int OUTLINE_MAX_DIST = 64;
+    private static final String totalSlot = CreateRNS.ID + ".claimedTotal";
 
     private static final Set<IDepositBlockClaimer> keptClaimers = new HashSet<>();
     private static final Set<IDepositBlockClaimer> addedClaimers = new HashSet<>();
+    private static Set<BlockPos> totalOutline = new HashSet<>();
 
     private static boolean outlineActive = false;
+    private static boolean outlineChanged = false;
     private static int ttl = 0;
 
     public static void addClaimer(IDepositBlockClaimer claimer) {
         var player = Minecraft.getInstance().player;
         if (!outlineActive || player == null || addedClaimers.contains(claimer)) return;
+        outlineChanged = true;
         keptClaimers.remove(claimer);
         var adapter = OperatingSublevelAdapterHolder.getAdapter();
         if (adapter.distManhattan(player.level(), player.blockPosition(), claimer.getBlockPos()) > OUTLINE_MAX_DIST)
@@ -39,6 +47,7 @@ public class DepositClaimerOutlineRenderer {
 
     public static void removeClaimer(IDepositBlockClaimer claimer) {
         if (!outlineActive) return;
+        outlineChanged = true;
         addedClaimers.remove(claimer);
         keptClaimers.remove(claimer);
     }
@@ -46,6 +55,7 @@ public class DepositClaimerOutlineRenderer {
     public static void clearOutline() {
         keptClaimers.clear();
         addedClaimers.clear();
+        totalOutline.clear();
         outlineActive = false;
     }
 
@@ -79,6 +89,18 @@ public class DepositClaimerOutlineRenderer {
             keptClaimers.add(claimer);
         }
         addedClaimers.clear();
+
+        if (outlineChanged) {
+            totalOutline = keptClaimers.stream()
+                    .flatMap(c -> {
+                        var claimed = c.getClaimedDepositBlocks();
+                        return claimed != null ? claimed.stream() : Stream.empty();
+                    })
+                    .collect(Collectors.toSet());
+            Outliner.getInstance().showCluster(totalSlot, totalOutline);
+        } else {
+            Outliner.getInstance().keep(totalSlot);
+        }
     }
 
     private static void refreshOutline() {
@@ -96,6 +118,7 @@ public class DepositClaimerOutlineRenderer {
         addedClaimers.addAll(DepositClaimerInstanceHolder.getInstancesWithinManhattanDistance(
                 l, p.blockPosition(), OUTLINE_MAX_DIST));
         outlineActive = true;
+        outlineChanged = false;
     }
 
     private static boolean isLookingAtOutlineTarget() {
