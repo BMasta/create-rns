@@ -132,7 +132,7 @@ public abstract class MiningBehaviour extends ClaimingBehaviour {
     }
 
     @Override
-    public @Nullable CrossSublevelOperatingDimensions getCrossSublevelOperatingDimensions() {
+    public @Nullable IDepositBlockOperator.DetectionDimensions getDetectionDimensions() {
         var spec = getSpec();
         if (spec == null) return null;
         return spec.crossSublevelMiningDimensions();
@@ -143,7 +143,7 @@ public abstract class MiningBehaviour extends ClaimingBehaviour {
         unInitProcess();
         var level = getLevel();
         if (level == null || level.isClientSide || claimedDepositBlocks == null) return;
-        for (var bp : claimedDepositBlocks.positions()) {
+        for (var bp : claimedDepositBlocks) {
             DepositDurabilityManager.initVein((ServerLevel) level, bp);
         }
     }
@@ -164,13 +164,13 @@ public abstract class MiningBehaviour extends ClaimingBehaviour {
         var level = getLevel();
         if (level == null || claimedDepositBlocks == null ||
                 validateClaimedDepositBlocks) return false;
-        for (var bp : claimedDepositBlocks.positions()) {
+        for (var bp : claimedDepositBlocks) {
             if (!level.isLoaded(bp)) return false;
         }
         var catalysts = getCatalysts();
         if (catalysts == null) return false;
 
-        process = new MiningProcess(level, catalysts, claimedDepositBlocks.positions());
+        process = new MiningProcess(level, catalysts, claimedDepositBlocks);
 
         // Deserialize process state from the pending tag
         if (pendingProcessTag != null) {
@@ -188,7 +188,7 @@ public abstract class MiningBehaviour extends ClaimingBehaviour {
 
     public record MinerSpec(
             OperatingDimensions miningDimensions,
-            CrossSublevelOperatingDimensions crossSublevelMiningDimensions,
+            DetectionDimensions crossSublevelMiningDimensions,
             double miningSpeed) {}
 
 }

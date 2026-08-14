@@ -3,7 +3,6 @@ package com.bmaster.createrns.content.deposit.operating;
 import com.bmaster.createrns.content.deposit.claiming.ClaimingBehaviour;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
 import com.bmaster.createrns.content.deposit.operating.sublevel.OperatingSublevelAdapter.OperatingSublevel;
-import com.bmaster.createrns.content.deposit.operating.sublevel.OperatingSublevelAdapterHolder;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.createmod.catnip.outliner.Outliner;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -22,7 +21,8 @@ public final class DepositDetectionOutlineRenderer {
     private static final ObjectOpenHashSet<DetectionAreaSlot> ACTIVE_SLOTS = new ObjectOpenHashSet<>();
     private static boolean enabled = false;
 
-    private DepositDetectionOutlineRenderer() {}
+    private DepositDetectionOutlineRenderer() {
+    }
 
     public static void setEnabled(boolean enabled) {
         DepositDetectionOutlineRenderer.enabled = enabled;
@@ -43,19 +43,18 @@ public final class DepositDetectionOutlineRenderer {
         }
 
         var level = player.level();
-        var adapter = OperatingSublevelAdapterHolder.getAdapter();
         var currentSlots = new ObjectOpenHashSet<DetectionAreaSlot>();
         for (var claimer : DepositClaimerInstanceHolder.getInstancesWithinManhattanDistance(
                 level, player.blockPosition(), OUTLINE_MAX_DIST)) {
             if (!(claimer instanceof ClaimingBehaviour operatingBehaviour)) continue;
 
-            var anchor = operatingBehaviour.getOperatingAnchor();
+            var contact = operatingBehaviour.getOperatingContact();
             var direction = operatingBehaviour.getOperatingDirection();
-            var dimensions = operatingBehaviour.getCrossSublevelOperatingDimensions();
-            if (anchor == null || dimensions == null) continue;
-            var area = IDepositBlockOperator.createCrossSublevelOperatingArea(anchor, direction, dimensions);
+            var dimensions = operatingBehaviour.getDetectionDimensions();
+            if (contact == null || dimensions == null) continue;
+            var area = IDepositBlockOperator.createCrossSublevelDetectionArea(contact, direction, dimensions);
 
-            var sublevel = adapter.getOperatingSublevel(level, anchor);
+            var sublevel = OperatingSublevel.of(level, contact);
             var slot = new DetectionAreaSlot(operatingBehaviour.getBlockPos(), sublevel);
             currentSlots.add(slot);
             Outliner.getInstance()

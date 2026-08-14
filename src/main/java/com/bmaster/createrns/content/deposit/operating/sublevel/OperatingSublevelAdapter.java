@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.operating.sublevel;
 
-import com.bmaster.createrns.content.deposit.operating.IDepositBlockOperator.CrossSublevelOperatingDimensions;
+import com.bmaster.createrns.content.deposit.operating.IDepositBlockOperator.DetectionDimensions;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -15,6 +15,10 @@ import java.util.Set;
 public interface OperatingSublevelAdapter {
     OperatingSublevel getOperatingSublevel(Level level, BlockPos pos);
 
+    SidedOperatingSublevel getSidedOperatingSublevel(Level level, BlockPos pos);
+
+    Direction getLogicalDirection(Level level, BlockPos pos, Direction direction);
+
     default boolean isSameSublevel(Level firstLevel, BlockPos firstPos, Level secondLevel, BlockPos secondPos) {
         return getOperatingSublevel(firstLevel, firstPos).equals(getOperatingSublevel(secondLevel, secondPos));
     }
@@ -24,11 +28,25 @@ public interface OperatingSublevelAdapter {
     double distSqr(Level level, BlockPos firstPos, BlockPos secondPos);
 
     Set<BlockPos> getCrossSublevelDepositBlocks(
-            Level level, OperatingSublevel operatorSublevel, BlockPos anchor,
-            Direction operatingDirection, CrossSublevelOperatingDimensions operatingDimensions
+            Level level, OperatingSublevel operatorSublevel, BlockPos contact,
+            Direction operatingDirection, DetectionDimensions operatingDimensions
     );
 
     record OperatingSublevel(ResourceKey<Level> dimension, String identity) {
         public static final String MAIN_ID = "main";
+
+        public static OperatingSublevel of(Level level, BlockPos pos) {
+            return OperatingSublevelAdapterHolder.getAdapter().getOperatingSublevel(level, pos);
+        }
+    }
+
+    record SidedOperatingSublevel(ResourceKey<Level> dimension, String identity, boolean isClientSide) {
+        public static SidedOperatingSublevel of(Level level, BlockPos pos) {
+            return OperatingSublevelAdapterHolder.getAdapter().getSidedOperatingSublevel(level, pos);
+        }
+        public static SidedOperatingSublevel of(Level level, OperatingSublevel sublevel) {
+            assert level.dimension().equals(sublevel.dimension());
+            return new SidedOperatingSublevel(sublevel.dimension(), sublevel.identity(), level.isClientSide);
+        }
     }
 }

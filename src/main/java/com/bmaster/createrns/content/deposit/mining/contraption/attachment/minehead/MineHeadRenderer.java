@@ -24,7 +24,7 @@ public class MineHeadRenderer extends SmartBlockEntityRenderer<MineHeadBlockEnti
         float scale = size.modelScale;
         float offset = size.modelOffset;
 //        float scale = 2f;
-//        float offset = 0.248f;
+//        float detectionOffset = 0.248f;
         var direction = MineHeadBlock.getConnectedDirection(bs);
         var superBuffer = CachedBuffers.block(bs);
 

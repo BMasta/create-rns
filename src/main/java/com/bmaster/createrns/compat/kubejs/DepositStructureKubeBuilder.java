@@ -130,7 +130,7 @@ public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
         return this;
     }
 
-    @Info("Sets the Y offset from the world surface for the deposit.")
+    @Info("Sets the Y detectionOffset from the world surface for the deposit.")
     public DepositStructureKubeBuilder height(int value) {
         height = value;
         heightDeviation = 0;

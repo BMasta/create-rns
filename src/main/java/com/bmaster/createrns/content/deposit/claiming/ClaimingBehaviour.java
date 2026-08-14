@@ -11,7 +11,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.LongArrayTag;
-import net.minecraft.network.chat.Component;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,9 +24,13 @@ import java.util.stream.Collectors;
 @ParametersAreNonnullByDefault
 public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements IDepositBlockClaimer {
     protected final Supplier<Direction> operatingDirection;
-    protected @Nullable ClaimedDepositBlocks claimedDepositBlocks = null;
-    protected @Nullable BlockPos crossSublevelOperatingSource = null;
+    protected boolean crossSublevel = false;
+    protected @Nullable Set<BlockPos> claimedDepositBlocks = null;
+    protected @Nullable BlockPos crossSublevelStart = null;
+
     private final SmartBlockEntity sbe;
+    // Defers claimer deserialization
+    private @Nullable Tuple<CompoundTag, Boolean> pendingClaimerTag = null;
 
     protected boolean validateClaimedDepositBlocks = false;
 
@@ -46,8 +50,6 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
     public void initialize() {
         var level = getLevel();
         assert level != null;
-
-        DepositClaimerInstanceHolder.addClaimer(this, level);
     }
 
     @Override
@@ -55,7 +57,7 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
         var level = getLevel();
         assert level != null;
 
-        DepositClaimerInstanceHolder.removeClaimer(this, level);
+        DepositClaimerInstanceHolder.removeClaimer(this);
         level.invalidateCapabilities(getPos());
         if (level.isClientSide) DepositClaimerOutlineRenderer.removeClaimer(this);
     }
@@ -64,18 +66,43 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
     public void claimDepositBlocks() {
         var level = getLevel();
         if (level == null || level.isClientSide || !isRunning()) return;
-        var anchor = getOperatingAnchor();
-        if (anchor == null) return;
-        var pos = getPos();
-        claimedDepositBlocks = new ClaimedDepositBlocks(Set.copyOf(getClaimableDepositVein(level).stream()
+
+        DepositClaimerInstanceHolder.removeClaimer(this);
+
+        crossSublevel = false;
+        claimedDepositBlocks = getClaimableDepositVein().stream()
                 .filter(this::isDepositBlockOperable)
-                .collect(Collectors.toSet())), false);
+                .collect(Collectors.toSet());
+
+        DepositClaimerInstanceHolder.addClaimer(this);
         onClaimedBlocksChanged();
 
-        CreateRNS.LOGGER.trace("Operator at {}, {}, {} claimed {} deposit blocks", pos.getX(), pos.getY(), pos.getZ(),
-                claimedDepositBlocks.positions().size());
+        var pos = getPos();
+        CreateRNS.LOGGER.trace("Operator at {}, {}, {} claimed {} deposit blocks",
+                pos.getX(), pos.getY(), pos.getZ(), claimedDepositBlocks.size());
 
         sbe.notifyUpdate();
+    }
+
+    @Override
+    public void claimCrossSublevelDepositBlocks() {
+        var level = getLevel();
+        if (level == null || level.isClientSide || crossSublevelStart == null || !isRunning() ||
+                claimedDepositBlocks == null || (!crossSublevel && !claimedDepositBlocks.isEmpty())) return;
+
+        DepositClaimerInstanceHolder.removeClaimer(this);
+
+        crossSublevel = true;
+        claimedDepositBlocks = getClaimableDepositVein().stream()
+                .filter(this::isDepositBlockOperable)
+                .collect(Collectors.toSet());
+
+        DepositClaimerInstanceHolder.addClaimer(this);
+        onClaimedBlocksChanged();
+
+        var pos = getPos();
+        CreateRNS.LOGGER.trace("Operator at {}, {}, {} claimed {} deposit blocks in another sublevel",
+                pos.getX(), pos.getY(), pos.getZ(), claimedDepositBlocks.size());
     }
 
     @Override
@@ -86,10 +113,14 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
         var claimedBlocks = getClaimedDepositBlocks();
 
         if (claimedBlocks != null) {
-            claimer.putLongArray("claimed_blocks", claimedBlocks.positions().stream()
+            claimer.putLongArray("claimed_blocks", claimedBlocks.stream()
                     .mapToLong(BlockPos::asLong)
                     .toArray());
-            claimer.putBoolean("cross_sublevel", claimedBlocks.crossSublevel());
+            var start = getOperatingStart();
+            if (start != null) {
+                claimer.putBoolean("cross_sublevel", crossSublevel);
+                claimer.putLong("start", start.asLong());
+            }
         }
 
         nbt.put("claimer", claimer);
@@ -100,6 +131,14 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
         super.read(nbt, provider, clientPacket);
 
         if (!(nbt.get("claimer") instanceof CompoundTag cTag)) return;
+        pendingClaimerTag = new Tuple<>(cTag, clientPacket);
+    }
+
+    private void readDeferred() {
+        if (pendingClaimerTag == null) return;
+        var cTag = pendingClaimerTag.getA();
+        boolean clientPacket = pendingClaimerTag.getB();
+        pendingClaimerTag = null;
 
         // If the tag exists (even if empty), the claimer has finished claiming.
         Set<BlockPos> newlyClaimedBlocks = null;
@@ -108,36 +147,38 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
                     .map(a -> BlockPos.of(a.getAsLong()))
                     .collect(Collectors.toSet());
         }
-        boolean crossSublevel = cTag.contains("claimed_blocks") && cTag.getBoolean("cross_sublevel");
-        var claimedBlocks = (newlyClaimedBlocks != null)
-                ? new ClaimedDepositBlocks(newlyClaimedBlocks, crossSublevel)
-                : null;
-        if (claimedBlocks == null && claimedDepositBlocks == null) return;
-        if (claimedBlocks != null && claimedBlocks.equals(claimedDepositBlocks)) return;
+        crossSublevel = newlyClaimedBlocks != null && cTag.contains("start") && cTag.getBoolean("cross_sublevel");
+        if (crossSublevel) crossSublevelStart = BlockPos.of(cTag.getLong("start"));
 
-        // If a miner is moved to a different sublevel, it gets recreated with its nbt copied
-        // In such cases we have to ensure that the previously-claimed deposits are invalidated
+        if (newlyClaimedBlocks == null && claimedDepositBlocks == null) return;
+        if (newlyClaimedBlocks != null && newlyClaimedBlocks.equals(claimedDepositBlocks)) return;
+
+        // If a miner is moved to a different sublevel, it gets recreated with its nbt copied.
+        // In such cases we have to ensure that the previously-claimed deposits are invalidated.
         if (!clientPacket && claimedDepositBlocks == null && newlyClaimedBlocks != null && !crossSublevel) {
             validateClaimedDepositBlocks = true;
         }
 
-        setClaimedDepositBlocks(claimedBlocks);
+        setClaimedDepositBlocks(newlyClaimedBlocks, crossSublevel);
     }
 
     @Override
     public void tick() {
         super.tick();
-
         var level = getLevel();
-        if (level == null || level.isClientSide) return;
+        if (level == null) return;
+
+        if (pendingClaimerTag != null) readDeferred();
+
+        if (level.isClientSide) return;
 
         // Validate that the claimed deposit blocks are in the same sublevel as the miner
         if (claimedDepositBlocks != null && validateClaimedDepositBlocks) {
             validateClaimedDepositBlocks = false;
-            var positions = claimedDepositBlocks.positions();
             var adapter = OperatingSublevelAdapterHolder.getAdapter();
-            if (positions.isEmpty() || !adapter.isSameSublevel(level, getPos(), level, positions.iterator().next())) {
-                setClaimedDepositBlocks(null);
+            if (claimedDepositBlocks.isEmpty() || !adapter.isSameSublevel(level, getPos(),
+                    level, claimedDepositBlocks.iterator().next())) {
+                setClaimedDepositBlocks(null, false);
             }
         }
 
@@ -145,9 +186,7 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
             claimDepositBlocks();
         }
 
-        if (isRunning() && claimedDepositBlocks != null && claimedDepositBlocks.positions().isEmpty()) {
-            checkDepositBlockAreaChanges();
-        }
+        refreshCrossSublevelClaim();
     }
 
     @Override
@@ -170,57 +209,70 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
         var level = getLevel();
         var pos = getPos();
         if (level == null || pos == null) return null;
-        return OperatingSublevelAdapterHolder.getAdapter().getOperatingSublevel(level, pos);
+        return OperatingSublevel.of(level, pos);
     }
 
     @Override
-    public @Nullable ClaimedDepositBlocks getClaimedDepositBlocks() {
+    public boolean isOperatingCrossSublevel() {
+        return crossSublevel;
+    }
+
+    @Override
+    public @Nullable Set<BlockPos> getClaimedDepositBlocks() {
         return claimedDepositBlocks;
     }
 
     @Override
-    public void setClaimedDepositBlocks(@Nullable ClaimedDepositBlocks claimedBlocks) {
-        var level = getLevel();
-        if (level == null || (claimedBlocks == null && claimedDepositBlocks == null)) return;
+    public void setClaimedDepositBlocks(@Nullable Set<BlockPos> claimedBlocks, boolean crossSublevel) {
+        if (claimedBlocks == null && claimedDepositBlocks == null) return;
         if (claimedBlocks != null && claimedBlocks.equals(claimedDepositBlocks)) return;
+        var level = getLevel();
 
-        if (level.isClientSide) DepositClaimerOutlineRenderer.removeClaimer(this);
+        DepositClaimerInstanceHolder.removeClaimer(this);
+        if (level != null && level.isClientSide) DepositClaimerOutlineRenderer.removeClaimer(this);
+
         claimedDepositBlocks = claimedBlocks;
+        this.crossSublevel = crossSublevel;
         onClaimedBlocksChanged();
-        if (level.isClientSide) DepositClaimerOutlineRenderer.addClaimer(this);
+
+        DepositClaimerInstanceHolder.addClaimer(this);
+        if (level != null && level.isClientSide) DepositClaimerOutlineRenderer.addClaimer(this);
+
         else sbe.notifyUpdate();
     }
 
-    protected void checkDepositBlockAreaChanges() {
+    protected void refreshCrossSublevelClaim() {
         var level = getLevel();
-        var anchor = getOperatingAnchor();
-        var dimensions = getCrossSublevelOperatingDimensions();
-        if (level == null || level.isClientSide) return;
-        if (anchor == null || dimensions == null) {
-            crossSublevelOperatingSource = null;
-            return;
-        }
+        var contact = getOperatingContact();
+        var dimensions = getDetectionDimensions();
+        if (level == null || level.isClientSide || contact == null || dimensions == null ||
+                claimedDepositBlocks == null || (!crossSublevel && !claimedDepositBlocks.isEmpty())) return;
 
         var direction = getOperatingDirection();
         var adapter = OperatingSublevelAdapterHolder.getAdapter();
-        var ownSublevel = adapter.getOperatingSublevel(level, anchor);
+        var ownSublevel = OperatingSublevel.of(level, contact);
 
-        var detectedBlocks = adapter.getCrossSublevelDepositBlocks(level, ownSublevel, anchor, direction, dimensions);
-        if (crossSublevelOperatingSource == null && detectedBlocks.isEmpty()) return;
-        if (crossSublevelOperatingSource != null && detectedBlocks.contains(crossSublevelOperatingSource)) return;
+        var detectedBlocks = adapter.getCrossSublevelDepositBlocks(level, ownSublevel, contact, direction, dimensions);
+        if (crossSublevelStart == null && detectedBlocks.isEmpty()) return;
+        if (crossSublevelStart != null && detectedBlocks.contains(crossSublevelStart)) return;
 
-        BlockPos reportedPos;
-        if (crossSublevelOperatingSource != null) {
-            reportedPos = crossSublevelOperatingSource;
-            crossSublevelOperatingSource = null;
-        } else {
-            crossSublevelOperatingSource = detectedBlocks.iterator().next();
-            reportedPos = crossSublevelOperatingSource;
+        // Operating source changed
+
+        var area = getOperatingBoundingBox();
+
+        // Release existing cross-sublevel claim if needed
+        if (!claimedDepositBlocks.isEmpty()) {
+            setClaimedDepositBlocks(Set.of(), false);
         }
 
-        var message = Component.literal("[Create RNS] Miner " +
-                (crossSublevelOperatingSource != null ? "now" : "no longer") + " tracks deposit block at " +
-                reportedPos.getX() + ", " + reportedPos.getY() + ", " + reportedPos.getZ());
-        for (var player : level.players()) player.sendSystemMessage(message);
+        // Update operating source
+        if (detectedBlocks.isEmpty()) crossSublevelStart = null;
+        else crossSublevelStart = detectedBlocks.iterator().next();
+
+        // Claim new blocks
+        claimCrossSublevelDepositBlocks();
+
+        // Let other miners reclaim the area
+        if (area != null) IDepositBlockClaimer.reclaimArea(area, this);
     }
 }

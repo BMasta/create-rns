@@ -18,6 +18,16 @@ public class VanillaOperatingSublevelAdapter implements OperatingSublevelAdapter
     }
 
     @Override
+    public SidedOperatingSublevel getSidedOperatingSublevel(Level level, BlockPos pos) {
+        return new SidedOperatingSublevel(level.dimension(), OperatingSublevel.MAIN_ID, level.isClientSide);
+    }
+
+    @Override
+    public Direction getLogicalDirection(Level level, BlockPos pos, Direction direction) {
+        return direction;
+    }
+
+    @Override
     public double distManhattan(Level level, BlockPos firstPos, BlockPos secondPos) {
         return firstPos.distManhattan(secondPos);
     }
@@ -29,8 +39,8 @@ public class VanillaOperatingSublevelAdapter implements OperatingSublevelAdapter
 
     @Override
     public Set<BlockPos> getCrossSublevelDepositBlocks(
-            Level level, OperatingSublevel operatorSublevel, BlockPos anchor,
-            Direction operatingDirection, IDepositBlockOperator.CrossSublevelOperatingDimensions operatingDimensions
+            Level level, OperatingSublevel operatorSublevel, BlockPos contact,
+            Direction operatingDirection, IDepositBlockOperator.DetectionDimensions operatingDimensions
     ) {
         // No sublevels in vanilla
         return Set.of();

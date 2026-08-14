@@ -346,7 +346,7 @@ public class DumpedCodecHelper {
             var sourceArray = source.getAsJsonArray();
             var encodedArray = encoded.getAsJsonArray();
             if (sourceArray.size() != encodedArray.size()) {
-                return path + ": array length mismatch " + sourceArray.size() + " vs " + encodedArray.size();
+                return path + ": array detectionLength mismatch " + sourceArray.size() + " vs " + encodedArray.size();
             }
 
             for (int i = 0; i < sourceArray.size(); i++) {

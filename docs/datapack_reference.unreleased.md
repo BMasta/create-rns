@@ -185,7 +185,7 @@ See [default structures](../src/generated/builtin_packs/with_compat/create_rns_d
   "biomes": "#create_rns:has_deposit",
   // Should be either "overworld" or "nether". This affects how deposits are placed in a target chunk.
   "placement_strategy": "overworld",
-  // Y offset from the ground level to the top of the deposit.
+  // Y detectionOffset from the ground level to the top of the deposit.
   "height": -8,
   // or..
   "height": {

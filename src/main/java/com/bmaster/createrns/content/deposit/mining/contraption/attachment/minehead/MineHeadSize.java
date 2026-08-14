@@ -15,32 +15,54 @@ import java.util.Set;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public enum MineHeadSize implements StringRepresentable {
-    SMALL(0, 0, "block/mine_head", 1, 0f, 0.25f, 0.6f, 0.5f),
-    LARGE(1, 1, "block/mine_head_large", 2, 0.248f, 0.5f, 1.2f, 0.5f),
-    HUGE(2, 3, "block/mine_head_large", 3.63f, 0.3604f, 0.8f, 2.3f, 0.2f);
+    SMALL(
+            0,
+            0,
+            "block/mine_head",
+            1,
+            0f,
+            0.25f,
+            0.8f,
+            0.35f),
+    LARGE(1,
+            1,
+            "block/mine_head_large",
+            2,
+            0.248f,
+            0.5f,
+            1.7f,
+            0.2f),
+    HUGE(2,
+            3,
+            "block/mine_head_large",
+            3.63f,
+            0.3604f,
+            0.8f,
+            3.3f,
+            -0.4f);
 
-    public final int radiusBonus;
+    public final int claimBonus;
     public final int tipOffset;
     public final ResourceLocation model;
     public final float modelScale;
     public final float modelOffset;
 
-    // Used for cross-sublevel mining
-    public final float detectionRadius;
-    public final float detectionLength;
-    public final float detectionOffset;
+    public final float crossSublevelDetectionRadius;
+    public final float crossSublevelDetectionLength;
+    public final float crossSublevelDetectionOffset;
 
     MineHeadSize(
-            int radiusBonus, int tipOffset, String modelPath, float modelScale, float modelOffset,
-            float detectionRadius, float detectionLength, float detectionOffset) {
-        this.radiusBonus = radiusBonus;
+            int claimBonus, int tipOffset, String modelPath, float modelScale, float modelOffset,
+            float crossSublevelDetectionRadius, float crossSublevelDetectionLength, float crossSublevelDetectionOffset
+    ) {
+        this.claimBonus = claimBonus;
         this.tipOffset = tipOffset;
         this.model = CreateRNS.asResource(modelPath);
         this.modelScale = modelScale;
         this.modelOffset = modelOffset;
-        this.detectionRadius = detectionRadius;
-        this.detectionLength = detectionLength;
-        this.detectionOffset = detectionOffset;
+        this.crossSublevelDetectionRadius = crossSublevelDetectionRadius;
+        this.crossSublevelDetectionLength = crossSublevelDetectionLength;
+        this.crossSublevelDetectionOffset = crossSublevelDetectionOffset;
     }
 
     public BlockPos getControllerPos(BlockPos tipPos, Direction facing) {

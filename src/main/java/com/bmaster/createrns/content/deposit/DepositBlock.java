@@ -1,8 +1,7 @@
 package com.bmaster.createrns.content.deposit;
 
-import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags.RNSBlockTags;
-import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
+import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -108,7 +107,7 @@ public class DepositBlock extends Block {
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
         if (level.isClientSide) return;
-        updateNearbyClaimers(level, pos);
+        IDepositBlockClaimer.reclaimBlock(level, pos);
     }
 
     @ParametersAreNonnullByDefault
@@ -120,20 +119,6 @@ public class DepositBlock extends Block {
         if (state.is(RNSBlockTags.DEPOSIT_BLOCKS)) {
             DepositDurabilityManager.remove((ServerLevel) level, pos);
         }
-        updateNearbyClaimers(level, pos);
-    }
-
-    private void updateNearbyClaimers(Level level, BlockPos pos) {
-        var nearbyClaimers = DepositClaimerInstanceHolder.getInstancesThatCanClaim(level, pos);
-        for (var c : nearbyClaimers) {
-            c.claimDepositBlocks();
-            var cAnchor = c.getOperatingAnchor();
-            if (cAnchor == null) continue;
-            var cState = level.getBlockState(cAnchor);
-            level.sendBlockUpdated(cAnchor, cState, cState, Block.UPDATE_CLIENTS);
-        }
-        if (!nearbyClaimers.isEmpty()) {
-            CreateRNS.LOGGER.trace("Deposit blocks changed in mined area. Updated {} nearby claimers.", nearbyClaimers.size());
-        }
+        IDepositBlockClaimer.reclaimBlock(level, pos);
     }
 }

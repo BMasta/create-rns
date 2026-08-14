@@ -1,11 +1,11 @@
 package com.bmaster.createrns.serialization;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer.ClaimedDepositBlocks;
 import com.bmaster.createrns.content.deposit.mining.MiningProcess;
 import com.bmaster.createrns.util.MinerSetup;
 import com.bmaster.createrns.util.MinerSetupBuilder;
 import com.simibubi.create.AllBlocks;
+import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -46,7 +46,7 @@ public class MiningBehaviourSerialization {
     @GameTest(template = "empty16x16", timeoutTicks = 15)
     public void claimingBehaviourDiskDefersNewOwnerValidation(GameTestHelper helper) {
         var miner = createMiner(helper);
-        var restoredClaim = new AtomicReference<ClaimedDepositBlocks>();
+        var restoredClaim = new AtomicReference<Set<BlockPos>>();
         miner.assemble(TEST_RPM);
 
         helper.runAtTickTime(2, () -> {
@@ -54,7 +54,7 @@ public class MiningBehaviourSerialization {
             var diskTag = new CompoundTag();
             behavior.write(diskTag, helper.getLevel().registryAccess(), false);
 
-            behavior.setClaimedDepositBlocks(null);
+            behavior.setClaimedDepositBlocks(null, false);
             behavior.read(diskTag, helper.getLevel().registryAccess(), false);
             restoredClaim.set(behavior.getClaimedDepositBlocks());
             behavior.read(diskTag, helper.getLevel().registryAccess(), false);
@@ -89,7 +89,7 @@ public class MiningBehaviourSerialization {
             behavior.write(clientPacket, helper.getLevel().registryAccess(), true);
             helper.assertTrue(clientPacket.contains("claimer"), "Client packet should contain the claim");
 
-            behavior.setClaimedDepositBlocks(new ClaimedDepositBlocks(Set.of(), false));
+            behavior.setClaimedDepositBlocks(Set.of(), false);
             clientPacket.remove("process");
             behavior.read(clientPacket, helper.getLevel().registryAccess(), true);
 
@@ -116,7 +116,7 @@ public class MiningBehaviourSerialization {
             behavior.write(diskTag, helper.getLevel().registryAccess(), false);
             helper.assertTrue(diskTag.contains("process"), "Disk data should contain mining process state");
 
-            behavior.setClaimedDepositBlocks(null);
+            behavior.setClaimedDepositBlocks(null, false);
             behavior.read(diskTag, helper.getLevel().registryAccess(), false);
             helper.assertTrue(behavior.getClaimedDepositBlocks() != null,
                     "Disk read should restore the claim pending validation");
@@ -180,6 +180,6 @@ public class MiningBehaviourSerialization {
         var processTargets = process.innerProcesses.stream()
                 .flatMap(innerProcess -> innerProcess.depositPositions.stream())
                 .collect(Collectors.toUnmodifiableSet());
-        helper.assertValueEqual(processTargets, claimedBlocks.positions(), "process targets");
+        helper.assertValueEqual(processTargets, claimedBlocks, "process targets");
     }
 }

@@ -2,7 +2,7 @@ package com.bmaster.createrns.compat.sable;
 
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.content.deposit.operating.IDepositBlockOperator;
-import com.bmaster.createrns.content.deposit.operating.IDepositBlockOperator.CrossSublevelOperatingDimensions;
+import com.bmaster.createrns.content.deposit.operating.IDepositBlockOperator.DetectionDimensions;
 import com.bmaster.createrns.content.deposit.operating.sublevel.OperatingSublevelAdapter;
 import dev.ryanhcode.sable.companion.SableCompanion;
 import dev.ryanhcode.sable.companion.math.BoundingBox3d;
@@ -12,6 +12,7 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Set;
@@ -33,6 +34,22 @@ public final class SableOperatingSublevelAdapter implements OperatingSublevelAda
     }
 
     @Override
+    public SidedOperatingSublevel getSidedOperatingSublevel(Level level, BlockPos pos) {
+        var sublevel = SableCompanion.INSTANCE.getContaining(level, pos);
+        var identity = sublevel == null ? OperatingSublevel.MAIN_ID : sublevel.getUniqueId().toString();
+        return new SidedOperatingSublevel(level.dimension(), identity, level.isClientSide);
+    }
+
+    @Override
+    public Direction getLogicalDirection(Level level, BlockPos pos, Direction direction) {
+        var sublevel = SableCompanion.INSTANCE.getContaining(level, pos);
+        if (sublevel == null) return direction;
+
+        var logicalNormal = sublevel.logicalPose().transformNormal(Vec3.atLowerCornerOf(direction.getNormal()));
+        return Direction.getNearest(logicalNormal);
+    }
+
+    @Override
     public double distManhattan(Level level, BlockPos firstPos, BlockPos secondPos) {
         return SableCompanion.INSTANCE.rectilinearDistanceWithSubLevels(
                 level, firstPos.getCenter(), secondPos.getCenter());
@@ -45,14 +62,14 @@ public final class SableOperatingSublevelAdapter implements OperatingSublevelAda
 
     @Override
     public Set<BlockPos> getCrossSublevelDepositBlocks(
-            Level level, OperatingSublevel operatorSublevel, BlockPos anchor,
-            Direction operatingDirection, CrossSublevelOperatingDimensions operatingDimensions
+            Level level, OperatingSublevel operatorSublevel, BlockPos contact,
+            Direction operatingDirection, DetectionDimensions operatingDimensions
     ) {
         var blocks = new ObjectOpenHashSet<BlockPos>();
 
-        var operatorSableSublevel = SableCompanion.INSTANCE.getContaining(level, anchor);
-        var operatingBounds = new BoundingBox3d(IDepositBlockOperator.createCrossSublevelOperatingArea(
-                anchor, operatingDirection, operatingDimensions));
+        var operatorSableSublevel = SableCompanion.INSTANCE.getContaining(level, contact);
+        var operatingBounds = new BoundingBox3d(IDepositBlockOperator.createCrossSublevelDetectionArea(
+                contact, operatingDirection, operatingDimensions));
         if (operatorSableSublevel != null) operatingBounds.transform(operatorSableSublevel.logicalPose());
 
         if (!operatorSublevel.identity().equals(OperatingSublevel.MAIN_ID)) {

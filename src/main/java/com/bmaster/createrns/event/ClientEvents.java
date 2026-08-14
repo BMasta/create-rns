@@ -4,6 +4,7 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSItems;
 import com.bmaster.createrns.RNSParticleTypes;
 import com.bmaster.createrns.compat.ponder.RNSPonderPlugin;
+import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
 import com.bmaster.createrns.content.deposit.info.FoundDepositClientCache;
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsSnapshotC2SPayload;
@@ -68,10 +69,11 @@ public class ClientEvents {
     }
 
     @SubscribeEvent
-    public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut e) {
+    public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut event) {
         FoundDepositClientCache.clear();
         DepositScannerClientHandler.clearState();
         DepositClaimerOutlineRenderer.clearOutline();
+        DepositClaimerInstanceHolder.clear();
         DepositDetectionOutlineRenderer.reset();
         MinerEffectsGenerator.clearState();
     }

@@ -118,7 +118,7 @@ public class MinerEffectsGenerator {
 
         var claimedBlocks = be.miningBehaviour.getClaimedDepositBlocks();
         if (claimedBlocks == null) return;
-        float mult = Math.min(1f, claimedBlocks.positions().size() / 75f);
+        float mult = Math.min(1f, claimedBlocks.size() / 75f);
 
         for (int i = 0; i < Math.round(1 + mult * 5); i++) {
             level.addParticle(selectedParticle,
@@ -152,7 +152,7 @@ public class MinerEffectsGenerator {
             particleOptions = List.of();
             return;
         }
-        particleOptions = claimedBlocks.positions().stream()
+        particleOptions = claimedBlocks.stream()
                 .map(bp -> new BlockParticleOption(ParticleTypes.BLOCK, level.getBlockState(bp)))
                 .toList();
     }

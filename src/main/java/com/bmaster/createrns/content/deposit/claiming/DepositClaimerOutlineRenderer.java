@@ -29,8 +29,8 @@ public class DepositClaimerOutlineRenderer {
 
     public static void addClaimer(IDepositBlockClaimer claimer) {
         var player = Minecraft.getInstance().player;
-        if (!outlineActive || player == null || addedClaimers.contains(claimer) || keptClaimers.contains(claimer))
-            return;
+        if (!outlineActive || player == null || addedClaimers.contains(claimer)) return;
+        keptClaimers.remove(claimer);
         var adapter = OperatingSublevelAdapterHolder.getAdapter();
         if (adapter.distManhattan(player.level(), player.blockPosition(), claimer.getBlockPos()) > OUTLINE_MAX_DIST)
             return;
@@ -72,7 +72,7 @@ public class DepositClaimerOutlineRenderer {
             var claimedBlocks = claimer.getClaimedDepositBlocks();
             if (claimedBlocks == null) continue;
             Outliner.getInstance()
-                    .showCluster(claimer, claimedBlocks.positions())
+                    .showCluster(claimer, claimedBlocks)
                     .lineWidth(0)
                     .withFaceTexture(RNSTextures.BLOCKFACE_TINTED)
                     .colored(Utils.colorFromObject(claimer.getBlockPos(), 0.5f, 0.4f, false));

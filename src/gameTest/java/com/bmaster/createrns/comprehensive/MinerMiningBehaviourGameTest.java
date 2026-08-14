@@ -277,8 +277,8 @@ public class MinerMiningBehaviourGameTest {
         var claimedBlocks = miner.behavior().getClaimedDepositBlocks();
         h.assertTrue(claimedBlocks != null,
                 "Miner did not claim deposit blocks");
-        h.assertTrue(claimedBlocks.positions().size() == expectedClaimedBlockCount,
-                "Unexpected claimed deposit count: " + claimedBlocks.positions().size() +
+        h.assertTrue(claimedBlocks.size() == expectedClaimedBlockCount,
+                "Unexpected claimed deposit count: " + claimedBlocks.size() +
                         " (" + expectedClaimedBlockCount + " expected)");
         h.assertTrue(miner.process().innerProcesses.size() == 1,
                 "Unexpected number of inner processes: " + miner.process().innerProcesses.size() +

@@ -32,7 +32,7 @@ public class GoggleTooltipModifiers {
         if (mb == null) return false;
         var process = mb.getProcess();
         var claimedBlocks = mb.getClaimedDepositBlocks();
-        if (process == null || claimedBlocks == null || claimedBlocks.positions().isEmpty()) return false;
+        if (process == null || claimedBlocks == null || claimedBlocks.isEmpty()) return false;
 
         if (!c.isFirstSection()) {
             CreateRNS.lang().space().forGoggles(tooltip);
