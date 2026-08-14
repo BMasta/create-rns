@@ -1,7 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.recipe;
 
 import com.bmaster.createrns.RNSRecipeTypes;
-import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -35,11 +34,6 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
                             .validate(block -> {
                                 if (block == Blocks.AIR) {
                                     return DataResult.error(() -> "Deposit block cannot be minecraft:air");
-                                }
-                                if (!block.defaultBlockState().is(RNSBlockTags.DEPOSIT_BLOCKS)) {
-                                    return DataResult.error(() -> "Deposit block must be tagged #"
-                                            + RNSBlockTags.DEPOSIT_BLOCKS.location() + ": "
-                                            + BuiltInRegistries.BLOCK.getKey(block));
                                 }
                                 return DataResult.success(block);
                             })
