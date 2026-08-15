@@ -6,8 +6,10 @@ plugins {
 }
 
 def kubejsGameTestPath = 'com/bmaster/createrns/compat/kubejs/**'
+def sableGameTestPath = 'com/bmaster/createrns/compat/sable/**'
+def aeronauticsGameTestPath = 'com/bmaster/createrns/compat/aeronautics/**'
 def gameTestSourceSet = sourceSets.create('gameTest') {
-    java.exclude kubejsGameTestPath
+    java.exclude kubejsGameTestPath, sableGameTestPath, aeronauticsGameTestPath
 }
 def kubejsGameTestSourceSet = sourceSets.create('kubejsGameTest') {
     java {
@@ -15,10 +17,32 @@ def kubejsGameTestSourceSet = sourceSets.create('kubejsGameTest') {
         include kubejsGameTestPath
     }
 }
+def physicsGameTestSourceSet = sourceSets.create('physicsGameTest') {
+    java {
+        srcDir 'src/gameTest/java'
+        include sableGameTestPath, aeronauticsGameTestPath
+    }
+}
 def kubejsGameTestRuntimeEnabled = providers.provider {
     configurations.getByName(kubejsGameTestSourceSet.runtimeOnlyConfigurationName).allDependencies.any {
         it.group == 'dev.latvian.mods' && it.name == 'kubejs-neoforge'
     }
+}
+def physicsGameTestRuntimeEnabled = providers.provider {
+    def runtimeDependencies = configurations
+            .getByName(physicsGameTestSourceSet.runtimeOnlyConfigurationName).allDependencies
+    def aeronauticsEnabled = runtimeDependencies.any {
+        it.group == 'maven.modrinth' && it.name == 'create-aeronautics'
+    }
+    def sableEnabled = runtimeDependencies.any {
+        it.group == 'maven.modrinth' && it.name == 'sable'
+    }
+    return aeronauticsEnabled && sableEnabled
+}
+def gameTestRunSourceSet = providers.provider {
+    if (physicsGameTestRuntimeEnabled.get()) return physicsGameTestSourceSet
+    if (kubejsGameTestRuntimeEnabled.get()) return kubejsGameTestSourceSet
+    return gameTestSourceSet
 }
 
 tasks.named('wrapper', Wrapper).configure {
@@ -83,17 +107,17 @@ neoForge {
         "${mod_id}_game_tests" {
             sourceSet(sourceSets.main)
             sourceSet(gameTestSourceSet)
-        }
-        "${mod_id}_kubejs_game_tests" {
-            sourceSet(sourceSets.main)
-            sourceSet(gameTestSourceSet)
-            sourceSet(kubejsGameTestSourceSet)
+            modSourceSets.addAll(kubejsGameTestRuntimeEnabled.map {
+                it ? [kubejsGameTestSourceSet] : []
+            })
+            modSourceSets.addAll(physicsGameTestRuntimeEnabled.map {
+                it ? [physicsGameTestSourceSet] : []
+            })
         }
     }
 
     def mainMod = mods.getByName(project.mod_id)
     def gameTestMod = mods.getByName("${project.mod_id}_game_tests")
-    def kubejsGameTestMod = mods.getByName("${project.mod_id}_kubejs_game_tests")
 
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
@@ -113,12 +137,8 @@ neoForge {
         // The gametest system is also enabled by default for other run configs under the /test command.
         gameTestServer {
             type = "gameTestServer"
-            sourceSet = kubejsGameTestRuntimeEnabled.map {
-                it ? kubejsGameTestSourceSet : gameTestSourceSet
-            }
-            loadedMods = kubejsGameTestRuntimeEnabled.map {
-                [it ? kubejsGameTestMod : gameTestMod] as Set
-            }
+            sourceSet = gameTestRunSourceSet
+            loadedMods = [gameTestMod]
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
         tasks.named("runGameTestServer", JavaExec) {
@@ -160,9 +180,15 @@ sourceSets.gameTest.compileClasspath += sourceSets.main.output
 sourceSets.gameTest.runtimeClasspath += sourceSets.main.output
 sourceSets.kubejsGameTest.compileClasspath += sourceSets.main.output + sourceSets.gameTest.output
 sourceSets.kubejsGameTest.runtimeClasspath += sourceSets.main.output + sourceSets.gameTest.output
+sourceSets.physicsGameTest.compileClasspath += sourceSets.main.output + sourceSets.gameTest.output
+sourceSets.physicsGameTest.runtimeClasspath += sourceSets.main.output + sourceSets.gameTest.output
+sourceSets.physicsGameTest.runtimeClasspath += files(kubejsGameTestRuntimeEnabled.map {
+    it ? sourceSets.kubejsGameTest.output : []
+})
 
 neoForge.addModdingDependenciesTo(gameTestSourceSet)
 neoForge.addModdingDependenciesTo(kubejsGameTestSourceSet)
+neoForge.addModdingDependenciesTo(physicsGameTestSourceSet)
 
 // Sets up a dependency configuration called 'localRuntime'.
 // This configuration should be used instead of 'runtimeOnly' to declare
@@ -187,6 +213,15 @@ configurations {
         extendsFrom compileOnly
     }
     named(kubejsGameTestSourceSet.runtimeOnlyConfigurationName) {
+        extendsFrom runtimeOnly, localRuntime
+    }
+    named(physicsGameTestSourceSet.implementationConfigurationName) {
+        extendsFrom implementation
+    }
+    named(physicsGameTestSourceSet.compileOnlyConfigurationName) {
+        extendsFrom compileOnly
+    }
+    named(physicsGameTestSourceSet.runtimeOnlyConfigurationName) {
         extendsFrom runtimeOnly, localRuntime
     }
 }

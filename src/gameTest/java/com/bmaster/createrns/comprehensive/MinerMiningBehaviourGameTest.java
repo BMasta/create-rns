@@ -11,8 +11,11 @@ import com.simibubi.create.AllBlocks;
 import com.simibubi.create.infrastructure.config.AllConfigs;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.gametest.framework.AfterBatch;
+import net.minecraft.gametest.framework.BeforeBatch;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -25,19 +28,46 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("DataFlowIssue")
 @GameTestHolder(CreateRNS.ID)
 @PrefixGameTestTemplate(false)
 public class MinerMiningBehaviourGameTest {
-    @GameTest(template = "empty16x16", batch = "1", timeoutTicks = 140)
+    private static final String DROPS_CONFIG_BATCH = "miner_mining_drops_config";
+    private static final String COLLECTS_CONFIG_BATCH = "miner_mining_collects_config";
+
+    private static @Nullable ServerConfigValues dropsPreviousConfig;
+    private static @Nullable ServerConfigValues collectsPreviousConfig;
+
+    @BeforeBatch(batch = DROPS_CONFIG_BATCH)
+    public static void configureDropsBatch(ServerLevel level) {
+        dropsPreviousConfig = setServerConfig(90, 1, 256);
+    }
+
+    @AfterBatch(batch = DROPS_CONFIG_BATCH)
+    public static void restoreDropsBatch(ServerLevel level) {
+        restoreServerConfig(dropsPreviousConfig);
+        dropsPreviousConfig = null;
+    }
+
+    @BeforeBatch(batch = COLLECTS_CONFIG_BATCH)
+    public static void configureCollectsBatch(ServerLevel level) {
+        collectsPreviousConfig = setServerConfig(60, 3, 256);
+    }
+
+    @AfterBatch(batch = COLLECTS_CONFIG_BATCH)
+    public static void restoreCollectsBatch(ServerLevel level) {
+        restoreServerConfig(collectsPreviousConfig);
+        collectsPreviousConfig = null;
+    }
+
+    @GameTest(template = "empty16x16", batch = DROPS_CONFIG_BATCH, timeoutTicks = 140)
     public void minerMinesAndDropsItem(GameTestHelper h) {
         int miningSpeed = 90;
         int rpm = 256;
         int miningRadius = 1;
         int expectedClaimedBlockCount = (int) Math.pow(miningRadius * 2 + 1, 2);
-
-        setServerConfig(miningSpeed, miningRadius, 256);
 
         var miner = miner(h, 3, 5, 3)
                 .deposit(0, 2, 0, 7, 2, 7)
@@ -65,14 +95,12 @@ public class MinerMiningBehaviourGameTest {
         });
     }
 
-    @GameTest(template = "empty16x16", batch = "2", timeoutTicks = 140)
+    @GameTest(template = "empty16x16", batch = COLLECTS_CONFIG_BATCH, timeoutTicks = 140)
     public void minerMinesAndCollectsItem(GameTestHelper h) {
         int miningSpeed = 60;
         int rpm = 128;
         int miningRadius = 3;
         int expectedClaimedBlockCount = (int) Math.pow(miningRadius * 2 + 1, 2);
-
-        setServerConfig(miningSpeed, miningRadius, 256);
 
         var miner = minerWithStorage(h, 3, 5, 3)
                 .deposit(0, 2, 0, 7, 2, 7)
@@ -228,10 +256,23 @@ public class MinerMiningBehaviourGameTest {
         });
     }
 
-    private static void setServerConfig(int miningSpeed, int miningRadius, int maxRpm) {
+    private static ServerConfigValues setServerConfig(int miningSpeed, int miningRadius, int maxRpm) {
+        var previous = new ServerConfigValues(
+                ServerConfig.MINING_SPEED.get(),
+                ServerConfig.MINING_RADIUS.get(),
+                AllConfigs.server().kinetics.maxRotationSpeed.get()
+        );
         ServerConfig.MINING_SPEED.set(miningSpeed);
         ServerConfig.MINING_RADIUS.set(miningRadius);
         AllConfigs.server().kinetics.maxRotationSpeed.set(maxRpm);
+        return previous;
+    }
+
+    private static void restoreServerConfig(@Nullable ServerConfigValues previous) {
+        if (previous == null) return;
+        ServerConfig.MINING_SPEED.set(previous.miningSpeed());
+        ServerConfig.MINING_RADIUS.set(previous.miningRadius());
+        AllConfigs.server().kinetics.maxRotationSpeed.set(previous.maxRpm());
     }
 
     private static MinerSetupBuilder miner(GameTestHelper helper, int x, int y, int z) {
@@ -255,6 +296,8 @@ public class MinerMiningBehaviourGameTest {
                 .part(AllBlocks.FLUID_TANK.getDefaultState(), x - 1, y - 1, z)
                 .head(x, y - 2, z);
     }
+
+    private record ServerConfigValues(int miningSpeed, int miningRadius, int maxRpm) {}
 
     private static int countGroundItems(GameTestHelper helper, BlockPos relativeMineHeadPos, Item item) {
         var center = helper.absolutePos(relativeMineHeadPos);
