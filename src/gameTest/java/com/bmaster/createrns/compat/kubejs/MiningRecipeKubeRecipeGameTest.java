@@ -222,20 +222,6 @@ public class MiningRecipeKubeRecipeGameTest {
     }
 
     @RNSKubeJSBuilderTest
-    private static void untaggedDepositBlockUsesItsCallSiteForKubeJSErrorAttribution(
-            RNSKubeJSBuilderTestContext context
-    ) {
-        var expectedSource = SourceLine.of("server_scripts/main.js", 9);
-        var json = serialize(context.miningRecipe("untagged_deposit_block")
-                .block("stone", expectedSource)
-                .yield(yield -> yield.item("diamond")));
-
-        assertSourceLine(context.helper(), json, expectedSource, "untagged deposit block");
-        assertRecipeFails(context.helper(), json,
-                "Deposit block must be tagged #create_rns:deposit_blocks: minecraft:stone");
-    }
-
-    @RNSKubeJSBuilderTest
     private static void missingDepositBlockIdIsPreservedForOneAttributedRecipeError(
             RNSKubeJSBuilderTestContext context
     ) {

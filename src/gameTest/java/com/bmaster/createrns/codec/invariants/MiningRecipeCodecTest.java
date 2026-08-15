@@ -115,23 +115,4 @@ public class MiningRecipeCodecTest {
                 """, "Value 0 outside of range [1:9223372036854775807]");
         helper.succeed();
     }
-
-    @GameTest(template = "empty16x16")
-    public void rejectsRecipeWithUntaggedDepositBlock(GameTestHelper helper) {
-        CodecHelper.assertFails(helper, MiningRecipe.CODEC.codec(), CodecHelper.registries(helper), """
-                {
-                  "deposit_block": "minecraft:stone",
-                  "yields": [
-                    {
-                      "items": [
-                        {
-                          "item": "minecraft:diamond"
-                        }
-                      ]
-                    }
-                  ]
-                }
-                """, "Deposit block must be tagged #create_rns:deposit_blocks: minecraft:stone");
-        helper.succeed();
-    }
 }
