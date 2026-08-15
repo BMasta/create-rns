@@ -206,7 +206,7 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
 
         // Initialize deposit durabilities as needed
         for (var bp : claimedDepositBlocks) {
-            DepositDurabilityManager.initDepositVeinDurability((ServerLevel) level, bp);
+            DepositDurabilityManager.initDepositVeinDurability((ServerLevel) level, bp, true);
         }
 
         var pos = getPos();

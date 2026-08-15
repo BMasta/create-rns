@@ -37,8 +37,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.bmaster.createrns.RNSMisc.LEVEL_DEPOSIT_DATA;
-
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class MiningProcess {
@@ -211,13 +209,6 @@ public class MiningProcess {
             if (progress < maxProgress) return null;
             progress = progress - maxProgress; // Keep the extra progress
 
-            var depData = level.getData(LEVEL_DEPOSIT_DATA.get());
-
-            // Use a random deposit block
-            var rollDep = level.random.nextIntBetweenInclusive(0, depositPositions.size() - 1);
-            DepositDurabilityManager.useDepositBlock((ServerLevel) level, depositPositions.get(rollDep),
-                    recipe.getReplacementBlock().defaultBlockState());
-
             // For each yield: use all of its catalysts, then roll for success and add to collection queue if successful
             var yields = recipe.getYields();
             var chances = catalystHandler.useCatalysts(false);
@@ -235,6 +226,11 @@ public class MiningProcess {
                     }
                 }
             }
+
+            // Use a random deposit block. Must be done last, as depleting a block will invalidate the current process.
+            var rollDep = level.random.nextIntBetweenInclusive(0, depositPositions.size() - 1);
+            DepositDurabilityManager.useDepositBlock((ServerLevel) level, depositPositions.get(rollDep),
+                    recipe.getReplacementBlock().defaultBlockState());
 
             return uncollectedItems.isEmpty() ? null : uncollectedItems.poll();
         }

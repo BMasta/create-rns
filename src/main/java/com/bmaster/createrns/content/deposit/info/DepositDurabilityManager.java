@@ -17,15 +17,18 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class DepositDurabilityManager {
-    public static int initDepositVeinDurability(ServerLevel sl, BlockPos start) {
+    public static int initDepositVeinDurability(ServerLevel sl, BlockPos start, boolean fullScan) {
         var dd = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
         if (ServerConfig.INFINITE_DEPOSITS.get()) return 0;
         if (dd.depositDurabilities.containsKey(start)) return 0;
-        var startRecipe = MiningRecipeLookup.find(sl, sl.getBlockState(start).getBlock());
-        if (startRecipe == null) return 0;
-        var startDur = startRecipe.getDurability();
-        // Infinite starts never initialize vein durabilities (but can be initialized from finite starts)
-        if (startDur.edge() <= 0 || startDur.core() <= 0) return 0;
+
+        if (!fullScan) {
+            // Return early if start is initialized
+            var startRecipe = MiningRecipeLookup.find(sl, sl.getBlockState(start).getBlock());
+            if (startRecipe == null) return 0;
+            var startDur = startRecipe.getDurability();
+            if (startDur.edge() <= 0 || startDur.core() <= 0) return 0;
+        }
 
         var blockToDepth = DepositBlock.getVein(sl, start);
         if (blockToDepth.isEmpty()) return 0;
@@ -50,7 +53,7 @@ public class DepositDurabilityManager {
     public static long getDepositBlockDurability(ServerLevel sl, BlockPos dbPos, boolean initIfNeeded) {
         var dd = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
         if (ServerConfig.INFINITE_DEPOSITS.get()) return 0;
-        if (initIfNeeded) initDepositVeinDurability(sl, dbPos);
+        if (initIfNeeded) initDepositVeinDurability(sl, dbPos, false);
         if (!dd.depositDurabilities.containsKey(dbPos)) return -1;
         return dd.depositDurabilities.getLong(dbPos);
     }
@@ -75,7 +78,7 @@ public class DepositDurabilityManager {
     public static void useDepositBlock(ServerLevel sl, BlockPos dbPos, BlockState replacementBlock) {
         if (ServerConfig.INFINITE_DEPOSITS.get()) return;
         var dd = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
-        initDepositVeinDurability(sl, dbPos); // No-op if already initialized
+        initDepositVeinDurability(sl, dbPos, false); // No-op if already initialized
         var dur = dd.depositDurabilities.getLong(dbPos);
         if (dur == 1) {
             removeDepositBlockDurability(sl, dbPos);

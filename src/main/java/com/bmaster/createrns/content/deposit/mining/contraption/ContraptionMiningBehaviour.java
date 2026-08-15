@@ -83,11 +83,10 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
 
     @Override
     public void collect() {
-        if ((process == null && !tryInitProcess(false)) ||
-                (equipment == null && !refreshEquipment())) return;
+        if (process == null || (equipment == null && !refreshEquipment())) return;
         var spoils = process.collect();
         boolean collected = false;
-        while (!spoils.isEmpty()) {
+        while (!spoils.isEmpty() && process != null) {
             collected = true;
             for (var s : spoils) {
                 equipment.dropItem(s);
