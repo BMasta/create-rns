@@ -100,7 +100,7 @@ public class DepositCommand {
                     src.sendSuccess(() -> Component.literal("Success!"), false);
                 }
                 case COMPUTE_VEIN -> {
-                    int initCount = DepositDurabilityManager.initVein(sl, pos);
+                    int initCount = DepositDurabilityManager.initVein(sl, pos, true);
                     src.sendSuccess(() -> Component.literal("Initialized " + initCount + " blocks!"), true);
                 }
             }

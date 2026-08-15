@@ -58,6 +58,27 @@ public abstract class MiningBehaviour extends ClaimingBehaviour {
     }
 
     @Override
+    public void claimDepositBlocks() {
+        var level = getLevel();
+        if (level != null && !level.isClientSide) collect();
+        super.claimDepositBlocks();
+    }
+
+    @Override
+    public void claimCrossSublevelDepositBlocks() {
+        var level = getLevel();
+        if (level != null && !level.isClientSide) collect();
+        super.claimCrossSublevelDepositBlocks();
+    }
+
+    @Override
+    public void setClaimedDepositBlocks(@Nullable Set<BlockPos> claimedBlocks, boolean crossSublevel) {
+        var level = getLevel();
+        if (level != null && !level.isClientSide) collect();
+        super.setClaimedDepositBlocks(claimedBlocks, crossSublevel);
+    }
+
+    @Override
     public void tick() {
         super.tick();
 
@@ -144,7 +165,7 @@ public abstract class MiningBehaviour extends ClaimingBehaviour {
         var level = getLevel();
         if (level == null || level.isClientSide || claimedDepositBlocks == null) return;
         for (var bp : claimedDepositBlocks) {
-            DepositDurabilityManager.initVein((ServerLevel) level, bp);
+            DepositDurabilityManager.initVein((ServerLevel) level, bp, true);
         }
     }
 
