@@ -209,7 +209,7 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
             var depIdx = IDepositIndex.get(sl);
             if (depIdx != null) {
                 for (var bp : claimedDepositBlocks) {
-                    DepositDurabilityManager.initDepositVeinDurability((ServerLevel) level, bp);
+                    DepositDurabilityManager.initDepositVeinDurability((ServerLevel) level, bp, true);
                 }
             }
         }

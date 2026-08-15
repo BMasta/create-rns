@@ -209,11 +209,6 @@ public class MiningProcess {
 
             progress = progress - maxProgress; // Keep the extra progress
 
-            // Use a random deposit block
-            var rollDep = level.random.nextIntBetweenInclusive(0, depositPositions.size() - 1);
-            DepositDurabilityManager.useDepositBlock(sl, depositPositions.get(rollDep),
-                    recipe.getReplacementBlock().defaultBlockState());
-
             // For each yield: use all of its catalysts, then roll for success and add to collection queue if successful
             var yields = recipe.getYields();
             var chances = catalystHandler.useCatalysts(false);
@@ -231,6 +226,11 @@ public class MiningProcess {
                     }
                 }
             }
+
+            // Use a random deposit block. Must be done last, as depleting a block will invalidate the current process.
+            var rollDep = level.random.nextIntBetweenInclusive(0, depositPositions.size() - 1);
+            DepositDurabilityManager.useDepositBlock(sl, depositPositions.get(rollDep),
+                    recipe.getReplacementBlock().defaultBlockState());
 
             return uncollectedItems.isEmpty() ? null : uncollectedItems.poll();
         }
