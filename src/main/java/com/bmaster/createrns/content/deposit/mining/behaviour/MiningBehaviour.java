@@ -119,7 +119,6 @@ public abstract class MiningBehaviour extends ClaimingBehaviour {
         super.read(nbt, provider, clientPacket);
 
         pendingProcessTag = null;
-        unInitProcess();
         if (nbt.contains("process")) {
             pendingProcessTag = new Tuple<>(nbt.getCompound("process"), clientPacket);
         }
@@ -161,6 +160,7 @@ public abstract class MiningBehaviour extends ClaimingBehaviour {
 
     @Override
     protected void onClaimedBlocksChanged() {
+        super.onClaimedBlocksChanged();
         unInitProcess();
         var level = getLevel();
         if (level == null || level.isClientSide || claimedDepositBlocks == null) return;
@@ -176,11 +176,19 @@ public abstract class MiningBehaviour extends ClaimingBehaviour {
     }
 
     protected boolean tryInitProcess() {
-        if (process != null) return true;
+        if (process != null) {
+            var level = getLevel();
+            if (level != null && pendingClaimerTag == null && pendingProcessTag != null) {
+                process.read(pendingProcessTag.getA(), level.registryAccess(), pendingProcessTag.getB());
+                pendingProcessTag = null;
+            }
+            return true;
+        }
         return tryReInitProcess();
     }
 
     protected boolean tryReInitProcess() {
+        if (pendingClaimerTag != null) return false;
         unInitProcess();
         var level = getLevel();
         if (level == null || claimedDepositBlocks == null ||

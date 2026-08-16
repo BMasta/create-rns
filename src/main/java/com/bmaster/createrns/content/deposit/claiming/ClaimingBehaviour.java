@@ -16,6 +16,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -25,20 +26,19 @@ import java.util.stream.Collectors;
 public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements IDepositBlockClaimer {
     protected final Supplier<Direction> operatingDirection;
     protected boolean crossSublevel = false;
+    protected int claimedBlocksVersion = 0;
     protected @Nullable Set<BlockPos> claimedDepositBlocks = null;
     protected @Nullable BlockPos crossSublevelStart = null;
 
     private final SmartBlockEntity sbe;
     // Defers claimer deserialization
-    private @Nullable Tuple<CompoundTag, Boolean> pendingClaimerTag = null;
+    protected @Nullable Tuple<CompoundTag, Boolean> pendingClaimerTag = null;
 
     protected boolean validateClaimedDepositBlocks = false;
 
     public abstract boolean isRunning();
 
     protected abstract boolean isDepositBlockOperable(BlockPos pos);
-
-    protected abstract void onClaimedBlocksChanged();
 
     public ClaimingBehaviour(SmartBlockEntity sbe, Supplier<Direction> operatingDirection) {
         super(sbe);
@@ -60,6 +60,10 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
         DepositClaimerInstanceHolder.removeClaimer(this);
         level.invalidateCapabilities(getPos());
         if (level.isClientSide) DepositClaimerOutlineRenderer.removeClaimer(this);
+    }
+
+    protected void onClaimedBlocksChanged() {
+        claimedBlocksVersion++;
     }
 
     @Override
@@ -122,6 +126,9 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
                 claimer.putLong("start", start.asLong());
             }
         }
+        if (clientPacket) {
+            claimer.putInt("claimed_blocks_version", claimedBlocksVersion);
+        }
 
         nbt.put("claimer", claimer);
     }
@@ -135,7 +142,8 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
     }
 
     private void readDeferred() {
-        if (pendingClaimerTag == null) return;
+        var level = getLevel();
+        if (pendingClaimerTag == null || level == null) return;
         var cTag = pendingClaimerTag.getA();
         boolean clientPacket = pendingClaimerTag.getB();
         pendingClaimerTag = null;
@@ -147,19 +155,21 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
                     .map(a -> BlockPos.of(a.getAsLong()))
                     .collect(Collectors.toSet());
         }
-        crossSublevel = newlyClaimedBlocks != null && cTag.contains("start") && cTag.getBoolean("cross_sublevel");
-        if (crossSublevel) crossSublevelStart = BlockPos.of(cTag.getLong("start"));
+        boolean cs = newlyClaimedBlocks != null && cTag.contains("start") && cTag.getBoolean("cross_sublevel");
+        if (cs) crossSublevelStart = BlockPos.of(cTag.getLong("start"));
 
-        if (newlyClaimedBlocks == null && claimedDepositBlocks == null) return;
-        if (newlyClaimedBlocks != null && newlyClaimedBlocks.equals(claimedDepositBlocks)) return;
+        boolean hasVersion = cTag.contains("claimed_blocks_version");
+        int version = cTag.getInt("claimed_blocks_version");
+        if (clientPacket && hasVersion && claimedBlocksVersion == version && Objects.equals(newlyClaimedBlocks, claimedDepositBlocks)) return;
 
         // If a miner is moved to a different sublevel, it gets recreated with its nbt copied.
         // In such cases we have to ensure that the previously-claimed deposits are invalidated.
-        if (!clientPacket && claimedDepositBlocks == null && newlyClaimedBlocks != null && !crossSublevel) {
+        if (!clientPacket && claimedDepositBlocks == null && newlyClaimedBlocks != null && !cs) {
             validateClaimedDepositBlocks = true;
         }
 
-        setClaimedDepositBlocks(newlyClaimedBlocks, crossSublevel);
+        setClaimedDepositBlocks(newlyClaimedBlocks, cs);
+        if (hasVersion) claimedBlocksVersion = version;
     }
 
     @Override
@@ -224,19 +234,18 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
 
     @Override
     public void setClaimedDepositBlocks(@Nullable Set<BlockPos> claimedBlocks, boolean crossSublevel) {
-        if (claimedBlocks == null && claimedDepositBlocks == null) return;
-        if (claimedBlocks != null && claimedBlocks.equals(claimedDepositBlocks)) return;
         var level = getLevel();
+        if (level == null) return;
 
         DepositClaimerInstanceHolder.removeClaimer(this);
-        if (level != null && level.isClientSide) DepositClaimerOutlineRenderer.removeClaimer(this);
+        if (level.isClientSide) DepositClaimerOutlineRenderer.removeClaimer(this);
 
         claimedDepositBlocks = claimedBlocks;
         this.crossSublevel = crossSublevel;
         onClaimedBlocksChanged();
 
         DepositClaimerInstanceHolder.addClaimer(this);
-        if (level != null && level.isClientSide) DepositClaimerOutlineRenderer.addClaimer(this);
+        if (level.isClientSide) DepositClaimerOutlineRenderer.addClaimer(this);
 
         else sbe.notifyUpdate();
     }
