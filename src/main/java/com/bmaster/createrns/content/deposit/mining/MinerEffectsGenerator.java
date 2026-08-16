@@ -52,7 +52,7 @@ public class MinerEffectsGenerator {
                 .filter(miner -> {
                     if (miner == null) return false;
                     if (miner.miningBehaviour.equipment == null) return false;
-                    if (miner.miningBehaviour.process == null) return false;
+                    if (miner.miningBehaviour.getProcess() == null) return false;
                     return miner.miningBehaviour.isMining();
                 })
                 .min(Comparator.comparing(miner ->
@@ -60,7 +60,7 @@ public class MinerEffectsGenerator {
                 )
                 .ifPresent(miner -> {
                     var mineHeadPos = miner.miningBehaviour.equipment.mineHeadPos;
-                    var crsList = miner.miningBehaviour.process.getLastSatisfiedCRSes();
+                    var crsList = miner.miningBehaviour.getProcess().getLastSatisfiedCRSes();
                     float pitch = 0.5f + Math.min(1, Math.abs(miner.getTheoreticalSpeed()) / 256f) / 2;
                     RNSSoundEvents.MINING.playClient(p.level(), mineHeadPos, 1, pitch, false);
                     if (miner.miningBehaviour.equipment.mineHeadSize == MineHeadSize.HUGE) {
@@ -99,8 +99,9 @@ public class MinerEffectsGenerator {
 
     public void tick() {
         if (be.miningBehaviour.equipment == null) return;
+        var process = be.miningBehaviour.getProcess();
         // Add miner to sound producers
-        if (!registeredSound && be.miningBehaviour.process != null) {
+        if (!registeredSound && process != null) {
             refreshSound();
             registeredSound = true;
         }
@@ -136,7 +137,8 @@ public class MinerEffectsGenerator {
     }
 
     protected void refreshSound() {
-        if (be.miningBehaviour.process == null || be.miningBehaviour.equipment == null) return;
+        var process = be.miningBehaviour.getProcess();
+        if (process == null || be.miningBehaviour.equipment == null) return;
         var l = be.getLevel();
         if (l == null) return;
         MINERS.computeIfAbsent(l.dimension(), ignored -> new ObjectOpenHashSet<>()).add(be.getBlockPos());
