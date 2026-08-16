@@ -1,0 +1,11 @@
+{
+  "scanner_icon_item": [
+    "#forge:raw_materials/platinum",
+    "#forge:ores/platinum",
+    "#forge:ingots/platinum",
+    "#forge:nuggets/platinum"
+  ],
+  "map_icon_item": "create_rns:platinum_deposit_block",
+  "structure": "create_rns:deposit_platinum",
+  "scannable": false
+}

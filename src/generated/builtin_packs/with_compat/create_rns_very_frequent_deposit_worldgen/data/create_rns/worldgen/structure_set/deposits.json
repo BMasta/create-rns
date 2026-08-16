@@ -7,6 +7,10 @@
   },
   "structures": [
     {
+      "structure": "create_rns:deposit_coal",
+      "weight": 50
+    },
+    {
       "structure": "create_rns:deposit_iron",
       "weight": 50
     },
@@ -23,11 +27,19 @@
       "weight": 20
     },
     {
+      "structure": "create_rns:deposit_lapis",
+      "weight": 20
+    },
+    {
       "structure": "create_rns:deposit_redstone",
       "weight": 20
     },
     {
       "structure": "create_rns:deposit_tin",
+      "weight": 50
+    },
+    {
+      "structure": "create_rns:deposit_osmium",
       "weight": 50
     },
     {
@@ -40,6 +52,10 @@
     },
     {
       "structure": "create_rns:deposit_silver",
+      "weight": 20
+    },
+    {
+      "structure": "create_rns:deposit_platinum",
       "weight": 20
     },
     {

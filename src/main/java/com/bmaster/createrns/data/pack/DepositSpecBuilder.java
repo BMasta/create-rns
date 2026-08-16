@@ -69,6 +69,11 @@ public class DepositSpecBuilder {
         return this;
     }
 
+    public DepositSpecBuilder scannerIconCoal() {
+        scannerIconItemCandidates.add("#minecraft:coals");
+        return this;
+    }
+
     public DepositSpecBuilder transform(UnaryOperator<DepositSpecBuilder> transform) {
         return transform.apply(this);
     }

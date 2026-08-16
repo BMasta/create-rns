@@ -1,0 +1,13 @@
+{
+  "scanner_icon_item": [
+    "#forge:raw_materials/wolframite",
+    "#forge:ores/wolframite",
+    "#forge:ingots/wolframite",
+    "#forge:nuggets/wolframite",
+    "createmetallurgy:raw_tungsten"
+  ],
+  "map_icon_item": "create_rns:wolframite_deposit_block",
+  "structure": "create_rns:deposit_nether_wolframite",
+  "dimension": "minecraft:the_nether",
+  "scannable": false
+}

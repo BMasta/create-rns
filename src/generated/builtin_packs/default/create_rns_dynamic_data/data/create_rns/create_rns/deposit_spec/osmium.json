@@ -1,0 +1,11 @@
+{
+  "scanner_icon_item": [
+    "#forge:raw_materials/osmium",
+    "#forge:ores/osmium",
+    "#forge:ingots/osmium",
+    "#forge:nuggets/osmium"
+  ],
+  "map_icon_item": "create_rns:osmium_deposit_block",
+  "structure": "create_rns:deposit_osmium",
+  "scannable": false
+}

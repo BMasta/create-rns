@@ -37,6 +37,9 @@ Please refer to your version of the mod:
 
 ## Credits
 * Some models and textures in this mod make partial use of Create assets. All used Create assets are licensed under the [MIT license](https://github.com/Creators-of-Create/Create/blob/6cd9c9be090b2aece847df6783f9b55b358c5ad6/LICENSE)
-* Uranium and lead deposit blocks make partial use of the respective ore blocks from Create Nuclear, and are licensed under the [MIT license](https://github.com/Create-Nuclear-Team/CreateNuclearNeoForge/blob/5201c55571e1a72438f3e31c781ee4f63943c3c3/LICENCE)
-* Tin and silver deposit blocks make partial use of the respective ore blocks from Tech Reborn, and are licensed under the [MIT license](https://github.com/TechReborn/TechReborn/blob/2a5cd9573e0e9f81c93b49e3683e90a68804eb6f/LICENSE.md)
-* Thorium deposit block makes partial use of the Thorium Ore block from Create New Age, and is subject to its [license](https://gitlab.com/antarcticgardens/create-new-age/-/blob/55ec599a0040a0123c69fbf07632a826f170ec27/LICENSE)
+* Uranium and lead deposit blocks use ore textures from Create Nuclear, which are licensed under the [MIT license](https://github.com/Create-Nuclear-Team/CreateNuclearNeoForge/blob/5201c55571e1a72438f3e31c781ee4f63943c3c3/LICENCE)
+* Tin and silver deposit blocks use ore textures from Tech Reborn, which are licensed under the [MIT license](https://github.com/TechReborn/TechReborn/blob/2a5cd9573e0e9f81c93b49e3683e90a68804eb6f/LICENSE.md)
+* Thorium deposit block uses the thorium ore texture from Create New Age, and is subject to its [license](https://gitlab.com/antarcticgardens/create-new-age/-/blob/55ec599a0040a0123c69fbf07632a826f170ec27/LICENSE)
+* Platinum deposit block uses the platinum ore texture from Create Propulsion Simulated, which is licensed under the [MIT license](https://github.com/Propulsion-Team/create-propulsion-simulated/blob/bcfdf62b3e23391acad67d75da99ceeee90a6b62/LICENSE)
+* Osmium deposit block uses the osmium ore texture from Mekanism, which is licensed under the [MIT license](https://github.com/mekanism/Mekanism/blob/11162452affe7b17b25cde251308c9d047c42e87/LICENSE)
+* Wolframite deposit block uses the wolframite ore texture from Create Metallurgy, which is licensed under the [MIT license](https://github.com/Lucreeper74/Create-Metallurgy/blob/89a6993968a18503ff74256db0ecedb76dac64e9/LICENSE)  

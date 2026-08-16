@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "create_rns:block/coal_deposit_block"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "create_rns:block/wolframite_deposit_block"
+    }
+  }
+}
