@@ -1,5 +1,7 @@
 package com.bmaster.createrns;
 
+import com.bmaster.createrns.compat.Mods;
+import com.bmaster.createrns.compat.aeronautics.ScannerNavigationTarget;
 import com.bmaster.createrns.content.deposit.info.LevelDepositData;
 import com.bmaster.createrns.infrastructure.command.DepositCommand;
 import com.bmaster.createrns.infrastructure.command.ScannerCommand;
@@ -59,6 +61,7 @@ public class RNSMisc {
 
     public static void register(IEventBus modBus) {
         ATTACHMENT_TYPES.register(modBus);
+        if (Mods.SIMULATED.isLoaded()) ScannerNavigationTarget.register(modBus);
     }
 
 }

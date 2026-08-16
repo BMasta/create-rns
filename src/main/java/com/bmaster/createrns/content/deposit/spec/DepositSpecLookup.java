@@ -80,6 +80,13 @@ public class DepositSpecLookup {
         return spec == null ? null : spec.getMapIcon();
     }
 
+    public static @Nullable ItemStack getScannerIcon(RegistryAccess access, ResourceKey<Structure> structureKey) {
+        if (structureKeyToSpec == null) build(access);
+        var spec = structureKeyToSpec.get(structureKey);
+        if (spec == null || spec.getScannerIcon() == null) return null;
+        return new ItemStack(spec.getScannerIcon());
+    }
+
     public static MutableComponent getDepositName(ResourceKey<Structure> depKey) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return Component.empty();

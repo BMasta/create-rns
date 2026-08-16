@@ -10,6 +10,7 @@
     "simulated.SimAssemblyContraptionMixin"
   ],
   "client": [
+    "simulated.DepositScannerItemMixin",
     "xaero.RNSXaeroFullscreenMapAccessor",
     "xaero.RNSXaeroFullscreenMapMixin"
   ],

@@ -197,6 +197,7 @@ neoForge.addModdingDependenciesTo(physicsGameTestSourceSet)
 configurations {
     runtimeClasspath.extendsFrom localRuntime
     sableCompileContainer
+    simulatedCompileContainer
     named(gameTestSourceSet.implementationConfigurationName) {
         extendsFrom implementation
     }
@@ -242,8 +243,25 @@ def extractSableCompanionApi = tasks.register("extractSableCompanionApi", Sync) 
     outputs.file sableCompanionApiJar
 }
 
+def simulatedJarName = "simulated-neoforge.jar"
+def simulatedApiDir = layout.buildDirectory.dir("generated/simulatedApi")
+def simulatedApiJar = simulatedApiDir.map { it.file(simulatedJarName) }
+def extractSimulatedApi = tasks.register("extractSimulatedApi", Sync) {
+    from({ zipTree(configurations.simulatedCompileContainer.singleFile) }) {
+        include "META-INF/jarjar/dev.simulated_team.simulated.simulated-neoforge-${minecraft_version}-*.jar"
+        eachFile { details ->
+            details.name = simulatedJarName
+            details.path = details.name
+        }
+        includeEmptyDirs = false
+    }
+    into simulatedApiDir
+    outputs.file simulatedApiJar
+}
+
 dependencies {
     sableCompileContainer("maven.modrinth:sable:${sable_version}+mc1.21.1")
+    simulatedCompileContainer("maven.modrinth:create-aeronautics:${create_aeronautics_version}+mc1.21.1")
 
     compileOnly("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
     compileOnly("maven.modrinth:jade:${jade_version}+neoforge")
@@ -253,6 +271,7 @@ dependencies {
     compileOnly("maven.modrinth:create-aeronautics:${create_aeronautics_version}+mc1.21.1")
     compileOnly("maven.modrinth:sable:${sable_version}+mc1.21.1")
     compileOnly(files(sableCompanionApiJar).builtBy(extractSableCompanionApi))
+    compileOnly(files(simulatedApiJar).builtBy(extractSimulatedApi))
 
     implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
     implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")

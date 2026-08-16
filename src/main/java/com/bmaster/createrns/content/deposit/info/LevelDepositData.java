@@ -1,6 +1,7 @@
 package com.bmaster.createrns.content.deposit.info;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.content.deposit.info.ServerDepositLocation.CachedData;
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsClearS2CPayload;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -16,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -35,7 +37,7 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
     protected final Object2LongOpenHashMap<BlockPos> depositDurabilities = new Object2LongOpenHashMap<>();
 
     // In-memory
-    protected final Cache<UUID, ServerDepositLocation.CachedData> perPlayerCache = CacheBuilder.newBuilder()
+    protected final Cache<UUID, CachedData> perPlayerCache = CacheBuilder.newBuilder()
             .initialCapacity(1)
             .expireAfterAccess(10, TimeUnit.MINUTES)
             .build();
@@ -54,6 +56,11 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
 
     public Set<ServerDepositLocation> getFoundDeposits() {
         return foundDeposits;
+    }
+
+    public @Nullable ServerDepositLocation getDepositTrackedBy(UUID playerId) {
+        var cached = perPlayerCache.getIfPresent(playerId);
+        return cached == null || cached.loc() == null ? null : cached.loc();
     }
 
     public boolean removeCustomDeposit(CustomServerDepositLocation dep) {

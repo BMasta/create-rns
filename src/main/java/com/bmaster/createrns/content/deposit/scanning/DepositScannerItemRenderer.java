@@ -3,6 +3,7 @@ package com.bmaster.createrns.content.deposit.scanning;
 import com.bmaster.createrns.RNSPartialModels;
 import com.bmaster.createrns.util.Utils;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer;
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer;
@@ -22,8 +23,10 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import org.joml.Vector3f;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.Random;
@@ -89,11 +92,40 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
     private static final LerpedFloat itemJitterZ;
     private static int remainingJitterTicks = 0;
 
+    private static ItemStack selectedIconOverride = null;
+    private static PartialModel scannerModelOverride = null;
+
     static {
         scrollProgress = LerpedFloat.linear().startWithValue(0).chase(0, 0.5f, Chaser.EXP);
         ambientItemMovement = LerpedFloat.linear().startWithValue(2).chase(4, 0.04f, Chaser.LINEAR);
         itemJitterX = LerpedFloat.linear().startWithValue(0).chase(0, 2f, Chaser.EXP);
         itemJitterZ = LerpedFloat.linear().startWithValue(0).chase(0, 2f, Chaser.EXP);
+    }
+
+    // Create Simulated compat
+    public static void renderInNavTable(
+            ItemStack scanner, ItemStack selectedIcon, boolean found, PoseStack ms,
+            MultiBufferSource buffer, @Nullable Level level, int light, int overlay
+    ) {
+        selectedIconOverride = selectedIcon;
+        if (found) {
+            scannerModelOverride = RNSPartialModels.WHOLE_SCANNER_ALL_POWERED;
+        } else if (selectedIconOverride != ItemStack.EMPTY) {
+            scannerModelOverride = RNSPartialModels.WHOLE_SCANNER_ANTENNAS_POWERED;
+        } else {
+            scannerModelOverride = RNSPartialModels.WHOLE_SCANNER_UNPOWERED;
+        }
+        try {
+            ms.translate(0, 0, -0.23f);
+            ms.mulPose(Axis.XP.rotationDegrees(180));
+            ms.mulPose(Axis.ZP.rotationDegrees(-90));
+            ms.scale(1.1f, 1.1f, 1.1f);
+            Minecraft.getInstance().getItemRenderer().renderStatic(
+                    scanner, ItemDisplayContext.FIXED, light, overlay, ms, buffer, level, 0);
+        } finally {
+            selectedIconOverride = null;
+            scannerModelOverride = null;
+        }
     }
 
     protected static void tick() {
@@ -213,10 +245,16 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
             dynamic = true;
         }
 
-        var dynamic_scanner_base = DepositScannerClientHandler.isTracking()
-                ? roll.getModel().get()
-                : RNSPartialModels.SCANNER_UNPOWERED.get();
-        renderer.render(dynamic ? dynamic_scanner_base : model.getOriginalModel(), light);
+        BakedModel scanner = model.getOriginalModel();
+        if (scannerModelOverride != null) {
+            scanner = scannerModelOverride.get();
+        } else if (dynamic) {
+            scanner = DepositScannerClientHandler.isTracking()
+                    ? roll.getModel().get()
+                    : RNSPartialModels.SCANNER_UNPOWERED.get();
+        }
+
+        renderer.render(scanner, light);
         renderSelectedItem(ms, msr, buf, light, overlay, pt);
 
         if (!dynamic) {
@@ -288,8 +326,8 @@ public class DepositScannerItemRenderer extends CustomRenderedItemModelRenderer 
     private static void renderSelectedItem(PoseStack ms, PoseTransformStack msr, MultiBufferSource buf,
             int light, int overlay, float partialTicks
     ) {
-        var selectedItem = DepositScannerClientHandler.getSelectedIcon();
-        if (selectedItem == null) return;
+        var selectedItem = selectedIconOverride == null ? DepositScannerClientHandler.getSelectedIcon() : selectedIconOverride;
+        if (selectedItem == null || selectedItem.isEmpty()) return;
 
         float am = ambientItemMovement.getValue(partialTicks);
         int phase = (am < 2) ? 1 : -1;

@@ -52,6 +52,12 @@ public class RNSPartialModels {
 
     ANTENNA_POWERED = PartialModel.of(CreateRNS.asResource("item/deposit_scanner/antenna_powered")),
 
+    WHOLE_SCANNER_UNPOWERED = PartialModel.of(CreateRNS.asResource("item/deposit_scanner/item")),
+
+    WHOLE_SCANNER_ANTENNAS_POWERED = PartialModel.of(CreateRNS.asResource("item/deposit_scanner/item_antennas_powered")),
+
+    WHOLE_SCANNER_ALL_POWERED = PartialModel.of(CreateRNS.asResource("item/deposit_scanner/item_all_powered")),
+
     WHEEL = PartialModel.of(CreateRNS.asResource("item/deposit_scanner/wheel"));
 
     public static void register() {
