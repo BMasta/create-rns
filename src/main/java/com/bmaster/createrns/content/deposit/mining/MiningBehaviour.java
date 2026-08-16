@@ -115,10 +115,12 @@ public abstract class MiningBehaviour extends BlockEntityBehaviour implements ID
             deserializeDepositBlockClaimer(claimerTag);
         }
 
+        pendingProcessTag = null;
+        if (process != null) process.uninitialize();
+        process = null;
         if (nbt.contains("process")) {
             var processTag = nbt.getCompound("process");
-            if (process != null) process.read(processTag, clientPacket);
-            else pendingProcessTag = new Tuple<>(processTag, clientPacket);
+            pendingProcessTag = new Tuple<>(processTag, clientPacket);
         }
     }
 
