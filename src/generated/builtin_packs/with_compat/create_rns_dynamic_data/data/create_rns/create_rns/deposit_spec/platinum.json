@@ -1,0 +1,10 @@
+{
+  "scanner_icon_item": [
+    "#c:raw_materials/platinum",
+    "#c:ores/platinum",
+    "#c:ingots/platinum",
+    "#c:nuggets/platinum"
+  ],
+  "map_icon_item": "create_rns:platinum_deposit_block",
+  "structure": "create_rns:deposit_platinum"
+}

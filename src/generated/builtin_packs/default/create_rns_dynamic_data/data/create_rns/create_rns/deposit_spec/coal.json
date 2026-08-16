@@ -1,0 +1,5 @@
+{
+  "scanner_icon_item": "#minecraft:coals",
+  "map_icon_item": "create_rns:coal_deposit_block",
+  "structure": "create_rns:deposit_coal"
+}

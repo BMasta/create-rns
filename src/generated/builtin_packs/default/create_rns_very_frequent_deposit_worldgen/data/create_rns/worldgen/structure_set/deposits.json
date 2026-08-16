@@ -7,6 +7,10 @@
   },
   "structures": [
     {
+      "structure": "create_rns:deposit_coal",
+      "weight": 50
+    },
+    {
       "structure": "create_rns:deposit_iron",
       "weight": 50
     },

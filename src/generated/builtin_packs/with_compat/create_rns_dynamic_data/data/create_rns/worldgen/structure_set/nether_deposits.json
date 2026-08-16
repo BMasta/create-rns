@@ -17,6 +17,10 @@
     {
       "structure": "create_rns:deposit_nether_cobalt",
       "weight": 20
+    },
+    {
+      "structure": "create_rns:deposit_nether_wolframite",
+      "weight": 20
     }
   ]
 }

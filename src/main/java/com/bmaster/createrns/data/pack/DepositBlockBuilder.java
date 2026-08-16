@@ -23,7 +23,13 @@ public class DepositBlockBuilder {
 
     private final DepositBuildingContext ctx;
     private @Nullable BlockBuilder<DepositBlock, CreateRegistrate> delegate;
+    private boolean disabled = false;
     private final ObjectOpenHashSet<String> compatIndicatorBlocks = new ObjectOpenHashSet<>();
+
+    public DepositBlockBuilder disableByDefault() {
+        this.disabled = true;
+        return this;
+    }
 
     public DepositBlockBuilder enableWhenBlockPresent(String name) {
         compatIndicatorBlocks.add(name);
@@ -54,11 +60,11 @@ public class DepositBlockBuilder {
     private DepositBlockBuilder(DepositBuildingContext ctx) {
         this.ctx = ctx;
         if (dumpMode) {
-            ctx.isEnabled = () -> compatIndicatorBlocks.isEmpty() || DynamicDatapackDumpTool.includeCompat();
+            ctx.isEnabled = () -> (!disabled && compatIndicatorBlocks.isEmpty()) || DynamicDatapackDumpTool.includeCompat();
         } else {
             delegate = CreateRNS.REGISTRATE.block(ctx.depositKeyword + "_deposit_block", DepositBlock::new);
             ctx.isEnabled = () -> BuiltInRegistries.BLOCK.keySet().stream().anyMatch(rl ->
-                    compatIndicatorBlocks.isEmpty() || compatIndicatorBlocks.contains(rl.getPath()));
+                    !disabled && (compatIndicatorBlocks.isEmpty() || compatIndicatorBlocks.contains(rl.getPath())));
         }
     }
 
