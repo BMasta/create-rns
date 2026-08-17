@@ -79,7 +79,7 @@ public class MiningProcess {
 
     public Set<ItemStack> collect() {
         return innerProcesses.stream()
-                .map(InnerProcess::collect)
+                .flatMap(ip -> ip.collect().stream())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
@@ -179,8 +179,6 @@ public class MiningProcess {
         public final CatalystHandler catalystHandler;
         public long remainingUses;
 
-        protected Queue<ItemStack> uncollectedItems = new ArrayDeque<>();
-
         public InnerProcess(
                 Level level, List<BlockPos> depositPositions, MiningRecipe recipe, int maxProgress, Set<Catalyst> catalysts
         ) {
@@ -199,17 +197,21 @@ public class MiningProcess {
             progress += by;
         }
 
-        public @Nullable ItemStack collect() {
-            if (!uncollectedItems.isEmpty()) {
-                return uncollectedItems.poll();
-            }
-
-            if (progress < maxProgress) return null;
-            if (!(level instanceof ServerLevel sl)) return null;
+        public Set<ItemStack> collect() {
+            if (progress < maxProgress) return Set.of();
+            if (!(level instanceof ServerLevel sl)) return Set.of();
 
             progress = progress - maxProgress; // Keep the extra progress
 
+            // Use a random deposit block.
+            // This can trigger an area reclaim for the process holder, which would invalidate the current process.
+            // Regardless, this method can still finish and return the collected items before the process is destroyed.
+            var rollDep = level.random.nextIntBetweenInclusive(0, depositPositions.size() - 1);
+            DepositDurabilityManager.useDepositBlock(sl, depositPositions.get(rollDep),
+                    recipe.getReplacementBlock().defaultBlockState());
+
             // For each yield: use all of its catalysts, then roll for success and add to collection queue if successful
+            var spoils = new HashSet<ItemStack>();
             var yields = recipe.getYields();
             var chances = catalystHandler.useCatalysts(false);
             for (var e : chances.int2FloatEntrySet()) {
@@ -219,20 +221,15 @@ public class MiningProcess {
                     var chanceRoll = (chance < 1f) ? level.random.nextFloat() : 0;
                     if (chance > chanceRoll) {
                         var myPrecious = new ItemStack(yields.get(yieldIdx).roll(level.random));
-                        uncollectedItems.offer(myPrecious);
-                        if (chance != 1) {
+                        spoils.add(myPrecious);
+                        if (chance < 1) {
                             CreateRNS.LOGGER.trace("Successfully rolled for {} ({}% chance)", myPrecious, (int) (chance * 100));
                         }
                     }
                 }
             }
 
-            // Use a random deposit block. Must be done last, as depleting a block will invalidate the current process.
-            var rollDep = level.random.nextIntBetweenInclusive(0, depositPositions.size() - 1);
-            DepositDurabilityManager.useDepositBlock(sl, depositPositions.get(rollDep),
-                    recipe.getReplacementBlock().defaultBlockState());
-
-            return uncollectedItems.isEmpty() ? null : uncollectedItems.poll();
+            return spoils;
         }
 
         public @Nullable CompoundTag write(boolean clientPacket) {
