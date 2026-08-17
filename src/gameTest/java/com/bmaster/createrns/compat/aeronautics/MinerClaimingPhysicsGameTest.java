@@ -12,8 +12,11 @@ import com.simibubi.create.content.kinetics.motor.CreativeMotorBlock;
 import com.simibubi.create.content.kinetics.motor.CreativeMotorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.gametest.framework.AfterBatch;
+import net.minecraft.gametest.framework.BeforeBatch;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -30,6 +33,7 @@ import java.util.stream.Collectors;
 @PrefixGameTestTemplate(false)
 public class MinerClaimingPhysicsGameTest {
     private static final int TEST_RPM = 128;
+    private static final int TEST_MINING_RADIUS = 2;
     // GameTest helper coordinates are relative to the structure block one block below the template volume.
     private static final int TEMPLATE_Y_OFFSET = 1;
     private static final int DEPOSIT_MIN_X = 4;
@@ -55,19 +59,33 @@ public class MinerClaimingPhysicsGameTest {
             "dev.simulated_team.simulated.content.blocks.physics_assembler.PhysicsAssemblerBlockEntity";
     private static final String HONEY_GLUE_ENTITY =
             "dev.simulated_team.simulated.content.entities.honey_glue.HoneyGlueEntity";
+    private static final String PHYSICS_CONFIG_BATCH = "miner_claiming_physics_config";
 
-    @GameTest(template = "simulated16x16", timeoutTicks = 100)
+    private static int previousMiningRadius;
+
+    @BeforeBatch(batch = PHYSICS_CONFIG_BATCH)
+    public static void configurePhysicsBatch(ServerLevel level) {
+        previousMiningRadius = ServerConfig.MINING_RADIUS.get();
+        ServerConfig.MINING_RADIUS.set(TEST_MINING_RADIUS);
+    }
+
+    @AfterBatch(batch = PHYSICS_CONFIG_BATCH)
+    public static void restorePhysicsBatch(ServerLevel level) {
+        ServerConfig.MINING_RADIUS.set(previousMiningRadius);
+    }
+
+    @GameTest(template = "simulated16x16", batch = PHYSICS_CONFIG_BATCH, timeoutTicks = 100)
     public void minerMovedWithoutDepositsCrossClaimsMainSublevelRemainder(GameTestHelper helper) {
         assembleTemplateMinerWithPhysics(helper, false);
     }
 
-    @GameTest(template = "simulated16x16", timeoutTicks = 100)
+    @GameTest(template = "simulated16x16", batch = PHYSICS_CONFIG_BATCH, timeoutTicks = 100)
     public void minerMovedWithDepositsKeepsLocalPhysicsSublevelClaim(GameTestHelper helper) {
         assembleTemplateMinerWithPhysics(helper, true);
     }
 
     private static void assembleTemplateMinerWithPhysics(GameTestHelper helper, boolean moveGluedDeposits) {
-        helper.assertValueEqual(ServerConfig.MINING_RADIUS.get(), 2,
+        helper.assertValueEqual(ServerConfig.MINING_RADIUS.get(), TEST_MINING_RADIUS,
                 "mining radius required by the simulated miner layout");
 
         placeHoneyGlue(helper, FIRST_GLUE_MIN, FIRST_GLUE_MAX);

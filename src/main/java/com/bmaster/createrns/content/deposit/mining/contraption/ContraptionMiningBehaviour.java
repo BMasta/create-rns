@@ -99,15 +99,8 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     public void collect() {
         if (process == null || (equipment == null && !refreshEquipment())) return;
         var spoils = process.collect();
-        boolean collected = false;
-        while (!spoils.isEmpty() && process != null) {
-            collected = true;
-            for (var s : spoils) {
-                equipment.dropItem(s);
-            }
-            spoils = process.collect();
-        }
-        if (collected) {
+        for (var s : spoils) equipment.dropItem(s);
+        if (!spoils.isEmpty()) {
             var level = getLevel();
             assert level != null;
             RNSSoundEvents.MINED.playServer(level, equipment.mineHeadTipPos);

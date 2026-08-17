@@ -3,11 +3,13 @@ package com.bmaster.createrns.comprehensive;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.RNSDeposits;
+import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.resonator.ShatteringResonatorBlock;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.bmaster.createrns.util.MinerSetup;
 import com.bmaster.createrns.util.MinerSetupBuilder;
 import com.simibubi.create.AllBlocks;
+import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity;
 import com.simibubi.create.infrastructure.config.AllConfigs;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -15,6 +17,7 @@ import net.minecraft.gametest.framework.AfterBatch;
 import net.minecraft.gametest.framework.BeforeBatch;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
@@ -34,11 +37,22 @@ import org.jetbrains.annotations.Nullable;
 @GameTestHolder(CreateRNS.ID)
 @PrefixGameTestTemplate(false)
 public class MinerMiningBehaviourGameTest {
+    private static final int DEPLETION_MINING_SPEED = 3600;
+    private static final int DEPLETION_MINING_RADIUS = 2;
+    private static final int DEPLETION_RPM = 256;
+    private static final int DEPLETION_ASSERTION_TICK = 21;
+    private static final int DEPLETION_LAVA_AMOUNT = 1000;
+    private static final int INITIAL_DEPOSIT_DURABILITY = 1;
+    private static final int EXPECTED_CLAIMED_BLOCKS_VERSION = 3;
+    private static final String CLAIMED_BLOCKS_VERSION_KEY = "claimed_blocks_version";
     private static final String DROPS_CONFIG_BATCH = "miner_mining_drops_config";
     private static final String COLLECTS_CONFIG_BATCH = "miner_mining_collects_config";
+    private static final String DEPLETION_CONFIG_BATCH = "miner_mining_depletion_config";
 
     private static @Nullable ServerConfigValues dropsPreviousConfig;
     private static @Nullable ServerConfigValues collectsPreviousConfig;
+    private static @Nullable ServerConfigValues depletionPreviousConfig;
+    private static boolean depletionPreviousInfiniteDeposits;
 
     @BeforeBatch(batch = DROPS_CONFIG_BATCH)
     public static void configureDropsBatch(ServerLevel level) {
@@ -60,6 +74,20 @@ public class MinerMiningBehaviourGameTest {
     public static void restoreCollectsBatch(ServerLevel level) {
         restoreServerConfig(collectsPreviousConfig);
         collectsPreviousConfig = null;
+    }
+
+    @BeforeBatch(batch = DEPLETION_CONFIG_BATCH)
+    public static void configureDepletionBatch(ServerLevel level) {
+        depletionPreviousConfig = setServerConfig(DEPLETION_MINING_SPEED, DEPLETION_MINING_RADIUS, DEPLETION_RPM);
+        depletionPreviousInfiniteDeposits = ServerConfig.INFINITE_DEPOSITS.get();
+        ServerConfig.INFINITE_DEPOSITS.set(false);
+    }
+
+    @AfterBatch(batch = DEPLETION_CONFIG_BATCH)
+    public static void restoreDepletionBatch(ServerLevel level) {
+        ServerConfig.INFINITE_DEPOSITS.set(depletionPreviousInfiniteDeposits);
+        restoreServerConfig(depletionPreviousConfig);
+        depletionPreviousConfig = null;
     }
 
     @GameTest(template = "empty16x16", batch = DROPS_CONFIG_BATCH, timeoutTicks = 140)
@@ -123,6 +151,44 @@ public class MinerMiningBehaviourGameTest {
                     "Expected to find 0 cobblestone on the ground, but found " + nCobbleOnGround);
             h.assertTrue(miner.findInStorage(new ItemStack(Items.COBBLESTONE), true),
                     "Expected to find exactly 1 cobblestone in miner storage");
+            h.succeed();
+        });
+    }
+
+    @GameTest(template = "empty16x16", batch = DEPLETION_CONFIG_BATCH, timeoutTicks = 30)
+    public void minerDepletesDepositAndCollectsAllYields(GameTestHelper h) {
+        var depositPos = new BlockPos(3, 2, 3);
+        var tankPos = new BlockPos(2, 4, 3);
+        var miner = minerWithStorageAndTank(h, 3, 5, 3)
+                .deposit(depositPos.getX(), depositPos.getY(), depositPos.getZ(), RNSDeposits.IRON_DEPOSIT.get())
+                .place();
+
+        var tankBlockEntity = h.getLevel().getBlockEntity(h.absolutePos(tankPos));
+        h.assertTrue(tankBlockEntity instanceof FluidTankBlockEntity,
+                "Expected fluid tank at " + h.absolutePos(tankPos));
+        int filled = ((FluidTankBlockEntity) tankBlockEntity).getTankInventory()
+                .fill(new FluidStack(Fluids.LAVA, DEPLETION_LAVA_AMOUNT), IFluidHandler.FluidAction.EXECUTE);
+        h.assertValueEqual(filled, DEPLETION_LAVA_AMOUNT, "lava inserted into the miner tank");
+
+        var absoluteDepositPos = h.absolutePos(depositPos);
+        h.assertTrue(DepositDurabilityManager.set(h.getLevel(), absoluteDepositPos, INITIAL_DEPOSIT_DURABILITY),
+                "Could not set finite deposit durability");
+        miner.assemble(DEPLETION_RPM);
+
+        h.runAtTickTime(DEPLETION_ASSERTION_TICK, () -> {
+            h.assertTrue(h.getLevel().getBlockState(absoluteDepositPos).is(RNSDeposits.DEPLETED_DEPOSIT.get()),
+                    "Iron deposit should be replaced with a depleted deposit");
+            h.assertValueEqual(miner.contraptionItemCount(Items.COBBLESTONE), 1,
+                    "cobblestone count in combined miner inventory");
+            h.assertValueEqual(miner.contraptionItemCount(Items.IRON_NUGGET), 1,
+                    "iron nugget count in combined miner inventory");
+
+            var minerTag = miner.bearing().writeClient(new CompoundTag(), h.getLevel().registryAccess());
+            var claimerTag = minerTag.getCompound("claimer");
+            h.assertTrue(claimerTag.contains(CLAIMED_BLOCKS_VERSION_KEY),
+                    "Serialized miner should contain the claimed-blocks version");
+            h.assertValueEqual(claimerTag.getInt(CLAIMED_BLOCKS_VERSION_KEY), EXPECTED_CLAIMED_BLOCKS_VERSION,
+                    "serialized claimed-blocks version");
             h.succeed();
         });
     }
