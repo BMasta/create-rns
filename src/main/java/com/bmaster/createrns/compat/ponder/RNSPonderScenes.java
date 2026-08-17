@@ -334,7 +334,11 @@ public class RNSPonderScenes {
 
         minerAfter.hideContraption(Direction.NORTH);
         minerAfter.hideBearing(Direction.NORTH);
-        w.hideSection(verticalShaftKineticsBottom,  Direction.NORTH);
+        s.idle(2);
+        for (var bp : verticalShaftKineticsBottom) {
+            w.hideSection(sel.position(bp), Direction.NORTH);
+            s.idle(2);
+        }
         s.idle(15);
 
         w.setBlocks(sel.position(bearingNewNewPos), RNSBlocks.MINER_BEARING.getDefaultState()
