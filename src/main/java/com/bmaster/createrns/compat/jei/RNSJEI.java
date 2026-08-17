@@ -17,13 +17,14 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @JeiPlugin
 @MethodsReturnNonnullByDefault
@@ -73,9 +74,22 @@ public class RNSJEI implements IModPlugin {
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration reg) {
+        var level = Minecraft.getInstance().level;
+        if (level == null) return;
+        var crsReg = level.registryAccess().registryOrThrow(CatalystRequirementSet.REGISTRY_KEY);
+
+        var catalysts = new LinkedHashSet<Item>();
+        catalysts.add(RNSBlocks.MINER_BEARING.asItem());
+        catalysts.add(RNSBlocks.MINE_HEAD.asItem());
+        crsReg.holders().forEach(holder -> {
+            if (!holder.isBound()) return;
+            var crs = holder.value();
+            catalysts.addAll(crs.representativeItems);
+        });
+
         for (var category : categories.values()) {
-            for (var cs : MiningRecipeCategory.CATALYSTS) {
-                reg.addRecipeCatalyst(cs.get(), category.getRecipeType());
+            for (var catalyst : catalysts) {
+                reg.addRecipeCatalyst(catalyst, category.getRecipeType());
             }
         }
     }
@@ -105,8 +119,7 @@ public class RNSJEI implements IModPlugin {
                 .toList();
         for (var crs : crsList) {
             reg.addItemStackInfo(
-                    Stream.concat(Stream.of(RNSBlocks.MINER_BEARING.get().asItem(), RNSBlocks.MINE_HEAD.asItem()),
-                                    crs.value().representativeItems.stream())
+                    crs.value().representativeItems.stream()
                             .distinct()
                             .map(ItemStack::new)
                             .toList(),
