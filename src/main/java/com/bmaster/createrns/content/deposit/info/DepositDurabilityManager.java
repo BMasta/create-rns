@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class DepositDurabilityManager {
-    public static final int MAX_DEPOSIT_VEIN_DEPTH = 128;
+    public static final int MAX_DEPOSIT_VEIN_SIZE = 65535;
     private static final Set<Direction> xzDirections = Set.of(
             Direction.SOUTH, Direction.WEST, Direction.EAST, Direction.NORTH);
 
@@ -35,8 +35,8 @@ public class DepositDurabilityManager {
         q.add(start);
 
         // Collect all blocks in the deposit vein. Assign depth of outer blocks to 0, all other to MAX_VALUE.
-        int depth = 0;
-        while (!q.isEmpty() && depth < MAX_DEPOSIT_VEIN_DEPTH) {
+        int visitedCount = 0;
+        while (!q.isEmpty() && visitedCount < MAX_DEPOSIT_VEIN_SIZE) {
             var bp = q.poll();
             if (visited.containsKey(bp)) continue;
 
@@ -50,11 +50,11 @@ public class DepositDurabilityManager {
                 }
             });
             visited.put(bp, external.get() ? 0 : Integer.MAX_VALUE);
-            ++depth;
+            ++visitedCount;
         }
 
         // Start with outer blocks whose depth is 0. Compute depth of their neighbors until all blocks are processed.
-        for (depth = 0; depth < MAX_DEPOSIT_VEIN_DEPTH; ++depth) {
+        for (int depth = 0; depth < MAX_DEPOSIT_VEIN_SIZE; ++depth) {
             int finalDepth = depth;
             var curDepthBlocks = visited.object2IntEntrySet().stream()
                     .filter(e -> e.getIntValue() == finalDepth)
