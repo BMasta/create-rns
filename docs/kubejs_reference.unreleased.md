@@ -233,12 +233,13 @@ StartupEvents.registry('block', event => {
 ```
 
 What this builder does:
-* Uses the proper `DepositBlock` class to create the block.
-* Applies the block properties used by built-in deposit blocks.
+* Supplies the default block properties used by deposit blocks.
 * Automatically tags the block with:
   * `#create_rns:deposit_blocks`
   * `#minecraft:mineable/pickaxe`
   * `#minecraft:needs_diamond_tool`
+
+When using an existing block as deposit block, you must tag it with `#create_rns:deposit_blocks`.
 
 ## Adding new deposit structures
 
