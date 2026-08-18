@@ -209,8 +209,8 @@ public class MiningProcess {
             // This can trigger an area reclaim for the process holder, which would invalidate the current process.
             // Regardless, this method can still finish and return the collected items before the process is destroyed.
             var rollDep = level.random.nextIntBetweenInclusive(0, depositPositions.size() - 1);
-            DepositDurabilityManager.useDepositBlock(sl, depositPositions.get(rollDep),
-                    recipe.getReplacementBlock().defaultBlockState());
+            if (!DepositDurabilityManager.useDepositBlock(sl, depositPositions.get(rollDep),
+                    recipe.getReplacementBlock().defaultBlockState())) return Set.of();
 
             // For each yield: use all of its catalysts, then roll for success and add to collection queue if successful
             var spoils = new HashSet<ItemStack>();
