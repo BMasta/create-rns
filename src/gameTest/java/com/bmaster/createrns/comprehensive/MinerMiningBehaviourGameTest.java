@@ -43,7 +43,7 @@ public class MinerMiningBehaviourGameTest {
     private static final int DEPLETION_ASSERTION_TICK = 21;
     private static final int DEPLETION_LAVA_AMOUNT = 1000;
     private static final int INITIAL_DEPOSIT_DURABILITY = 1;
-    private static final int EXPECTED_CLAIMED_BLOCKS_VERSION = 3;
+    private static final int EXPECTED_CLAIMED_BLOCKS_VERSION = 2;
     private static final String CLAIMED_BLOCKS_VERSION_KEY = "claimed_blocks_version";
     private static final String DROPS_CONFIG_BATCH = "miner_mining_drops_config";
     private static final String COLLECTS_CONFIG_BATCH = "miner_mining_collects_config";

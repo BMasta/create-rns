@@ -4,17 +4,18 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSDeposits;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.infrastructure.ServerConfig;
-import dev.ryanhcode.sable.api.block.BlockSubLevelAssemblyListener;
+import dev.ryanhcode.sable.api.SubLevelAssemblyHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Rotation;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.OptionalLong;
 
@@ -24,7 +25,7 @@ public class DepositDurabilityMovementGameTest {
     private static final BlockPos SOURCE_POS = new BlockPos(4, 2, 4);
     private static final BlockPos DESTINATION_POS = new BlockPos(8, 2, 8);
     private static final BlockPos OTHER_SOURCE_POS = new BlockPos(4, 2, 8);
-    private static final BlockPos OTHER_DESTINATION_POS = new BlockPos(8, 2, 4);
+    private static final BlockPos OTHER_DESTINATION_POS = new BlockPos(8, 2, 12);
     private static final long SOURCE_DURABILITY = 37;
     private static final long DESTINATION_DURABILITY = 91;
     private static final long OTHER_SOURCE_DURABILITY = 53;
@@ -41,10 +42,7 @@ public class DepositDurabilityMovementGameTest {
             helper.assertTrue(DepositDurabilityManager.set(level, sourcePos, SOURCE_DURABILITY),
                     "Source durability should be stored");
 
-            beforeMove(level, level, state, sourcePos, destinationPos);
-            helper.setBlock(DESTINATION_POS, state);
-            afterMove(level, level, state, sourcePos, destinationPos);
-            helper.setBlock(SOURCE_POS, Blocks.AIR.defaultBlockState());
+            moveBlocks(level, level, sourcePos, destinationPos, List.of(sourcePos));
 
             helper.assertValueEqual(stored(level, sourcePos), OptionalLong.empty(),
                     "source durability after movement");
@@ -62,13 +60,11 @@ public class DepositDurabilityMovementGameTest {
             var state = RNSDeposits.IRON_DEPOSIT.getDefaultState();
 
             helper.setBlock(SOURCE_POS, state);
+            helper.setBlock(DESTINATION_POS, state);
             DepositDurabilityManager.setRaw(
                     level, destinationPos, OptionalLong.of(DESTINATION_DURABILITY));
 
-            beforeMove(level, level, state, sourcePos, destinationPos);
-            helper.setBlock(DESTINATION_POS, state);
-            afterMove(level, level, state, sourcePos, destinationPos);
-            helper.setBlock(SOURCE_POS, Blocks.AIR.defaultBlockState());
+            moveBlocks(level, level, sourcePos, destinationPos, List.of(sourcePos));
 
             helper.assertValueEqual(stored(level, destinationPos), OptionalLong.empty(),
                     "An uninitialized source should remove conflicting destination durability");
@@ -81,27 +77,28 @@ public class DepositDurabilityMovementGameTest {
             var sourceLevel = helper.getLevel();
             var destinationLevel = Objects.requireNonNull(sourceLevel.getServer().getLevel(Level.NETHER));
             var sourcePos = helper.absolutePos(SOURCE_POS);
-            var destinationPos = helper.absolutePos(DESTINATION_POS);
+            var relativeDestinationPos = helper.absolutePos(DESTINATION_POS);
+            var destinationPos = new BlockPos(
+                    relativeDestinationPos.getX(), destinationLevel.getMinBuildHeight() + DESTINATION_POS.getY(),
+                    relativeDestinationPos.getZ());
             var state = RNSDeposits.IRON_DEPOSIT.getDefaultState();
 
             helper.setBlock(SOURCE_POS, state);
             helper.assertTrue(DepositDurabilityManager.set(
                     sourceLevel, sourcePos, SOURCE_DURABILITY), "Source durability should be stored");
 
-            beforeMove(sourceLevel, destinationLevel, state, sourcePos, destinationPos);
-            afterMove(sourceLevel, destinationLevel, state, sourcePos, destinationPos);
-            helper.setBlock(SOURCE_POS, Blocks.AIR.defaultBlockState());
+            moveBlocks(sourceLevel, destinationLevel, sourcePos, destinationPos, List.of(sourcePos));
 
             helper.assertValueEqual(stored(sourceLevel, sourcePos), OptionalLong.empty(),
                     "source durability after cross-level movement");
             helper.assertValueEqual(stored(destinationLevel, destinationPos), OptionalLong.of(SOURCE_DURABILITY),
                     "destination durability after cross-level movement");
-            DepositDurabilityManager.remove(destinationLevel, destinationPos);
+            destinationLevel.setBlockAndUpdate(destinationPos, Blocks.AIR.defaultBlockState());
         });
     }
 
     @GameTest(template = "empty16x16")
-    public void unrelatedAfterMoveCannotConsumeNewCapture(GameTestHelper helper) {
+    public void multipleDurabilitiesMoveExactly(GameTestHelper helper) {
         withFiniteDeposits(helper, () -> {
             var level = helper.getLevel();
             var sourcePos = helper.absolutePos(SOURCE_POS);
@@ -117,33 +114,27 @@ public class DepositDurabilityMovementGameTest {
             helper.assertTrue(DepositDurabilityManager.set(
                     level, otherSourcePos, OTHER_SOURCE_DURABILITY), "Second source durability should be stored");
 
-            beforeMove(level, level, state, sourcePos, destinationPos);
-            beforeMove(level, level, state, otherSourcePos, otherDestinationPos);
-            afterMove(level, level, state, sourcePos, destinationPos);
-            afterMove(level, level, state, otherSourcePos, otherDestinationPos);
-            helper.setBlock(SOURCE_POS, Blocks.AIR.defaultBlockState());
-            helper.setBlock(OTHER_SOURCE_POS, Blocks.AIR.defaultBlockState());
+            moveBlocks(level, level, sourcePos, destinationPos, List.of(sourcePos, otherSourcePos));
 
-            helper.assertValueEqual(stored(level, destinationPos), OptionalLong.empty(),
-                    "An unrelated afterMove must not receive captured durability");
+            helper.assertValueEqual(stored(level, sourcePos), OptionalLong.empty(),
+                    "first source durability after movement");
+            helper.assertValueEqual(stored(level, otherSourcePos), OptionalLong.empty(),
+                    "second source durability after movement");
+            helper.assertValueEqual(stored(level, destinationPos), OptionalLong.of(SOURCE_DURABILITY),
+                    "first destination durability after movement");
             helper.assertValueEqual(stored(level, otherDestinationPos), OptionalLong.of(OTHER_SOURCE_DURABILITY),
-                    "The matching afterMove should still receive captured durability");
+                    "second destination durability after movement");
         });
     }
 
     // NeoForge reflects every GameTest class during dev launches, so optional API types cannot appear in descriptors.
-    private static void beforeMove(
-            ServerLevel oldLevel, ServerLevel newLevel, BlockState state, BlockPos oldPos, BlockPos newPos
+    private static void moveBlocks(
+            ServerLevel oldLevel, ServerLevel newLevel, BlockPos oldAnchor, BlockPos newAnchor,
+            Iterable<BlockPos> positions
     ) {
-        ((BlockSubLevelAssemblyListener) RNSDeposits.IRON_DEPOSIT.get())
-                .beforeMove(oldLevel, newLevel, state, oldPos, newPos);
-    }
-
-    private static void afterMove(
-            ServerLevel oldLevel, ServerLevel newLevel, BlockState state, BlockPos oldPos, BlockPos newPos
-    ) {
-        ((BlockSubLevelAssemblyListener) RNSDeposits.IRON_DEPOSIT.get())
-                .afterMove(oldLevel, newLevel, state, oldPos, newPos);
+        var transform = new SubLevelAssemblyHelper.AssemblyTransform(
+                oldAnchor, newAnchor, 0, Rotation.NONE, newLevel);
+        SubLevelAssemblyHelper.moveBlocks(oldLevel, transform, positions);
     }
 
     private static OptionalLong stored(net.minecraft.server.level.ServerLevel level, BlockPos pos) {

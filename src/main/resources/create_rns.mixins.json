@@ -6,7 +6,9 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ChunkGeneratorMixin",
-    "sable.DepositBlockSableMixin",
+    "BlockStateBaseMixin",
+    "LevelChunkMixin",
+    "sable.SubLevelAssemblyHelperMixin",
     "simulated.SimAssemblyContraptionMixin"
   ],
   "client": [

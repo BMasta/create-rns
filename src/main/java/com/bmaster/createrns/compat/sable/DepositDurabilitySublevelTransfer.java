@@ -24,14 +24,4 @@ public record DepositDurabilitySublevelTransfer(
                 oldLevel.dimension(), newLevel.dimension(), state, oldPos.immutable(), newPos.immutable(),
                 DepositDurabilityManager.getRaw(oldLevel, oldPos));
     }
-
-    public boolean matches(
-            ServerLevel oldLevel, ServerLevel newLevel, BlockState state, BlockPos oldPos, BlockPos newPos
-    ) {
-        return oldDimension.equals(oldLevel.dimension())
-                && newDimension.equals(newLevel.dimension())
-                && this.state.equals(state)
-                && this.oldPos.equals(oldPos)
-                && this.newPos.equals(newPos);
-    }
 }

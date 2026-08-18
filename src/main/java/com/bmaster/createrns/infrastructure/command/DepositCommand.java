@@ -1,7 +1,6 @@
 package com.bmaster.createrns.infrastructure.command;
 
 import com.bmaster.createrns.RNSMisc;
-import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.mojang.brigadier.Command;
@@ -77,7 +76,7 @@ public class DepositCommand {
                     long amount;
                     if (infinite) amount = 0;
                     else amount = ctx.getArgument("resource_amount", Long.class);
-                    var vein = DepositBlock.getVein(sl, pos);
+                    var vein = DepositDurabilityManager.getVein(sl, pos);
                     boolean isSet = true;
                     for (var bp : vein.keySet()) {
                         if (!DepositDurabilityManager.set(sl, bp, amount)) isSet = false;
@@ -93,7 +92,7 @@ public class DepositCommand {
                     src.sendSuccess(() -> Component.literal("Success!"), false);
                 }
                 case UNSET_VEIN -> {
-                    var vein = DepositBlock.getVein(sl, pos);
+                    var vein = DepositDurabilityManager.getVein(sl, pos);
                     for (var bp : vein.keySet()) {
                         DepositDurabilityManager.remove(sl, bp);
                     }

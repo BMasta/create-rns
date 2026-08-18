@@ -1,7 +1,7 @@
 package com.bmaster.createrns.compat.jade;
 
-import com.bmaster.createrns.content.deposit.DepositBlock;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.world.level.block.Block;
 import snownee.jade.api.IWailaClientRegistration;
 import snownee.jade.api.IWailaCommonRegistration;
 import snownee.jade.api.IWailaPlugin;
@@ -16,11 +16,11 @@ public class RNSJade implements IWailaPlugin {
 
     @Override
     public void register(IWailaCommonRegistration registration) {
-        registration.registerBlockDataProvider(DepositBlockComponentProvider.INSTANCE, DepositBlock.class);
+        registration.registerBlockDataProvider(DepositBlockComponentProvider.INSTANCE, Block.class);
     }
 
     @Override
     public void registerClient(IWailaClientRegistration registration) {
-        registration.registerBlockComponent(DepositBlockComponentProvider.INSTANCE, DepositBlock.class);
+        registration.registerBlockComponent(DepositBlockComponentProvider.INSTANCE, Block.class);
     }
 }

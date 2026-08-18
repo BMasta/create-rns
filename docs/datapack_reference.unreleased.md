@@ -215,9 +215,7 @@ See [default structures](../src/generated/builtin_packs/with_compat/create_rns_d
 The deposit nbt's contain deposits made of end stone.
 To convert it to your deposit blocks of choice, a custom processor is needed.
 
-***IMPORTANT!*** A datapack alone does not let you add new items into the game,
-so to add a new deposit block, you must either use KubeJS, or a separate mod that adds it.
-The deposit block of your choice has to be tagged with `#create_rns:deposit_blocks` to work properly.
+***IMPORTANT!*** The block of your choice has to be tagged with `#create_rns:deposit_blocks` to work properly.
 
 Path: `data/create_rns/worldgen/processor_list/replace_with_your_pack_tin_deposit_block.json`
 

@@ -1,6 +1,7 @@
 package com.bmaster.createrns.compat.jade;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -25,6 +26,7 @@ public enum DepositBlockComponentProvider implements IBlockComponentProvider, IS
 
     @Override
     public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+        if (!accessor.getBlockState().is(RNSBlockTags.DEPOSIT_BLOCKS)) return;
         if (ServerConfig.INFINITE_DEPOSITS.get()) return;
         var sd = accessor.getServerData();
         if (!sd.contains("durability", LongTag.TAG_LONG)) return;
@@ -46,6 +48,7 @@ public enum DepositBlockComponentProvider implements IBlockComponentProvider, IS
 
     @Override
     public void appendServerData(CompoundTag nbt, BlockAccessor accessor) {
+        if (!accessor.getBlockState().is(RNSBlockTags.DEPOSIT_BLOCKS)) return;
         nbt.putLong("durability", DepositDurabilityManager.get((ServerLevel) accessor.getLevel(),
                 accessor.getPosition(), false));
     }

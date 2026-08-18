@@ -3,8 +3,8 @@ package com.bmaster.createrns.infrastructure.command;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.RNSTags.RNSStructureTags;
-import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.content.deposit.info.CustomServerDepositLocation;
+import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.info.ServerDepositLocation;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.BoolArgumentType;
@@ -220,7 +220,7 @@ public class ScannerCommand {
             var depData = sl.getData(RNSMisc.LEVEL_DEPOSIT_DATA.get());
             if (isVein) {
                 var start = BlockPosArgument.getLoadedBlockPos(ctx, "target_position");
-                var vein = DepositBlock.getVein(sl, start);
+                var vein = DepositDurabilityManager.getVein(sl, start);
                 if (vein.isEmpty()) {
                     src.sendFailure(F_NOT_FOUND.apply("Vein"));
                     return 0;
