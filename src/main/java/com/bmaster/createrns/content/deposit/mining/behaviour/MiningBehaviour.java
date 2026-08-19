@@ -93,7 +93,7 @@ public abstract class MiningBehaviour extends ClaimingBehaviour {
             claimDepositBlocks();
         }
 
-        if (!tryInitProcess() || level.isClientSide || !isMining()) return;
+        if ((process == null && !tryInitProcess()) || level.isClientSide || !isMining()) return;
 
         process.advance(getCurrentProgressIncrement());
         collect();
@@ -108,7 +108,7 @@ public abstract class MiningBehaviour extends ClaimingBehaviour {
     public void write(CompoundTag nbt, HolderLookup.Provider provider, boolean clientPacket) {
         super.write(nbt, provider, clientPacket);
 
-        if (tryInitProcess()) {
+        if (process != null || tryInitProcess()) {
             var processNBT = process.write(provider, clientPacket);
             if (processNBT != null) nbt.put("process", processNBT);
         }
@@ -125,7 +125,7 @@ public abstract class MiningBehaviour extends ClaimingBehaviour {
     }
 
     public boolean isMining() {
-        if (!tryInitProcess()) return false;
+        if (process == null && !tryInitProcess()) return false;
         return process.isPossible() && kBE.isSpeedRequirementFulfilled();
     }
 
