@@ -2,6 +2,7 @@ package com.bmaster.createrns;
 
 import com.bmaster.createrns.content.deposit.info.IDepositIndex;
 import com.bmaster.createrns.content.deposit.worldgen.DepositStructure;
+import com.bmaster.createrns.infrastructure.command.DebugCommand;
 import com.bmaster.createrns.infrastructure.command.DepositCommand;
 import com.bmaster.createrns.infrastructure.command.ScannerCommand;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -49,6 +50,7 @@ public class RNSMisc {
 
     // Commands
     public static final LiteralArgumentBuilder<CommandSourceStack> RNS_COMMAND = Commands.literal("rns")
+            .then(DebugCommand.CMD)
             .then(DepositCommand.CMD)
             .then(ScannerCommand.CMD);
 

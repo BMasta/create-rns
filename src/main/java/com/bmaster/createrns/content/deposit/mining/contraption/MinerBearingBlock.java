@@ -4,7 +4,7 @@ import com.bmaster.createrns.RNSBlockEntities;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer.ClaimerType;
 import com.bmaster.createrns.content.deposit.claiming.IDepositClaimerOutlineTarget;
-import com.bmaster.createrns.content.deposit.mining.MiningBehaviour;
+import com.bmaster.createrns.content.deposit.mining.behaviour.MiningBehaviour;
 import com.simibubi.create.content.contraptions.bearing.BearingBlock;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.MethodsReturnNonnullByDefault;

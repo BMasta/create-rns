@@ -4,7 +4,7 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSSoundEvents;
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.bmaster.createrns.content.deposit.mining.MinerEffectsGenerator;
-import com.bmaster.createrns.content.deposit.mining.MiningBehaviour;
+import com.bmaster.createrns.content.deposit.mining.behaviour.MiningBehaviour;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.MinerEquipmentManager;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.bmaster.createrns.infrastructure.ServerConfig;

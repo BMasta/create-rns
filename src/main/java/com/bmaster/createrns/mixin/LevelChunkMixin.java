@@ -4,7 +4,7 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
-import com.bmaster.createrns.content.deposit.mining.MiningBehaviour;
+import com.bmaster.createrns.content.deposit.mining.behaviour.MiningBehaviour;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;

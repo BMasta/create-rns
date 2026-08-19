@@ -114,8 +114,9 @@ public class MinerEffectsGenerator {
         var MineHeadFacing = be.getBlockState().getValue(MinerBearingBlock.FACING);
         var selectedParticle = particleOptions.get(r.nextInt(0, particleOptions.size()));
 
-        assert be.miningBehaviour.claimedDepositBlocks != null;
-        float mult = Math.min(1f, be.miningBehaviour.claimedDepositBlocks.size() / 75f);
+        var claimedBlocks = be.miningBehaviour.getClaimedDepositBlocks();
+        assert claimedBlocks != null;
+        float mult = Math.min(1f, claimedBlocks.size() / 75f);
 
         for (int i = 0; i < Math.round(1 + mult * 5); i++) {
             level.addParticle(selectedParticle,

@@ -1,4 +1,4 @@
-package com.bmaster.createrns.content.deposit.mining;
+package com.bmaster.createrns.content.deposit.mining.behaviour;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
@@ -6,6 +6,7 @@ import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRende
 import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.info.IDepositIndex;
+import com.bmaster.createrns.content.deposit.mining.MiningProcess;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
