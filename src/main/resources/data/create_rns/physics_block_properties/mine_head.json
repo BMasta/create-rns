@@ -1,0 +1,16 @@
+{
+  "priority": 2000,
+  "selector": "#create_rns:mine_head_blocks",
+  "properties": {
+    "sable:mass": 1.0,
+    "sable:inertia": [0.1666666667, 0.1666666667, 0.1666666667],
+    "sable:volume": 1.0,
+    "sable:restitution": 0.0,
+    "sable:friction": 1.0
+  },
+  "overrides": {
+    "assembled=true": {
+      "sable:friction": 0.0
+    }
+  }
+}

@@ -98,6 +98,7 @@ public class DepositClaimerOutlineRenderer {
                     })
                     .collect(Collectors.toSet());
             Outliner.getInstance().showCluster(totalSlot, totalOutline);
+            outlineChanged = false;
         } else {
             Outliner.getInstance().keep(totalSlot);
         }
@@ -118,7 +119,7 @@ public class DepositClaimerOutlineRenderer {
         addedClaimers.addAll(DepositClaimerInstanceHolder.getInstancesWithinManhattanDistance(
                 l, p.blockPosition(), OUTLINE_MAX_DIST));
         outlineActive = true;
-        outlineChanged = false;
+        outlineChanged = true;
     }
 
     private static boolean isLookingAtOutlineTarget() {

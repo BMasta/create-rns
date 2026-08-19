@@ -1,16 +1,23 @@
 package com.bmaster.createrns.content.deposit.mining.contraption;
 
+import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSBlocks;
+import com.bmaster.createrns.RNSContraptionTypes;
 import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadBlock;
 import com.bmaster.createrns.util.Utils;
+import com.simibubi.create.api.contraption.ContraptionType;
 import com.simibubi.create.content.contraptions.AssemblyException;
+import com.simibubi.create.content.contraptions.StructureTransform;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate.StructureBlockInfo;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -27,8 +34,16 @@ public class MinerContraption extends BearingContraption {
     public int resonatorCount = 0;
     public int bufferCount = 0;
 
+    public MinerContraption() {
+    }
+
     public MinerContraption(boolean isWindmill, Direction facing) {
         super(isWindmill, facing);
+    }
+
+    @Override
+    public ContraptionType getType() {
+        return RNSContraptionTypes.MINER_BEARING.value();
     }
 
     @Override
@@ -49,7 +64,14 @@ public class MinerContraption extends BearingContraption {
         } else if (resonatorCount > resonatorLimit) {
             throw new RNSAssemblyException("too_many_resonators", resonatorLimit);
         }
+        setMineHeadBlocksAssembled(true);
         return result;
+    }
+
+    @Override
+    public void addBlocksToWorld(Level world, StructureTransform transform) {
+        setMineHeadBlocksAssembled(false);
+        super.addBlocksToWorld(world, transform);
     }
 
     @Override
@@ -82,5 +104,36 @@ public class MinerContraption extends BearingContraption {
             }
         }
         return super.moveBlock(world, forcedDirection, frontier, visited);
+    }
+
+    @Override
+    public CompoundTag writeNBT(HolderLookup.Provider registries, boolean spawnPacket) {
+        var tag = super.writeNBT(registries, spawnPacket);
+        if (mineHeadPos != null) {
+            var rnsTag =  new CompoundTag();
+            rnsTag.putLong("mine_head_pos", mineHeadPos.asLong());
+            rnsTag.putInt("resonator_count", resonatorCount);
+            rnsTag.putInt("buffer_count", bufferCount);
+            tag.put(CreateRNS.ID,  rnsTag);
+        }
+        return tag;
+    }
+
+    @Override
+    public void readNBT(Level world, CompoundTag tag, boolean spawnData) {
+        super.readNBT(world, tag, spawnData);
+        if (!tag.contains(CreateRNS.ID)) return;
+        var rnsTag = tag.getCompound(CreateRNS.ID);
+        mineHeadPos = BlockPos.of(rnsTag.getLong("mine_head_pos"));
+        resonatorCount = rnsTag.getInt("resonator_count");
+        bufferCount = rnsTag.getInt("buffer_count");
+    }
+
+    private void setMineHeadBlocksAssembled(boolean assembled) {
+        blocks.replaceAll((pos, info) -> {
+            var state = info.state();
+            if (!state.is(RNSBlocks.MINE_HEAD.get()) && !state.is(RNSBlocks.MINE_HEAD_PART.get())) return info;
+            return new StructureBlockInfo(pos, state.setValue(MineHeadBlock.ASSEMBLED, assembled), info.nbt());
+        });
     }
 }

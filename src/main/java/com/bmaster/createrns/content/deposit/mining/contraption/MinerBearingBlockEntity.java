@@ -6,13 +6,11 @@ import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.content.contraptions.AssemblyException;
 import com.simibubi.create.content.contraptions.ControlledContraptionEntity;
 import com.simibubi.create.content.contraptions.bearing.BearingBlock;
-import com.simibubi.create.content.contraptions.bearing.BearingContraption;
 import com.simibubi.create.content.contraptions.bearing.MechanicalBearingBlockEntity;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -46,8 +44,8 @@ public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity implem
         if (!(level.getBlockState(worldPosition).getBlock() instanceof BearingBlock))
             return;
 
-        Direction direction = getBlockState().getValue(BearingBlock.FACING);
-        BearingContraption contraption = new MinerContraption(false, direction);
+        var direction = getBlockState().getValue(BearingBlock.FACING);
+        var contraption = new MinerContraption(false, direction);
 
         try {
             if (!contraption.assemble(level, worldPosition)) return;

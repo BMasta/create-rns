@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -31,18 +32,21 @@ import java.util.List;
 @MethodsReturnNonnullByDefault
 public class MineHeadBlock extends FaceAttachedMinerComponentBlock
         implements IBE<MineHeadBlockEntity>, IDepositClaimerOutlineTarget {
-    public static final VoxelShaper SHAPE = new AllShapes.Builder(Block.box(0, 0, 0, 16, 8, 16)).forDirectional();
+    public static final VoxelShaper SHAPE = new AllShapes.Builder(Block.box(0, 0, 0, 16, 12, 16)).forDirectional();
+    public static final BooleanProperty ASSEMBLED = BooleanProperty.create("assembled");
     public static final EnumProperty<MineHeadSize> SIZE = EnumProperty.create("size", MineHeadSize.class);
 
     public MineHeadBlock(Properties properties) {
         super(properties);
-        registerDefaultState(defaultBlockState().setValue(SIZE, MineHeadSize.SMALL));
+        registerDefaultState(defaultBlockState()
+                .setValue(ASSEMBLED, false)
+                .setValue(SIZE, MineHeadSize.SMALL));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(SIZE);
+        builder.add(ASSEMBLED, SIZE);
     }
 
     @Override

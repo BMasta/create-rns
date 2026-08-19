@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -19,6 +20,13 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class MineHeadPartBlock extends Block {
     public MineHeadPartBlock(Properties properties) {
         super(properties);
+        registerDefaultState(defaultBlockState().setValue(MineHeadBlock.ASSEMBLED, false));
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
+        builder.add(MineHeadBlock.ASSEMBLED);
     }
 
     @Override
