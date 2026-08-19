@@ -1,10 +1,7 @@
 package com.bmaster.createrns.content.deposit.mining.contraption;
 
 import com.bmaster.createrns.RNSBlockEntities;
-import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer;
-import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer.ClaimerType;
 import com.bmaster.createrns.content.deposit.claiming.IDepositClaimerOutlineTarget;
-import com.bmaster.createrns.content.deposit.mining.behaviour.MiningBehaviour;
 import com.simibubi.create.content.contraptions.bearing.BearingBlock;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -16,7 +13,6 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.BlockHitResult;
 
 import javax.annotation.Nullable;
@@ -32,23 +28,6 @@ public class MinerBearingBlock extends BearingBlock implements IBE<MinerBearingB
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
         return super.getStateForPlacement(context);
-    }
-
-    @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        // Area must be collected from this BE before it's removed
-        ClaimerType type = null;
-        BoundingBox area = null;
-        if (!level.isClientSide && !state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof MinerBearingBlockEntity be) {
-            var mb = be.getBehaviour(ContraptionMiningBehaviour.BEHAVIOUR_TYPE);
-            type = mb.getClaimerType();
-            area = mb.getClaimingBoundingBox();
-        }
-
-        super.onRemove(state, level, pos, newState, movedByPiston);
-
-        // Area must be reclaimed after this BE is removed
-        if (type != null && area != null) IDepositBlockClaimer.reclaimArea(level, area, type);
     }
 
     @SuppressWarnings("deprecation")
@@ -73,11 +52,6 @@ public class MinerBearingBlock extends BearingBlock implements IBE<MinerBearingB
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.PASS;
-    }
-
-    @Override
-    public ClaimerType getClaimerType() {
-        return MiningBehaviour.CLAIMER_TYPE;
     }
 
     @Override

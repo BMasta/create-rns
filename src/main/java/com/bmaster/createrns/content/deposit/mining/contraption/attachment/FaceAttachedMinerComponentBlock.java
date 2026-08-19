@@ -1,8 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.contraption.attachment;
 
-import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer.ClaimerType;
 import com.bmaster.createrns.content.deposit.claiming.IDepositClaimerOutlineTarget;
-import com.bmaster.createrns.content.deposit.mining.behaviour.MiningBehaviour;
 import com.simibubi.create.foundation.block.ProperWaterloggedBlock;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -91,10 +89,5 @@ public class FaceAttachedMinerComponentBlock extends FaceAttachedHorizontalDirec
     @Override
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
         return true;
-    }
-
-    @Override
-    public ClaimerType getClaimerType() {
-        return MiningBehaviour.CLAIMER_TYPE;
     }
 }

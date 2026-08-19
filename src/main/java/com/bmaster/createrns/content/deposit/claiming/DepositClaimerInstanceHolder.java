@@ -1,7 +1,6 @@
 package com.bmaster.createrns.content.deposit.claiming;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.content.deposit.claiming.IDepositBlockClaimer.ClaimerType;
 import com.bmaster.createrns.content.deposit.mining.behaviour.MiningBehaviour;
 import com.bmaster.createrns.util.SidedDimension;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
@@ -19,115 +18,99 @@ import java.util.stream.Collectors;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class DepositClaimerInstanceHolder {
-    private static final Object2ObjectOpenHashMap<ClaimerType,
-            Object2ObjectOpenHashMap<SidedDimension, ObjectOpenHashSet<BlockPos>>> INSTANCES = new Object2ObjectOpenHashMap<>();
+    private static final Object2ObjectOpenHashMap<SidedDimension, ObjectOpenHashSet<BlockPos>> instances =
+            new Object2ObjectOpenHashMap<>();
 
-    public static Set<IDepositBlockClaimer> getInstancesWithinManhattanDistance(
-            Level level, BlockPos pos, int distance, ClaimerType type
-    ) {
-        return getClaimersFromLevelAndType(level, type).stream()
+    public static Set<IDepositBlockClaimer> getInstancesWithinManhattanDistance(Level level, BlockPos pos, int distance) {
+        return getClaimers(level).stream()
                 .filter(i -> {
-                    var anchor = i.getAnchor();
-                    return anchor != null && anchor.distManhattan(pos) <= distance;
+                    var start = i.getOperatingStart();
+                    return start != null && start.distManhattan(pos) <= distance;
                 })
                 .collect(Collectors.toUnmodifiableSet());
     }
 
     /// Does not add passed claimer to the set
-    public static Set<IDepositBlockClaimer> getInstancesWithIntersectingArea(
-            IDepositBlockClaimer claimer, Level level, ClaimerType type
-    ) {
-        var anchor = claimer.getAnchor();
-        var bb = claimer.getClaimingBoundingBox();
-        if (anchor == null || bb == null) return Set.of();
-
-        return getClaimersFromLevelAndType(level, type).stream()
-                .filter(c -> {
-                    var cur_bb = c.getClaimingBoundingBox();
-                    var cAnchor = c.getAnchor();
-                    return cAnchor != null && !cAnchor.equals(anchor) && cur_bb != null && bb.intersects(cur_bb);
+    public static Set<IDepositBlockClaimer> getInstancesWithIntersectingArea(BoundingBox area, IDepositBlockClaimer except) {
+        var level = except.getLevel();
+        if (level == null) return Set.of();
+        return getClaimers(level).stream()
+                .filter(curClaimer -> {
+                    var curArea = curClaimer.getOperatingBoundingBox();
+                    return !curClaimer.equals(except) && curArea != null && area.intersects(curArea);
                 })
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-    public static Set<IDepositBlockClaimer> getInstancesWithIntersectingArea(
-            Level level, BoundingBox area, ClaimerType type
-    ) {
-        return getClaimersFromLevelAndType(level, type).stream()
+    public static Set<IDepositBlockClaimer> getInstancesWithIntersectingArea(Level level, BoundingBox area) {
+        return getClaimers(level).stream()
                 .filter(c -> {
-                    var cur_bb = c.getClaimingBoundingBox();
+                    var cur_bb = c.getOperatingBoundingBox();
                     return cur_bb != null && area.intersects(cur_bb);
                 })
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-    public static Set<IDepositBlockClaimer> getInstancesThatCanClaim(
-            Level level, BlockPos bp, ClaimerType type
-    ) {
-        return getClaimersFromLevelAndType(level, type).stream()
+    public static Set<IDepositBlockClaimer> getInstancesThatCanClaim(Level level, BlockPos pos) {
+        return getClaimers(level).stream()
                 .filter(m -> {
-                    var cur_ma = m.getClaimingBoundingBox();
-                    return cur_ma != null && cur_ma.isInside(bp);
+                    var cur_ma = m.getOperatingBoundingBox();
+                    return cur_ma != null && cur_ma.isInside(pos);
                 })
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-    public static void addClaimer(IDepositBlockClaimer claimer, Level level) {
-        DepositClaimerInstanceHolder.INSTANCES
-                .computeIfAbsent(claimer.getClaimerType(), k -> new Object2ObjectOpenHashMap<>())
-                .computeIfAbsent(SidedDimension.of(level), k -> new ObjectOpenHashSet<>())
+    public static void addClaimer(IDepositBlockClaimer claimer) {
+        var level = claimer.getLevel();
+        if (level == null) return;
+
+        instances.computeIfAbsent(SidedDimension.of(level), k -> new ObjectOpenHashSet<>())
                 .add(claimer.getBlockPos());
     }
 
-    public static void removeClaimer(IDepositBlockClaimer claimer, Level level) {
+    public static void removeClaimer(IDepositBlockClaimer claimer) {
+        var level = claimer.getLevel();
+        if (level == null) return;
         var sd = SidedDimension.of(level);
-        var type = claimer.getClaimerType();
-        var typeMap = DepositClaimerInstanceHolder.INSTANCES.get(type);
-        if (typeMap == null) {
-            CreateRNS.LOGGER.error("Could not get a set of deposit claimer instances of type {}", type.name());
-            return;
-        }
-        var levelSet = typeMap.get(sd);
+
+        var levelSet = instances.get(sd);
         if (levelSet == null) {
-            CreateRNS.LOGGER.error("Could not get a set of deposit claimer instances at level {}", level);
+            CreateRNS.LOGGER.error("Could not get a set of deposit claimers at level {}", level);
             return;
         }
+
         levelSet.remove(claimer.getBlockPos());
-        if (levelSet.isEmpty()) typeMap.remove(sd);
-        if (typeMap.isEmpty()) INSTANCES.remove(type);
+        if (levelSet.isEmpty()) instances.remove(sd);
     }
 
-    private static Set<IDepositBlockClaimer> getClaimersFromLevelAndType(Level l, ClaimerType t) {
-        var sd = SidedDimension.of(l);
-        var typeMap = INSTANCES.get(t);
-        if (typeMap == null) return Set.of();
-        var levelSet = typeMap.get(sd);
-        if (levelSet == null) return Set.of();
+    public static void clear() {
+        instances.clear();
+    }
+
+    /// Reference position may be used to resolve a sublevel
+    private static ObjectOpenHashSet<IDepositBlockClaimer> getClaimers(Level level) {
+        var sd = SidedDimension.of(level);
+        var levelSet = instances.get(sd);
+        if (levelSet == null) return new ObjectOpenHashSet<>();
 
         var claimers = new ObjectOpenHashSet<IDepositBlockClaimer>();
         var iterator = levelSet.iterator();
         while (iterator.hasNext()) {
             var bp = iterator.next();
-            var be = l.getBlockEntity(bp);
-
-            // Remove invalid claimers
+            var be = level.getBlockEntity(bp);
             if (!(be instanceof SmartBlockEntity sbe)) {
                 iterator.remove();
                 continue;
             }
-
             var claimer = sbe.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
             if (claimer == null) {
                 iterator.remove();
                 continue;
             }
-
             claimers.add(claimer);
         }
 
-        // Clean up collections if removing elements left them empty
-        if (levelSet.isEmpty()) typeMap.remove(sd);
-        if (typeMap.isEmpty()) INSTANCES.remove(t);
+        if (levelSet.isEmpty()) instances.remove(sd);
 
         return claimers;
     }

@@ -56,10 +56,10 @@ public class MinerEffectsGenerator {
                     return miner.miningBehaviour.isMining();
                 })
                 .min(Comparator.comparing(miner ->
-                        miner.miningBehaviour.equipment.mineHeadPos.distSqr(p.blockPosition()))
+                        miner.miningBehaviour.equipment.mineHeadTipPos.distSqr(p.blockPosition()))
                 )
                 .ifPresent(miner -> {
-                    var mineHeadPos = miner.miningBehaviour.equipment.mineHeadPos;
+                    var mineHeadPos = miner.miningBehaviour.equipment.mineHeadTipPos;
                     var crsList = miner.miningBehaviour.getProcess().getLastSatisfiedCRSes();
                     float pitch = 0.5f + Math.min(1, Math.abs(miner.getTheoreticalSpeed()) / 256f) / 2;
                     RNSSoundEvents.MINING.playClient(p.level(), mineHeadPos, 1, pitch, false);
@@ -110,12 +110,12 @@ public class MinerEffectsGenerator {
         if (particleOptions.isEmpty()) return;
 
         var r = level.random;
-        var mineHeadPos = be.miningBehaviour.equipment.mineHeadPos.getCenter();
+        var mineHeadPos = be.miningBehaviour.equipment.mineHeadTipPos.getCenter();
         var MineHeadFacing = be.getBlockState().getValue(MinerBearingBlock.FACING);
         var selectedParticle = particleOptions.get(r.nextInt(0, particleOptions.size()));
 
         var claimedBlocks = be.miningBehaviour.getClaimedDepositBlocks();
-        assert claimedBlocks != null;
+        if (claimedBlocks == null) return;
         float mult = Math.min(1f, claimedBlocks.size() / 75f);
 
         for (int i = 0; i < Math.round(1 + mult * 5); i++) {
@@ -147,7 +147,10 @@ public class MinerEffectsGenerator {
 
     protected void refreshParticles() {
         var claimedBlocks = be.miningBehaviour.getClaimedDepositBlocks();
-        if (claimedBlocks == null) return;
+        if (claimedBlocks == null) {
+            particleOptions = List.of();
+            return;
+        }
         particleOptions = claimedBlocks.stream()
                 .map(bp -> new BlockParticleOption(ParticleTypes.BLOCK, level.getBlockState(bp)))
                 .toList();

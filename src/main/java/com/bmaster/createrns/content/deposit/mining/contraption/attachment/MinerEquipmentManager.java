@@ -27,7 +27,7 @@ public class MinerEquipmentManager {
         return new MinerEquipmentManager(contraption);
     }
 
-    public final BlockPos mineHeadPos;
+    public final BlockPos mineHeadTipPos;
     public final MineHeadSize mineHeadSize;
     public final ObjectOpenHashSet<Catalyst> catalysts = new ObjectOpenHashSet<>();
     public final boolean isResonanceActive;
@@ -44,7 +44,7 @@ public class MinerEquipmentManager {
         if (remainder.isEmpty())
             return;
 
-        Vec3 vec = new Vec3(mineHeadPos.getX(), mineHeadPos.getY(), mineHeadPos.getZ());
+        Vec3 vec = new Vec3(mineHeadTipPos.getX(), mineHeadTipPos.getY(), mineHeadTipPos.getZ());
 
         ItemEntity itemEntity = new ItemEntity(contraption.entity.level(),
                 vec.x + 0.4 * contraption.entity.level().random.nextFloat(),
@@ -80,7 +80,7 @@ public class MinerEquipmentManager {
         }
 
         this.bearing = be;
-        this.mineHeadPos = mineHeadPos;
+        this.mineHeadTipPos = mineHeadPos;
         this.mineHeadSize = mineHeadSize;
 
         var attachments = AttachmentCatalyst.fromContraption(contraption);

@@ -19,15 +19,15 @@ public enum MineHeadSize implements StringRepresentable {
     LARGE(1, 1, "block/mine_head_large", 2, 0.248f),
     HUGE(2, 3, "block/mine_head_large", 3.63f, 0.3604f);
 
-    public final int radiusBonus;
+    public final int claimBonus;
     public final int tipOffset;
     public final ResourceLocation model;
     public final float modelScale;
     public final float modelOffset;
 
 
-    MineHeadSize(int radiusBonus, int tipOffset, String modelPath, float modelScale, float modelOffset) {
-        this.radiusBonus = radiusBonus;
+    MineHeadSize(int claimBonus, int tipOffset, String modelPath, float modelScale, float modelOffset) {
+        this.claimBonus = claimBonus;
         this.tipOffset = tipOffset;
         this.model = CreateRNS.asResource(modelPath);
         this.modelScale = modelScale;

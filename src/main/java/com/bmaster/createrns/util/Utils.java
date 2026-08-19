@@ -8,6 +8,7 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -38,6 +39,12 @@ public class Utils {
 
     public static float easeOut(float val, float deg) {
         return 1 - (float) Math.pow(1 - val, deg);
+    }
+
+    public static int colorFromObject(Object object, float saturation, float value) {
+        var hash = (int) murmur64(object.hashCode());
+        var hue = (float) (Integer.toUnsignedLong(hash) / (double) (1L << Integer.SIZE));
+        return Mth.hsvToRgb(hue, saturation, value);
     }
 
     public static long longClamp(long val, long min, long max) {

@@ -42,8 +42,7 @@ public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity implem
     @Override
     public void assemble() {
         assert level != null;
-        if (!(level.getBlockState(worldPosition).getBlock() instanceof BearingBlock))
-            return;
+        if (!(level.getBlockState(worldPosition).getBlock() instanceof BearingBlock)) return;
 
         Direction direction = getBlockState().getValue(BearingBlock.FACING);
         BearingContraption contraption = new MinerContraption(false, direction);

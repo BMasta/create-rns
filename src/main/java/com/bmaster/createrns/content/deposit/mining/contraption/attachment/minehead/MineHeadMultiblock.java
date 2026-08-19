@@ -1,6 +1,5 @@
 package com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead;
 
-import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSBlocks;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.FaceAttachedMinerComponentBlock;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -100,9 +99,6 @@ public class MineHeadMultiblock {
         var occupied = getOccupiedPositions(controllerPos, controllerState);
         var part = RNSBlocks.MINE_HEAD_PART.getDefaultState();
         for (var p : occupied) {
-            if (p.getY() == 67) {
-                CreateRNS.LOGGER.error("TESTTEST: reached");
-            }
             if (p.equals(controllerPos)) continue;
             if (level.getBlockState(p).equals(part)) continue;
             level.setBlock(p, part, Block.UPDATE_ALL);

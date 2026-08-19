@@ -2,8 +2,8 @@ package com.bmaster.createrns.util;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.mining.IHaveAdaptiveGoggleInformation.Context;
-import com.bmaster.createrns.content.deposit.mining.behaviour.MiningBehaviour;
 import com.bmaster.createrns.content.deposit.mining.MiningProcess.RateEstimationStatus;
+import com.bmaster.createrns.content.deposit.mining.behaviour.MiningBehaviour;
 import com.bmaster.createrns.content.deposit.mining.contraption.ContraptionMiningBehaviour;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.infrastructure.ServerConfig;
@@ -131,7 +131,7 @@ public class GoggleTooltipModifiers {
         }
 
         CreateRNS.lang()
-                .translate("mining.area", spec.miningArea().radius() * 2 + 1, spec.miningArea().length())
+                .translate("mining.area", spec.miningDimensions().radius() * 2 + 1, spec.miningDimensions().length())
                 .style(ChatFormatting.GRAY)
                 .forGoggles(tooltip);
 
