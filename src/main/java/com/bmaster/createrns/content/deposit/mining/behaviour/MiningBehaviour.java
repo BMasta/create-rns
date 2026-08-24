@@ -1,31 +1,27 @@
 package com.bmaster.createrns.content.deposit.mining.behaviour;
 
-import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.claiming.ClaimingBehaviour;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
+import com.bmaster.createrns.content.deposit.mining.IDepositBlockMiner;
 import com.bmaster.createrns.content.deposit.mining.MiningProcess;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.bmaster.createrns.content.deposit.operating.IDepositBlockOperator;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
-import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Tuple;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Set;
 import java.util.function.Supplier;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public abstract class MiningBehaviour extends ClaimingBehaviour {
-    public static final BehaviourType<MiningBehaviour> BEHAVIOUR_TYPE = new BehaviourType<>(CreateRNS.ID + ":mining");
-
+public abstract class MiningBehaviour extends ClaimingBehaviour implements IDepositBlockMiner {
     protected final KineticBlockEntity kBE;
     protected @Nullable MinerSpec spec = null;
     protected @Nullable MiningProcess process = null;
@@ -41,10 +37,6 @@ public abstract class MiningBehaviour extends ClaimingBehaviour {
     }
 
     public abstract void collect();
-
-    public abstract @Nullable Set<Catalyst> getCatalysts();
-
-    public abstract @Nullable MinerSpec getSpec();
 
     @Override
     public void initialize() {
@@ -92,11 +84,6 @@ public abstract class MiningBehaviour extends ClaimingBehaviour {
     }
 
     @Override
-    public BehaviourType<?> getType() {
-        return BEHAVIOUR_TYPE;
-    }
-
-    @Override
     public void write(CompoundTag nbt, boolean clientPacket) {
         super.write(nbt, clientPacket);
 
@@ -116,11 +103,13 @@ public abstract class MiningBehaviour extends ClaimingBehaviour {
         }
     }
 
+    @Override
     public boolean isMining() {
         if (process == null && !tryInitProcess()) return false;
         return process.isPossible() && kBE.isSpeedRequirementFulfilled();
     }
 
+    @Override
     public @Nullable MiningProcess getProcess() {
         if (!tryInitProcess()) return null;
         return process;
@@ -154,10 +143,11 @@ public abstract class MiningBehaviour extends ClaimingBehaviour {
         }
     }
 
+    @Override
     public int getCurrentProgressIncrement() {
         var spec = getSpec();
         if (spec == null) return 0;
-        return (int) (spec.miningSpeed * Math.abs(kBE.getSpeed()));
+        return (int) (spec.miningSpeed() * Math.abs(kBE.getSpeed()));
     }
 
     protected boolean tryInitProcess() {
@@ -198,9 +188,4 @@ public abstract class MiningBehaviour extends ClaimingBehaviour {
         if (process != null) process.uninitialize();
         process = null;
     }
-
-    public record MinerSpec(
-            OperatingDimensions miningDimensions,
-            double miningSpeed) {}
-
 }

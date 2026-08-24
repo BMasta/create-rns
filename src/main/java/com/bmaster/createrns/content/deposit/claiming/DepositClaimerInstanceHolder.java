@@ -1,9 +1,7 @@
 package com.bmaster.createrns.content.deposit.claiming;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.content.deposit.mining.behaviour.MiningBehaviour;
 import com.bmaster.createrns.util.SidedDimension;
-import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -98,16 +96,11 @@ public class DepositClaimerInstanceHolder {
         while (iterator.hasNext()) {
             var bp = iterator.next();
             var be = level.getBlockEntity(bp);
-            if (!(be instanceof SmartBlockEntity sbe)) {
+            if (!(be instanceof IClaimerHolderBE holder)) {
                 iterator.remove();
                 continue;
             }
-            var claimer = sbe.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
-            if (claimer == null) {
-                iterator.remove();
-                continue;
-            }
-            claimers.add(claimer);
+            claimers.add(holder.getClaimer());
         }
 
         if (levelSet.isEmpty()) instances.remove(sd);

@@ -2,14 +2,12 @@ package com.bmaster.createrns.util;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.mining.IHaveAdaptiveGoggleInformation.Context;
+import com.bmaster.createrns.content.deposit.mining.IMinerHolderBE;
 import com.bmaster.createrns.content.deposit.mining.MiningProcess.RateEstimationStatus;
-import com.bmaster.createrns.content.deposit.mining.behaviour.MiningBehaviour;
-import com.bmaster.createrns.content.deposit.mining.contraption.ContraptionMiningBehaviour;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
-import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.utility.CreateLang;
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -26,12 +24,10 @@ import java.util.Locale;
 public class GoggleTooltipModifiers {
     public static boolean addUsesToGoggleTooltip(Context c, List<Component> tooltip) {
         if (ServerConfig.INFINITE_DEPOSITS.get()) return false;
-        var be = c.target();
-        if (!(be instanceof SmartBlockEntity sbe)) return false;
-        var mb = sbe.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
-        if (mb == null) return false;
-        var process = mb.getProcess();
-        var claimedBlocks = mb.getClaimedDepositBlocks();
+        if (!(c.target() instanceof IMinerHolderBE holder)) return false;
+        var miner = holder.getMiner();
+        var process = miner.getProcess();
+        var claimedBlocks = miner.getClaimedDepositBlocks();
         if (process == null || claimedBlocks == null || claimedBlocks.isEmpty()) return false;
 
         if (!c.isFirstSection()) {
@@ -64,15 +60,10 @@ public class GoggleTooltipModifiers {
     }
 
     public static boolean addRatesToGoggleTooltip(Context c, List<Component> tooltip) {
-        var be = c.target();
-        if (!(be instanceof SmartBlockEntity sbe)) return false;
-        var mb = sbe.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
-        if (mb == null) return false;
-        var process = mb.getProcess();
-        if (process == null) return false;
-        if (mb instanceof ContraptionMiningBehaviour cmb) {
-            if (!cmb.isMiningOrStalled()) return false;
-        } else if (!mb.isMining()) return false;
+        if (!(c.target() instanceof IMinerHolderBE holder)) return false;
+        var miner = holder.getMiner();
+        var process = miner.getProcess();
+        if (process == null || !miner.isMining()) return false;
 
         if (c.isFirstSection()) {
             CreateRNS.lang().translate("mining.production_rates").forGoggles(tooltip);
@@ -81,7 +72,7 @@ public class GoggleTooltipModifiers {
             CreateRNS.lang().space().forGoggles(tooltip);
         }
 
-        var rates = process.getEstimatedRates(mb.getCurrentProgressIncrement());
+        var rates = process.getEstimatedRates(miner.getCurrentProgressIncrement());
         rates.object2FloatEntrySet().stream().sorted((a, b) -> {
                     float av = a.getFloatValue();
                     float bv = b.getFloatValue();
@@ -111,15 +102,11 @@ public class GoggleTooltipModifiers {
     }
 
     public static boolean addMinerInfoToGoggleTooltip(Context c, List<Component> tooltip) {
-        var be = c.target();
-        if (!(be instanceof SmartBlockEntity sbe)) return false;
-        var mb = sbe.getBehaviour(MiningBehaviour.BEHAVIOUR_TYPE);
-        if (!(mb instanceof ContraptionMiningBehaviour cmb)) return false;
-        if (cmb.equipment == null) return false;
-        var spec = mb.getSpec();
-        if (spec == null) return false;
-        var process = mb.getProcess();
-        if (process == null) return false;
+        if (!(c.target() instanceof IMinerHolderBE holder)) return false;
+        var miner = holder.getMiner();
+        var process = miner.getProcess();
+        var spec = miner.getSpec();
+        if (process == null || spec == null) return false;
 
         if (c.isFirstSection()) {
             CreateRNS.lang()
