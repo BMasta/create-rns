@@ -2,30 +2,25 @@ package com.bmaster.createrns.event;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSItems;
-import com.bmaster.createrns.compat.map.RNSMapToggleRenderer;
-import com.bmaster.createrns.compat.map.RNSMapToggleRenderer.ToggleLocation;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
 import com.bmaster.createrns.content.deposit.info.FoundDepositClientCache;
 import com.bmaster.createrns.content.deposit.info.sync.FoundDepositsSnapshotC2SPacket;
 import com.bmaster.createrns.content.deposit.mining.MinerEffectsGenerator;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler;
-import journeymap.client.ui.fullscreen.Fullscreen;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.InputEvent.MouseScrollingEvent;
 import net.minecraftforge.client.event.RecipesUpdatedEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.lwjgl.glfw.GLFW;
-import xaero.map.gui.GuiMap;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -62,7 +57,7 @@ public class ClientForgeEvents {
     }
 
     @SubscribeEvent
-    public static void onScrollInput(InputEvent.MouseScrollingEvent e) {
+    public static void onScrollInput(MouseScrollingEvent e) {
         var mc = Minecraft.getInstance();
         var p = mc.player;
         if (mc.player != null && mc.screen == null) {
@@ -81,43 +76,6 @@ public class ClientForgeEvents {
                 e.setCanceled(true);
             }
         }
-    }
-
-    @SubscribeEvent
-    public static void onMouseButtonPre(InputEvent.MouseButton.Pre event) {
-        if (event.getAction() != GLFW.GLFW_PRESS) return;
-
-        var mc = Minecraft.getInstance();
-        var toggleLocations = ToggleLocation.infer();
-        if (toggleLocations.isEmpty()) return;
-
-        int width = 1, height = 1;
-        boolean clickConsumed = false;
-        for (var l : toggleLocations) {
-            switch (l) {
-                case XAERO -> {
-                    if (mc.screen instanceof GuiMap mapScreen) {
-                        width = mapScreen.width;
-                        height = mapScreen.height;
-                    }
-                }
-                case JOURNEY -> {
-                    if (mc.screen instanceof Fullscreen screen) {
-                        width = screen.width;
-                        height = screen.height;
-                    }
-                }
-            }
-            if (width == -1 || height == -1) continue;
-            var window = mc.getWindow();
-            double mouseX = mc.mouseHandler.xpos() * window.getGuiScaledWidth() / window.getScreenWidth();
-            double mouseY = mc.mouseHandler.ypos() * window.getGuiScaledHeight() / window.getScreenHeight();
-            if (RNSMapToggleRenderer.handleClick(width, height, mouseX, mouseY, event.getButton(), l)) {
-                clickConsumed = true;
-            }
-        }
-
-        if (clickConsumed) event.setCanceled(true);
     }
 
     @SubscribeEvent

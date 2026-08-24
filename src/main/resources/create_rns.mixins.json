@@ -11,8 +11,6 @@
     "LevelChunkMixin"
   ],
   "client": [
-    "journey.RNSJourneyFullscreenMapAccessor",
-    "journey.RNSJourneyFullscreenMapMixin",
     "xaero.RNSXaeroFullscreenMapAccessor",
     "xaero.RNSXaeroFullscreenMapMixin"
   ],

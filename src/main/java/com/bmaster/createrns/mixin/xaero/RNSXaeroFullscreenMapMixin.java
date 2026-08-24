@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import xaero.map.gui.GuiMap;
 
 @Mixin(value = GuiMap.class, priority = 900 /* Must run before Create's XaeroFullscreenMapMixin */)
@@ -39,5 +40,14 @@ public abstract class RNSXaeroFullscreenMapMixin {
             CreateRNS.LOGGER.error("Create RNS: failed to render Xaero's World Map deposit overlay", e);
             create_rns$failedToRenderDepositOverlay = true;
         }
+    }
+
+    @Inject(method = "mouseClicked(DDI)Z", at = @At("HEAD"), cancellable = true)
+    private void create_rns$handleToggleClick(
+            double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir
+    ) {
+        var screen = (Screen) (Object) this;
+        if (RNSMapToggleRenderer.handleClick(screen.width, screen.height,
+                mouseX, mouseY, button, ToggleLocation.XAERO)) cir.setReturnValue(true);
     }
 }

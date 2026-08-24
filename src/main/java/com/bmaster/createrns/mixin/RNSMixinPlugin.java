@@ -24,9 +24,6 @@ public class RNSMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        if (mixinClassName.startsWith("com.bmaster.createrns.mixin.journey") && !Mods.JOURNEY.isLoaded()) {
-            return false;
-        }
         if (mixinClassName.startsWith("com.bmaster.createrns.mixin.xaero") && !Mods.XAERO.isLoaded()) {
             return false;
         }
