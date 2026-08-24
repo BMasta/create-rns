@@ -1,17 +1,19 @@
 package com.bmaster.createrns.content.deposit.mining.contraption;
 
+import com.bmaster.createrns.content.deposit.mining.IDepositBlockMiner;
 import com.bmaster.createrns.content.deposit.mining.IHaveAdaptiveGoggleInformation;
+import com.bmaster.createrns.content.deposit.mining.IMinerHolderBE;
 import com.bmaster.createrns.util.GoggleTooltipModifiers;
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.content.contraptions.AssemblyException;
 import com.simibubi.create.content.contraptions.ControlledContraptionEntity;
 import com.simibubi.create.content.contraptions.bearing.BearingBlock;
 import com.simibubi.create.content.contraptions.bearing.MechanicalBearingBlockEntity;
-import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -21,13 +23,13 @@ import java.util.function.BiFunction;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity implements IHaveAdaptiveGoggleInformation {
+public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity
+        implements IHaveAdaptiveGoggleInformation, IMinerHolderBE {
     public ContraptionMiningBehaviour miningBehaviour;
 
     public MinerBearingBlockEntity(BlockEntityType<MinerBearingBlockEntity> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
-
 
     @Override
     public void invalidate() {
@@ -87,7 +89,7 @@ public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity implem
     }
 
     @Override
-    public KineticBlockEntity getTargetBlockEntity() {
+    public BlockEntity getTargetBlockEntity() {
         return this;
     }
 
@@ -108,6 +110,11 @@ public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity implem
 
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         return IHaveAdaptiveGoggleInformation.super.addToGoggleTooltip(tooltip, isPlayerSneaking);
+    }
+
+    @Override
+    public IDepositBlockMiner getMiner() {
+        return getBehaviour(ContraptionMiningBehaviour.BEHAVIOUR_TYPE);
     }
 }
 

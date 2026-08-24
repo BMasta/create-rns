@@ -1,7 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining;
 
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
-import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -15,7 +14,7 @@ import java.util.function.BiFunction;
 @ParametersAreNonnullByDefault
 public interface IHaveAdaptiveGoggleInformation extends IHaveGoggleInformation {
     /// Must have a mining behavior
-    KineticBlockEntity getTargetBlockEntity();
+    BlockEntity getTargetBlockEntity();
 
     /// Rendered if not shifted or if all secondaries failed to render
     default List<BiFunction<Context, List<Component>, Boolean>> getPrimarySections() {

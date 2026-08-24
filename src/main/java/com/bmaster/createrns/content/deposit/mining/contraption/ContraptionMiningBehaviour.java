@@ -10,6 +10,7 @@ import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
+import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -22,6 +23,9 @@ import java.util.Set;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class ContraptionMiningBehaviour extends MiningBehaviour {
+    public static final BehaviourType<ContraptionMiningBehaviour> BEHAVIOUR_TYPE =
+            new BehaviourType<>(CreateRNS.ID + ":contraption_mining");
+
     public final MinerBearingBlockEntity bearing;
     public @Nullable MinerEquipmentManager equipment;
     protected MinerEffectsGenerator effects;
@@ -32,6 +36,11 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     public ContraptionMiningBehaviour(MinerBearingBlockEntity bearing) {
         super(bearing, () -> bearing.getBlockState().getValue(DirectionalKineticBlock.FACING));
         this.bearing = bearing;
+    }
+
+    @Override
+    public BehaviourType<?> getType() {
+        return BEHAVIOUR_TYPE;
     }
 
     @Override
