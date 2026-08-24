@@ -4,6 +4,8 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSItems;
 import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.RNSParticleTypes;
+import com.bmaster.createrns.compat.Mods;
+import com.bmaster.createrns.compat.map.journey.RNSJourneyMap;
 import com.bmaster.createrns.compat.ponder.RNSPonderPlugin;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerInstanceHolder;
 import com.bmaster.createrns.content.deposit.claiming.DepositClaimerOutlineRenderer;
@@ -13,6 +15,7 @@ import com.bmaster.createrns.content.deposit.mining.MinerEffectsGenerator;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.operating.DepositDetectionOutlineRenderer;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerClientHandler;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
@@ -107,6 +110,12 @@ public class ClientEvents {
                 e.setCanceled(true);
             }
         }
+    }
+
+    @SubscribeEvent
+    public static void onMouseButtonPre(InputEvent.MouseButton.Pre event) {
+        if (event.getAction() != InputConstants.PRESS || !Mods.JOURNEY.isLoaded()) return;
+        RNSJourneyMap.onMouseClick(event);
     }
 
     @SubscribeEvent

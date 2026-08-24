@@ -63,8 +63,14 @@ repositories {
     maven { url = "https://maven.blamejared.com" } // JEI
     maven { url = "https://chocolateminecraft.com/maven" } // Xaero's Minimap / World Map
     maven { url = 'https://www.cursemaven.com' }
-    maven { url = "https://api.modrinth.com/maven" } // Jade
+    maven { url = "https://api.modrinth.com/maven" } // Jade, JourneyMap
     maven { url = "https://maven.terraformersmc.com/" } // EMI
+    maven {
+        url = "https://jm.gserv.me/repository/maven-public" // JourneyMap API
+        content {
+            includeGroup "info.journeymap"
+        }
+    }
     maven {
         url = "https://maven.latvian.dev/releases" // KubeJS
         content {
@@ -266,6 +272,7 @@ dependencies {
     compileOnly("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
     compileOnly("maven.modrinth:jade:${jade_version}+neoforge")
     compileOnly("info.journeymap:journeymap-api-neoforge:${journeymap_api_version}")
+    compileOnly("maven.modrinth:journeymap:${journeymap_version}+neoforge") { transitive = false }
     compileOnly("xaero.map:xaeroworldmap-neoforge-${minecraft_version}:${xaero_worldmap_version}")
     compileOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}")
     compileOnly("maven.modrinth:create-aeronautics:${create_aeronautics_version}+mc1.21.1")

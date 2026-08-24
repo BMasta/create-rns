@@ -1,21 +1,23 @@
-package com.bmaster.createrns.compat.map;
+package com.bmaster.createrns.compat.map.journey;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.compat.map.RNSMapOverlayRenderer;
+import com.bmaster.createrns.compat.map.RNSMapToggleRenderer;
 import com.bmaster.createrns.compat.map.RNSMapToggleRenderer.ToggleLocation;
 import journeymap.api.v2.client.IClientAPI;
 import journeymap.api.v2.client.IClientPlugin;
-import journeymap.api.v2.client.JourneyMapPlugin;
-import journeymap.api.v2.client.event.FullscreenMapEvent;
 import journeymap.api.v2.client.event.FullscreenRenderEvent;
 import journeymap.api.v2.client.fullscreen.IFullscreen;
 import journeymap.api.v2.client.util.UIState;
+import journeymap.api.v2.common.JourneyMapPlugin;
 import journeymap.api.v2.common.event.FullscreenEventRegistry;
+import journeymap.client.ui.fullscreen.Fullscreen;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
+import net.neoforged.neoforge.client.event.InputEvent;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-@SuppressWarnings("removal")
 @JourneyMapPlugin(apiVersion = "2.0.0")
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
@@ -29,7 +31,18 @@ public class RNSJourneyMap implements IClientPlugin {
     @Override
     public void initialize(IClientAPI jmClientApi) {
         FullscreenEventRegistry.FULLSCREEN_RENDER_EVENT.subscribe(CreateRNS.ID, RNSJourneyMap::onFullscreenRender);
-        FullscreenEventRegistry.FULLSCREEN_MAP_CLICK_EVENT.subscribe(CreateRNS.ID, RNSJourneyMap::onFullscreenClick);
+    }
+
+    public static void onMouseClick(InputEvent.MouseButton.Pre event) {
+        var mc = Minecraft.getInstance();
+        if (!(mc.screen instanceof Fullscreen screen)) return;
+
+        var window = mc.getWindow();
+        double mouseX = mc.mouseHandler.xpos() * window.getGuiScaledWidth() / window.getScreenWidth();
+        double mouseY = mc.mouseHandler.ypos() * window.getGuiScaledHeight() / window.getScreenHeight();
+        if (RNSMapToggleRenderer.handleClick(mouseX, mouseY, event.getButton(), screen, ToggleLocation.JOURNEY)) {
+            event.setCanceled(true);
+        }
     }
 
     private static void onFullscreenRender(FullscreenRenderEvent event) {
@@ -48,26 +61,13 @@ public class RNSJourneyMap implements IClientPlugin {
                 ToggleLocation.JOURNEY);
     }
 
-    private static void onFullscreenClick(FullscreenMapEvent.ClickEvent event) {
-        if (event.getStage() != FullscreenMapEvent.Stage.PRE) return;
-        var screen = Minecraft.getInstance().screen;
-        if (screen == null) return;
-
-        boolean clicked = RNSMapToggleRenderer.handleClick(
-                event.getMouseX(),
-                event.getMouseY(),
-                event.getButton(),
-                screen,
-                ToggleLocation.JOURNEY);
-        if (clicked) event.cancel();
-    }
-
     private static double getGuiScale() {
         var window = Minecraft.getInstance().getWindow();
         return (double) window.getScreenWidth() / window.getGuiScaledWidth();
     }
 
-    private record JourneyMapContext(IFullscreen fullscreen, UIState uiState, double guiScale) implements RNSMapOverlayRenderer.Context {
+    private record JourneyMapContext(IFullscreen fullscreen, UIState uiState,
+                                     double guiScale) implements RNSMapOverlayRenderer.Context {
         @Override
         public double create_rns$getCameraX() {
             return fullscreen.getCenterBlockX(true);
