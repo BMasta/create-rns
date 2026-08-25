@@ -145,6 +145,13 @@ public class CatalystRequirementCodecTest {
         insufficientTank.fill(new FluidStack(Fluids.LAVA, 10), IFluidHandler.FluidAction.EXECUTE);
         helper.assertFalse(fluidRequirement.useCatalysts(List.of(new FluidCatalyst(insufficientTank)), false),
                 "Catalyst usage should fail when the tank contains too little fluid");
+
+        var wrongFluidTank = new FluidTank(1000);
+        wrongFluidTank.fill(new FluidStack(Fluids.WATER, 40), IFluidHandler.FluidAction.EXECUTE);
+        helper.assertFalse(fluidRequirement.useCatalysts(List.of(new FluidCatalyst(wrongFluidTank)), false),
+                "Catalyst usage should fail when the tank contains the wrong fluid");
+        helper.assertTrue(wrongFluidTank.getFluidAmount() == 40,
+                "Wrong fluid amount after failed catalyst usage");
         helper.succeed();
     }
 }
