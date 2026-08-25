@@ -1,5 +1,5 @@
 ## Checklist
 1. Copy the files from `kubejs` into `kubejs` in your game folder.
-2. Configure deposits in `kubejs/startup_scripts/main.js`
+2. Configure deposits in `kubejs/startup_scripts/main.js`.
 
 Default built-in deposit structure ids can be found [here](../../../src/generated/builtin_packs/default/create_rns_dynamic_data/data/create_rns/worldgen/structure).
