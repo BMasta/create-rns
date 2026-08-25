@@ -3,6 +3,7 @@ package com.bmaster.createrns.serialization;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSDeposits;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
+import com.bmaster.createrns.content.deposit.mining.InnerProcess;
 import com.bmaster.createrns.content.deposit.mining.MiningProcess;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import net.minecraft.core.BlockPos;
@@ -57,7 +58,7 @@ public class MiningProcessSerialization {
         helper.assertValueEqual(durabilitySeeded, expectDurabilitySeeded,
                 "whether deposit durability seeding should succeed");
 
-        var original = new MiningProcess(level, Set.of(), Set.of(absoluteDepositPos));
+        var original = new MiningProcess(level, Set.of(), Set.of(absoluteDepositPos), null);
         helper.assertTrue(original.isPossible(), "Mining process should initialize for a valid deposit block");
         firstInnerProcess(original).progress = PROGRESS;
 
@@ -71,7 +72,7 @@ public class MiningProcessSerialization {
         helper.assertFalse(serializedInnerProcess.contains("catalyst_stats"),
                 "Disk serialization should not persist catalyst stats");
 
-        var restored = new MiningProcess(level, Set.of(), Set.of(absoluteDepositPos));
+        var restored = new MiningProcess(level, Set.of(), Set.of(absoluteDepositPos), null);
         restored.read(serialized, provider, false);
         var restoredInnerProcess = firstInnerProcess(restored);
 
@@ -93,7 +94,7 @@ public class MiningProcessSerialization {
         helper.assertValueEqual(durabilitySeeded, expectDurabilitySeeded,
                 "whether deposit durability seeding should succeed");
 
-        var original = new MiningProcess(level, Set.of(), Set.of(absoluteDepositPos));
+        var original = new MiningProcess(level, Set.of(), Set.of(absoluteDepositPos), null);
         helper.assertTrue(original.isPossible(), "Mining process should initialize for a valid deposit block");
         firstInnerProcess(original).progress = PROGRESS;
 
@@ -108,7 +109,7 @@ public class MiningProcessSerialization {
         helper.assertTrue(serializedInnerProcess.contains("catalyst_stats"),
                 "Client sync serialization should include catalyst stats");
 
-        var restored = new MiningProcess(level, Set.of(), Set.of(absoluteDepositPos));
+        var restored = new MiningProcess(level, Set.of(), Set.of(absoluteDepositPos), null);
         restored.read(serialized, provider, true);
         var restoredInnerProcess = firstInnerProcess(restored);
 
@@ -129,7 +130,7 @@ public class MiningProcessSerialization {
         }
     }
 
-    private static MiningProcess.InnerProcess firstInnerProcess(MiningProcess process) {
+    private static InnerProcess firstInnerProcess(MiningProcess process) {
         return process.innerProcesses.stream().findFirst()
                 .orElseThrow(() -> new IllegalStateException("Mining process did not contain any inner processes"));
     }

@@ -265,7 +265,7 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
         if (crossSublevelStart == null && detectedBlocks.isEmpty()) return;
         if (crossSublevelStart != null && crossSublevelStart.equals(detectedBlocks.closest())) return;
 
-        // Operating source changed
+        // Cross-sublevel start changed
 
         var area = getOperatingBoundingBox();
 
