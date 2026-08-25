@@ -111,19 +111,39 @@ public class MinerEffectsGenerator {
 
         var r = level.random;
         var mineHeadPos = be.miningBehaviour.equipment.mineHeadTipPos.getCenter();
-        var MineHeadFacing = be.getBlockState().getValue(MinerBearingBlock.FACING);
+        var mineHeadSize = be.miningBehaviour.equipment.mineHeadSize;
+        var mineHeadFacing = be.getBlockState().getValue(MinerBearingBlock.FACING);
         var selectedParticle = particleOptions.get(r.nextInt(0, particleOptions.size()));
 
-        var claimedBlocks = be.miningBehaviour.getClaimedDepositBlocks();
-        if (claimedBlocks == null) return;
-        float mult = Math.min(1f, claimedBlocks.size() / 75f);
+        double forwardOffset = 0.5;
 
-        for (int i = 0; i < Math.round(1 + mult * 5); i++) {
-            level.addParticle(selectedParticle,
-                    mineHeadPos.x + MineHeadFacing.getStepX() * 0.5 * (1 - r.nextFloat() * mult),
-                    mineHeadPos.y + MineHeadFacing.getStepY() * 0.5 * (1 - r.nextFloat() * mult),
-                    mineHeadPos.z + MineHeadFacing.getStepZ() * 0.5 * (1 - r.nextFloat() * mult),
-                    0, 0, 0);
+        var claimedBlocks = be.miningBehaviour.getClaimedDepositBlocks();
+        if (claimedBlocks == null || claimedBlocks.isEmpty()) return;
+
+        for (int i = 0; i < mineHeadSize.claimBonus * 2 + 1; i++) {
+            double angle = r.nextDouble() * Math.PI * 2;
+            double uOffset = Math.cos(angle) * 0.24f * mineHeadSize.modelScale;
+            double vOffset = Math.sin(angle) * 0.24f * mineHeadSize.modelScale;
+            double particleX = mineHeadPos.x + mineHeadFacing.getStepX() * forwardOffset;
+            double particleY = mineHeadPos.y + mineHeadFacing.getStepY() * forwardOffset;
+            double particleZ = mineHeadPos.z + mineHeadFacing.getStepZ() * forwardOffset;
+
+            switch (mineHeadFacing.getAxis()) {
+                case X -> {
+                    particleY += uOffset;
+                    particleZ += vOffset;
+                }
+                case Y -> {
+                    particleX += uOffset;
+                    particleZ += vOffset;
+                }
+                case Z -> {
+                    particleX += uOffset;
+                    particleY += vOffset;
+                }
+            }
+
+            level.addParticle(selectedParticle, particleX, particleY, particleZ, 0, 0, 0);
         }
     }
 
