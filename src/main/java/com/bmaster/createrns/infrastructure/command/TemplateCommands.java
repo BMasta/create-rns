@@ -57,27 +57,35 @@ public final class TemplateCommands {
     private TemplateCommands() {}
 
     private static Map<String, PlacementTemplate> createTemplates() {
+        var depositBlocks = TemplatePart.fill(
+                BlockPos.ZERO,
+                new BlockPos(2, 0, 2),
+                RNSDeposits.IRON_DEPOSIT::getDefaultState);
+        var bearing = TemplatePart.block(
+                new BlockPos(1, 3, 1),
+                () -> RNSBlocks.MINER_BEARING.getDefaultState()
+                        .setValue(MinerBearingBlock.FACING, MINER_DIRECTION));
+        var barrel = TemplatePart.block(
+                new BlockPos(1, 2, 1),
+                Blocks.BARREL::defaultBlockState);
+        var mineHead = TemplatePart.block(
+                new BlockPos(1, 1, 1),
+                () -> MineHeadBlock.withConnectedDirection(
+                        RNSBlocks.MINE_HEAD.getDefaultState(), MINER_DIRECTION));
+
         var minerSetup = PlacementTemplate.withGap(
                 "miner_setup",
                 MINER_FOOTPRINT_SIZE,
                 MINER_FOOTPRINT_SIZE,
                 TEMPLATE_GAP,
-                List.of(
-                        TemplatePart.fill(
-                                BlockPos.ZERO,
-                                new BlockPos(2, 0, 2),
-                                RNSDeposits.IRON_DEPOSIT::getDefaultState),
-                        TemplatePart.block(
-                                new BlockPos(1, 3, 1),
-                                () -> RNSBlocks.MINER_BEARING.getDefaultState()
-                                        .setValue(MinerBearingBlock.FACING, MINER_DIRECTION)),
-                        TemplatePart.block(
-                                new BlockPos(1, 2, 1),
-                                Blocks.BARREL::defaultBlockState),
-                        TemplatePart.block(
-                                new BlockPos(1, 1, 1),
-                                () -> MineHeadBlock.withConnectedDirection(
-                                        RNSBlocks.MINE_HEAD.getDefaultState(), MINER_DIRECTION))));
+                List.of(depositBlocks, bearing, barrel, mineHead));
+
+        var miner = PlacementTemplate.withGap(
+                "miner",
+                MINER_FOOTPRINT_SIZE,
+                MINER_FOOTPRINT_SIZE,
+                TEMPLATE_GAP,
+                List.of(bearing, barrel, mineHead));
 
         var motor = PlacementTemplate.withGap(
                 "motor",
@@ -91,7 +99,7 @@ public final class TemplateCommands {
                         TemplateCommands::validateMotor,
                         TemplateCommands::configureMotor)));
 
-        return Map.of(minerSetup.name(), minerSetup, motor.name(), motor);
+        return Map.of(minerSetup.name(), minerSetup, miner.name(), miner, motor.name(), motor);
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> createCommand(String name, TemplateAction action) {

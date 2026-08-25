@@ -148,6 +148,7 @@
   "create_rns.command.scanner.state.not_scannable": "no longer scannable",
   "create_rns.command.debug.deposit_detection": "Deposit detection area visualization: %s",
   "create_rns.command.debug.template.miner_setup": "miner setups",
+  "create_rns.command.debug.template.miner": "miners",
   "create_rns.command.debug.template.motor": "creative motors",
   "create_rns.command.debug.template.place.success": "Placed %1$s %2$s starting at %3$s %4$s %5$s",
   "create_rns.command.debug.template.remove.success": "Removed %1$s %2$s starting at %3$s %4$s %5$s",
