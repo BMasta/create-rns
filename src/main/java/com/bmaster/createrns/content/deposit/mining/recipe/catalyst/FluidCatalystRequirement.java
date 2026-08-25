@@ -3,6 +3,7 @@ package com.bmaster.createrns.content.deposit.mining.recipe.catalyst;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
@@ -47,21 +48,25 @@ public class FluidCatalystRequirement extends CatalystRequirement {
     @Override
     public boolean useCatalysts(Collection<Catalyst> catalysts, boolean simulate) {
         // Simulate
-        var fluidToDrain = fluidStack.getAmount();
+        var fluid = fluidStack.getFluid();
+        if (fluid == Fluids.EMPTY) return false;
+        var amountToDrain = fluidStack.getAmount();
         for (var c : catalysts) {
             if (!(c instanceof FluidCatalyst fluidCat)) continue;
-            fluidToDrain -= fluidCat.tank.drain(fluidToDrain, IFluidHandler.FluidAction.SIMULATE).getAmount();
-            if (fluidToDrain <= 0) break;
+            amountToDrain -= fluidCat.tank.drain(fluidStack.copyWithAmount(amountToDrain), IFluidHandler.FluidAction.SIMULATE)
+                    .getAmount();
+            if (amountToDrain <= 0) break;
         }
-        if (fluidToDrain > 0) return false;
+        if (amountToDrain > 0) return false;
         if (simulate) return true;
 
         // Drain
-        fluidToDrain = fluidStack.getAmount();
+        amountToDrain = fluidStack.getAmount();
         for (var c : catalysts) {
             if (!(c instanceof FluidCatalyst fluidCat)) continue;
-            fluidToDrain -= fluidCat.tank.drain(fluidToDrain, IFluidHandler.FluidAction.EXECUTE).getAmount();
-            if (fluidToDrain <= 0) break;
+            amountToDrain -= fluidCat.tank.drain(fluidStack.copyWithAmount(amountToDrain), IFluidHandler.FluidAction.EXECUTE)
+                    .getAmount();
+            if (amountToDrain <= 0) break;
         }
         return true;
     }
