@@ -18,22 +18,23 @@ import net.minecraft.client.Minecraft;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+@JourneyMapPlugin(apiVersion = "2.0.0")
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-@JourneyMapPlugin(apiVersion = "2.0.0")
-public class RNSJourneyMapPlugin implements IClientPlugin {
+public class RNSJourneyMap implements IClientPlugin {
     private static boolean failedToRenderDepositOverlay = false;
 
-    public RNSJourneyMapPlugin() {
+    public RNSJourneyMap() {
     }
 
     @Override
     public void initialize(IClientAPI jmClientApi) {
-        FullscreenEventRegistry.FULLSCREEN_RENDER_EVENT.subscribe(CreateRNS.ID, RNSJourneyMapPlugin::onRender);
-        FullscreenEventRegistry.FULLSCREEN_MAP_CLICK_EVENT.subscribe(CreateRNS.ID, RNSJourneyMapPlugin::onClick);
+        FullscreenEventRegistry.FULLSCREEN_RENDER_EVENT.subscribe(CreateRNS.ID, RNSJourneyMap::onRender);
+        FullscreenEventRegistry.FULLSCREEN_MAP_CLICK_EVENT.subscribe(CreateRNS.ID, RNSJourneyMap::onClick);
     }
 
     @Override
+    @SuppressWarnings("UnstableApiUsage")
     public String getModId() {
         return CreateRNS.ID;
     }
