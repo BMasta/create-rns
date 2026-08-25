@@ -6,6 +6,7 @@
 **Create: Rock & Stone** aims to close the gap between Create and traditional factory game experience by bringing infinite mineable resource deposits into the world.
 Make your own massive drill and cash in on the bounties of nature!
 ![](gallery/main_screenshot.png)
+![](gallery/aeronautics_compat.png)
 
 ## How do I change how often deposits spawn in the world?
 Create: Rock & Stone ships with pre-existing datapacks to tweak deposit worldgen, including one to disable deposit generation completely.
@@ -30,8 +31,10 @@ All of the above can be tweaked with KubeJS (or a plain datapack).
 
 ## How do I tweak?
 Please refer to your version of the mod:
-#### [1.2.x (latest) - Minecraft 1.21.1](https://github.com/BMasta/create-rns/blob/1.21-1.2.x/docs/README.md)
-#### [1.2.x (latest) - Minecraft 1.20.1](https://github.com/BMasta/create-rns/blob/1.20-1.2.x/docs/README.md)
+#### [1.3.x (latest) - Minecraft 1.21.1](https://github.com/BMasta/create-rns/blob/1.21-1.3.x/docs/README.md)
+#### [1.3.x (latest) - Minecraft 1.20.1](https://github.com/BMasta/create-rns/blob/1.20-1.3.x/docs/README.md)
+#### [1.2.x - Minecraft 1.21.1](https://github.com/BMasta/create-rns/blob/1.21-1.2.x/docs/README.md)
+#### [1.2.x - Minecraft 1.20.1](https://github.com/BMasta/create-rns/blob/1.20-1.2.x/docs/README.md)
 #### [1.1.x - Minecraft 1.21.1](https://github.com/BMasta/create-rns/blob/1.21-1.1.x/docs/datapack.md)
 #### [1.1.x - Minecraft 1.20.1](https://github.com/BMasta/create-rns/blob/1.20-1.1.x/docs/datapack.md)
 #### [1.0.x - Minecraft 1.21.1](https://github.com/BMasta/create-rns/blob/1.21-1.0.x/docs/datapack.md)
