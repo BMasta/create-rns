@@ -9,6 +9,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.OptionalDouble;
 import java.util.Set;
 
 @MethodsReturnNonnullByDefault
@@ -27,6 +28,12 @@ public interface OperatingSublevelAdapter {
     double distManhattan(Level level, BlockPos firstPos, BlockPos secondPos);
 
     double distSqr(Level level, BlockPos firstPos, BlockPos secondPos);
+
+    default OptionalDouble getCrossSublevelBlockHitDistance(
+            Level level, BlockPos contact, Direction operatingDirection, BlockPos target, double rayLength
+    ) {
+        return OptionalDouble.empty();
+    }
 
     CrossSublevelDepositBlocks getCrossSublevelDepositBlocks(
             Level level, OperatingSublevel operatorSublevel, BlockPos contact,
