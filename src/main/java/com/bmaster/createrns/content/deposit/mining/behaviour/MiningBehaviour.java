@@ -7,12 +7,14 @@ import com.bmaster.createrns.content.deposit.mining.MiningProcess;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.operating.IDepositBlockOperator;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Tuple;
+import net.minecraft.world.level.block.Block;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -25,6 +27,10 @@ public abstract class MiningBehaviour extends ClaimingBehaviour implements IDepo
     protected final KineticBlockEntity kBE;
     protected @Nullable MinerSpec spec = null;
     protected @Nullable MiningProcess process = null;
+
+    // When claimed area changes, the progress percentage towards mining a block is saved here.
+    // This way, no matter how the area changes, the progress does not get reset until the miner is destroyed or unloaded.
+    protected Object2FloatOpenHashMap<Block> savedProgress = new Object2FloatOpenHashMap<>();
 
     // Defers disk or client process state until the process can be initialized.
     protected @Nullable Tuple<CompoundTag, Boolean> pendingProcessTag = null;
@@ -173,7 +179,7 @@ public abstract class MiningBehaviour extends ClaimingBehaviour implements IDepo
         var catalysts = getCatalysts();
         if (catalysts == null) return false;
 
-        process = new MiningProcess(level, catalysts, claimedDepositBlocks);
+        process = new MiningProcess(level, catalysts, claimedDepositBlocks, savedProgress);
 
         // Deserialize process state from the pending tag
         if (pendingProcessTag != null) {
@@ -185,7 +191,9 @@ public abstract class MiningBehaviour extends ClaimingBehaviour implements IDepo
     }
 
     protected void unInitProcess() {
-        if (process != null) process.uninitialize();
+        if (process != null) {
+            savedProgress.putAll(process.uninitialize());
+        }
         process = null;
     }
 }

@@ -2,13 +2,9 @@ package com.bmaster.createrns.content.deposit.mining;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags.RNSBlockTags;
-import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
-import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystHandler;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystUsageStats;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -19,18 +15,17 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -47,7 +42,10 @@ public class MiningProcess {
     public final Set<InnerProcess> innerProcesses = Collections.newSetFromMap(new ConcurrentHashMap<>());
     public final Level level;
 
-    public MiningProcess(Level l, Set<Catalyst> catalysts, Set<BlockPos> depositBlocks) {
+    public MiningProcess(
+            Level l, Set<Catalyst> catalysts, Set<BlockPos> depositBlocks,
+            @Nullable Object2FloatOpenHashMap<Block> savedProgress
+    ) {
         this.level = l;
 
         var depBlockCounts = depositBlocks.stream()
@@ -63,8 +61,13 @@ public class MiningProcess {
             var recipe = MiningRecipeLookup.find(level, db);
             if (recipe == null) continue;
             var depBlockCount = e.getValue().intValue();
-            innerProcesses.add(new InnerProcess(level, depBlockPositions.get(db), recipe,
-                    BASE_PROGRESS / depBlockCount, catalysts));
+            var ip = new InnerProcess(level, depBlockPositions.get(db), recipe,
+                    BASE_PROGRESS / depBlockCount, catalysts);
+            // Restore progress from the saved percentage
+            if (savedProgress != null && savedProgress.containsKey(db)) {
+                ip.progress = (int) (savedProgress.getFloat(db) * ip.maxProgress);
+            }
+            innerProcesses.add(ip);
         }
     }
 
@@ -126,10 +129,16 @@ public class MiningProcess {
         return rates;
     }
 
-    public void uninitialize() {
-        for (var p : innerProcesses) {
-            p.catStats.clear();
+    public Object2FloatOpenHashMap<Block> uninitialize() {
+        for (var ip : innerProcesses) {
+            ip.catStats.clear();
         }
+        return innerProcesses.stream().collect(Collectors.toMap(
+                ip -> ip.recipe.getDepositBlock(),
+                ip -> ip.progress / (float) ip.maxProgress,
+                (v1, v2) -> Mth.clamp(v1 + v2, 0f, 1f),
+                Object2FloatOpenHashMap::new
+        ));
     }
 
     public @Nullable CompoundTag write(boolean clientPacket) {
@@ -166,121 +175,6 @@ public class MiningProcess {
             }
             var ip = dbToProcess.get(db);
             if (ip != null) ip.read((CompoundTag) pt, clientPacket);
-        }
-    }
-
-    public static class InnerProcess {
-        public final Level level;
-        public final List<BlockPos> depositPositions;
-        public final MiningRecipe recipe;
-        public int maxProgress;
-        public int progress;
-        public final CatalystUsageStats catStats;
-        public final CatalystHandler catalystHandler;
-        public long remainingUses;
-
-        public InnerProcess(
-                Level level, List<BlockPos> depositPositions, MiningRecipe recipe, int maxProgress, Set<Catalyst> catalysts
-        ) {
-            this.level = level;
-            this.depositPositions = depositPositions;
-            this.recipe = recipe;
-            this.maxProgress = maxProgress;
-            this.progress = 0;
-            if (!level.isClientSide) computeRemainingUses(); // Server computes/syncs, client uses
-            this.catStats = new CatalystUsageStats();
-            this.catalystHandler = new CatalystHandler(level.registryAccess(), recipe, catalysts, catStats);
-        }
-
-        public void advance(int by) {
-            assert by > 0;
-            progress += by;
-        }
-
-        public Set<ItemStack> collect() {
-            if (progress < maxProgress) return Set.of();
-            if (!(level instanceof ServerLevel sl)) return Set.of();
-
-            progress = progress - maxProgress; // Keep the extra progress
-
-            // Use a random deposit block.
-            // This can trigger an area reclaim for the process holder, which would invalidate the current process.
-            // Regardless, this method can still finish and return the collected items before the process is destroyed.
-            var rollDep = level.random.nextIntBetweenInclusive(0, depositPositions.size() - 1);
-            if (!DepositDurabilityManager.useDepositBlock(sl, depositPositions.get(rollDep),
-                    recipe.getReplacementBlock().defaultBlockState())) return Set.of();
-
-            // For each yield: use all of its catalysts, then roll for success and add to collection queue if successful
-            var spoils = new HashSet<ItemStack>();
-            var yields = recipe.getYields();
-            var chances = catalystHandler.useCatalysts(false);
-            for (var e : chances.int2FloatEntrySet()) {
-                int yieldIdx = e.getIntKey();
-                float chance = e.getFloatValue();
-                if (chance > 0) {
-                    var chanceRoll = (chance < 1f) ? level.random.nextFloat() : 0;
-                    if (chance > chanceRoll) {
-                        var myPrecious = new ItemStack(yields.get(yieldIdx).roll(level.random));
-                        spoils.add(myPrecious);
-                        if (chance < 1) {
-                            CreateRNS.LOGGER.trace("Successfully rolled for {} ({}% chance)", myPrecious, (int) (chance * 100));
-                        }
-                    }
-                }
-            }
-
-            return spoils;
-        }
-
-        public @Nullable CompoundTag write(boolean clientPacket) {
-            CompoundTag root = new CompoundTag();
-            var dbRL = ForgeRegistries.BLOCKS.getKey(recipe.getDepositBlock());
-            if (dbRL == null) return null;
-            root.putString("deposit_block", dbRL.toString());
-
-            if (!level.isClientSide) {
-                computeRemainingUses();
-                root.putLong("remaining_uses", remainingUses);
-            }
-
-            if (clientPacket) {
-                if (!catStats.isChancesComputed()) {
-                    // Simulate catalyst usage to collect initial stats
-                    catalystHandler.useCatalysts(true);
-                }
-                root.put("catalyst_stats", catStats.serializeNBT());
-            }
-            if (!clientPacket) root.putInt("progress", progress);
-
-            return root;
-
-        }
-
-        public void read(CompoundTag nbt, boolean clientPacket) {
-            if (nbt.contains("remaining_uses")) {
-                this.remainingUses = nbt.getLong("remaining_uses");
-            }
-
-            if (clientPacket && nbt.contains("catalyst_stats")) {
-                this.catStats.deserializeNBT(nbt.getCompound("catalyst_stats"));
-            }
-            if (!clientPacket) this.progress = nbt.getInt("progress");
-
-        }
-
-        /// Returns 0 if deposit is infinite. Only callable on server side
-        private void computeRemainingUses() {
-            if (!(level instanceof ServerLevel sl))
-                throw new IllegalStateException("Clients may not call this function");
-            AtomicBoolean infinite = new AtomicBoolean(false);
-            long totalDur = depositPositions.stream()
-                    .map(bp -> {
-                        var dur = DepositDurabilityManager.getDepositBlockDurability(sl, bp);
-                        if (dur == 0) infinite.set(true);
-                        return dur;
-                    })
-                    .reduce(Long::sum).orElse(-1L);
-            remainingUses = infinite.get() ? 0 : totalDur;
         }
     }
 }

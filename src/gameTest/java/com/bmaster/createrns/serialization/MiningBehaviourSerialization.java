@@ -210,7 +210,8 @@ public class MiningBehaviourSerialization {
             helper.assertFalse(restoredProcess == originalProcess.get(),
                     "Changed claimed-blocks version should invalidate the previous process");
             restoredProcess.innerProcesses.forEach(innerProcess -> helper.assertTrue(
-                    innerProcess.progress < SAVED_PROGRESS, "client packet should not synchronize progress"));
+                    innerProcess.progress >= SAVED_PROGRESS,
+                    "Process reconstruction should preserve local mining progress"));
             assertProcessMatchesClaim(helper, miner, restoredProcess);
             replacementProcess.set(restoredProcess);
 
@@ -276,7 +277,8 @@ public class MiningBehaviourSerialization {
             helper.assertFalse(restoredProcess == originalProcess.get(),
                     "A missing claimed-blocks version should invalidate the previous process");
             restoredProcess.innerProcesses.forEach(innerProcess -> helper.assertTrue(
-                    innerProcess.progress < SAVED_PROGRESS, "client packet should not synchronize progress"));
+                    innerProcess.progress >= SAVED_PROGRESS,
+                    "Process reconstruction should preserve local mining progress"));
             assertProcessMatchesClaim(helper, miner, restoredProcess);
             helper.succeed();
         });
