@@ -18,10 +18,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayDeque;
 import java.util.OptionalLong;
-import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
@@ -31,44 +28,43 @@ public class DepositDurabilityManager {
             Direction.SOUTH, Direction.WEST, Direction.EAST, Direction.NORTH);
 
     public static Object2IntOpenHashMap<BlockPos> getVein(Level level, BlockPos start) {
-        Queue<BlockPos> q = new ArrayDeque<>();
-        Object2IntOpenHashMap<BlockPos> visited = new Object2IntOpenHashMap<>();
+        var q = new ArrayDeque<BlockPos>();
+        var visited = new Object2IntOpenHashMap<BlockPos>();
         if (!level.getBlockState(start).is(RNSBlockTags.DEPOSIT_BLOCKS)) return visited;
-        q.add(start);
 
-        // Collect all blocks in the deposit vein. Assign depth of outer blocks to 0, all other to MAX_VALUE.
+        // Collect all blocks in the deposit vein up to a certain size limit
+        q.add(start);
         int visitedCount = 0;
         while (!q.isEmpty() && visitedCount < MAX_DEPOSIT_VEIN_SIZE) {
             var bp = q.poll();
-            if (visited.containsKey(bp)) continue;
+            if (visited.containsKey(bp) || !level.getBlockState(bp).is(RNSBlockTags.DEPOSIT_BLOCKS)) continue;
 
-            AtomicBoolean external = new AtomicBoolean(false);
-            Direction.stream().forEach(d -> {
-                var nb = bp.relative(d);
-                if (level.getBlockState(nb).is(RNSBlockTags.DEPOSIT_BLOCKS)) {
-                    q.add(bp.relative(d));
-                } else {
-                    if (xzDirections.contains(d)) external.set(true);
-                }
-            });
-            visited.put(bp, external.get() ? 0 : Integer.MAX_VALUE);
+            Direction.stream().forEach(dir -> q.offer(bp.relative(dir)));
+            visited.put(bp, Integer.MAX_VALUE);
             ++visitedCount;
         }
+        q.clear();
 
-        // Start with outer blocks whose depth is 0. Compute depth of their neighbors until all blocks are processed.
-        for (int depth = 0; depth < MAX_DEPOSIT_VEIN_SIZE; ++depth) {
-            int finalDepth = depth;
-            var curDepthBlocks = visited.object2IntEntrySet().stream()
-                    .filter(e -> e.getIntValue() == finalDepth)
-                    .collect(Collectors.toSet());
-            if (curDepthBlocks.isEmpty()) break;
+        // Go through all visited blocks and find external positions
+        for (var bp : visited.keySet()) {
+            // If at least one neighbor on the XZ plane is not a part of the vein, mark this position as external
+            for (var dir : xzDirections) {
+                if (!(visited.containsKey(bp.relative(dir)))) {
+                    visited.put(bp, 0);
+                    q.add(bp);
+                    break;
+                }
+            }
+        }
 
-            for (var e : curDepthBlocks) {
-                xzDirections.forEach(d -> {
-                    var neighbor = e.getKey().relative(d);
-                    if (!visited.containsKey(neighbor)) return;
-                    visited.computeInt(neighbor, (k, v) -> Math.min(v, finalDepth + 1));
-                });
+        // Starting from external positions, compute the depth of neighbors until all blocks are processed
+        while (!q.isEmpty()) {
+            var bp = q.poll();
+            for (var dir : xzDirections) {
+                var neighbor = bp.relative(dir);
+                if (visited.getInt(neighbor) != Integer.MAX_VALUE) continue;
+                visited.put(neighbor, visited.getInt(bp) + 1);
+                q.offer(neighbor);
             }
         }
 
