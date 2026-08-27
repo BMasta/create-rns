@@ -3,6 +3,7 @@ package com.bmaster.createrns;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadRenderer;
+import com.bmaster.createrns.content.deposit.mining.contraption.attachment.minehead.MineHeadVisual;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferBlockEntity;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferRenderer;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.resonance.buffer.ResonanceBufferVisual;
@@ -28,6 +29,7 @@ public class RNSBlockEntities {
 
     public static final BlockEntityEntry<MineHeadBlockEntity> MINE_HEAD = CreateRNS.REGISTRATE
             .blockEntity("mine_head", MineHeadBlockEntity::new)
+            .visual(() -> MineHeadVisual::new)
             .validBlocks(RNSBlocks.MINE_HEAD)
             .renderer(() -> MineHeadRenderer::new)
             .register();
