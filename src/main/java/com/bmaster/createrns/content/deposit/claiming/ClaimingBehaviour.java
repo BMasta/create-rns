@@ -16,6 +16,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -33,8 +34,6 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
     private final SmartBlockEntity sbe;
     // Defers claimer deserialization
     protected @Nullable Tuple<CompoundTag, Boolean> pendingClaimerTag = null;
-
-    protected boolean validateClaimedDepositBlocks = false;
 
     public abstract boolean isRunning();
 
@@ -64,6 +63,8 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
 
     protected void onClaimedBlocksChanged() {
         claimedBlocksVersion++;
+        var level = getLevel();
+        if (level != null && level.isClientSide) DepositClaimerOutlineRenderer.flashOutline();
     }
 
     @Override
@@ -165,11 +166,17 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
         // If a miner is moved to a different sublevel, it gets recreated with its nbt copied.
         // In such cases we have to ensure that the previously-claimed deposits are invalidated.
         if (!clientPacket && claimedDepositBlocks == null && newlyClaimedBlocks != null && !cs) {
-            validateClaimedDepositBlocks = true;
+            var adapter = OperatingSublevelAdapterHolder.getAdapter();
+            if (newlyClaimedBlocks.isEmpty() || !adapter.isSameSublevel(level, getPos(),
+                    level, newlyClaimedBlocks.iterator().next())) {
+                newlyClaimedBlocks = null;
+            }
         }
 
         setClaimedDepositBlocks(newlyClaimedBlocks, cs);
         if (hasVersion) claimedBlocksVersion = version;
+
+        if (!clientPacket) enforceExclusiveClaim();
     }
 
     @Override
@@ -181,16 +188,6 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
         if (pendingClaimerTag != null) readDeferred();
 
         if (level.isClientSide) return;
-
-        // Validate that the claimed deposit blocks are in the same sublevel as the miner
-        if (claimedDepositBlocks != null && validateClaimedDepositBlocks) {
-            validateClaimedDepositBlocks = false;
-            var adapter = OperatingSublevelAdapterHolder.getAdapter();
-            if (claimedDepositBlocks.isEmpty() || !adapter.isSameSublevel(level, getPos(),
-                    level, claimedDepositBlocks.iterator().next())) {
-                setClaimedDepositBlocks(null, false);
-            }
-        }
 
         if (claimedDepositBlocks == null) {
             claimDepositBlocks();
@@ -282,5 +279,22 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
 
         // Let other miners reclaim the area
         if (area != null) IDepositBlockClaimer.reclaimArea(area, this);
+    }
+
+    /// Go through claimed blocks of intersecting claimers and ensure none of them claim the same blocks as us.
+    /// If they do, force them to drop the claim to those blocks.
+    protected void enforceExclusiveClaim() {
+        var area = getOperatingBoundingBox();
+        if (area == null || claimedDepositBlocks == null || claimedDepositBlocks.isEmpty()) return;
+        for (var claimer : DepositClaimerInstanceHolder.getInstancesWithIntersectingArea(area, this)) {
+            var otherClaimedBlocks = claimer.getClaimedDepositBlocks();
+            if (otherClaimedBlocks == null || otherClaimedBlocks.isEmpty()) continue;
+
+            var otherClaimedBlocksExclusive = new HashSet<>(otherClaimedBlocks);
+            otherClaimedBlocksExclusive.removeAll(claimedDepositBlocks);
+            if (otherClaimedBlocks.size() == otherClaimedBlocksExclusive.size()) continue;
+
+            claimer.setClaimedDepositBlocks(otherClaimedBlocksExclusive, claimer.isOperatingCrossSublevel());
+        }
     }
 }

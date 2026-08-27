@@ -112,7 +112,6 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
         root.put("custom", custom);
         root.put("durabilities", durabilities);
 
-        CreateRNS.LOGGER.trace("Serialized level deposit data with {}", root);
         return root;
     }
 
@@ -123,7 +122,6 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
             for (var dlTag : foundTag) {
                 foundDeposits.add(ServerDepositLocation.of(level, (CompoundTag) dlTag));
             }
-            CreateRNS.LOGGER.trace("Deserialized found deposits to {}", foundDeposits);
         } else {
             CreateRNS.LOGGER.error("Failed to deserialize found deposits from nbt");
         }
@@ -138,7 +136,6 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
                 }
                 customDeposits.put(rl, customPerType);
             }
-            CreateRNS.LOGGER.trace("Deserialized custom deposits to {}", customDeposits);
         } else {
             CreateRNS.LOGGER.error("Failed to deserialize custom deposits from nbt");
         }
@@ -152,6 +149,5 @@ public class LevelDepositData implements INBTSerializable<CompoundTag> {
             if (!(d instanceof CompoundTag dc)) continue;
             depositDurabilities.put(BlockPos.of(dc.getLong("pos")), dc.getLong("durability"));
         }
-        CreateRNS.LOGGER.trace("Deserialized durabilities ({} entries)", depositDurabilities.size());
     }
 }

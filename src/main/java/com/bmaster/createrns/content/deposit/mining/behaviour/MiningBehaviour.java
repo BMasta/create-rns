@@ -187,8 +187,7 @@ public abstract class MiningBehaviour extends ClaimingBehaviour implements IDepo
         if (pendingClaimerTag != null) return false;
         unInitProcess();
         var level = getLevel();
-        if (level == null || claimedDepositBlocks == null ||
-                validateClaimedDepositBlocks) return false;
+        if (level == null || claimedDepositBlocks == null) return false;
         for (var bp : claimedDepositBlocks) {
             if (!level.isLoaded(bp)) return false;
         }

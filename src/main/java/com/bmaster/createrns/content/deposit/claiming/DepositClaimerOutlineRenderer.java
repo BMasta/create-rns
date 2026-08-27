@@ -22,14 +22,14 @@ import java.util.stream.Stream;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class DepositClaimerOutlineRenderer {
-    private static final int MAX_TTL = 30;
-    private static final int OUTLINE_MAX_DIST = 64;
-    private static final String totalSlot = CreateRNS.ID + ".claimedTotal";
+    public static final int FLASHED_TTL = 80;
+    public static final int LOOKED_TTL = 30;
+    public static final int OUTLINE_MAX_DIST = 64;
 
+    private static final String totalSlot = CreateRNS.ID + ".claimedTotal";
     private static final Set<IDepositBlockClaimer> keptClaimers = new HashSet<>();
     private static final Set<IDepositBlockClaimer> addedClaimers = new HashSet<>();
     private static Set<BlockPos> totalOutline = new HashSet<>();
-
     private static boolean outlineActive = false;
     private static boolean outlineChanged = false;
     private static int ttl = 0;
@@ -40,8 +40,9 @@ public class DepositClaimerOutlineRenderer {
         outlineChanged = true;
         keptClaimers.remove(claimer);
         var adapter = OperatingSublevelAdapterHolder.getAdapter();
-        if (adapter.distManhattan(player.level(), player.blockPosition(), claimer.getBlockPos()) > OUTLINE_MAX_DIST)
+        if (adapter.distManhattan(player.level(), player.blockPosition(), claimer.getBlockPos()) > OUTLINE_MAX_DIST) {
             return;
+        }
         addedClaimers.add(claimer);
     }
 
@@ -52,15 +53,20 @@ public class DepositClaimerOutlineRenderer {
         keptClaimers.remove(claimer);
     }
 
+    public static void flashOutline() {
+        refreshOutline(FLASHED_TTL, true);
+    }
+
     public static void clearOutline() {
         keptClaimers.clear();
         addedClaimers.clear();
         totalOutline.clear();
         outlineActive = false;
+        ttl = 0;
     }
 
     public static void tick() {
-        refreshOutline();
+        refreshOutline(LOOKED_TTL, false);
         if (!outlineActive) return;
 
         if (addedClaimers.isEmpty() && keptClaimers.isEmpty()) {
@@ -104,11 +110,11 @@ public class DepositClaimerOutlineRenderer {
         }
     }
 
-    private static void refreshOutline() {
-        if (!isHoldingCorrectItem()) return;
-        ttl = MAX_TTL;
+    private static void refreshOutline(int newTTL, boolean force) {
+        if (!force && !isHoldingCorrectItem()) return;
+        if (ttl < newTTL) ttl = newTTL;
 
-        if (outlineActive || !isLookingAtOutlineTarget()) return;
+        if (!force && (outlineActive || !isLookingAtOutlineTarget())) return;
 
         Player p = Minecraft.getInstance().player;
         if (p == null) return;
