@@ -13,6 +13,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -57,6 +58,8 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
 
     protected void onClaimedBlocksChanged() {
         claimedBlocksVersion++;
+        var level = getLevel();
+        if (level != null && level.isClientSide) DepositClaimerOutlineRenderer.flashOutline();
     }
 
     @Override
@@ -128,6 +131,8 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
 
         setClaimedDepositBlocks(newlyClaimedBlocks);
         if (hasVersion) claimedBlocksVersion = version;
+
+        if (!clientPacket) enforceExclusiveClaim();
     }
 
     @Override
@@ -180,5 +185,22 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
         if (level.isClientSide) DepositClaimerOutlineRenderer.addClaimer(this);
 
         else sbe.notifyUpdate();
+    }
+
+    /// Go through claimed blocks of intersecting claimers and ensure none of them claim the same blocks as us.
+    /// If they do, force them to drop the claim to those blocks.
+    protected void enforceExclusiveClaim() {
+        var area = getOperatingBoundingBox();
+        if (area == null || claimedDepositBlocks == null || claimedDepositBlocks.isEmpty()) return;
+        for (var claimer : DepositClaimerInstanceHolder.getInstancesWithIntersectingArea(area, this)) {
+            var otherClaimedBlocks = claimer.getClaimedDepositBlocks();
+            if (otherClaimedBlocks == null || otherClaimedBlocks.isEmpty()) continue;
+
+            var otherClaimedBlocksExclusive = new HashSet<>(otherClaimedBlocks);
+            otherClaimedBlocksExclusive.removeAll(claimedDepositBlocks);
+            if (otherClaimedBlocks.size() == otherClaimedBlocksExclusive.size()) continue;
+
+            claimer.setClaimedDepositBlocks(otherClaimedBlocksExclusive);
+        }
     }
 }

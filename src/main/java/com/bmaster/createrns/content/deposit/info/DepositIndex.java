@@ -101,7 +101,6 @@ public class DepositIndex implements IDepositIndex {
         root.put("custom", custom);
         root.put("durabilities", durabilities);
 
-        CreateRNS.LOGGER.trace("Serialized deposit index with {}", root);
         return root;
     }
 
@@ -112,7 +111,6 @@ public class DepositIndex implements IDepositIndex {
             for (var dlTag : foundTag) {
                 foundDeposits.add(ServerDepositLocation.of(level, (CompoundTag) dlTag));
             }
-            CreateRNS.LOGGER.trace("Deserialized found deposits to {}", foundDeposits);
         } else {
             CreateRNS.LOGGER.error("Failed to deserialize found deposits from nbt");
         }
@@ -127,7 +125,6 @@ public class DepositIndex implements IDepositIndex {
                 }
                 customDeposits.put(rl, customPerType);
             }
-            CreateRNS.LOGGER.trace("Deserialized custom deposits to {}", customDeposits);
         } else {
             CreateRNS.LOGGER.error("Failed to deserialize custom deposits from nbt");
         }
@@ -141,6 +138,5 @@ public class DepositIndex implements IDepositIndex {
             if (!(d instanceof CompoundTag dc)) continue;
             depositDurabilities.put(BlockPos.of(dc.getLong("pos")), dc.getLong("dur"));
         }
-        CreateRNS.LOGGER.trace("Deserialized durabilities ({} entries)", depositDurabilities.size());
     }
 }
