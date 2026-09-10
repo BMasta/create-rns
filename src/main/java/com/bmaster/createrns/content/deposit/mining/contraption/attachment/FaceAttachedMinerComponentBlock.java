@@ -1,6 +1,6 @@
 package com.bmaster.createrns.content.deposit.mining.contraption.attachment;
 
-import com.bmaster.createrns.content.deposit.claiming.IDepositClaimerOutlineTarget;
+import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.foundation.block.ProperWaterloggedBlock;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -22,7 +22,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class FaceAttachedMinerComponentBlock extends FaceAttachedHorizontalDirectionalBlock
-        implements IDepositClaimerOutlineTarget, ProperWaterloggedBlock {
+        implements ProperWaterloggedBlock, IWrenchable {
     public static Direction getConnectedDirection(BlockState state) {
         switch (state.getValue(FACE)) {
             case CEILING -> {
