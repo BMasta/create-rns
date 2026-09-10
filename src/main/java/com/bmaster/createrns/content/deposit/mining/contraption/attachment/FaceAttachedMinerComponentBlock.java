@@ -1,6 +1,7 @@
 package com.bmaster.createrns.content.deposit.mining.contraption.attachment;
 
 import com.mojang.serialization.MapCodec;
+import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.foundation.block.ProperWaterloggedBlock;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -21,7 +22,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class FaceAttachedMinerComponentBlock extends FaceAttachedHorizontalDirectionalBlock
-        implements ProperWaterloggedBlock {
+        implements ProperWaterloggedBlock, IWrenchable {
     public static final MapCodec<FaceAttachedMinerComponentBlock> CODEC = simpleCodec(FaceAttachedMinerComponentBlock::new);
 
     public static Direction getConnectedDirection(BlockState state) {

@@ -4,6 +4,7 @@ import com.bmaster.createrns.RNSBlockEntities;
 import com.bmaster.createrns.RNSTags;
 import com.simibubi.create.AllShapes;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
+import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -18,7 +19,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class ResonanceBufferBlock extends Block implements IBE<ResonanceBufferBlockEntity> {
+public class ResonanceBufferBlock extends Block implements IBE<ResonanceBufferBlockEntity>, IWrenchable {
     public static int countInContraption(BearingContraption contraption) {
         var count = 0;
         for (var info : contraption.getBlocks().values()) {
