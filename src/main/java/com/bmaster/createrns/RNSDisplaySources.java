@@ -1,6 +1,7 @@
 package com.bmaster.createrns;
 
 import com.bmaster.createrns.content.deposit.mining.display.CompactMinerStatusDisplaySource;
+import com.bmaster.createrns.content.deposit.mining.display.EstimatedMinerProductionRatesDisplaySource;
 import com.bmaster.createrns.content.deposit.mining.display.FullMinerStatusDisplaySource;
 import com.simibubi.create.api.behaviour.display.DisplaySource;
 import com.tterrag.registrate.util.entry.RegistryEntry;
@@ -22,6 +23,12 @@ public class RNSDisplaySources {
                     .onRegisterAfter(Registries.BLOCK_ENTITY_TYPE, source ->
                             DisplaySource.BY_BLOCK_ENTITY.add(RNSBlockEntities.MINER_BEARING.get(), source))
                     .register();
+    public static final RegistryEntry<DisplaySource, EstimatedMinerProductionRatesDisplaySource>
+            ESTIMATED_MINER_PRODUCTION_RATES = CreateRNS.REGISTRATE
+            .displaySource("estimated_miner_production_rates", EstimatedMinerProductionRatesDisplaySource::new)
+            .onRegisterAfter(Registries.BLOCK_ENTITY_TYPE, source ->
+                    DisplaySource.BY_BLOCK_ENTITY.add(RNSBlockEntities.MINER_BEARING.get(), source))
+            .register();
 
     public static void register() {
     }

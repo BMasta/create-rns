@@ -24,6 +24,8 @@ public class FullMinerStatusDisplaySource extends DisplaySource {
 
         var behaviour = bearing.miningBehaviour;
         var stats = behaviour.stats;
+        var claimedBlocks = behaviour.getClaimedDepositBlocks();
+        boolean claimed = claimedBlocks != null && !claimedBlocks.isEmpty();
         int minedPercentage = MinerDisplaySourceFormatter.percentage(
                 stats.consumedResources, stats.consumedResources + stats.remainingResources);
         int uptimePercentage = MinerDisplaySourceFormatter.percentage(
@@ -32,11 +34,16 @@ public class FullMinerStatusDisplaySource extends DisplaySource {
         return List.of(
                 CreateRNS.translatable("display_source.full_miner_status.status",
                         MinerDisplaySourceFormatter.getStatus(bearing, behaviour)),
-                CreateRNS.translatable("display_source.full_miner_status.resources_mined",
-                        MinerDisplaySourceFormatter.formatResources(stats.minedResources), minedPercentage),
-                CreateRNS.translatable("display_source.full_miner_status.resources_remaining",
-                        MinerDisplaySourceFormatter.formatResources(stats.remainingResources)),
-                CreateRNS.translatable("display_source.full_miner_status.uptime", uptimePercentage)
+                CreateRNS.translatable("display_source.full_miner_status.uptime", uptimePercentage),
+                claimed ?
+                        CreateRNS.translatable("display_source.full_miner_status.mined_resources_with_percentage",
+                        MinerDisplaySourceFormatter.formatResources(stats.minedResources), minedPercentage)
+                        : CreateRNS.translatable("display_source.full_miner_status.mined_resources",
+                        MinerDisplaySourceFormatter.formatResources(stats.minedResources)),
+                claimed && stats.remainingResources == 0
+                        ? CreateRNS.translatable("display_source.full_miner_status.infinite_resources")
+                        : CreateRNS.translatable("display_source.full_miner_status.remaining_resources",
+                        MinerDisplaySourceFormatter.formatResources(stats.remainingResources))
         );
     }
 
