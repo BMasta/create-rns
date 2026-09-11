@@ -43,10 +43,10 @@ public class CompactMinerStatusDisplaySourceGameTest {
 
     private static final List<String> EXPECTED_LINES = List.of(
             "Not Assembled",
-            "Not Assembled (0% uptime)",
+            "Not Assembled (100% uptime)",
             "Not Assembled (0 mined)",
             "Not Assembled (0 remaining)",
-            "Not Assembled (0% mined)"
+            "Not Assembled (100% mined)"
     );
 
     @GameTest(template = "empty16x16", timeoutTicks = 5)
