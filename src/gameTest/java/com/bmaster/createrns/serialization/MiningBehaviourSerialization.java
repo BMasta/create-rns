@@ -1,11 +1,13 @@
 package com.bmaster.createrns.serialization;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.RNSDisplaySources;
 import com.bmaster.createrns.content.deposit.mining.MiningProcess;
 import com.bmaster.createrns.util.CodecHelper;
 import com.bmaster.createrns.util.MinerSetup;
 import com.bmaster.createrns.util.MinerSetupBuilder;
 import com.simibubi.create.AllBlocks;
+import com.simibubi.create.api.behaviour.display.DisplaySource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -26,6 +28,10 @@ public class MiningBehaviourSerialization {
     private static final int SAVED_PROGRESS = 100_000;
     private static final int NEGATIVE_CLAIM_VERSION = -1;
     private static final long SYNCHRONIZED_REMAINING_USES = 12_345;
+    private static final long RESTORED_UPTIME = 1_234;
+    private static final long RESTORED_MINED_RESOURCES = 56;
+    private static final long RESTORED_CONSUMED_RESOURCES = 34;
+    private static final long RESTORED_REMAINING_RESOURCES = 78;
 
     @GameTest(template = "empty16x16", timeoutTicks = 15)
     public void claimingBehaviourDiskReplacesInitializedClaim(GameTestHelper helper) {
@@ -315,6 +321,63 @@ public class MiningBehaviourSerialization {
             restoredProcess.innerProcesses.forEach(innerProcess -> helper.assertTrue(
                     innerProcess.progress >= SAVED_PROGRESS, "Process should restore saved mining progress"));
             assertProcessMatchesClaim(helper, miner, restoredProcess);
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty16x16", timeoutTicks = 15)
+    public void contraptionMiningStatisticsSerializeAndDisplaySourceIsAssociated(GameTestHelper helper) {
+        var miner = createMiner(helper);
+        var sources = DisplaySource.getAll(helper.getLevel(), helper.absolutePos(miner.bearingPos()));
+        helper.assertTrue(sources.contains(RNSDisplaySources.COMPACT_MINER_STATUS.get()),
+                "Miner bearing should advertise compact status display support");
+
+        miner.assemble(TEST_RPM);
+        helper.runAtTickTime(2, () -> {
+            var behavior = miner.behavior();
+            var level = behavior.getLevel();
+            helper.assertTrue(behavior.stats.uptimeTicks > 0, "Assembled miner should record uptime");
+
+            var diskTag = new CompoundTag();
+            behavior.write(diskTag, false);
+            helper.assertTrue(diskTag.get("stats") instanceof CompoundTag,
+                    "Disk data should contain miner statistics");
+
+            var stats = diskTag.getCompound("stats");
+            helper.assertTrue(stats.contains("start_time"),
+                    "Assembled miner should record its statistics start time");
+            stats.putLong("start_time", helper.getLevel().getGameTime() - 100);
+            stats.putLong("uptime", RESTORED_UPTIME);
+            stats.putLong("mined_resources", RESTORED_MINED_RESOURCES);
+            stats.putLong("consumed_resources", RESTORED_CONSUMED_RESOURCES);
+            stats.putLong("remaining_resources", RESTORED_REMAINING_RESOURCES);
+            behavior.read(diskTag, false);
+
+            CodecHelper.assertValueEqual(helper, behavior.stats.elapsedTicks(level), 100L,
+                    "restored statistics elapsed time");
+            CodecHelper.assertValueEqual(helper, behavior.stats.uptimeTicks, RESTORED_UPTIME, "restored uptime");
+            CodecHelper.assertValueEqual(helper, behavior.stats.minedResources, RESTORED_MINED_RESOURCES,
+                    "restored mined resources");
+            CodecHelper.assertValueEqual(helper, behavior.stats.consumedResources, RESTORED_CONSUMED_RESOURCES,
+                    "restored consumed resources");
+            CodecHelper.assertValueEqual(helper, behavior.stats.remainingResources, RESTORED_REMAINING_RESOURCES,
+                    "restored remaining resources");
+
+            miner.bearing().disassemble();
+            CodecHelper.assertValueEqual(helper, behavior.stats.elapsedTicks(level), 0L,
+                    "statistics elapsed time after disassembly");
+            CodecHelper.assertValueEqual(helper, behavior.stats.uptimeTicks, 0L, "uptime after disassembly");
+            CodecHelper.assertValueEqual(helper, behavior.stats.minedResources, 0L, "mined resources after disassembly");
+            CodecHelper.assertValueEqual(helper, behavior.stats.consumedResources, 0L,
+                    "consumed resources after disassembly");
+            CodecHelper.assertValueEqual(helper, behavior.stats.remainingResources, 0L,
+                    "remaining resources after disassembly");
+
+            var resetTag = new CompoundTag();
+            behavior.write(resetTag, false);
+            var resetStats = resetTag.getCompound("stats");
+            helper.assertFalse(resetStats.contains("start_time"),
+                    "Disassembled miner should not retain a statistics start time");
             helper.succeed();
         });
     }

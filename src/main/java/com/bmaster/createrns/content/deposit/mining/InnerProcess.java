@@ -53,17 +53,10 @@ public class InnerProcess {
 
         progress = progress - maxProgress; // Keep the extra progress
 
-        // Use a random deposit block.
-        // This can trigger an area reclaim for the process holder, which would invalidate the current process.
-        // Regardless, this method can still finish and return the collected items before the process is destroyed.
-        var rollDep = level.random.nextIntBetweenInclusive(0, depositPositions.size() - 1);
-        if (!DepositDurabilityManager.useDepositBlock(sl, depositPositions.get(rollDep),
-                recipe.getReplacementBlock().defaultBlockState())) return Set.of();
-
-        // For each yield: use all of its catalysts, then roll for success and add to collection queue if successful
+        // For each yield, simulate using catalysts and roll for spoils
         var spoils = new HashSet<ItemStack>();
         var yields = recipe.getYields();
-        var chances = catalystHandler.useCatalysts(false);
+        var chances = catalystHandler.useCatalysts(true);
         for (var e : chances.int2FloatEntrySet()) {
             int yieldIdx = e.getIntKey();
             float chance = e.getFloatValue();
@@ -78,6 +71,19 @@ public class InnerProcess {
                 }
             }
         }
+
+        if (spoils.isEmpty()) return spoils;
+
+        // Use a random deposit block.
+        // This can trigger an area reclaim for the process holder, which would invalidate the current process.
+        // Regardless, this method can still finish and return the collected items before the process is destroyed.
+        var rollDep = level.random.nextIntBetweenInclusive(0, depositPositions.size() - 1);
+        if (!DepositDurabilityManager.useDepositBlock(sl, depositPositions.get(rollDep),
+                recipe.getReplacementBlock().defaultBlockState())) return Set.of();
+        if (remainingUses > 0) remainingUses--;
+
+        // Use catalysts
+        catalystHandler.useCatalysts(false);
 
         return spoils;
     }

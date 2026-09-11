@@ -8,6 +8,8 @@ import com.bmaster.createrns.content.deposit.mining.behaviour.MiningBehaviour;
 import com.bmaster.createrns.content.deposit.mining.contraption.attachment.MinerEquipmentManager;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.bmaster.createrns.infrastructure.ServerConfig;
+import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
+import com.simibubi.create.content.contraptions.actors.psi.PortableStorageInterfaceMovement;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
@@ -59,6 +61,18 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
         return mc != null && bearing.isRunning() && super.isMining();
     }
 
+    public boolean isTransferring() {
+        var movedContraption = bearing.getMovedContraption();
+        if (movedContraption == null || !movedContraption.isStalled()) return false;
+
+        return movedContraption.getContraption().getActors().stream().anyMatch(actor -> {
+            var context = actor.getRight();
+            var behaviour = MovementBehaviour.REGISTRY.get(actor.getLeft().state());
+            return behaviour instanceof PortableStorageInterfaceMovement
+                    && context != null && !context.disabled && context.stall;
+        });
+    }
+
     @Override
     public @Nullable BlockPos getOperatingStart() {
         if (equipment == null && !refreshEquipment()) return null;
@@ -98,12 +112,13 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     @Override
     public void collect() {
         if (process == null || (equipment == null && !refreshEquipment())) return;
-        var spoils = process.collect();
+        var spoils = process.collect(stats);
         for (var s : spoils) equipment.dropItem(s);
         if (!spoils.isEmpty()) {
             var level = getLevel();
             assert level != null;
             RNSSoundEvents.MINED.playServer(level, equipment.mineHeadTipPos);
+            kBE.setChanged();
         }
     }
 

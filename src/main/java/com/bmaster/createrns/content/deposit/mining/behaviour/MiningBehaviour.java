@@ -3,12 +3,14 @@ package com.bmaster.createrns.content.deposit.mining.behaviour;
 import com.bmaster.createrns.content.deposit.claiming.ClaimingBehaviour;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.mining.IDepositBlockMiner;
+import com.bmaster.createrns.content.deposit.mining.MiningStats;
 import com.bmaster.createrns.content.deposit.mining.MiningProcess;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.operating.IDepositBlockOperator;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -24,6 +26,8 @@ import java.util.function.Supplier;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public abstract class MiningBehaviour extends ClaimingBehaviour implements IDepositBlockMiner {
+    public final MiningStats stats = new MiningStats();
+
     protected final KineticBlockEntity kBE;
     protected @Nullable MinerSpec spec = null;
     protected @Nullable MiningProcess process = null;
@@ -70,6 +74,7 @@ public abstract class MiningBehaviour extends ClaimingBehaviour implements IDepo
 
     @Override
     public void tick() {
+        boolean miningAtStartOfTick = isMining();
         super.tick();
 
         var level = getLevel();
@@ -83,7 +88,15 @@ public abstract class MiningBehaviour extends ClaimingBehaviour implements IDepo
             claimDepositBlocks();
         }
 
-        if ((process == null && !tryInitProcess()) || level.isClientSide || !isMining()) return;
+        if (level.isClientSide) return;
+
+        // Update stats
+        if (stats.isStarted() && (miningAtStartOfTick || isMining())) {
+            stats.uptimeTicks++;
+            if (stats.uptimeTicks % SharedConstants.TICKS_PER_SECOND == 0) kBE.setChanged();
+        }
+
+        if ((process == null && !tryInitProcess()) || !isMining()) return;
 
         process.advance(getCurrentProgressIncrement());
         collect();
@@ -97,6 +110,7 @@ public abstract class MiningBehaviour extends ClaimingBehaviour implements IDepo
             var processNBT = process.write(clientPacket);
             if (processNBT != null) nbt.put("process", processNBT);
         }
+        nbt.put("stats", stats.serializeNBT());
     }
 
     @Override
@@ -104,9 +118,9 @@ public abstract class MiningBehaviour extends ClaimingBehaviour implements IDepo
         super.read(nbt, clientPacket);
 
         pendingProcessTag = null;
-        if (nbt.contains("process")) {
-            pendingProcessTag = new Tuple<>(nbt.getCompound("process"), clientPacket);
-        }
+        if (nbt.contains("process")) pendingProcessTag = new Tuple<>(nbt.getCompound("process"), clientPacket);
+
+        if (nbt.contains("stats")) stats.deserializeNBT(nbt.getCompound("stats"));
     }
 
     @Override
@@ -179,7 +193,7 @@ public abstract class MiningBehaviour extends ClaimingBehaviour implements IDepo
         var catalysts = getCatalysts();
         if (catalysts == null) return false;
 
-        process = new MiningProcess(level, catalysts, claimedDepositBlocks, savedProgress);
+        process = new MiningProcess(level, catalysts, claimedDepositBlocks, savedProgress, stats);
 
         // Deserialize process state from the pending tag
         if (pendingProcessTag != null) {
