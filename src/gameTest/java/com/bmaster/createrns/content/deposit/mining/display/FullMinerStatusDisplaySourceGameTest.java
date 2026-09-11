@@ -2,6 +2,7 @@ package com.bmaster.createrns.content.deposit.mining.display;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSDisplaySources;
+import com.bmaster.createrns.util.MinerSetup;
 import com.bmaster.createrns.util.MinerSetupBuilder;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllDisplayTargets;
@@ -19,6 +20,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.util.List;
+import java.util.Set;
 
 @GameTestHolder(CreateRNS.ID)
 @PrefixGameTestTemplate(false)
@@ -32,21 +34,28 @@ public class FullMinerStatusDisplaySourceGameTest {
     private static final BlockPos BEARING_POS = new BlockPos(5, 5, 5);
     private static final BlockPos DISPLAY_LINK_POS = BEARING_POS.east();
 
-    private static final List<String> EXPECTED_LINES = List.of(
+    private static final List<String> FINITE_RESOURCE_LINES = List.of(
             "Status: Mining",
-            "Resources mined: 12 (30%)",
-            "Resources remaining: 7",
-            "Uptime: 80%"
+            "Uptime: 80%",
+            "Mined Resources: 12 (30%)",
+            "Remaining Resources: 7"
+    );
+    private static final List<String> INFINITE_RESOURCE_LINES = List.of(
+            "Status: Mining",
+            "Uptime: 100%",
+            "Mined Resources: 0 (100%)",
+            "Remaining Resources: Infinite"
+    );
+    private static final List<String> OUT_OF_RESOURCES_LINES = List.of(
+            "Status: Out of Resources",
+            "Uptime: 100%",
+            "Mined Resources: 0",
+            "Remaining Resources: 0"
     );
 
     @GameTest(template = "empty16x16", timeoutTicks = 5)
     public void fullStatusProvidesFourUnlabeledRows(GameTestHelper helper) {
-        var miner = MinerSetupBuilder.create(helper)
-                .bearing(BEARING_POS.getX(), BEARING_POS.getY(), BEARING_POS.getZ())
-                .part(AllBlocks.ANDESITE_CASING.getDefaultState(), 5, 4, 5)
-                .head(5, 3, 5)
-                .deposit(5, 2, 5)
-                .place();
+        var miner = createMiner(helper);
         var displayLink = attachDisplayLink(helper);
         var config = new CompoundTag();
         config.putString("Label", "Miner A:");
@@ -67,17 +76,48 @@ public class FullMinerStatusDisplaySourceGameTest {
             statsTag.putLong("remaining_resources", REMAINING_RESOURCES);
             miner.behavior().stats.deserializeNBT(level.registryAccess(), statsTag);
 
-            var context = new DisplayLinkContext(level, displayLink);
-            var targetStats = new DisplayTargetStats(4, 128, AllDisplayTargets.NIXIE_TUBE.get());
-            var text = RNSDisplaySources.FULL_MINER_STATUS.get().provideText(context, targetStats);
-
-            helper.assertValueEqual(text.size(), EXPECTED_LINES.size(), "full status output row count");
-            for (int row = 0; row < EXPECTED_LINES.size(); row++) {
-                helper.assertValueEqual(text.get(row).getString(), EXPECTED_LINES.get(row),
-                        "full status output text at row " + row);
-            }
+            assertFullStatus(helper, displayLink, FINITE_RESOURCE_LINES);
             helper.succeed();
         });
+    }
+
+    @GameTest(template = "empty16x16", timeoutTicks = 5)
+    public void fullStatusDistinguishesInfiniteAndExhaustedResources(GameTestHelper helper) {
+        var miner = createMiner(helper);
+        var displayLink = attachDisplayLink(helper);
+        miner.assemble(TEST_RPM);
+
+        helper.runAtTickTime(2, () -> {
+            miner.behavior().stats.remainingResources = 0;
+            assertFullStatus(helper, displayLink, INFINITE_RESOURCE_LINES);
+
+            miner.behavior().setClaimedDepositBlocks(Set.of(), false);
+            assertFullStatus(helper, displayLink, OUT_OF_RESOURCES_LINES);
+            helper.succeed();
+        });
+    }
+
+    private static MinerSetup createMiner(GameTestHelper helper) {
+        return MinerSetupBuilder.create(helper)
+                .bearing(BEARING_POS.getX(), BEARING_POS.getY(), BEARING_POS.getZ())
+                .part(AllBlocks.ANDESITE_CASING.getDefaultState(), 5, 4, 5)
+                .head(5, 3, 5)
+                .deposit(5, 2, 5)
+                .place();
+    }
+
+    private static void assertFullStatus(
+            GameTestHelper helper, DisplayLinkBlockEntity displayLink, List<String> expectedLines
+    ) {
+        var context = new DisplayLinkContext(helper.getLevel(), displayLink);
+        var targetStats = new DisplayTargetStats(4, 128, AllDisplayTargets.NIXIE_TUBE.get());
+        var text = RNSDisplaySources.FULL_MINER_STATUS.get().provideText(context, targetStats);
+
+        helper.assertValueEqual(text.size(), expectedLines.size(), "full status output row count");
+        for (int row = 0; row < expectedLines.size(); row++) {
+            helper.assertValueEqual(text.get(row).getString(), expectedLines.get(row),
+                    "full status output text at row " + row);
+        }
     }
 
     private static DisplayLinkBlockEntity attachDisplayLink(GameTestHelper helper) {

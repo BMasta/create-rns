@@ -65,6 +65,8 @@ public class CompactMinerStatusDisplaySource extends SingleLineDisplaySource {
 
     private static MutableComponent getAdditionalMessage(Level level, MiningBehaviour behaviour, Style style) {
         var stats = behaviour.stats;
+        var claimedBlocks = behaviour.getClaimedDepositBlocks();
+        boolean claimed = claimedBlocks != null && !claimedBlocks.isEmpty();
         return switch (style) {
             case SIMPLE -> Component.empty();
             case UPTIME -> CreateRNS.translatable(
@@ -73,7 +75,10 @@ public class CompactMinerStatusDisplaySource extends SingleLineDisplaySource {
             case MINED_RESOURCES -> CreateRNS.translatable(
                     "display_source.compact_miner_status.message.mined_resources",
                     MinerDisplaySourceFormatter.formatResources(stats.minedResources));
-            case REMAINING_RESOURCES -> CreateRNS.translatable(
+            case REMAINING_RESOURCES -> claimed && stats.remainingResources == 0
+                    ? CreateRNS.translatable(
+                    "display_source.compact_miner_status.message.infinite_resources")
+                    : CreateRNS.translatable(
                     "display_source.compact_miner_status.message.remaining_resources",
                     MinerDisplaySourceFormatter.formatResources(stats.remainingResources));
             case MINED_PERCENTAGE -> CreateRNS.translatable(

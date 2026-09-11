@@ -104,6 +104,19 @@ public class CompactMinerStatusDisplaySourceGameTest {
         });
     }
 
+    @GameTest(template = "empty16x16", timeoutTicks = 5)
+    public void assembledMinerWithInfiniteResourcesReportsInfiniteRemaining(GameTestHelper helper) {
+        var miner = createMiner(helper);
+        var displayLink = attachDisplayLink(helper);
+        miner.assemble(TEST_RPM);
+
+        helper.runAtTickTime(2, () -> {
+            miner.behavior().stats.remainingResources = 0;
+            assertStatus(helper, displayLink, REMAINING_RESOURCES_STYLE, "Mining (infinite)");
+            helper.succeed();
+        });
+    }
+
     @GameTest(template = "empty16x16", timeoutTicks = 8)
     public void assembledMinerBelowRequiredRpmReportsTooSlow(GameTestHelper helper) {
         var miner = createMiner(helper);
