@@ -69,6 +69,7 @@ public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity
 
         running = true;
         angle = 0;
+        miningBehaviour.stats.start(level);
         sendData();
         updateGeneratedRotation();
 
@@ -78,7 +79,11 @@ public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity
     @Override
     public void disassemble() {
         super.disassemble();
-        if (!running) miningBehaviour.refresh();
+        if (running) return;
+
+        miningBehaviour.refresh();
+        miningBehaviour.stats.reset();
+        sendData();
     }
 
     @Override

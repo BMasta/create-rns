@@ -72,6 +72,7 @@ public class CreateRNS {
         RNSBlocks.register();
         RNSItems.register();
         RNSBlockEntities.register();
+        RNSDisplaySources.register();
         RNSRecipeTypes.register();
         RNSRecipes.register();
         RNSPacks.register();
