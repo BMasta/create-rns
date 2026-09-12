@@ -27,6 +27,7 @@ public class GoggleTooltipModifiers {
         if (!(c.target() instanceof IMinerHolderBE holder)) return false;
         var miner = holder.getMiner();
         var process = miner.getProcess();
+        var stats = miner.getStats();
         var claimedBlocks = miner.getClaimedDepositBlocks();
         if (process == null || claimedBlocks == null || claimedBlocks.isEmpty()) return false;
 
@@ -35,21 +36,20 @@ public class GoggleTooltipModifiers {
         }
         CreateRNS.lang().translate("mining.remaining_deposit_uses").forGoggles(tooltip);
 
-        process.innerProcesses.stream().sorted((a, b) -> {
-                    var au = (a.remainingUses == 0) ? Long.MAX_VALUE : a.remainingUses;
-                    var bu = (b.remainingUses == 0) ? Long.MAX_VALUE : b.remainingUses;
+        stats.remainingResources.object2LongEntrySet().stream().sorted((a, b) -> {
+                    var au = (a.getLongValue() == 0) ? Long.MAX_VALUE : a.getLongValue();
+                    var bu = (b.getLongValue() == 0) ? Long.MAX_VALUE : b.getLongValue();
                     // First sort by remaining uses
                     if (au != bu) return -Long.compare(au, bu);
                     // Then by deposit block id
-                    return a.recipe.getDepositBlock().getDescriptionId()
-                            .compareToIgnoreCase(b.recipe.getDepositBlock().getDescriptionId());
+                    return a.getKey().getDescriptionId().compareToIgnoreCase(b.getKey().getDescriptionId());
                 })
-                .forEachOrdered(p -> {
-                    var usesComp = (p.remainingUses > 0)
-                            ? Component.literal(Long.toString(p.remainingUses))
+                .forEachOrdered(e -> {
+                    var usesComp = (e.getLongValue() > 0)
+                            ? Component.literal(Long.toString(e.getLongValue()))
                             : CreateRNS.translatable("mining.infinite");
                     CreateRNS.lang()
-                            .add(p.recipe.getDepositBlock().getName()
+                            .add(e.getKey().getName()
                                     .append(": ")
                                     .withStyle(ChatFormatting.GRAY))
                             .add(usesComp

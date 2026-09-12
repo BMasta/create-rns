@@ -27,7 +27,6 @@ public class InnerProcess {
     public int progress;
     public final CatalystUsageStats catStats;
     public final CatalystHandler catalystHandler;
-    public long remainingUses;
 
     public InnerProcess(
             Level level, List<BlockPos> depositPositions, MiningRecipe recipe, int maxProgress, Set<Catalyst> catalysts
@@ -37,7 +36,6 @@ public class InnerProcess {
         this.recipe = recipe;
         this.maxProgress = maxProgress;
         this.progress = 0;
-        if (!level.isClientSide) computeRemainingUses(); // Server computes/syncs, client uses
         this.catStats = new CatalystUsageStats();
         this.catalystHandler = new CatalystHandler(level.registryAccess(), recipe, catalysts, catStats);
     }
@@ -47,7 +45,7 @@ public class InnerProcess {
         progress += by;
     }
 
-    public Set<ItemStack> collect() {
+    public Set<ItemStack> collect(MiningStats stats) {
         if (progress < maxProgress) return Set.of();
         if (!(level instanceof ServerLevel sl)) return Set.of();
 
@@ -80,7 +78,8 @@ public class InnerProcess {
         var rollDep = level.random.nextIntBetweenInclusive(0, depositPositions.size() - 1);
         if (!DepositDurabilityManager.useDepositBlock(sl, depositPositions.get(rollDep),
                 recipe.getReplacementBlock().defaultBlockState())) return Set.of();
-        if (remainingUses > 0) remainingUses--;
+        if (stats.isStarted()) stats.remainingResources.computeIfPresent(recipe.getDepositBlock(),
+                (k, v) -> v > 0 ? v - 1 : v);
 
         // Use catalysts
         catalystHandler.useCatalysts(false);
@@ -93,11 +92,6 @@ public class InnerProcess {
         var dbRL = ForgeRegistries.BLOCKS.getKey(recipe.getDepositBlock());
         if (dbRL == null) return null;
         root.putString("deposit_block", dbRL.toString());
-
-        if (!level.isClientSide) {
-            computeRemainingUses();
-            root.putLong("remaining_uses", remainingUses);
-        }
 
         if (clientPacket) {
             if (!catStats.isChancesComputed()) {
@@ -113,10 +107,6 @@ public class InnerProcess {
     }
 
     public void read(CompoundTag nbt, boolean clientPacket) {
-        if (nbt.contains("remaining_uses")) {
-            this.remainingUses = nbt.getLong("remaining_uses");
-        }
-
         if (clientPacket && nbt.contains("catalyst_stats")) {
             this.catStats.deserializeNBT(nbt.getCompound("catalyst_stats"));
         }
@@ -125,17 +115,16 @@ public class InnerProcess {
     }
 
     /// Returns 0 if deposit is infinite. Only callable on server side
-    private void computeRemainingUses() {
-        if (!(level instanceof ServerLevel sl))
-            throw new IllegalStateException("Clients may not call this function");
-        AtomicBoolean infinite = new AtomicBoolean(false);
-        long totalDur = depositPositions.stream()
+    public long getRemainingResources() {
+        if (!(level instanceof ServerLevel sl)) throw new IllegalStateException("Clients may not call this function");
+        var infinite = new AtomicBoolean(false);
+        long total = depositPositions.stream()
                 .map(bp -> {
                     var dur = DepositDurabilityManager.getDepositBlockDurability(sl, bp);
                     if (dur == 0) infinite.set(true);
                     return dur;
                 })
                 .reduce(Long::sum).orElse(-1L);
-        remainingUses = infinite.get() ? 0 : totalDur;
+        return infinite.get() ? 0 : total;
     }
 }

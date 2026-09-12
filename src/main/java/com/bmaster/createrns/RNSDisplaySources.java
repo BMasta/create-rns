@@ -18,12 +18,12 @@ public class RNSDisplaySources {
                     .onRegisterAfter(Registries.BLOCK_ENTITY_TYPE, source ->
                             DisplaySource.BY_BLOCK_ENTITY.add(RNSBlockEntities.MINER_BEARING.get(), source))
                     .register();
-    public static final RegistryEntry<DisplaySource, FullMinerStatusDisplaySource> FULL_MINER_STATUS =
+    public static final RegistryEntry<FullMinerStatusDisplaySource> FULL_MINER_STATUS =
             CreateRNS.REGISTRATE.displaySource("full_miner_status", FullMinerStatusDisplaySource::new)
                     .onRegisterAfter(Registries.BLOCK_ENTITY_TYPE, source ->
                             DisplaySource.BY_BLOCK_ENTITY.add(RNSBlockEntities.MINER_BEARING.get(), source))
                     .register();
-    public static final RegistryEntry<DisplaySource, EstimatedMinerProductionRatesDisplaySource>
+    public static final RegistryEntry<EstimatedMinerProductionRatesDisplaySource>
             ESTIMATED_MINER_PRODUCTION_RATES = CreateRNS.REGISTRATE
             .displaySource("estimated_miner_production_rates", EstimatedMinerProductionRatesDisplaySource::new)
             .onRegisterAfter(Registries.BLOCK_ENTITY_TYPE, source ->

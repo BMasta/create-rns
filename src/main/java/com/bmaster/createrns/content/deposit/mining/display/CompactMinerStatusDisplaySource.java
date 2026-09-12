@@ -3,6 +3,7 @@ package com.bmaster.createrns.content.deposit.mining.display;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.mining.behaviour.MiningBehaviour;
 import com.bmaster.createrns.content.deposit.mining.contraption.MinerBearingBlockEntity;
+import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.simibubi.create.content.redstone.displayLink.DisplayLinkContext;
 import com.simibubi.create.content.redstone.displayLink.source.SingleLineDisplaySource;
 import com.simibubi.create.content.redstone.displayLink.target.DisplayTargetStats;
@@ -31,7 +32,8 @@ public class CompactMinerStatusDisplaySource extends SingleLineDisplaySource {
 
         var status = MinerDisplaySourceFormatter.getStatus(bearing, bearing.miningBehaviour);
         var style = Style.from(context.sourceConfig().getInt("style"));
-        if (style == Style.SIMPLE) return status;
+        if (style == Style.SIMPLE ||
+                ServerConfig.INFINITE_DEPOSITS.get() && style.hideWhenDepositsInfinite) return status;
 
         return status.append(" (")
                 .append(getAdditionalMessage(level, bearing.miningBehaviour, style))
@@ -65,40 +67,38 @@ public class CompactMinerStatusDisplaySource extends SingleLineDisplaySource {
 
     private static MutableComponent getAdditionalMessage(Level level, MiningBehaviour behaviour, Style style) {
         var stats = behaviour.stats;
-        var claimedBlocks = behaviour.getClaimedDepositBlocks();
-        boolean claimed = claimedBlocks != null && !claimedBlocks.isEmpty();
         return switch (style) {
             case SIMPLE -> Component.empty();
             case UPTIME -> CreateRNS.translatable(
                     "display_source.compact_miner_status.message.uptime",
-                    MinerDisplaySourceFormatter.percentage(stats.uptimeTicks, stats.elapsedTicks(level)));
-            case MINED_RESOURCES -> CreateRNS.translatable(
-                    "display_source.compact_miner_status.message.mined_resources",
-                    MinerDisplaySourceFormatter.formatResources(stats.minedResources));
-            case REMAINING_RESOURCES -> claimed && stats.remainingResources == 0
-                    ? CreateRNS.translatable(
-                    "display_source.compact_miner_status.message.infinite_resources")
-                    : CreateRNS.translatable(
-                    "display_source.compact_miner_status.message.remaining_resources",
-                    MinerDisplaySourceFormatter.formatResources(stats.remainingResources));
-            case MINED_PERCENTAGE -> CreateRNS.translatable(
-                    "display_source.compact_miner_status.message.mined_percentage",
-                    MinerDisplaySourceFormatter.percentage(
-                            stats.consumedResources, stats.consumedResources + stats.remainingResources));
+                    MinerDisplaySourceFormatter.formattedPercentage(
+                            stats.getUptimeTicks(), stats.getElapsedTicks(level),
+                            MinerDisplaySourceFormatter.NOT_COMPUTED));
+            case MINED -> CreateRNS.translatable(
+                    "display_source.compact_miner_status.message.mined",
+                    MinerDisplaySourceFormatter.formatCount(stats.minedResources));
+            case CONSUMED -> CreateRNS.translatable(
+                    "display_source.compact_miner_status.message.consumed",
+                    MinerDisplaySourceFormatter.formatCount(stats.consumedResources));
+            case REMAINING -> CreateRNS.translatable(
+                    "display_source.compact_miner_status.message.remaining",
+                    MinerDisplaySourceFormatter.formatCount(stats.getTotalRemainingResources()));
         };
     }
 
     private enum Style {
-        SIMPLE("simple"),
-        UPTIME("uptime"),
-        MINED_RESOURCES("mined_resources"),
-        REMAINING_RESOURCES("remaining_resources"),
-        MINED_PERCENTAGE("mined_percentage");
+        SIMPLE("simple", false),
+        UPTIME("uptime", false),
+        MINED("mined", false),
+        CONSUMED("consumed", true),
+        REMAINING("remaining", true);
 
         private final String translationKey;
+        private final boolean hideWhenDepositsInfinite;
 
-        Style(String translationKey) {
+        Style(String translationKey, boolean hideWhenDepositsInfinite) {
             this.translationKey = translationKey;
+            this.hideWhenDepositsInfinite = hideWhenDepositsInfinite;
         }
 
         public static Style from(int ordinal) {

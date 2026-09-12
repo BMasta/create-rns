@@ -1,7 +1,11 @@
 package com.bmaster.createrns.content.deposit.mining.display;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.RNSDeposits;
 import com.bmaster.createrns.RNSDisplaySources;
+import com.bmaster.createrns.content.deposit.mining.MiningStats;
+import com.bmaster.createrns.infrastructure.ServerConfig;
+import com.bmaster.createrns.util.CodecHelper;
 import com.bmaster.createrns.util.MinerSetup;
 import com.bmaster.createrns.util.MinerSetupBuilder;
 import com.simibubi.create.AllBlocks;
@@ -13,11 +17,12 @@ import com.simibubi.create.content.redstone.displayLink.DisplayLinkContext;
 import com.simibubi.create.content.redstone.displayLink.target.DisplayTargetStats;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 import java.util.List;
 import java.util.Set;
@@ -37,24 +42,25 @@ public class FullMinerStatusDisplaySourceGameTest {
     private static final List<String> FINITE_RESOURCE_LINES = List.of(
             "Status: Mining",
             "Uptime: 80%",
-            "Mined Resources: 12 (30%)",
-            "Remaining Resources: 7"
+            "Mined: 12",
+            "Consumed: 3",
+            "Remaining: 7"
     );
     private static final List<String> INFINITE_RESOURCE_LINES = List.of(
             "Status: Mining",
-            "Uptime: 100%",
-            "Mined Resources: 0 (100%)",
-            "Remaining Resources: Infinite"
+            "Uptime: ...",
+            "Mined: 0"
     );
     private static final List<String> OUT_OF_RESOURCES_LINES = List.of(
             "Status: Out of Resources",
-            "Uptime: 100%",
-            "Mined Resources: 0",
-            "Remaining Resources: 0"
+            "Uptime: ...",
+            "Mined: 0",
+            "Consumed: 0",
+            "Remaining: 0"
     );
 
     @GameTest(template = "empty16x16", timeoutTicks = 5)
-    public void fullStatusProvidesFourUnlabeledRows(GameTestHelper helper) {
+    public void fullStatusProvidesFiveUnlabeledRowsForFiniteDeposits(GameTestHelper helper) {
         var miner = createMiner(helper);
         var displayLink = attachDisplayLink(helper);
         var config = new CompoundTag();
@@ -69,30 +75,34 @@ public class FullMinerStatusDisplaySourceGameTest {
         helper.runAtTickTime(2, () -> {
             var level = helper.getLevel();
             var statsTag = new CompoundTag();
-            statsTag.putLong("start_time", level.getGameTime() - ELAPSED_TICKS);
+            statsTag.putLong("start_time",
+                    level.getGameTime() - MiningStats.UPTIME_GRACE_PERIOD_TICKS - ELAPSED_TICKS);
             statsTag.putLong("uptime", UPTIME_TICKS);
             statsTag.putLong("mined_resources", MINED_RESOURCES);
             statsTag.putLong("consumed_resources", CONSUMED_RESOURCES);
-            statsTag.putLong("remaining_resources", REMAINING_RESOURCES);
-            miner.behavior().stats.deserializeNBT(level.registryAccess(), statsTag);
+            var remainingResources = new CompoundTag();
+            remainingResources.putLong(
+                    BuiltInRegistries.BLOCK.getKey(RNSDeposits.DEPLETED_DEPOSIT.get()).toString(),
+                    REMAINING_RESOURCES);
+            statsTag.put("remaining_resources", remainingResources);
+            miner.behavior().stats.deserializeNBT(statsTag);
 
-            assertFullStatus(helper, displayLink, FINITE_RESOURCE_LINES);
+            withInfiniteDeposits(false, () -> assertFullStatus(helper, displayLink, FINITE_RESOURCE_LINES));
             helper.succeed();
         });
     }
 
     @GameTest(template = "empty16x16", timeoutTicks = 5)
-    public void fullStatusDistinguishesInfiniteAndExhaustedResources(GameTestHelper helper) {
+    public void fullStatusHidesFiniteResourceRowsWhenDepositsAreInfinite(GameTestHelper helper) {
         var miner = createMiner(helper);
         var displayLink = attachDisplayLink(helper);
         miner.assemble(TEST_RPM);
 
         helper.runAtTickTime(2, () -> {
-            miner.behavior().stats.remainingResources = 0;
-            assertFullStatus(helper, displayLink, INFINITE_RESOURCE_LINES);
+            withInfiniteDeposits(true, () -> assertFullStatus(helper, displayLink, INFINITE_RESOURCE_LINES));
 
-            miner.behavior().setClaimedDepositBlocks(Set.of(), false);
-            assertFullStatus(helper, displayLink, OUT_OF_RESOURCES_LINES);
+            miner.behavior().setClaimedDepositBlocks(Set.of());
+            withInfiniteDeposits(false, () -> assertFullStatus(helper, displayLink, OUT_OF_RESOURCES_LINES));
             helper.succeed();
         });
     }
@@ -110,12 +120,12 @@ public class FullMinerStatusDisplaySourceGameTest {
             GameTestHelper helper, DisplayLinkBlockEntity displayLink, List<String> expectedLines
     ) {
         var context = new DisplayLinkContext(helper.getLevel(), displayLink);
-        var targetStats = new DisplayTargetStats(4, 128, AllDisplayTargets.NIXIE_TUBE.get());
+        var targetStats = new DisplayTargetStats(expectedLines.size(), 128, AllDisplayTargets.NIXIE_TUBE.get());
         var text = RNSDisplaySources.FULL_MINER_STATUS.get().provideText(context, targetStats);
 
-        helper.assertValueEqual(text.size(), expectedLines.size(), "full status output row count");
+        CodecHelper.assertValueEqual(helper, text.size(), expectedLines.size(), "full status output row count");
         for (int row = 0; row < expectedLines.size(); row++) {
-            helper.assertValueEqual(text.get(row).getString(), expectedLines.get(row),
+            CodecHelper.assertValueEqual(helper, text.get(row).getString(), expectedLines.get(row),
                     "full status output text at row " + row);
         }
     }
@@ -127,5 +137,15 @@ public class FullMinerStatusDisplaySourceGameTest {
         helper.assertTrue(blockEntity instanceof DisplayLinkBlockEntity,
                 "Expected a Display Link block entity next to the miner bearing");
         return (DisplayLinkBlockEntity) blockEntity;
+    }
+
+    private static void withInfiniteDeposits(boolean infiniteDeposits, Runnable action) {
+        boolean previousValue = ServerConfig.INFINITE_DEPOSITS.get();
+        ServerConfig.INFINITE_DEPOSITS.set(infiniteDeposits);
+        try {
+            action.run();
+        } finally {
+            ServerConfig.INFINITE_DEPOSITS.set(previousValue);
+        }
     }
 }

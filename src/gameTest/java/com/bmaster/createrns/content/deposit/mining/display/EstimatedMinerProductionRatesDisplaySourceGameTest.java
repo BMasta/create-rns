@@ -2,6 +2,7 @@ package com.bmaster.createrns.content.deposit.mining.display;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSDisplaySources;
+import com.bmaster.createrns.util.CodecHelper;
 import com.bmaster.createrns.util.MinerSetupBuilder;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllDisplayTargets;
@@ -17,8 +18,8 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Items;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 import java.util.List;
 import java.util.Locale;
@@ -53,7 +54,7 @@ public class EstimatedMinerProductionRatesDisplaySourceGameTest {
             process.innerProcesses.forEach(innerProcess -> innerProcess.catalystHandler.useCatalysts(true));
 
             var rates = process.getEstimatedRates(miner.behavior().getCurrentProgressIncrement());
-            helper.assertValueEqual(rates.size(), 1, "estimated production rate count");
+            CodecHelper.assertValueEqual(helper, rates.size(), 1, "estimated production rate count");
             helper.assertTrue(rates.containsKey(Items.COBBLESTONE),
                     "Depleted deposit should report cobblestone production");
 
@@ -105,9 +106,9 @@ public class EstimatedMinerProductionRatesDisplaySourceGameTest {
         var targetStats = new DisplayTargetStats(expectedLines.size(), 128, AllDisplayTargets.NIXIE_TUBE.get());
         var text = RNSDisplaySources.ESTIMATED_MINER_PRODUCTION_RATES.get().provideText(context, targetStats);
 
-        helper.assertValueEqual(text.size(), expectedLines.size(), "estimated production rate output row count");
+        CodecHelper.assertValueEqual(helper, text.size(), expectedLines.size(), "estimated production rate output row count");
         for (int row = 0; row < expectedLines.size(); row++) {
-            helper.assertValueEqual(text.get(row).getString(), expectedLines.get(row),
+            CodecHelper.assertValueEqual(helper, text.get(row).getString(), expectedLines.get(row),
                     "estimated production rate output text at row " + row);
         }
     }

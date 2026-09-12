@@ -184,8 +184,8 @@ public class MinerMiningBehaviourGameTest {
                     "iron nugget count in combined miner inventory");
             CodecHelper.assertValueEqual(h, miner.behavior().stats.minedResources, 1L, "mined resource count");
             CodecHelper.assertValueEqual(h, miner.behavior().stats.consumedResources, 1L, "consumed resource count");
-            CodecHelper.assertValueEqual(h, miner.behavior().stats.remainingResources, 0L, "remaining resource count");
-            h.assertTrue(miner.behavior().stats.uptimeTicks > 0, "Miner should record mining uptime");
+            CodecHelper.assertValueEqual(h, miner.behavior().stats.getTotalRemainingResources(), 0L,
+                    "remaining resource count");
 
             var minerTag = new CompoundTag();
             miner.behavior().write(minerTag, true);

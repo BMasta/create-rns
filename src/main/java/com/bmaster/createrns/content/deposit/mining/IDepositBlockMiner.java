@@ -14,6 +14,8 @@ public interface IDepositBlockMiner extends IDepositBlockClaimer {
 
     @Nullable Set<Catalyst> getCatalysts();
 
+    MiningStats getStats();
+
     boolean isMining();
 
     int getCurrentProgressIncrement();

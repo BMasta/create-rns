@@ -90,11 +90,8 @@ public abstract class MiningBehaviour extends ClaimingBehaviour implements IDepo
 
         if (level.isClientSide) return;
 
-        // Update stats
-        if (stats.isStarted() && (miningAtStartOfTick || isMining())) {
-            stats.uptimeTicks++;
-            if (stats.uptimeTicks % SharedConstants.TICKS_PER_SECOND == 0) kBE.setChanged();
-        }
+        if (stats.isStarted() && stats.updateUptimeTicks(level, miningAtStartOfTick || isMining()) &&
+                stats.getUptimeTicks() % SharedConstants.TICKS_PER_SECOND == 0) kBE.setChanged();
 
         if ((process == null && !tryInitProcess()) || !isMining()) return;
 
@@ -133,6 +130,11 @@ public abstract class MiningBehaviour extends ClaimingBehaviour implements IDepo
     public @Nullable MiningProcess getProcess() {
         if (!tryInitProcess()) return null;
         return process;
+    }
+
+    @Override
+    public MiningStats getStats() {
+        return stats;
     }
 
     @Override

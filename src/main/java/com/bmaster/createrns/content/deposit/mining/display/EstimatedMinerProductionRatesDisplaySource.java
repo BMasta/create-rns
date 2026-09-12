@@ -9,13 +9,13 @@ import com.simibubi.create.foundation.gui.ModularGuiLineBuilder;
 import it.unimi.dsi.fastutil.objects.Object2FloatMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.SharedConstants;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
@@ -79,8 +79,8 @@ public class EstimatedMinerProductionRatesDisplaySource extends DisplaySource {
         float secondRate = second.getFloatValue();
         if (firstRate != secondRate) return -Float.compare(firstRate, secondRate);
 
-        var firstId = BuiltInRegistries.ITEM.getKeyOrNull(first.getKey());
-        var secondId = BuiltInRegistries.ITEM.getKeyOrNull(second.getKey());
+        var firstId = ForgeRegistries.ITEMS.getKey(first.getKey());
+        var secondId = ForgeRegistries.ITEMS.getKey(second.getKey());
         if (firstId == null) return secondId == null ? 0 : 1;
         if (secondId == null) return -1;
         return firstId.toString().compareToIgnoreCase(secondId.toString());
