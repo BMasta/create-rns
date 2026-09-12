@@ -3,15 +3,16 @@ package com.bmaster.createrns.serialization;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSDisplaySources;
 import com.bmaster.createrns.content.deposit.mining.MiningProcess;
+import com.bmaster.createrns.content.deposit.mining.MiningStats;
 import com.bmaster.createrns.util.MinerSetup;
 import com.bmaster.createrns.util.MinerSetupBuilder;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.api.behaviour.display.DisplaySource;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -26,8 +27,9 @@ public class MiningBehaviourSerialization {
     private static final int TEST_RPM = 128;
     private static final int SAVED_PROGRESS = 100_000;
     private static final int NEGATIVE_CLAIM_VERSION = -1;
-    private static final long SYNCHRONIZED_REMAINING_USES = 12_345;
+    private static final long SYNCHRONIZED_REMAINING_RESOURCES = 12_345;
     private static final long RESTORED_UPTIME = 1_234;
+    private static final long RESTORED_ELAPSED_TICKS = 100;
     private static final long RESTORED_MINED_RESOURCES = 56;
     private static final long RESTORED_CONSUMED_RESOURCES = 34;
     private static final long RESTORED_REMAINING_RESOURCES = 78;
@@ -171,7 +173,9 @@ public class MiningBehaviourSerialization {
     }
 
     @GameTest(template = "empty16x16", timeoutTicks = 15)
-    public void miningBehaviourClientPacketRetainsProcessForUnchangedClaim(GameTestHelper helper) {
+    public void miningBehaviourClientPacketRetainsProcessAndSynchronizesStatsForUnchangedClaim(
+            GameTestHelper helper
+    ) {
         var miner = createMiner(helper);
         var originalProcess = new AtomicReference<MiningProcess>();
         miner.assemble(TEST_RPM);
@@ -188,15 +192,18 @@ public class MiningBehaviourSerialization {
             helper.assertTrue(clientPacket.contains("process"), "Client packet should contain mining process state");
             helper.assertTrue(clientPacket.getCompound("claimer").contains(CLAIMED_BLOCKS_VERSION_KEY),
                     "Client packet should contain the claimed-blocks version");
-            clientPacket.getCompound("process").getList("inner_processes", Tag.TAG_COMPOUND)
-                    .forEach(tag -> ((CompoundTag) tag).putLong("remaining_uses", SYNCHRONIZED_REMAINING_USES));
-            process.innerProcesses.forEach(innerProcess -> innerProcess.remainingUses = -1);
+
+            var depositBlock = process.innerProcesses.iterator().next().recipe.getDepositBlock();
+            var remainingResources = clientPacket.getCompound("stats").getCompound("remaining_resources");
+            remainingResources.putLong(BuiltInRegistries.BLOCK.getKey(depositBlock).toString(),
+                    SYNCHRONIZED_REMAINING_RESOURCES);
+            behavior.stats.remainingResources.put(depositBlock, -1);
 
             behavior.read(clientPacket, helper.getLevel().registryAccess(), true);
             helper.assertTrue(miner.process() == process,
                     "Client packet claim deserialization should remain deferred until the next behavior tick");
-            process.innerProcesses.forEach(innerProcess -> helper.assertValueEqual(
-                    innerProcess.remainingUses, -1L, "process state should remain deferred with the claim"));
+            helper.assertValueEqual(behavior.stats.remainingResources.getLong(depositBlock),
+                    SYNCHRONIZED_REMAINING_RESOURCES, "remaining resources synchronized with miner statistics");
         });
 
         helper.runAtTickTime(3, () -> {
@@ -206,8 +213,9 @@ public class MiningBehaviourSerialization {
             retainedProcess.innerProcesses.forEach(innerProcess -> {
                 helper.assertTrue(innerProcess.progress >= SAVED_PROGRESS,
                         "Client packet should not synchronize progress");
-                helper.assertValueEqual(innerProcess.remainingUses, SYNCHRONIZED_REMAINING_USES,
-                        "remaining uses synchronized without reconstructing the process");
+                helper.assertValueEqual(miner.behavior().stats.remainingResources.getLong(
+                                innerProcess.recipe.getDepositBlock()), SYNCHRONIZED_REMAINING_RESOURCES,
+                        "remaining resources retained without reconstructing the process");
             });
             assertProcessMatchesClaim(helper, miner, retainedProcess);
             helper.succeed();
@@ -368,7 +376,8 @@ public class MiningBehaviourSerialization {
         helper.runAtTickTime(2, () -> {
             var behavior = miner.behavior();
             var level = behavior.getLevel();
-            helper.assertTrue(behavior.stats.uptimeTicks > 0, "Assembled miner should record uptime");
+            helper.assertValueEqual(behavior.stats.getUptimeTicks(), 0L,
+                    "Assembled miner should ignore uptime during the grace period");
 
             var diskTag = new CompoundTag();
             behavior.write(diskTag, helper.getLevel().registryAccess(), false);
@@ -378,32 +387,44 @@ public class MiningBehaviourSerialization {
             var stats = diskTag.getCompound("stats");
             helper.assertTrue(stats.contains("start_time"),
                     "Assembled miner should record its statistics start time");
-            stats.putLong("start_time", helper.getLevel().getGameTime() - 100);
+            stats.putLong("start_time", helper.getLevel().getGameTime()
+                    - MiningStats.UPTIME_GRACE_PERIOD_TICKS - RESTORED_ELAPSED_TICKS);
             stats.putLong("uptime", RESTORED_UPTIME);
             stats.putLong("mined_resources", RESTORED_MINED_RESOURCES);
             stats.putLong("consumed_resources", RESTORED_CONSUMED_RESOURCES);
-            stats.putLong("remaining_resources", RESTORED_REMAINING_RESOURCES);
+            var process = behavior.getProcess();
+            helper.assertTrue(process != null, "Assembled miner should have a mining process");
+            var depositBlock = process.innerProcesses.iterator().next().recipe.getDepositBlock();
+            var remainingResources = new CompoundTag();
+            remainingResources.putLong(BuiltInRegistries.BLOCK.getKey(depositBlock).toString(),
+                    RESTORED_REMAINING_RESOURCES);
+            stats.put("remaining_resources", remainingResources);
             behavior.read(diskTag, helper.getLevel().registryAccess(), false);
 
-            helper.assertValueEqual(behavior.stats.elapsedTicks(level), 100L,
+            helper.assertValueEqual(behavior.stats.getElapsedTicks(level), RESTORED_ELAPSED_TICKS,
                     "restored statistics elapsed time");
-            helper.assertValueEqual(behavior.stats.uptimeTicks, RESTORED_UPTIME, "restored uptime");
+            helper.assertValueEqual(behavior.stats.getUptimeTicks(), RESTORED_UPTIME, "restored uptime");
             helper.assertValueEqual(behavior.stats.minedResources, RESTORED_MINED_RESOURCES,
                     "restored mined resources");
             helper.assertValueEqual(behavior.stats.consumedResources, RESTORED_CONSUMED_RESOURCES,
                     "restored consumed resources");
-            helper.assertValueEqual(behavior.stats.remainingResources, RESTORED_REMAINING_RESOURCES,
+            helper.assertValueEqual(behavior.stats.remainingResources.getLong(depositBlock),
+                    RESTORED_REMAINING_RESOURCES,
                     "restored remaining resources");
+            helper.assertFalse(behavior.stats.updateUptimeTicks(level, false),
+                    "Deserialization should not restart a completed uptime grace period");
+            helper.assertValueEqual(behavior.stats.getUptimeTicks(), RESTORED_UPTIME,
+                    "Uptime should remain unchanged while the restored miner is not mining");
 
             miner.bearing().disassemble();
-            helper.assertValueEqual(behavior.stats.elapsedTicks(level), 0L,
+            helper.assertValueEqual(behavior.stats.getElapsedTicks(level), 0L,
                     "statistics elapsed time after disassembly");
-            helper.assertValueEqual(behavior.stats.uptimeTicks, 0L, "uptime after disassembly");
+            helper.assertValueEqual(behavior.stats.getUptimeTicks(), 0L, "uptime after disassembly");
             helper.assertValueEqual(behavior.stats.minedResources, 0L, "mined resources after disassembly");
             helper.assertValueEqual(behavior.stats.consumedResources, 0L,
                     "consumed resources after disassembly");
-            helper.assertValueEqual(behavior.stats.remainingResources, 0L,
-                    "remaining resources after disassembly");
+            helper.assertTrue(behavior.stats.remainingResources.isEmpty(),
+                    "remaining resources should be empty after disassembly");
 
             var resetTag = new CompoundTag();
             behavior.write(resetTag, helper.getLevel().registryAccess(), false);

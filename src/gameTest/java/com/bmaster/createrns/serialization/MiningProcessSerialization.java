@@ -14,56 +14,33 @@ import net.minecraft.nbt.Tag;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 @GameTestHolder(CreateRNS.ID)
 @PrefixGameTestTemplate(false)
 public class MiningProcessSerialization {
     private static final BlockPos DEPOSIT_POS = new BlockPos(1, 1, 1);
-    private static final long REMAINING_USES = 55L;
+    private static final long REMAINING_RESOURCES = 55L;
     private static final int PROGRESS = 77;
 
     @GameTest(template = "empty16x16")
-    public void miningProcessDiskSerializationPreservesFiniteRemainingUses(GameTestHelper helper) {
-        withInfiniteDeposits(false, () -> assertDiskSerialization(helper, REMAINING_USES, true));
+    public void miningProcessInitializesFiniteRemainingResources(GameTestHelper helper) {
+        withInfiniteDeposits(false, () -> assertRemainingResourcesInitialization(helper, REMAINING_RESOURCES, true));
         helper.succeed();
     }
 
     @GameTest(template = "empty16x16")
-    public void miningProcessDiskSerializationPreservesInfiniteRemainingUses(GameTestHelper helper) {
-        withInfiniteDeposits(true, () -> assertDiskSerialization(helper, 0L, false));
+    public void miningProcessInitializesInfiniteRemainingResources(GameTestHelper helper) {
+        withInfiniteDeposits(true, () -> assertRemainingResourcesInitialization(helper, 0L, false));
         helper.succeed();
     }
 
     @GameTest(template = "empty16x16")
-    public void miningProcessClientPacketSerializationPreservesFiniteRemainingUses(GameTestHelper helper) {
-        withInfiniteDeposits(false, () -> assertClientPacketSerialization(helper, REMAINING_USES, true));
-        helper.succeed();
-    }
-
-    @GameTest(template = "empty16x16")
-    public void miningProcessClientPacketSerializationPreservesInfiniteRemainingUses(GameTestHelper helper) {
-        withInfiniteDeposits(true, () -> assertClientPacketSerialization(helper, 0L, false));
-        helper.succeed();
-    }
-
-    private static void assertDiskSerialization(
-            GameTestHelper helper, long expectedRemainingUses, boolean expectDurabilitySeeded
-    ) {
+    public void miningProcessDiskSerializationPreservesProgress(GameTestHelper helper) {
         var level = helper.getLevel();
         var provider = level.registryAccess();
-        var absoluteDepositPos = helper.absolutePos(DEPOSIT_POS);
-
-        helper.setBlock(DEPOSIT_POS, RNSDeposits.IRON_DEPOSIT.get().defaultBlockState());
-        boolean durabilitySeeded = DepositDurabilityManager.set(level, absoluteDepositPos, REMAINING_USES);
-        helper.assertValueEqual(durabilitySeeded, expectDurabilitySeeded,
-                "whether deposit durability seeding should succeed");
-
-        var stats = new MiningStats();
-        var original = new MiningProcess(level, Set.of(), Set.of(absoluteDepositPos), null, stats);
-        helper.assertTrue(original.isPossible(), "Mining process should initialize for a valid deposit block");
-        helper.assertValueEqual(stats.remainingResources, expectedRemainingUses,
-                "initialized remaining resources");
+        var original = createProcess(helper, null);
         firstInnerProcess(original).progress = PROGRESS;
 
         var serialized = original.write(provider, false);
@@ -71,35 +48,26 @@ public class MiningProcessSerialization {
 
         var serializedInnerProcess = serialized.getList("inner_processes", Tag.TAG_COMPOUND).getCompound(0);
         helper.assertTrue(serializedInnerProcess.contains("progress"), "Disk serialization should persist progress");
-        helper.assertValueEqual(serializedInnerProcess.getLong("remaining_uses"), expectedRemainingUses,
-                "serialized remaining uses");
+        helper.assertFalse(serializedInnerProcess.contains("remaining_uses"),
+                "Disk serialization should not persist remaining resources");
         helper.assertFalse(serializedInnerProcess.contains("catalyst_stats"),
                 "Disk serialization should not persist catalyst stats");
 
-        var restored = new MiningProcess(level, Set.of(), Set.of(absoluteDepositPos), null, null);
+        var restored = createProcess(helper, null);
         restored.read(serialized, provider, false);
         var restoredInnerProcess = firstInnerProcess(restored);
 
         helper.assertValueEqual(restoredInnerProcess.progress, PROGRESS, "restored mining progress");
-        helper.assertValueEqual(restoredInnerProcess.remainingUses, expectedRemainingUses, "restored remaining uses");
         helper.assertFalse(restoredInnerProcess.catStats.isChancesComputed(),
                 "Disk deserialization should not restore client-only catalyst stats");
+        helper.succeed();
     }
 
-    private static void assertClientPacketSerialization(
-            GameTestHelper helper, long expectedRemainingUses, boolean expectDurabilitySeeded
-    ) {
+    @GameTest(template = "empty16x16")
+    public void miningProcessClientPacketSerializationPreservesCatalystStats(GameTestHelper helper) {
         var level = helper.getLevel();
         var provider = level.registryAccess();
-        var absoluteDepositPos = helper.absolutePos(DEPOSIT_POS);
-
-        helper.setBlock(DEPOSIT_POS, RNSDeposits.IRON_DEPOSIT.get().defaultBlockState());
-        boolean durabilitySeeded = DepositDurabilityManager.set(level, absoluteDepositPos, REMAINING_USES);
-        helper.assertValueEqual(durabilitySeeded, expectDurabilitySeeded,
-                "whether deposit durability seeding should succeed");
-
-        var original = new MiningProcess(level, Set.of(), Set.of(absoluteDepositPos), null, null);
-        helper.assertTrue(original.isPossible(), "Mining process should initialize for a valid deposit block");
+        var original = createProcess(helper, null);
         firstInnerProcess(original).progress = PROGRESS;
 
         var serialized = original.write(provider, true);
@@ -108,20 +76,47 @@ public class MiningProcessSerialization {
         var serializedInnerProcess = serialized.getList("inner_processes", Tag.TAG_COMPOUND).getCompound(0);
         helper.assertFalse(serializedInnerProcess.contains("progress"),
                 "Client sync serialization should not persist progress");
-        helper.assertValueEqual(serializedInnerProcess.getLong("remaining_uses"), expectedRemainingUses,
-                "client sync serialized remaining uses");
+        helper.assertFalse(serializedInnerProcess.contains("remaining_uses"),
+                "Client sync serialization should not persist remaining resources");
         helper.assertTrue(serializedInnerProcess.contains("catalyst_stats"),
                 "Client sync serialization should include catalyst stats");
 
-        var restored = new MiningProcess(level, Set.of(), Set.of(absoluteDepositPos), null, null);
+        var restored = createProcess(helper, null);
         restored.read(serialized, provider, true);
         var restoredInnerProcess = firstInnerProcess(restored);
 
         helper.assertValueEqual(restoredInnerProcess.progress, 0, "client-synced mining progress");
-        helper.assertValueEqual(restoredInnerProcess.remainingUses, expectedRemainingUses,
-                "client-synced remaining uses");
         helper.assertTrue(restoredInnerProcess.catStats.isChancesComputed(),
                 "Client sync deserialization should restore catalyst stats");
+        helper.succeed();
+    }
+
+    private static void assertRemainingResourcesInitialization(
+            GameTestHelper helper, long expectedRemainingResources, boolean expectDurabilitySeeded
+    ) {
+        var level = helper.getLevel();
+        var absoluteDepositPos = helper.absolutePos(DEPOSIT_POS);
+        helper.setBlock(DEPOSIT_POS, RNSDeposits.IRON_DEPOSIT.get().defaultBlockState());
+
+        boolean durabilitySeeded = DepositDurabilityManager.set(level, absoluteDepositPos, REMAINING_RESOURCES);
+        helper.assertValueEqual(durabilitySeeded, expectDurabilitySeeded,
+                "whether deposit durability seeding should succeed");
+
+        var stats = new MiningStats();
+        var process = new MiningProcess(level, Set.of(), Set.of(absoluteDepositPos), null, stats);
+        helper.assertTrue(process.isPossible(), "Mining process should initialize for a valid deposit block");
+        helper.assertTrue(stats.remainingResources.containsKey(RNSDeposits.IRON_DEPOSIT.get()),
+                "Statistics should identify the initialized deposit block");
+        helper.assertValueEqual(stats.remainingResources.getLong(RNSDeposits.IRON_DEPOSIT.get()),
+                expectedRemainingResources, "initialized remaining resources");
+    }
+
+    private static MiningProcess createProcess(GameTestHelper helper, @Nullable MiningStats stats) {
+        var absoluteDepositPos = helper.absolutePos(DEPOSIT_POS);
+        helper.setBlock(DEPOSIT_POS, RNSDeposits.IRON_DEPOSIT.get().defaultBlockState());
+        var process = new MiningProcess(helper.getLevel(), Set.of(), Set.of(absoluteDepositPos), null, stats);
+        helper.assertTrue(process.isPossible(), "Mining process should initialize for a valid deposit block");
+        return process;
     }
 
     private static void withInfiniteDeposits(boolean infiniteDeposits, Runnable action) {

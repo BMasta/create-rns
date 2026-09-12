@@ -61,7 +61,7 @@ public class MiningProcess {
                 .filter(bp -> level.getBlockState(bp).getBlock().defaultBlockState().is(RNSBlockTags.DEPOSIT_BLOCKS))
                 .collect(Collectors.groupingBy(bp -> level.getBlockState(bp).getBlock(), Collectors.toList()));
 
-        long remainingResources = 0;
+        if (stats != null && !l.isClientSide) stats.remainingResources.clear();
         for (var e : depBlockCounts.entrySet()) {
             var db = e.getKey();
             var recipe = MiningRecipeLookup.find(level, db);
@@ -74,10 +74,9 @@ public class MiningProcess {
                 ip.progress = (int) (savedProgress.getFloat(db) * ip.maxProgress);
             }
             innerProcesses.add(ip);
-            remainingResources +=  ip.remainingUses;
+            // Clients receive remaining resources from the server
+            if (stats != null && !l.isClientSide) stats.remainingResources.put(db, ip.getRemainingResources());
         }
-        // Clients receive remaining resources from the server
-        if (!l.isClientSide && stats != null) stats.remainingResources = remainingResources;
     }
 
     public boolean isPossible() {
@@ -92,18 +91,16 @@ public class MiningProcess {
     public Set<ItemStack> collect(MiningStats stats) {
         boolean statsStarted = stats.isStarted();
         var spoils = new HashSet<ItemStack>();
-        long remainingResources = 0;
+
         for (var innerProcess : innerProcesses) {
-            boolean infinite = innerProcess.remainingUses == 0;
-            var ipSpoils = innerProcess.collect();
+            boolean infinite = stats.remainingResources.getLong(innerProcess.recipe.getDepositBlock()) == 0;
+            var ipSpoils = innerProcess.collect(stats);
             if (statsStarted && !ipSpoils.isEmpty()) {
                 stats.minedResources++;
                 if (!infinite) stats.consumedResources++;
             }
-            if (!infinite) remainingResources += innerProcess.remainingUses;
             spoils.addAll(ipSpoils);
         }
-        if (statsStarted) stats.remainingResources = remainingResources;
 
         return spoils;
     }

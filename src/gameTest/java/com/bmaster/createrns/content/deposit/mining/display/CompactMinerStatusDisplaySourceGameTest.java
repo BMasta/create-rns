@@ -3,6 +3,8 @@ package com.bmaster.createrns.content.deposit.mining.display;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSDeposits;
 import com.bmaster.createrns.RNSDisplaySources;
+import com.bmaster.createrns.content.deposit.mining.MiningStats;
+import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.bmaster.createrns.util.MinerSetup;
 import com.bmaster.createrns.util.MinerSetupBuilder;
 import com.simibubi.create.AllBlocks;
@@ -33,9 +35,9 @@ public class CompactMinerStatusDisplaySourceGameTest {
     private static final int TEST_RPM = 128;
     private static final int TOO_SLOW_RPM = 1;
     private static final int UPTIME_STYLE = 1;
-    private static final int MINED_RESOURCES_STYLE = 2;
-    private static final int REMAINING_RESOURCES_STYLE = 3;
-    private static final int MINED_PERCENTAGE_STYLE = 4;
+    private static final int MINED_STYLE = 2;
+    private static final int CONSUMED_STYLE = 3;
+    private static final int REMAINING_STYLE = 4;
     private static final long FINITE_REMAINING_RESOURCES = 9;
     private static final BlockPos BEARING_POS = new BlockPos(5, 5, 5);
     private static final BlockPos DISPLAY_LINK_POS = BEARING_POS.east();
@@ -43,10 +45,10 @@ public class CompactMinerStatusDisplaySourceGameTest {
 
     private static final List<String> EXPECTED_LINES = List.of(
             "Not Assembled",
-            "Not Assembled (100% uptime)",
+            "Not Assembled (... uptime)",
             "Not Assembled (0 mined)",
-            "Not Assembled (0 remaining)",
-            "Not Assembled (100% mined)"
+            "Not Assembled (0 consumed)",
+            "Not Assembled (0 remaining)"
     );
 
     @GameTest(template = "empty16x16", timeoutTicks = 5)
@@ -57,16 +59,18 @@ public class CompactMinerStatusDisplaySourceGameTest {
         var stats = new DisplayTargetStats(1, 128, AllDisplayTargets.NIXIE_TUBE.get());
         var source = RNSDisplaySources.COMPACT_MINER_STATUS.get();
 
-        for (int style = 0; style < EXPECTED_LINES.size(); style++) {
-            var config = new CompoundTag();
-            config.putInt("style", style);
-            displayLink.setSourceConfig(config);
+        withInfiniteDeposits(false, () -> {
+            for (int style = 0; style < EXPECTED_LINES.size(); style++) {
+                var config = new CompoundTag();
+                config.putInt("style", style);
+                displayLink.setSourceConfig(config);
 
-            var text = source.provideText(context, stats);
-            helper.assertValueEqual(text.size(), 1, "output row count for style " + style);
-            helper.assertValueEqual(text.getFirst().getString(), EXPECTED_LINES.get(style),
-                    "output text for style " + style);
-        }
+                var text = source.provideText(context, stats);
+                helper.assertValueEqual(text.size(), 1, "output row count for style " + style);
+                helper.assertValueEqual(text.getFirst().getString(), EXPECTED_LINES.get(style),
+                        "output text for style " + style);
+            }
+        });
 
         helper.succeed();
     }
@@ -105,14 +109,16 @@ public class CompactMinerStatusDisplaySourceGameTest {
     }
 
     @GameTest(template = "empty16x16", timeoutTicks = 5)
-    public void assembledMinerWithInfiniteResourcesReportsInfiniteRemaining(GameTestHelper helper) {
+    public void finiteResourceStylesAreHiddenWhenDepositsAreInfinite(GameTestHelper helper) {
         var miner = createMiner(helper);
         var displayLink = attachDisplayLink(helper);
         miner.assemble(TEST_RPM);
 
         helper.runAtTickTime(2, () -> {
-            miner.behavior().stats.remainingResources = 0;
-            assertStatus(helper, displayLink, REMAINING_RESOURCES_STYLE, "Mining (infinite)");
+            withInfiniteDeposits(true, () -> {
+                assertStatus(helper, displayLink, CONSUMED_STYLE, "Mining");
+                assertStatus(helper, displayLink, REMAINING_STYLE, "Mining");
+            });
             helper.succeed();
         });
     }
@@ -125,7 +131,7 @@ public class CompactMinerStatusDisplaySourceGameTest {
 
         helper.runAtTickTime(2, () -> {
             assertSimpleStatus(helper, displayLink, "Mining");
-            assertStatus(helper, displayLink, UPTIME_STYLE, "Mining (100% uptime)");
+            assertStatus(helper, displayLink, UPTIME_STYLE, "Mining (... uptime)");
 
             var blockEntity = helper.getLevel().getBlockEntity(helper.absolutePos(miner.motorPos()));
             helper.assertTrue(blockEntity instanceof CreativeMotorBlockEntity,
@@ -139,6 +145,32 @@ public class CompactMinerStatusDisplaySourceGameTest {
             helper.assertFalse(miner.bearing().isSpeedRequirementFulfilled(),
                     "Miner RPM should not fulfill its speed requirement");
             assertSimpleStatus(helper, displayLink, "Too Slow");
+            assertStatus(helper, displayLink, UPTIME_STYLE, "Too Slow (... uptime)");
+            helper.assertValueEqual(miner.behavior().stats.getUptimeTicks(), 0L,
+                    "Uptime should be ignored during the grace period");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty16x16", timeoutTicks = MiningStats.UPTIME_GRACE_PERIOD_TICKS + 10)
+    public void uptimeGracePeriodEventuallyEnds(GameTestHelper helper) {
+        var miner = createMiner(helper);
+        miner.assemble(TEST_RPM);
+
+        helper.runAtTickTime(MiningStats.UPTIME_GRACE_PERIOD_TICKS - 1, () -> {
+            var stats = miner.behavior().stats;
+            helper.assertValueEqual(stats.getElapsedTicks(helper.getLevel()), 0L,
+                    "Elapsed time should be ignored during the grace period");
+            helper.assertValueEqual(stats.getUptimeTicks(), 0L,
+                    "Uptime should be ignored during the grace period");
+        });
+
+        helper.runAtTickTime(MiningStats.UPTIME_GRACE_PERIOD_TICKS + 5, () -> {
+            var stats = miner.behavior().stats;
+            helper.assertTrue(stats.getElapsedTicks(helper.getLevel()) > 0,
+                    "Elapsed time should be tracked after the grace period");
+            helper.assertTrue(stats.getUptimeTicks() > 0,
+                    "Mining uptime should be tracked after the grace period");
             helper.succeed();
         });
     }
@@ -196,7 +228,7 @@ public class CompactMinerStatusDisplaySourceGameTest {
     }
 
     @GameTest(template = "empty16x16", timeoutTicks = 5)
-    public void infiniteResourcesAreExcludedFromRemainingCountAndPercentage(GameTestHelper helper) {
+    public void infiniteResourcesAreExcludedFromFiniteResourceCounts(GameTestHelper helper) {
         var miner = createMixedResourceMiner(helper);
         var displayLink = attachDisplayLink(helper);
         miner.assemble(TEST_RPM);
@@ -215,29 +247,33 @@ public class CompactMinerStatusDisplaySourceGameTest {
                     .filter(innerProcess -> innerProcess.recipe.getDepositBlock() == RNSDeposits.IRON_DEPOSIT.get())
                     .findFirst()
                     .orElseThrow();
-            infiniteProcess.remainingUses = 0;
-            finiteProcess.remainingUses = FINITE_REMAINING_RESOURCES;
+            var remainingResources = miner.behavior().stats.remainingResources;
+            remainingResources.put(infiniteProcess.recipe.getDepositBlock(), 0);
+            remainingResources.put(finiteProcess.recipe.getDepositBlock(), FINITE_REMAINING_RESOURCES);
 
-            infiniteProcess.progress = infiniteProcess.maxProgress;
-            miner.behavior().collect();
+            withInfiniteDeposits(false, () -> {
+                infiniteProcess.progress = infiniteProcess.maxProgress;
+                miner.behavior().collect();
 
-            helper.assertValueEqual(miner.behavior().stats.minedResources, 1L,
-                    "total mined resources after mining an infinite resource");
-            helper.assertValueEqual(miner.behavior().stats.consumedResources, 0L,
-                    "consumed resources after mining an infinite resource");
-            assertStatus(helper, displayLink, MINED_RESOURCES_STYLE, "Mining (1 mined)");
-            assertStatus(helper, displayLink, REMAINING_RESOURCES_STYLE, "Mining (9 remaining)");
-            assertStatus(helper, displayLink, MINED_PERCENTAGE_STYLE, "Mining (0% mined)");
+                helper.assertValueEqual(miner.behavior().stats.minedResources, 1L,
+                        "total mined resources after mining an infinite resource");
+                helper.assertValueEqual(miner.behavior().stats.consumedResources, 0L,
+                        "consumed resources after mining an infinite resource");
+                assertStatus(helper, displayLink, MINED_STYLE, "Mining (1 mined)");
+                assertStatus(helper, displayLink, CONSUMED_STYLE, "Mining (0 consumed)");
+                assertStatus(helper, displayLink, REMAINING_STYLE, "Mining (9 remaining)");
 
-            finiteProcess.progress = finiteProcess.maxProgress;
-            miner.behavior().collect();
+                finiteProcess.progress = finiteProcess.maxProgress;
+                miner.behavior().collect();
 
-            helper.assertValueEqual(miner.behavior().stats.minedResources, 2L,
-                    "total mined resources after mining a finite resource");
-            helper.assertValueEqual(miner.behavior().stats.consumedResources, 1L,
-                    "consumed resources after mining a finite resource");
-            assertStatus(helper, displayLink, REMAINING_RESOURCES_STYLE, "Mining (8 remaining)");
-            assertStatus(helper, displayLink, MINED_PERCENTAGE_STYLE, "Mining (11% mined)");
+                helper.assertValueEqual(miner.behavior().stats.minedResources, 2L,
+                        "total mined resources after mining a finite resource");
+                helper.assertValueEqual(miner.behavior().stats.consumedResources, 1L,
+                        "consumed resources after mining a finite resource");
+                assertStatus(helper, displayLink, MINED_STYLE, "Mining (2 mined)");
+                assertStatus(helper, displayLink, CONSUMED_STYLE, "Mining (1 consumed)");
+                assertStatus(helper, displayLink, REMAINING_STYLE, "Mining (8 remaining)");
+            });
             helper.succeed();
         });
     }
@@ -279,6 +315,16 @@ public class CompactMinerStatusDisplaySourceGameTest {
         helper.assertTrue(blockEntity instanceof DisplayLinkBlockEntity,
                 "Expected a Display Link block entity next to the miner bearing");
         return (DisplayLinkBlockEntity) blockEntity;
+    }
+
+    private static void withInfiniteDeposits(boolean infiniteDeposits, Runnable action) {
+        boolean previousValue = ServerConfig.INFINITE_DEPOSITS.get();
+        ServerConfig.INFINITE_DEPOSITS.set(infiniteDeposits);
+        try {
+            action.run();
+        } finally {
+            ServerConfig.INFINITE_DEPOSITS.set(previousValue);
+        }
     }
 
     private static void assertSimpleStatus(
