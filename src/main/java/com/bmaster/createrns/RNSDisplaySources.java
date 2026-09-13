@@ -1,8 +1,9 @@
 package com.bmaster.createrns;
 
 import com.bmaster.createrns.content.deposit.mining.display.CompactMinerStatusDisplaySource;
-import com.bmaster.createrns.content.deposit.mining.display.EstimatedMinerProductionRatesDisplaySource;
+import com.bmaster.createrns.content.deposit.mining.display.EstimatedMinerRatesDisplaySource;
 import com.bmaster.createrns.content.deposit.mining.display.FullMinerStatusDisplaySource;
+import com.bmaster.createrns.content.deposit.mining.display.RemainingMinerResourcesDisplaySource;
 import com.simibubi.create.api.behaviour.display.DisplaySource;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -23,12 +24,17 @@ public class RNSDisplaySources {
                     .onRegisterAfter(Registries.BLOCK_ENTITY_TYPE, source ->
                             DisplaySource.BY_BLOCK_ENTITY.add(RNSBlockEntities.MINER_BEARING.get(), source))
                     .register();
-    public static final RegistryEntry<DisplaySource, EstimatedMinerProductionRatesDisplaySource>
-            ESTIMATED_MINER_PRODUCTION_RATES = CreateRNS.REGISTRATE
-            .displaySource("estimated_miner_production_rates", EstimatedMinerProductionRatesDisplaySource::new)
+    public static final RegistryEntry<DisplaySource, EstimatedMinerRatesDisplaySource>
+            ESTIMATED_MINER_RATES = CreateRNS.REGISTRATE
+            .displaySource("estimated_miner_rates", EstimatedMinerRatesDisplaySource::new)
             .onRegisterAfter(Registries.BLOCK_ENTITY_TYPE, source ->
                     DisplaySource.BY_BLOCK_ENTITY.add(RNSBlockEntities.MINER_BEARING.get(), source))
             .register();
+    public static final RegistryEntry<DisplaySource, RemainingMinerResourcesDisplaySource> REMAINING_MINER_RESOURCES =
+            CreateRNS.REGISTRATE.displaySource("remaining_miner_resources", RemainingMinerResourcesDisplaySource::new)
+                    .onRegisterAfter(Registries.BLOCK_ENTITY_TYPE, source ->
+                            DisplaySource.BY_BLOCK_ENTITY.add(RNSBlockEntities.MINER_BEARING.get(), source))
+                    .register();
 
     public static void register() {
     }
