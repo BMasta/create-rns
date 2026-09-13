@@ -18,6 +18,8 @@ import java.util.function.Function;
 final class MinerDisplaySourceFormatter {
     public static final Component NOT_COMPUTED =
             CreateRNS.translatable("display_source.not_computed");
+    public static final Component INFINITE =
+            CreateRNS.translatable("display_source.infinite");
 
     private static final Function<Integer, Component> PERCENTAGE = p ->
             CreateRNS.translatable("display_source.percentage", p);

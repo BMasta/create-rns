@@ -121,13 +121,16 @@ public class FullMinerStatusDisplaySourceGameTest {
     ) {
         var context = new DisplayLinkContext(helper.getLevel(), displayLink);
         var targetStats = new DisplayTargetStats(expectedLines.size(), 128, AllDisplayTargets.NIXIE_TUBE.get());
-        var text = RNSDisplaySources.FULL_MINER_STATUS.get().provideText(context, targetStats);
+        var source = RNSDisplaySources.FULL_MINER_STATUS.get();
+        var text = source.provideText(context, targetStats);
 
         CodecHelper.assertValueEqual(helper, text.size(), expectedLines.size(), "full status output row count");
         for (int row = 0; row < expectedLines.size(); row++) {
             CodecHelper.assertValueEqual(helper, text.get(row).getString(), expectedLines.get(row),
                     "full status output text at row " + row);
         }
+        MinerDisplaySourceGameTestAssertions.assertTwoColumnFlapText(
+                helper, context, source.provideFlapDisplayText(context, targetStats), expectedLines, "full status");
     }
 
     private static DisplayLinkBlockEntity attachDisplayLink(GameTestHelper helper) {

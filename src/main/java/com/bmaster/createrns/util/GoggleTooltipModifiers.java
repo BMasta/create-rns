@@ -13,7 +13,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
@@ -73,29 +72,15 @@ public class GoggleTooltipModifiers {
         }
 
         var rates = process.getEstimatedRates(miner.getCurrentProgressIncrement());
-        rates.object2FloatEntrySet().stream().sorted((a, b) -> {
-                    float av = a.getFloatValue();
-                    float bv = b.getFloatValue();
-                    // First sort by rate
-                    if (av != bv) return -Float.compare(av, bv);
-                    // Then by item id
-                    var arl = ForgeRegistries.ITEMS.getKey(a.getKey());
-                    var brl = ForgeRegistries.ITEMS.getKey(b.getKey());
-                    if (arl == null) return 1;
-                    if (brl == null) return -1;
-                    return arl.toString().compareToIgnoreCase(brl.toString());
-                })
-                .forEachOrdered(e ->
-                        CreateRNS.lang()
-                                .add(e.getKey().getDescription().copy()
-                                        .append(": ")
-                                        .withStyle(ChatFormatting.GRAY))
-                                .add(Component.literal(String.format(Locale.ROOT, "%.1f", e.getFloatValue()))
-                                        .append(CreateRNS.translatable("mining.per_hour"))
-                                        .withStyle(ChatFormatting.GREEN))
-                                .forGoggles(tooltip, 1)
-                );
-
+        for (var e : rates.entrySet()) {
+            CreateRNS.lang()
+                    .add(e.getKey().getDescription().copy()
+                            .append(": ")
+                            .withStyle(ChatFormatting.GRAY))
+                    .add(CreateRNS.translatable("mining.per_hour", String.format(Locale.ROOT, "%.1f", e.getValue()))
+                            .withStyle(ChatFormatting.GREEN))
+                    .forGoggles(tooltip, 1);
+        }
         addEstimationComponent(process.getRateEstimationStatus(), tooltip);
 
         return true;

@@ -26,11 +26,6 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -126,25 +121,38 @@ public class MiningProcess {
         return (allEstimated) ? RateEstimationStatus.ALL : RateEstimationStatus.NONE;
     }
 
-    public Object2FloatOpenHashMap<Item> getEstimatedRates(int progressPerTick) {
+    public LinkedHashMap<Item, Float> getEstimatedRates(int progressPerTick) {
         var rates = new Object2FloatOpenHashMap<Item>();
-        var progressPerHour = 60 * SharedConstants.TICKS_PER_MINUTE * progressPerTick;
 
         for (var p : innerProcesses) {
             if (!p.catStats.isChancesComputed()) continue;
             var ys = p.recipe.getYields();
-            float minesPerHour = (float) progressPerHour / p.maxProgress;
             for (int i = 0; i < ys.size(); ++i) {
                 float chance = p.catStats.getLastComputedChance(i);
                 if (chance <= 0f) continue;
                 var y = ys.get(i);
                 for (var wi : ys.get(i).items) {
-                    rates.addTo(wi.item, minesPerHour * wi.weight / y.getTotalWeight() * chance);
+                    rates.addTo(wi.item, (float) wi.weight / y.getTotalWeight() / p.maxProgress * chance);
                 }
             }
         }
 
-        return rates;
+        var progressPerHour = 60 * SharedConstants.TICKS_PER_MINUTE * progressPerTick;
+        return rates.object2FloatEntrySet().stream()
+                .sorted((first, second) -> {
+                    float firstRate = first.getFloatValue();
+                    float secondRate = second.getFloatValue();
+                    // First sort by rate
+                    if (firstRate != secondRate) return -Float.compare(firstRate, secondRate);
+                    // Then by item id
+                    var firstId = ForgeRegistries.ITEMS.getKey(first.getKey());
+                    var secondId = ForgeRegistries.ITEMS.getKey(second.getKey());
+                    if (firstId == null) return secondId == null ? 0 : 1;
+                    if (secondId == null) return -1;
+                    return firstId.toString().compareToIgnoreCase(secondId.toString());
+                })
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getFloatValue() * progressPerHour,
+                        (a, b) -> b, LinkedHashMap::new));
     }
 
     public Object2FloatOpenHashMap<Block> uninitialize() {
