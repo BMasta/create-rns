@@ -3,7 +3,7 @@ package com.bmaster.createrns.util;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.mining.IHaveAdaptiveGoggleInformation.Context;
 import com.bmaster.createrns.content.deposit.mining.IMinerHolderBE;
-import com.bmaster.createrns.content.deposit.mining.MiningProcess.RateEstimationStatus;
+import com.bmaster.createrns.content.deposit.mining.MiningStats.RateEstimationStatus;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.simibubi.create.content.kinetics.base.IRotate;
@@ -72,8 +72,7 @@ public class GoggleTooltipModifiers {
         }
 
         var stats = miner.getStats();
-        float uptimePercentage = (float) stats.getUptimeTicks() / stats.getElapsedTicks(process.level);
-        var rates = process.getEstimatedRates(miner.getCurrentProgressIncrement(), uptimePercentage);
+        var rates = stats.getEstimatedRates(process, miner.getCurrentProgressIncrement());
         for (var e : rates.entrySet()) {
             CreateRNS.lang()
                     .add(e.getKey().getDescription().copy()
@@ -83,7 +82,7 @@ public class GoggleTooltipModifiers {
                             .withStyle(ChatFormatting.GREEN))
                     .forGoggles(tooltip, 1);
         }
-        addEstimationComponent(process.getRateEstimationStatus(), tooltip);
+        addEstimationComponent(stats.getRateEstimationStatus(process), tooltip);
 
         return true;
     }
@@ -94,6 +93,7 @@ public class GoggleTooltipModifiers {
         var process = miner.getProcess();
         var spec = miner.getSpec();
         if (process == null || spec == null) return false;
+        var stats = miner.getStats();
 
         if (c.isFirstSection()) {
             CreateRNS.lang()
@@ -110,7 +110,7 @@ public class GoggleTooltipModifiers {
                 .forGoggles(tooltip);
 
         // Add descriptions contributed by active CRSes
-        var activeCRSes = process.getLastSatisfiedCRSes();
+        var activeCRSes = stats.getLastSatisfiedCRSes(process);
         for (var crs : activeCRSes) {
             var comp = CatalystRequirementSet.getNameComponent(activeCRSes, crs);
             if (comp != null) {
@@ -118,7 +118,7 @@ public class GoggleTooltipModifiers {
             }
         }
 
-        addEstimationComponent(process.getRateEstimationStatus(), tooltip);
+        addEstimationComponent(stats.getRateEstimationStatus(process), tooltip);
 
         return true;
     }

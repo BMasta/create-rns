@@ -5,7 +5,6 @@ import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystHandler;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystUsageStats;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -26,7 +25,6 @@ public class InnerProcess {
     public final MiningRecipe recipe;
     public int maxProgress;
     public int progress;
-    public final CatalystUsageStats catStats;
     public final CatalystHandler catalystHandler;
 
     public InnerProcess(
@@ -37,8 +35,7 @@ public class InnerProcess {
         this.recipe = recipe;
         this.maxProgress = maxProgress;
         this.progress = 0;
-        this.catStats = new CatalystUsageStats();
-        this.catalystHandler = new CatalystHandler(level.registryAccess(), recipe, catalysts, catStats);
+        this.catalystHandler = new CatalystHandler(recipe, catalysts);
     }
 
     public void advance(int by) {
@@ -55,7 +52,8 @@ public class InnerProcess {
         // For each yield, simulate using catalysts and roll for spoils
         var spoils = new HashSet<ItemStack>();
         var yields = recipe.getYields();
-        var chances = catalystHandler.useCatalysts(true);
+        var catalystStats = stats.catStats.ofInnerProcess(this);
+        var chances = catalystHandler.useCatalysts(catalystStats, true);
         for (var e : chances.int2FloatEntrySet()) {
             int yieldIdx = e.getIntKey();
             float chance = e.getFloatValue();
@@ -83,7 +81,7 @@ public class InnerProcess {
                 (k, v) -> v > 0 ? v - 1 : v);
 
         // Use catalysts
-        catalystHandler.useCatalysts(false);
+        catalystHandler.useCatalysts(catalystStats, false);
 
         return spoils;
     }
@@ -92,14 +90,6 @@ public class InnerProcess {
         CompoundTag root = new CompoundTag();
         var dbRL = BuiltInRegistries.BLOCK.getKey(recipe.getDepositBlock());
         root.putString("deposit_block", dbRL.toString());
-
-        if (clientPacket) {
-            if (!catStats.isChancesComputed()) {
-                // Simulate catalyst usage to collect initial stats
-                catalystHandler.useCatalysts(true);
-            }
-            root.put("catalyst_stats", catStats.serializeNBT(provider));
-        }
         if (!clientPacket) root.putInt("progress", progress);
 
         return root;
@@ -107,9 +97,6 @@ public class InnerProcess {
     }
 
     public void read(CompoundTag nbt, HolderLookup.Provider provider, boolean clientPacket) {
-        if (clientPacket && nbt.contains("catalyst_stats")) {
-            this.catStats.deserializeNBT(provider, nbt.getCompound("catalyst_stats"));
-        }
         if (!clientPacket) this.progress = nbt.getInt("progress");
 
     }

@@ -78,8 +78,7 @@ public class MinerRatesDisplaySource extends TwoColumnDisplaySource {
             if (process == null) return new LinkedHashMap<>();
             var stats = behaviour.stats;
             int increment = behaviour.isMining() ? behaviour.getCurrentProgressIncrement() : 0;
-            float uptimePercentage = (float) stats.getUptimeTicks() / stats.getElapsedTicks(process.level);
-            return process.getEstimatedRates(increment, uptimePercentage);
+            return stats.getEstimatedRates(process, increment);
         }
 
         private static LinkedHashMap<Item, Float> getActualRates(MinerBearingBlockEntity bearing) {

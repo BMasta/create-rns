@@ -198,23 +198,29 @@ public class MiningBehaviourSerialization {
                     "Client packet should contain the claimed-blocks version");
 
             var depositBlock = process.innerProcesses.iterator().next().recipe.getDepositBlock();
+            var depositId = BuiltInRegistries.BLOCK.getKey(depositBlock).toString();
             var remainingResources = clientPacket.getCompound("stats").getCompound("remaining_resources");
-            remainingResources.putLong(BuiltInRegistries.BLOCK.getKey(depositBlock).toString(),
-                    SYNCHRONIZED_REMAINING_RESOURCES);
+            remainingResources.putLong(depositId, SYNCHRONIZED_REMAINING_RESOURCES);
             var minedItems = clientPacket.getCompound("stats").getCompound("mined_items");
             helper.assertValueEqual(
                     minedItems.getLong(BuiltInRegistries.ITEM.getKey(Items.COBBLESTONE).toString()),
                     SYNCHRONIZED_MINED_ITEMS, "mined items serialized with miner statistics");
+            helper.assertTrue(clientPacket.getCompound("stats").getCompound("catalyst_usage").contains(depositId),
+                    "Catalyst usage should serialize with miner statistics");
             behavior.stats.remainingResources.put(depositBlock, -1);
+            behavior.stats.catStats.clear();
             behavior.stats.minedItems.put(Items.COBBLESTONE, -1);
 
             behavior.read(clientPacket, helper.getLevel().registryAccess(), true);
             helper.assertTrue(miner.process() == process,
                     "Client packet claim deserialization should remain deferred until the next behavior tick");
-            helper.assertValueEqual(behavior.stats.remainingResources.getLong(depositBlock),
+            helper.assertValueEqual(behavior.stats.remainingResources.ofDeposit(depositBlock),
                     SYNCHRONIZED_REMAINING_RESOURCES, "remaining resources synchronized with miner statistics");
             helper.assertValueEqual(behavior.stats.minedItems.getLong(Items.COBBLESTONE), SYNCHRONIZED_MINED_ITEMS,
                     "mined items synchronized with miner statistics");
+            var catalystStats = behavior.stats.catStats.ofDeposit(depositBlock);
+            helper.assertTrue(catalystStats.isComputed(),
+                    "Catalyst usage synchronized with miner statistics");
         });
 
         helper.runAtTickTime(3, () -> {
@@ -224,9 +230,12 @@ public class MiningBehaviourSerialization {
             retainedProcess.innerProcesses.forEach(innerProcess -> {
                 helper.assertTrue(innerProcess.progress >= SAVED_PROGRESS,
                         "Client packet should not synchronize progress");
-                helper.assertValueEqual(miner.behavior().stats.remainingResources.getLong(
-                                innerProcess.recipe.getDepositBlock()), SYNCHRONIZED_REMAINING_RESOURCES,
+                helper.assertValueEqual(miner.behavior().stats.remainingResources.ofInnerProcess(innerProcess),
+                        SYNCHRONIZED_REMAINING_RESOURCES,
                         "remaining resources retained without reconstructing the process");
+                var catalystStats = miner.behavior().stats.catStats.ofInnerProcess(innerProcess);
+                helper.assertTrue(catalystStats.isComputed(),
+                        "Catalyst usage retained without reconstructing the process");
             });
             helper.assertValueEqual(miner.behavior().stats.minedItems.getLong(Items.COBBLESTONE),
                     SYNCHRONIZED_MINED_ITEMS, "mined items retained without reconstructing the process");
@@ -408,9 +417,11 @@ public class MiningBehaviourSerialization {
             var process = behavior.getProcess();
             helper.assertTrue(process != null, "Assembled miner should have a mining process");
             var depositBlock = process.innerProcesses.iterator().next().recipe.getDepositBlock();
+            var depositId = BuiltInRegistries.BLOCK.getKey(depositBlock).toString();
+            helper.assertTrue(stats.getCompound("catalyst_usage").contains(depositId),
+                    "Disk data should contain catalyst usage statistics");
             var remainingResources = new CompoundTag();
-            remainingResources.putLong(BuiltInRegistries.BLOCK.getKey(depositBlock).toString(),
-                    RESTORED_REMAINING_RESOURCES);
+            remainingResources.putLong(depositId, RESTORED_REMAINING_RESOURCES);
             stats.put("remaining_resources", remainingResources);
             var minedItems = new CompoundTag();
             minedItems.putLong(BuiltInRegistries.ITEM.getKey(Items.COBBLESTONE).toString(), RESTORED_MINED_ITEMS);
@@ -424,11 +435,14 @@ public class MiningBehaviourSerialization {
                     "restored mined resources");
             helper.assertValueEqual(behavior.stats.consumedResources, RESTORED_CONSUMED_RESOURCES,
                     "restored consumed resources");
-            helper.assertValueEqual(behavior.stats.remainingResources.getLong(depositBlock),
+            helper.assertValueEqual(behavior.stats.remainingResources.ofDeposit(depositBlock),
                     RESTORED_REMAINING_RESOURCES,
                     "restored remaining resources");
             helper.assertValueEqual(behavior.stats.minedItems.getLong(Items.COBBLESTONE), RESTORED_MINED_ITEMS,
                     "restored mined item count");
+            var catalystStats = behavior.stats.catStats.ofDeposit(depositBlock);
+            helper.assertTrue(catalystStats.isComputed(),
+                    "restored catalyst usage statistics");
             helper.assertFalse(behavior.stats.updateUptimeTicks(level, false),
                     "Deserialization should not restart a completed uptime grace period");
             helper.assertValueEqual(behavior.stats.getUptimeTicks(), RESTORED_UPTIME,
@@ -443,6 +457,8 @@ public class MiningBehaviourSerialization {
                     "consumed resources after disassembly");
             helper.assertTrue(behavior.stats.remainingResources.isEmpty(),
                     "remaining resources should be empty after disassembly");
+            helper.assertTrue(behavior.stats.catStats.isEmpty(),
+                    "catalyst usage should be empty after disassembly");
             helper.assertTrue(behavior.stats.minedItems.isEmpty(), "mined items should be empty after disassembly");
 
             var resetTag = new CompoundTag();
@@ -452,6 +468,8 @@ public class MiningBehaviourSerialization {
                     "Disassembled miner should not retain a statistics start time");
             helper.assertTrue(resetStats.getCompound("mined_items").isEmpty(),
                     "Disassembled miner should not serialize mined items");
+            helper.assertTrue(resetStats.getCompound("catalyst_usage").isEmpty(),
+                    "Disassembled miner should not serialize catalyst usage");
             helper.succeed();
         });
     }

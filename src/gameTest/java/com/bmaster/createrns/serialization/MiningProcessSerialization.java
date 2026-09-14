@@ -58,13 +58,11 @@ public class MiningProcessSerialization {
         var restoredInnerProcess = firstInnerProcess(restored);
 
         helper.assertValueEqual(restoredInnerProcess.progress, PROGRESS, "restored mining progress");
-        helper.assertFalse(restoredInnerProcess.catStats.isChancesComputed(),
-                "Disk deserialization should not restore client-only catalyst stats");
         helper.succeed();
     }
 
     @GameTest(template = "empty16x16")
-    public void miningProcessClientPacketSerializationPreservesCatalystStats(GameTestHelper helper) {
+    public void miningProcessClientPacketSerializationOmitsServerOwnedState(GameTestHelper helper) {
         var level = helper.getLevel();
         var provider = level.registryAccess();
         var original = createProcess(helper, null);
@@ -78,16 +76,14 @@ public class MiningProcessSerialization {
                 "Client sync serialization should not persist progress");
         helper.assertFalse(serializedInnerProcess.contains("remaining_uses"),
                 "Client sync serialization should not persist remaining resources");
-        helper.assertTrue(serializedInnerProcess.contains("catalyst_stats"),
-                "Client sync serialization should include catalyst stats");
+        helper.assertFalse(serializedInnerProcess.contains("catalyst_stats"),
+                "Client sync process data should not include catalyst stats");
 
         var restored = createProcess(helper, null);
         restored.read(serialized, provider, true);
         var restoredInnerProcess = firstInnerProcess(restored);
 
         helper.assertValueEqual(restoredInnerProcess.progress, 0, "client-synced mining progress");
-        helper.assertTrue(restoredInnerProcess.catStats.isChancesComputed(),
-                "Client sync deserialization should restore catalyst stats");
         helper.succeed();
     }
 
@@ -107,8 +103,11 @@ public class MiningProcessSerialization {
         helper.assertTrue(process.isPossible(), "Mining process should initialize for a valid deposit block");
         helper.assertTrue(stats.remainingResources.containsKey(RNSDeposits.IRON_DEPOSIT.get()),
                 "Statistics should identify the initialized deposit block");
-        helper.assertValueEqual(stats.remainingResources.getLong(RNSDeposits.IRON_DEPOSIT.get()),
+        helper.assertValueEqual(stats.remainingResources.ofDeposit(RNSDeposits.IRON_DEPOSIT.get()),
                 expectedRemainingResources, "initialized remaining resources");
+        var catalystStats = stats.catStats.ofDeposit(RNSDeposits.IRON_DEPOSIT.get());
+        helper.assertTrue(catalystStats.isComputed(),
+                "Statistics should initialize catalyst usage for the deposit block");
     }
 
     private static MiningProcess createProcess(GameTestHelper helper, @Nullable MiningStats stats) {

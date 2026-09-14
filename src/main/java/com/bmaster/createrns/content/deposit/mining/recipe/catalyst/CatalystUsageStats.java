@@ -5,7 +5,6 @@ import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -21,11 +20,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class CatalystUsageStats implements INBTSerializable<CompoundTag> {
     public @Nullable ObjectOpenHashSet<ResourceLocation> lastTickedCRSes = null;
-    protected RegistryAccess access = RegistryAccess.EMPTY;
     protected @Nullable Int2FloatOpenHashMap lastChances = null;
-
-    public boolean isChancesComputed() {
-        return lastChances != null;
+    public boolean isComputed() {
+        return lastChances != null && lastTickedCRSes != null;
     }
 
     public float getLastComputedChance(int i) {
@@ -90,9 +87,5 @@ public class CatalystUsageStats implements INBTSerializable<CompoundTag> {
                 lastTickedCRSes.add(crsId);
             }
         }
-    }
-
-    protected void setRegistryAccess(RegistryAccess access) {
-        this.access = access;
     }
 }

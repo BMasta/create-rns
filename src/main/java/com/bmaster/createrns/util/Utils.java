@@ -7,10 +7,13 @@ import net.createmod.catnip.lang.LangBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Registry;
 import net.minecraft.core.Vec3i;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.text.DecimalFormat;
 import java.util.function.Function;
@@ -84,5 +87,11 @@ public class Utils {
 
     public static LangBuilder fancyChanceArg(float c) {
         return fancyArg(df.format(Math.min(c * 100, 100)) + "%");
+    }
+
+    public static <T> @Nullable T registryEntryFromString(Registry<T> registry, String idString) {
+        var id = ResourceLocation.tryParse(idString);
+        if (id == null) return null;
+        return registry.getOptional(id).orElse(null);
     }
 }

@@ -4,14 +4,12 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -19,31 +17,21 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Comparator;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class MiningProcess {
-    public enum RateEstimationStatus {
-        NONE, SOME, ALL
-    }
-
     // 1 mine per block per hour at 256 points per tick
     public static final int BASE_PROGRESS = 256 * 60 * SharedConstants.TICKS_PER_MINUTE;
     public final Set<InnerProcess> innerProcesses = new ObjectOpenHashSet<>();
@@ -63,7 +51,10 @@ public class MiningProcess {
                 .filter(bp -> level.getBlockState(bp).getBlock().defaultBlockState().is(RNSBlockTags.DEPOSIT_BLOCKS))
                 .collect(Collectors.groupingBy(bp -> level.getBlockState(bp).getBlock(), Collectors.toList()));
 
-        if (stats != null && !l.isClientSide) stats.remainingResources.clear();
+        if (stats != null && !l.isClientSide) {
+            stats.remainingResources.clear();
+            stats.catStats.clear();
+        }
         for (var e : depBlockCounts.entrySet()) {
             var db = e.getKey();
             var recipe = MiningRecipeLookup.find(level, db);
@@ -76,8 +67,11 @@ public class MiningProcess {
                 ip.progress = (int) (savedProgress.getFloat(db) * ip.maxProgress);
             }
             innerProcesses.add(ip);
-            // Clients receive remaining resources from the server
-            if (stats != null && !l.isClientSide) stats.remainingResources.put(db, ip.getRemainingResources());
+            // Clients receive stats from the server
+            if (stats != null && !l.isClientSide) {
+                stats.remainingResources.put(db, ip.getRemainingResources());
+                stats.catStats.recompute(ip);
+            }
         }
     }
 
@@ -95,7 +89,7 @@ public class MiningProcess {
         var spoils = new HashSet<ItemStack>();
 
         for (var innerProcess : innerProcesses) {
-            boolean infinite = stats.remainingResources.getLong(innerProcess.recipe.getDepositBlock()) == 0;
+            boolean infinite = stats.remainingResources.ofInnerProcess(innerProcess) == 0;
             var ipSpoils = innerProcess.collect(stats);
             if (statsStarted && !ipSpoils.isEmpty()) {
                 for (var stack : ipSpoils) stats.minedItems.addTo(stack.getItem(), stack.getCount());
@@ -108,65 +102,7 @@ public class MiningProcess {
         return spoils;
     }
 
-    public List<Holder<CatalystRequirementSet>> getLastSatisfiedCRSes() {
-        return innerProcesses.stream()
-                .flatMap(p ->
-                        (p.catStats.lastTickedCRSes != null) ? p.catStats.lastTickedCRSes.stream() : Stream.of())
-                .distinct()
-                .map(crsId -> CatalystRequirementSet.get(level.registryAccess(), crsId))
-                .sorted(Comparator.comparingInt(crs -> crs.value().displayPriority))
-                .toList();
-    }
-
-    public RateEstimationStatus getRateEstimationStatus() {
-        boolean anyEstimated = false;
-        boolean allEstimated = true;
-        for (var p : innerProcesses) {
-            if (!p.catStats.isChancesComputed()) allEstimated = false;
-            else anyEstimated = true;
-            if (anyEstimated && !allEstimated) return RateEstimationStatus.SOME;
-        }
-        return (allEstimated) ? RateEstimationStatus.ALL : RateEstimationStatus.NONE;
-    }
-
-    public LinkedHashMap<Item, Float> getEstimatedRates(int progressPerTick, float uptime) {
-        var rates = new Object2FloatOpenHashMap<Item>();
-
-        for (var p : innerProcesses) {
-            if (!p.catStats.isChancesComputed()) continue;
-            var ys = p.recipe.getYields();
-            for (int i = 0; i < ys.size(); ++i) {
-                float chance = p.catStats.getLastComputedChance(i);
-                if (chance <= 0f) continue;
-                var y = ys.get(i);
-                for (var wi : ys.get(i).items) {
-                    rates.addTo(wi.item, (float) wi.weight / y.getTotalWeight() / p.maxProgress * chance * uptime);
-                }
-            }
-        }
-
-        var progressPerHour = 60 * SharedConstants.TICKS_PER_MINUTE * progressPerTick;
-        return rates.object2FloatEntrySet().stream()
-                .sorted((first, second) -> {
-                    float firstRate = first.getFloatValue();
-                    float secondRate = second.getFloatValue();
-                    // First sort by rate
-                    if (firstRate != secondRate) return -Float.compare(firstRate, secondRate);
-                    // Then by item id
-                    var firstId = BuiltInRegistries.ITEM.getKeyOrNull(first.getKey());
-                    var secondId = BuiltInRegistries.ITEM.getKeyOrNull(second.getKey());
-                    if (firstId == null) return secondId == null ? 0 : 1;
-                    if (secondId == null) return -1;
-                    return firstId.toString().compareToIgnoreCase(secondId.toString());
-                })
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getFloatValue() * progressPerHour,
-                        (a, b) -> b, LinkedHashMap::new));
-    }
-
     public Object2FloatOpenHashMap<Block> uninitialize() {
-        for (var ip : innerProcesses) {
-            ip.catStats.clear();
-        }
         return innerProcesses.stream().collect(Collectors.toMap(
                 ip -> ip.recipe.getDepositBlock(),
                 ip -> ip.progress / (float) ip.maxProgress,

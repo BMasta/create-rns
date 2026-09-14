@@ -39,7 +39,7 @@ public class CatalystUsageStatsSerialization {
         var restored = new CatalystUsageStats();
         restored.deserializeNBT(provider, original.serializeNBT(provider));
 
-        helper.assertTrue(restored.isChancesComputed(), "Restored catalyst stats should have computed chances");
+        helper.assertTrue(restored.isComputed(), "Restored catalyst stats should be computed");
         assertFloat(helper, restored.getLastComputedChance(0), 1.0f, "first restored catalyst chance");
         assertFloat(helper, restored.getLastComputedChance(2), 0.35f, "second restored catalyst chance");
         helper.assertTrue(lastTickedCrses(restored).contains(CreateRNS.asResource("resonance")),
@@ -64,7 +64,7 @@ public class CatalystUsageStatsSerialization {
         var restored = new CatalystUsageStats();
         restored.deserializeNBT(helper.getLevel().registryAccess(), tag);
 
-        helper.assertTrue(restored.isChancesComputed(), "Legacy catalyst stats should still have computed chances");
+        helper.assertTrue(restored.isComputed(), "Legacy catalyst stats should still be computed");
         helper.assertTrue(lastTickedCrses(restored).contains(CreateRNS.asResource("resonance")),
                 "Legacy resonance id should map to the create_rns namespace");
         helper.assertTrue(lastTickedCrses(restored).contains(CreateRNS.asResource("overclock")),

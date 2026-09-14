@@ -51,7 +51,7 @@ public class MiningRecipeLookup {
     public static boolean isDepositMineable(Level l, Block depositBlock, Set<Catalyst> catalysts) {
         var recipe = find(l, depositBlock);
         if (recipe == null) return false;
-        return CatalystHandler.isMiningPossible(l.registryAccess(), recipe, catalysts);
+        return CatalystHandler.isMiningPossible(recipe, catalysts);
     }
 
     public static int version(boolean isClientSide) {

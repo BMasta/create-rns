@@ -62,11 +62,12 @@ public class MinerEffectsGenerator {
                         l, miner.miningBehaviour.equipment.mineHeadTipPos, p.blockPosition()))
                 )
                 .ifPresent(miner -> {
-                    var mineHeadPos = miner.miningBehaviour.equipment.mineHeadTipPos;
-                    var crsList = miner.miningBehaviour.getProcess().getLastSatisfiedCRSes();
+                    var behaviour = miner.miningBehaviour;
+                    var mineHeadPos = behaviour.equipment.mineHeadTipPos;
+                    var crsList = behaviour.getStats().getLastSatisfiedCRSes(behaviour.getProcess());
                     float pitch = 0.5f + Math.min(1, Math.abs(miner.getTheoreticalSpeed()) / 256f) / 2;
                     RNSSoundEvents.MINING.playClient(p.level(), mineHeadPos, 1, pitch, false);
-                    if (miner.miningBehaviour.equipment.mineHeadSize == MineHeadSize.HUGE) {
+                    if (behaviour.equipment.mineHeadSize == MineHeadSize.HUGE) {
                         RNSSoundEvents.MINING_LARGE_HEAD_ACCENT.playClient(p.level(), mineHeadPos, 1, pitch, false);
                     }
                     crsList.stream()
