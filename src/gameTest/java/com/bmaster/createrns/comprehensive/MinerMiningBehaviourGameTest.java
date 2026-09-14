@@ -184,6 +184,10 @@ public class MinerMiningBehaviourGameTest {
                     "iron nugget count in combined miner inventory");
             h.assertValueEqual(miner.behavior().stats.minedResources, 1L, "mined resource count");
             h.assertValueEqual(miner.behavior().stats.consumedResources, 1L, "consumed resource count");
+            h.assertValueEqual(miner.behavior().stats.minedItems.getLong(Items.COBBLESTONE), 1L,
+                    "mined cobblestone count");
+            h.assertValueEqual(miner.behavior().stats.minedItems.getLong(Items.IRON_NUGGET), 1L,
+                    "mined iron nugget count");
             h.assertValueEqual(miner.behavior().stats.getTotalRemainingResources(), 0L,
                     "remaining resource count");
 

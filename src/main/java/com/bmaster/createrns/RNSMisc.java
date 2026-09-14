@@ -51,7 +51,6 @@ public class RNSMisc {
     public static final RegistryEntry<CreativeModeTab, CreativeModeTab> MAIN_TAB = CreateRNS.REGISTRATE.defaultCreativeTab(
                     CreateRNS.ID, c -> c
                             .icon(RNSItems.DEPOSIT_SCANNER::asStack)
-                            .title(CreateRNS.translatable("creativetab"))
                             .build())
             .register();
 

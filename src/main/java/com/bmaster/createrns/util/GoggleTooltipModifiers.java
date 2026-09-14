@@ -65,13 +65,15 @@ public class GoggleTooltipModifiers {
         if (process == null || !miner.isMining()) return false;
 
         if (c.isFirstSection()) {
-            CreateRNS.lang().translate("mining.production_rates").forGoggles(tooltip);
+            CreateRNS.lang().translate("mining.estimated_rates").forGoggles(tooltip);
         } else {
             // Newline between sections
             CreateRNS.lang().space().forGoggles(tooltip);
         }
 
-        var rates = process.getEstimatedRates(miner.getCurrentProgressIncrement());
+        var stats = miner.getStats();
+        float uptimePercentage = (float) stats.getUptimeTicks() / stats.getElapsedTicks(process.level);
+        var rates = process.getEstimatedRates(miner.getCurrentProgressIncrement(), uptimePercentage);
         for (var e : rates.entrySet()) {
             CreateRNS.lang()
                     .add(e.getKey().getDescription().copy()

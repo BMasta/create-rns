@@ -98,6 +98,7 @@ public class MiningProcess {
             boolean infinite = stats.remainingResources.getLong(innerProcess.recipe.getDepositBlock()) == 0;
             var ipSpoils = innerProcess.collect(stats);
             if (statsStarted && !ipSpoils.isEmpty()) {
+                for (var stack : ipSpoils) stats.minedItems.addTo(stack.getItem(), stack.getCount());
                 stats.minedResources++;
                 if (!infinite) stats.consumedResources++;
             }
@@ -128,7 +129,7 @@ public class MiningProcess {
         return (allEstimated) ? RateEstimationStatus.ALL : RateEstimationStatus.NONE;
     }
 
-    public LinkedHashMap<Item, Float> getEstimatedRates(int progressPerTick) {
+    public LinkedHashMap<Item, Float> getEstimatedRates(int progressPerTick, float uptime) {
         var rates = new Object2FloatOpenHashMap<Item>();
 
         for (var p : innerProcesses) {
@@ -139,7 +140,7 @@ public class MiningProcess {
                 if (chance <= 0f) continue;
                 var y = ys.get(i);
                 for (var wi : ys.get(i).items) {
-                    rates.addTo(wi.item, (float) wi.weight / y.getTotalWeight() / p.maxProgress * chance);
+                    rates.addTo(wi.item, (float) wi.weight / y.getTotalWeight() / p.maxProgress * chance * uptime);
                 }
             }
         }

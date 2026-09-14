@@ -2,6 +2,8 @@ package com.bmaster.createrns.content.deposit.mining.display;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSDisplaySources;
+import com.bmaster.createrns.content.deposit.mining.MiningStats;
+import com.bmaster.createrns.util.MinerSetup;
 import com.bmaster.createrns.util.MinerSetupBuilder;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllDisplayTargets;
@@ -11,6 +13,7 @@ import com.simibubi.create.content.redstone.displayLink.DisplayLinkBlock;
 import com.simibubi.create.content.redstone.displayLink.DisplayLinkBlockEntity;
 import com.simibubi.create.content.redstone.displayLink.DisplayLinkContext;
 import com.simibubi.create.content.redstone.displayLink.target.DisplayTargetStats;
+import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -25,26 +28,24 @@ import java.util.Locale;
 
 @GameTestHolder(CreateRNS.ID)
 @PrefixGameTestTemplate(false)
-public class EstimatedMinerRatesDisplaySourceGameTest {
+public class MinerRatesDisplaySourceGameTest {
     private static final int TEST_RPM = 128;
     private static final int TOO_SLOW_RPM = 1;
-    private static final int STYLE_COUNT = 1;
+    private static final int ESTIMATED_TYPE = 0;
+    private static final int ACTUAL_TYPE = 1;
+    private static final int ACTUAL_RATE_ELAPSED_TICKS = 20;
+    private static final long ACTUAL_MINED_ITEMS = 1;
     private static final BlockPos BEARING_POS = new BlockPos(5, 5, 5);
     private static final BlockPos DISPLAY_LINK_POS = BEARING_POS.east();
 
     @GameTest(template = "empty16x16", timeoutTicks = 8)
-    public void defaultStyleFormatsRunningAndStoppedProductionRates(GameTestHelper helper) {
-        var miner = MinerSetupBuilder.create(helper)
-                .bearing(BEARING_POS.getX(), BEARING_POS.getY(), BEARING_POS.getZ())
-                .part(AllBlocks.ANDESITE_CASING.getDefaultState(), 5, 4, 5)
-                .head(5, 3, 5)
-                .deposit(5, 2, 5)
-                .place();
+    public void estimatedTypeFormatsRunningAndStoppedProductionRates(GameTestHelper helper) {
+        var miner = createMiner(helper);
         var displayLink = attachDisplayLink(helper);
 
         var sources = DisplaySource.getAll(helper.getLevel(), helper.absolutePos(BEARING_POS));
         helper.assertTrue(sources.contains(RNSDisplaySources.ESTIMATED_MINER_RATES.get()),
-                "Miner bearing should advertise estimated production rate display support");
+                "Miner bearing should advertise production rate display support");
 
         miner.assemble(TEST_RPM);
         helper.runAtTickTime(2, () -> {
@@ -52,34 +53,79 @@ public class EstimatedMinerRatesDisplaySourceGameTest {
             helper.assertTrue(process != null, "Mining process should be initialized");
             process.innerProcesses.forEach(innerProcess -> innerProcess.catalystHandler.useCatalysts(true));
 
-            var rates = process.getEstimatedRates(miner.behavior().getCurrentProgressIncrement());
+            var rates = process.getEstimatedRates(miner.behavior().getCurrentProgressIncrement(), 1);
             helper.assertValueEqual(rates.size(), 1, "estimated production rate count");
             helper.assertTrue(rates.containsKey(Items.COBBLESTONE),
                     "Depleted deposit should report cobblestone production");
 
             String rate = String.format(Locale.ROOT, "%.1f", rates.get(Items.COBBLESTONE));
-            assertStyles(helper, displayLink, expectedLines(rate));
+            assertType(helper, displayLink, ESTIMATED_TYPE, expectedLines(rate), "estimated rate");
 
-            var motor = helper.getLevel().getBlockEntity(helper.absolutePos(miner.motorPos()));
-            helper.assertTrue(motor instanceof CreativeMotorBlockEntity,
-                    "Expected a Creative Motor block entity above the miner bearing");
-            ((CreativeMotorBlockEntity) motor).generatedSpeed.setValue(-TOO_SLOW_RPM);
+            stopMiner(helper, miner);
         });
 
         helper.runAtTickTime(5, () -> {
             helper.assertFalse(miner.bearing().isSpeedRequirementFulfilled(),
                     "Miner RPM should not fulfill its speed requirement");
             helper.assertFalse(miner.behavior().isMining(), "Miner should not be mining below its required RPM");
-            assertStyles(helper, displayLink, expectedLines("0.0"));
+            assertType(helper, displayLink, ESTIMATED_TYPE, expectedLines("0.0"), "stopped estimated rate");
             helper.succeed();
         });
     }
 
-    private static List<List<String>> expectedLines(String rate) {
+    @GameTest(
+            template = "empty16x16",
+            timeoutTicks = MiningStats.UPTIME_GRACE_PERIOD_TICKS + ACTUAL_RATE_ELAPSED_TICKS + 10
+    )
+    public void actualTypeUsesMinedItemsAndElapsedTime(GameTestHelper helper) {
+        var miner = createMiner(helper);
+        var displayLink = attachDisplayLink(helper);
+        miner.assemble(TEST_RPM);
+
+        helper.runAtTickTime(2, () -> {
+            var process = miner.process();
+            helper.assertTrue(process != null, "Mining process should be initialized");
+            process.innerProcesses.forEach(innerProcess -> innerProcess.catalystHandler.useCatalysts(true));
+
+            stopMiner(helper, miner);
+            miner.behavior().stats.start(helper.getLevel());
+        });
+
+        int assertionTick = 2 + MiningStats.UPTIME_GRACE_PERIOD_TICKS + ACTUAL_RATE_ELAPSED_TICKS;
+        helper.runAtTickTime(assertionTick, () -> {
+            var stats = miner.behavior().stats;
+            stats.minedItems.addTo(Items.COBBLESTONE, ACTUAL_MINED_ITEMS);
+            helper.assertValueEqual(stats.getElapsedTicks(helper.getLevel()), (long) ACTUAL_RATE_ELAPSED_TICKS,
+                    "elapsed ticks used by actual rates");
+
+            double elapsedHours = ACTUAL_RATE_ELAPSED_TICKS
+                    / (double) (SharedConstants.TICKS_PER_MINUTE * 60);
+            String rate = String.format(Locale.ROOT, "%.1f", ACTUAL_MINED_ITEMS / elapsedHours);
+            assertType(helper, displayLink, ACTUAL_TYPE, expectedLines(rate), "actual rate");
+            assertType(helper, displayLink, ESTIMATED_TYPE, expectedLines("0.0"), "estimated rate selection");
+            helper.succeed();
+        });
+    }
+
+    private static MinerSetup createMiner(GameTestHelper helper) {
+        return MinerSetupBuilder.create(helper)
+                .bearing(BEARING_POS.getX(), BEARING_POS.getY(), BEARING_POS.getZ())
+                .part(AllBlocks.ANDESITE_CASING.getDefaultState(), 5, 4, 5)
+                .head(5, 3, 5)
+                .deposit(5, 2, 5)
+                .place();
+    }
+
+    private static void stopMiner(GameTestHelper helper, MinerSetup miner) {
+        var motor = helper.getLevel().getBlockEntity(helper.absolutePos(miner.motorPos()));
+        helper.assertTrue(motor instanceof CreativeMotorBlockEntity,
+                "Expected a Creative Motor block entity above the miner bearing");
+        ((CreativeMotorBlockEntity) motor).generatedSpeed.setValue(-TOO_SLOW_RPM);
+    }
+
+    private static List<String> expectedLines(String rate) {
         String itemName = Items.COBBLESTONE.getDescription().getString();
-        return List.of(
-                List.of(itemName + ": " + rate + "/hr")
-        );
+        return List.of(itemName + ": " + rate + "/hr");
     }
 
     private static DisplayLinkBlockEntity attachDisplayLink(GameTestHelper helper) {
@@ -91,11 +137,12 @@ public class EstimatedMinerRatesDisplaySourceGameTest {
         return (DisplayLinkBlockEntity) blockEntity;
     }
 
-    private static void assertStyle(
-            GameTestHelper helper, DisplayLinkBlockEntity displayLink, int style, List<String> expectedLines
+    private static void assertType(
+            GameTestHelper helper, DisplayLinkBlockEntity displayLink, int type, List<String> expectedLines,
+            String description
     ) {
         var config = new CompoundTag();
-        config.putInt("style", style);
+        config.putInt("type", type);
         displayLink.setSourceConfig(config);
 
         var context = new DisplayLinkContext(helper.getLevel(), displayLink);
@@ -103,20 +150,12 @@ public class EstimatedMinerRatesDisplaySourceGameTest {
         var source = RNSDisplaySources.ESTIMATED_MINER_RATES.get();
         var text = source.provideText(context, targetStats);
 
-        helper.assertValueEqual(text.size(), expectedLines.size(), "estimated production rate output row count");
+        helper.assertValueEqual(text.size(), expectedLines.size(), description + " output row count");
         for (int row = 0; row < expectedLines.size(); row++) {
             helper.assertValueEqual(text.get(row).getString(), expectedLines.get(row),
-                    "estimated production rate output text at row " + row);
+                    description + " output text at row " + row);
         }
         MinerDisplaySourceGameTestAssertions.assertTwoColumnFlapText(
-                helper, context, source.provideFlapDisplayText(context, targetStats), expectedLines, "estimated rate");
-    }
-
-    private static void assertStyles(
-            GameTestHelper helper, DisplayLinkBlockEntity displayLink, List<List<String>> expectedLines
-    ) {
-        for (int style = 0; style < STYLE_COUNT; style++) {
-            assertStyle(helper, displayLink, style, expectedLines.get(style));
-        }
+                helper, context, source.provideFlapDisplayText(context, targetStats), expectedLines, description);
     }
 }

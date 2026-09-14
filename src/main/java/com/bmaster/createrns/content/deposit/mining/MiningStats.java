@@ -2,15 +2,20 @@ package com.bmaster.createrns.content.deposit.mining;
 
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.SharedConstants;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
@@ -20,6 +25,7 @@ public class MiningStats implements INBTSerializable<CompoundTag> {
     public long minedResources = 0;
     public long consumedResources = 0;
     public final Object2LongOpenHashMap<Block> remainingResources = new Object2LongOpenHashMap<>();
+    public final Object2LongOpenHashMap<Item> minedItems = new Object2LongOpenHashMap<>();
 
     private boolean gracePeriod = true;
     private long uptimeTicks = 0;
@@ -61,6 +67,7 @@ public class MiningStats implements INBTSerializable<CompoundTag> {
         minedResources = 0;
         consumedResources = 0;
         remainingResources.clear();
+        minedItems.clear();
     }
 
     public long getTotalRemainingResources() {
@@ -70,6 +77,21 @@ public class MiningStats implements INBTSerializable<CompoundTag> {
             total += v;
         }
         return total;
+    }
+
+    public LinkedHashMap<Item, Float> getRates(MiningProcess process) {
+        float uptimePercentage = (float) uptimeTicks / getElapsedTicks(process.level);
+        var estimatedRates = process.getEstimatedRates(0, uptimePercentage);
+        return estimatedRates.sequencedEntrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                e -> {
+                    double hrs = (double) getElapsedTicks(process.level) / (SharedConstants.TICKS_PER_MINUTE * 60);
+                    if (hrs <= 0) return 0f;
+                    return (float) (minedItems.getOrDefault(e.getKey(), 0) / hrs);
+                },
+                Float::sum,
+                LinkedHashMap::new
+        ));
     }
 
     @Override
@@ -84,6 +106,11 @@ public class MiningStats implements INBTSerializable<CompoundTag> {
             remainingTag.putLong(BuiltInRegistries.BLOCK.getKey(e.getKey()).toString(), e.getLongValue());
         }
         nbt.put("remaining_resources", remainingTag);
+        var minedItemsTag = new CompoundTag();
+        for (var e : minedItems.object2LongEntrySet()) {
+            minedItemsTag.putLong(BuiltInRegistries.ITEM.getKey(e.getKey()).toString(), e.getLongValue());
+        }
+        nbt.put("mined_items", minedItemsTag);
         return nbt;
     }
 
@@ -96,6 +123,7 @@ public class MiningStats implements INBTSerializable<CompoundTag> {
         uptimeTicks = tag.getLong("uptime");
         minedResources = tag.getLong("mined_resources");
         consumedResources = tag.getLong("consumed_resources");
+
         remainingResources.clear();
         var remainingTag = tag.getCompound("remaining_resources");
         for (var blockIdString : remainingTag.getAllKeys()) {
@@ -104,6 +132,16 @@ public class MiningStats implements INBTSerializable<CompoundTag> {
             var block = BuiltInRegistries.BLOCK.getOptional(blockId).orElse(null);
             if (block == null) continue;
             remainingResources.put(block, remainingTag.getLong(blockIdString));
+        }
+
+        minedItems.clear();
+        var minedItemsTag = tag.getCompound("mined_items");
+        for (var itemIdString : minedItemsTag.getAllKeys()) {
+            var itemId = ResourceLocation.tryParse(itemIdString);
+            if (itemId == null) continue;
+            var item = BuiltInRegistries.ITEM.getOptional(itemId).orElse(null);
+            if (item == null) continue;
+            minedItems.put(item, minedItemsTag.getLong(itemIdString));
         }
     }
 }
