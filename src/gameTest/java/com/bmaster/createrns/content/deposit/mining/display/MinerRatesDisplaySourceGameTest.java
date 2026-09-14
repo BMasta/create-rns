@@ -40,22 +40,27 @@ public class MinerRatesDisplaySourceGameTest {
     private static final BlockPos DISPLAY_LINK_POS = BEARING_POS.east();
 
     @GameTest(template = "empty16x16", timeoutTicks = 8)
-    public void estimatedTypeFormatsRunningAndStoppedProductionRates(GameTestHelper helper) {
+    public void estimatedTypeFormatsRunningAndStoppedMiningRates(GameTestHelper helper) {
         var miner = createMiner(helper);
         var displayLink = attachDisplayLink(helper);
 
         var sources = DisplaySource.getAll(helper.getLevel(), helper.absolutePos(BEARING_POS));
         helper.assertTrue(sources.contains(RNSDisplaySources.ESTIMATED_MINER_RATES.get()),
-                "Miner bearing should advertise production rate display support");
+                "Miner bearing should advertise mining rate display support");
 
         miner.assemble(TEST_RPM);
         helper.runAtTickTime(2, () -> {
             var process = miner.process();
             helper.assertTrue(process != null, "Mining process should be initialized");
-            process.innerProcesses.forEach(innerProcess -> innerProcess.catalystHandler.useCatalysts(true));
+            var stats = miner.behavior().stats;
+            process.innerProcesses.forEach(innerProcess -> {
+                var catalystStats = stats.catStats.ofInnerProcess(innerProcess);
+                helper.assertTrue(catalystStats.isComputed(),
+                        "Catalyst statistics should be initialized for estimated rates");
+            });
 
-            var rates = process.getEstimatedRates(miner.behavior().getCurrentProgressIncrement(), 1);
-            CodecHelper.assertValueEqual(helper, rates.size(), 1, "estimated production rate count");
+            var rates = stats.getEstimatedRates(process, miner.behavior().getCurrentProgressIncrement());
+            CodecHelper.assertValueEqual(helper, rates.size(), 1, "estimated mining rate count");
             helper.assertTrue(rates.containsKey(Items.COBBLESTONE),
                     "Depleted deposit should report cobblestone production");
 
@@ -86,13 +91,11 @@ public class MinerRatesDisplaySourceGameTest {
         helper.runAtTickTime(2, () -> {
             var process = miner.process();
             helper.assertTrue(process != null, "Mining process should be initialized");
-            process.innerProcesses.forEach(innerProcess -> innerProcess.catalystHandler.useCatalysts(true));
 
             stopMiner(helper, miner);
-            miner.behavior().stats.start(helper.getLevel());
         });
 
-        int assertionTick = 2 + MiningStats.UPTIME_GRACE_PERIOD_TICKS + ACTUAL_RATE_ELAPSED_TICKS;
+        int assertionTick = MiningStats.UPTIME_GRACE_PERIOD_TICKS + ACTUAL_RATE_ELAPSED_TICKS;
         helper.runAtTickTime(assertionTick, () -> {
             var stats = miner.behavior().stats;
             stats.minedItems.addTo(Items.COBBLESTONE, ACTUAL_MINED_ITEMS);

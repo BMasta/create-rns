@@ -7,7 +7,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -20,7 +19,7 @@ import java.util.stream.Collectors;
 @ParametersAreNonnullByDefault
 public class CatalystHandler {
     /// Returns true if at least one yield can be mined with the provided catalysts
-    public static boolean isMiningPossible(RegistryAccess access, MiningRecipe recipe, Set<Catalyst> catalysts) {
+    public static boolean isMiningPossible(MiningRecipe recipe, Set<Catalyst> catalysts) {
         for (var y : recipe.getYields()) {
             boolean satisfied = true;
             for (var crs : y.getCRSes()) {
@@ -33,18 +32,11 @@ public class CatalystHandler {
         return false;
     }
 
-    protected final CatalystUsageStats stats;
-    protected final RegistryAccess access;
     protected final List<Yield> yields;
     protected final IntArrayList enabledYields;
     protected final Object2ObjectOpenHashMap<ResourceLocation, CatalystMapping> crsIdToMapping;
 
-    public CatalystHandler(
-            RegistryAccess access, MiningRecipe recipe, Set<Catalyst> catalysts, CatalystUsageStats stats
-    ) {
-        this.access = access;
-        this.stats = stats;
-        this.stats.setRegistryAccess(access);
+    public CatalystHandler(MiningRecipe recipe, Set<Catalyst> catalysts) {
         this.yields = recipe.getYields();
 
         // Map each unique CRS to all catalysts that can satisfy it
@@ -79,7 +71,7 @@ public class CatalystHandler {
     }
 
     /// Uses necessary catalysts and returns the chance value of a mining operation succeeding for each yield
-    public Int2FloatOpenHashMap useCatalysts(boolean simulate) {
+    public Int2FloatOpenHashMap useCatalysts(CatalystUsageStats stats, boolean simulate) {
         if (stats.lastChances == null) stats.lastChances = new Int2FloatOpenHashMap();
         else stats.lastChances.clear();
 
