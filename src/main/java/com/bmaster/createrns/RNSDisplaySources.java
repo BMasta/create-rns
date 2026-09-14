@@ -1,9 +1,6 @@
 package com.bmaster.createrns;
 
-import com.bmaster.createrns.content.deposit.mining.display.CompactMinerStatusDisplaySource;
-import com.bmaster.createrns.content.deposit.mining.display.EstimatedMinerRatesDisplaySource;
-import com.bmaster.createrns.content.deposit.mining.display.FullMinerStatusDisplaySource;
-import com.bmaster.createrns.content.deposit.mining.display.RemainingMinerResourcesDisplaySource;
+import com.bmaster.createrns.content.deposit.mining.display.*;
 import com.simibubi.create.api.behaviour.display.DisplaySource;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -24,9 +21,9 @@ public class RNSDisplaySources {
                     .onRegisterAfter(Registries.BLOCK_ENTITY_TYPE, source ->
                             DisplaySource.BY_BLOCK_ENTITY.add(RNSBlockEntities.MINER_BEARING.get(), source))
                     .register();
-    public static final RegistryEntry<EstimatedMinerRatesDisplaySource>
+    public static final RegistryEntry<MinerRatesDisplaySource>
             ESTIMATED_MINER_RATES = CreateRNS.REGISTRATE
-            .displaySource("estimated_miner_rates", EstimatedMinerRatesDisplaySource::new)
+            .displaySource("miner_rates", MinerRatesDisplaySource::new)
             .onRegisterAfter(Registries.BLOCK_ENTITY_TYPE, source ->
                     DisplaySource.BY_BLOCK_ENTITY.add(RNSBlockEntities.MINER_BEARING.get(), source))
             .register();

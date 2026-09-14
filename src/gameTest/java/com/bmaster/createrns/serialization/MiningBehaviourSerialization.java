@@ -14,6 +14,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
@@ -29,11 +30,13 @@ public class MiningBehaviourSerialization {
     private static final int SAVED_PROGRESS = 100_000;
     private static final int NEGATIVE_CLAIM_VERSION = -1;
     private static final long SYNCHRONIZED_REMAINING_RESOURCES = 12_345;
+    private static final long SYNCHRONIZED_MINED_ITEMS = 123;
     private static final long RESTORED_UPTIME = 1_234;
     private static final long RESTORED_ELAPSED_TICKS = 100;
     private static final long RESTORED_MINED_RESOURCES = 56;
     private static final long RESTORED_CONSUMED_RESOURCES = 34;
     private static final long RESTORED_REMAINING_RESOURCES = 78;
+    private static final long RESTORED_MINED_ITEMS = 90;
 
     @GameTest(template = "empty16x16", timeoutTicks = 15)
     public void claimingBehaviourDiskReplacesInitializedClaim(GameTestHelper helper) {
@@ -154,6 +157,7 @@ public class MiningBehaviourSerialization {
             helper.assertTrue(process != null, "Assembled miner should have a mining process");
             originalProcess.set(process);
             process.innerProcesses.forEach(innerProcess -> innerProcess.progress = SAVED_PROGRESS);
+            behavior.stats.minedItems.put(Items.COBBLESTONE, SYNCHRONIZED_MINED_ITEMS);
 
             var clientPacket = new CompoundTag();
             behavior.write(clientPacket, true);
@@ -165,13 +169,20 @@ public class MiningBehaviourSerialization {
             var remainingResources = clientPacket.getCompound("stats").getCompound("remaining_resources");
             remainingResources.putLong(BuiltInRegistries.BLOCK.getKey(depositBlock).toString(),
                     SYNCHRONIZED_REMAINING_RESOURCES);
+            var minedItems = clientPacket.getCompound("stats").getCompound("mined_items");
+            CodecHelper.assertValueEqual(helper,
+                    minedItems.getLong(BuiltInRegistries.ITEM.getKey(Items.COBBLESTONE).toString()),
+                    SYNCHRONIZED_MINED_ITEMS, "mined items serialized with miner statistics");
             behavior.stats.remainingResources.put(depositBlock, -1);
+            behavior.stats.minedItems.put(Items.COBBLESTONE, -1);
 
             behavior.read(clientPacket, true);
             helper.assertTrue(miner.process() == process,
                     "Client packet claim deserialization should remain deferred until the next behavior tick");
             CodecHelper.assertValueEqual(helper, behavior.stats.remainingResources.getLong(depositBlock),
                     SYNCHRONIZED_REMAINING_RESOURCES, "remaining resources synchronized with miner statistics");
+            CodecHelper.assertValueEqual(helper, behavior.stats.minedItems.getLong(Items.COBBLESTONE), SYNCHRONIZED_MINED_ITEMS,
+                    "mined items synchronized with miner statistics");
         });
 
         helper.runAtTickTime(3, () -> {
@@ -185,6 +196,8 @@ public class MiningBehaviourSerialization {
                                 innerProcess.recipe.getDepositBlock()), SYNCHRONIZED_REMAINING_RESOURCES,
                         "remaining resources retained without reconstructing the process");
             });
+            CodecHelper.assertValueEqual(helper, miner.behavior().stats.minedItems.getLong(Items.COBBLESTONE),
+                    SYNCHRONIZED_MINED_ITEMS, "mined items retained without reconstructing the process");
             assertProcessMatchesClaim(helper, miner, retainedProcess);
             helper.succeed();
         });
@@ -367,6 +380,9 @@ public class MiningBehaviourSerialization {
             remainingResources.putLong(BuiltInRegistries.BLOCK.getKey(depositBlock).toString(),
                     RESTORED_REMAINING_RESOURCES);
             stats.put("remaining_resources", remainingResources);
+            var minedItems = new CompoundTag();
+            minedItems.putLong(BuiltInRegistries.ITEM.getKey(Items.COBBLESTONE).toString(), RESTORED_MINED_ITEMS);
+            stats.put("mined_items", minedItems);
             behavior.read(diskTag, false);
 
             CodecHelper.assertValueEqual(helper, behavior.stats.getElapsedTicks(level), RESTORED_ELAPSED_TICKS,
@@ -379,6 +395,8 @@ public class MiningBehaviourSerialization {
             CodecHelper.assertValueEqual(helper, behavior.stats.remainingResources.getLong(depositBlock),
                     RESTORED_REMAINING_RESOURCES,
                     "restored remaining resources");
+            CodecHelper.assertValueEqual(helper, behavior.stats.minedItems.getLong(Items.COBBLESTONE), RESTORED_MINED_ITEMS,
+                    "restored mined item count");
             helper.assertFalse(behavior.stats.updateUptimeTicks(level, false),
                     "Deserialization should not restart a completed uptime grace period");
             CodecHelper.assertValueEqual(helper, behavior.stats.getUptimeTicks(), RESTORED_UPTIME,
@@ -393,12 +411,15 @@ public class MiningBehaviourSerialization {
                     "consumed resources after disassembly");
             helper.assertTrue(behavior.stats.remainingResources.isEmpty(),
                     "remaining resources should be empty after disassembly");
+            helper.assertTrue(behavior.stats.minedItems.isEmpty(), "mined items should be empty after disassembly");
 
             var resetTag = new CompoundTag();
             behavior.write(resetTag, false);
             var resetStats = resetTag.getCompound("stats");
             helper.assertFalse(resetStats.contains("start_time"),
                     "Disassembled miner should not retain a statistics start time");
+            helper.assertTrue(resetStats.getCompound("mined_items").isEmpty(),
+                    "Disassembled miner should not serialize mined items");
             helper.succeed();
         });
     }

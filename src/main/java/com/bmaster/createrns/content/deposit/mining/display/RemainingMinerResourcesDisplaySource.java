@@ -55,7 +55,7 @@ public class RemainingMinerResourcesDisplaySource extends TwoColumnDisplaySource
 
     @Override
     public int getPassiveRefreshTicks() {
-        return SharedConstants.TICKS_PER_SECOND;
+        return 3 * SharedConstants.TICKS_PER_SECOND;
     }
 
     @Override
