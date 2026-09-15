@@ -30,7 +30,7 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
     // Defers claimer deserialization
     protected @Nullable Tuple<CompoundTag, Boolean> pendingClaimerTag = null;
 
-    public abstract boolean isRunning();
+    public abstract boolean canClaimDepositBlocks();
 
     protected abstract boolean isDepositBlockOperable(BlockPos pos);
 
@@ -65,7 +65,7 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
     @Override
     public void claimDepositBlocks() {
         var level = getLevel();
-        if (level == null || level.isClientSide || !isRunning()) return;
+        if (level == null || level.isClientSide || !canClaimDepositBlocks()) return;
 
         DepositClaimerInstanceHolder.removeClaimer(this);
 

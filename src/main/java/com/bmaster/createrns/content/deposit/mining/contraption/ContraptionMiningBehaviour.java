@@ -45,20 +45,26 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
     }
 
     @Override
+    public boolean canClaimDepositBlocks() {
+        return isAssembled();
+    }
+
     public boolean isRunning() {
         var mc = bearing.getMovedContraption();
         return bearing.isRunning() && mc != null && !mc.isStalled();
     }
 
+    public boolean isAssembled() {
+        return bearing.isRunning() && bearing.getMovedContraption() != null;
+    }
+
     @Override
     public boolean isMining() {
-        var mc = bearing.getMovedContraption();
-        return isMiningOrStalled() && !mc.isStalled();
+        return isRunning() && super.isMining();
     }
 
     public boolean isMiningOrStalled() {
-        var mc = bearing.getMovedContraption();
-        return mc != null && bearing.isRunning() && super.isMining();
+        return isAssembled() && super.isMining();
     }
 
     public boolean isTransferring() {
@@ -146,7 +152,7 @@ public class ContraptionMiningBehaviour extends MiningBehaviour {
         // Make sure all items are collected before destroying existing process
         collect();
 
-        if (isRunning()) {
+        if (canClaimDepositBlocks()) {
             claimDepositBlocks();
         } else {
             // Get area before resetting the miner state
