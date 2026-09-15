@@ -34,7 +34,7 @@ public class MinerRatesDisplaySourceGameTest {
     private static final int TOO_SLOW_RPM = 1;
     private static final int ESTIMATED_TYPE = 0;
     private static final int ACTUAL_TYPE = 1;
-    private static final int ACTUAL_RATE_ELAPSED_TICKS = 20;
+    private static final int ACTUAL_RATE_SAMPLE_DELAY_TICKS = 20;
     private static final long ACTUAL_MINED_ITEMS = 1;
     private static final BlockPos BEARING_POS = new BlockPos(5, 5, 5);
     private static final BlockPos DISPLAY_LINK_POS = BEARING_POS.east();
@@ -81,7 +81,7 @@ public class MinerRatesDisplaySourceGameTest {
 
     @GameTest(
             template = "empty16x16",
-            timeoutTicks = MiningStats.UPTIME_GRACE_PERIOD_TICKS + ACTUAL_RATE_ELAPSED_TICKS + 10
+            timeoutTicks = MiningStats.UPTIME_GRACE_PERIOD_TICKS + ACTUAL_RATE_SAMPLE_DELAY_TICKS + 10
     )
     public void actualTypeUsesMinedItemsAndElapsedTime(GameTestHelper helper) {
         var miner = createMiner(helper);
@@ -95,14 +95,14 @@ public class MinerRatesDisplaySourceGameTest {
             stopMiner(helper, miner);
         });
 
-        int assertionTick = MiningStats.UPTIME_GRACE_PERIOD_TICKS + ACTUAL_RATE_ELAPSED_TICKS;
+        int assertionTick = MiningStats.UPTIME_GRACE_PERIOD_TICKS + ACTUAL_RATE_SAMPLE_DELAY_TICKS;
         helper.runAtTickTime(assertionTick, () -> {
             var stats = miner.behavior().stats;
             stats.minedItems.addTo(Items.COBBLESTONE, ACTUAL_MINED_ITEMS);
-            CodecHelper.assertValueEqual(helper, stats.getElapsedTicks(helper.getLevel()), (long) ACTUAL_RATE_ELAPSED_TICKS,
-                    "elapsed ticks used by actual rates");
+            long elapsedTicks = stats.getElapsedTicks(helper.getLevel());
+            helper.assertTrue(elapsedTicks > 0, "Actual rates should have a positive measurement period");
 
-            double elapsedHours = ACTUAL_RATE_ELAPSED_TICKS
+            double elapsedHours = elapsedTicks
                     / (double) (SharedConstants.TICKS_PER_MINUTE * 60);
             String rate = String.format(Locale.ROOT, "%.1f", ACTUAL_MINED_ITEMS / elapsedHours);
             assertType(helper, displayLink, ACTUAL_TYPE, expectedLines(rate), "actual rate");

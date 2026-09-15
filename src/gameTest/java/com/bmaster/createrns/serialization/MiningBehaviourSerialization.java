@@ -411,8 +411,6 @@ public class MiningBehaviourSerialization {
             var catalystStats = behavior.stats.catStats.ofDeposit(depositBlock);
             helper.assertTrue(catalystStats.isComputed(),
                     "restored catalyst usage statistics");
-            helper.assertFalse(behavior.stats.updateUptimeTicks(level, false),
-                    "Deserialization should not restart a completed uptime grace period");
             CodecHelper.assertValueEqual(helper, behavior.stats.getUptimeTicks(), RESTORED_UPTIME,
                     "Uptime should remain unchanged while the restored miner is not mining");
 

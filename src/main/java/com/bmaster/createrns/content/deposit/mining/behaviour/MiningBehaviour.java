@@ -90,7 +90,7 @@ public abstract class MiningBehaviour extends ClaimingBehaviour implements IDepo
 
         if (level.isClientSide) return;
 
-        if (stats.isStarted() && stats.updateUptimeTicks(level, miningAtStartOfTick || isMining()) &&
+        if (stats.isStarted() && (miningAtStartOfTick || isMining()) && stats.updateUptimeTicks(level) &&
                 stats.getUptimeTicks() % SharedConstants.TICKS_PER_SECOND == 0) kBE.setChanged();
 
         if ((process == null && !tryInitProcess()) || !isMining()) return;
