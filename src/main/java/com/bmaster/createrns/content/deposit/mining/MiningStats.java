@@ -59,8 +59,8 @@ public class MiningStats implements INBTSerializable<CompoundTag> {
         return uptimeTicks;
     }
 
-    public boolean updateUptimeTicks(Level level, boolean mining) {
-        if (!isStarted() || !mining) return false;
+    public boolean updateUptimeTicks(Level level) {
+        if (!isStarted()) return false;
         // Refresh grace period
         if (gracePeriod) getElapsedTicks(level);
         if (gracePeriod) return false;

@@ -16,7 +16,7 @@ public class MiningStatsGameTest {
         stats.start(level);
 
         helper.runAtTickTime(MiningStats.UPTIME_GRACE_PERIOD_TICKS - 1, () -> {
-            helper.assertFalse(stats.updateUptimeTicks(level, true),
+            helper.assertFalse(stats.updateUptimeTicks(level),
                     "Uptime should not change during the grace period");
             helper.assertValueEqual(stats.getElapsedTicks(level), 0L,
                     "Elapsed time should not include the grace period");
@@ -25,7 +25,7 @@ public class MiningStatsGameTest {
         });
 
         helper.runAtTickTime(MiningStats.UPTIME_GRACE_PERIOD_TICKS, () -> {
-            helper.assertTrue(stats.updateUptimeTicks(level, true),
+            helper.assertTrue(stats.updateUptimeTicks(level),
                     "Uptime should change on the first tick after the grace period");
             helper.assertValueEqual(stats.getElapsedTicks(level), 0L,
                     "No full tick should have elapsed since the grace period ended");
