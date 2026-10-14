@@ -146,6 +146,8 @@ neoForge {
             sourceSet = gameTestRunSourceSet
             loadedMods = [gameTestMod]
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            programArguments.addAll '--universe', layout.buildDirectory.dir('gametest').get().asFile.absolutePath,
+                    '--world', 'world'
         }
         tasks.named("runGameTestServer", JavaExec) {
             jvmArgs "-ea"
