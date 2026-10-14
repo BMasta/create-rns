@@ -53,8 +53,8 @@ final class MinerDisplaySourceFormatter {
 
         double scaled = resources / (double) (resources < MILLION ? THOUSAND : MILLION);
         scaled = Math.floor(scaled * 10) / 10;
-        String suffix = resources < MILLION ? "k" : "m";
-        return Component.literal(String.format(Locale.ROOT, "%.1f%s", scaled, suffix));
+        String key = "display_source." + (resources < MILLION ? "thousand" : "million");
+        return CreateRNS.translatable(key, String.format(Locale.ROOT, "%.1f", scaled));
     }
 
     static Component formattedPercentage(long current, long total, Component dflt) {
