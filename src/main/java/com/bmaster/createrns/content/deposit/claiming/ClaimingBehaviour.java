@@ -182,7 +182,10 @@ public abstract class ClaimingBehaviour extends BlockEntityBehaviour implements 
         onClaimedBlocksChanged();
 
         DepositClaimerInstanceHolder.addClaimer(this);
-        if (level.isClientSide) DepositClaimerOutlineRenderer.addClaimer(this);
+        if (level.isClientSide) {
+            DepositClaimerOutlineRenderer.addClaimer(this);
+            DepositClaimerOutlineRenderer.flashOutline();
+        }
 
         else sbe.notifyUpdate();
     }
