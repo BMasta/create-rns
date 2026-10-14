@@ -41,26 +41,29 @@ public class FullMinerStatusDisplaySourceGameTest {
 
     private static final List<String> FINITE_RESOURCE_LINES = List.of(
             "Status: Mining",
+            "Claimed Blocks: 1",
             "Uptime: 80%",
-            "Mined: 12",
-            "Consumed: 3",
-            "Remaining: 7"
+            "Mined Resources: 12",
+            "Consumed Resources: 3",
+            "Remaining Resources: 7"
     );
     private static final List<String> INFINITE_RESOURCE_LINES = List.of(
             "Status: Mining",
+            "Claimed Blocks: 1",
             "Uptime: ...",
-            "Mined: 0"
+            "Mined Resources: 0"
     );
     private static final List<String> OUT_OF_RESOURCES_LINES = List.of(
             "Status: Out of Resources",
+            "Claimed Blocks: 0",
             "Uptime: ...",
-            "Mined: 0",
-            "Consumed: 0",
-            "Remaining: 0"
+            "Mined Resources: 0",
+            "Consumed Resources: 0",
+            "Remaining Resources: 0"
     );
 
     @GameTest(template = "empty16x16", timeoutTicks = 5)
-    public void fullStatusProvidesFiveUnlabeledRowsForFiniteDeposits(GameTestHelper helper) {
+    public void fullStatusProvidesSixUnlabeledRowsForFiniteDeposits(GameTestHelper helper) {
         var miner = createMiner(helper);
         var displayLink = attachDisplayLink(helper);
         var config = new CompoundTag();
