@@ -8,6 +8,16 @@ plugins {
 
 def gameTestSourceSet = sourceSets.create('gameTest')
 def dataRunSourceSet = sourceSets.create('dataRun')
+def gameTestUniverseDir = layout.buildDirectory.dir('gametest')
+
+def resetGameTestWorld = tasks.register('resetGameTestWorld', Delete) {
+    description = 'Removes only the disposable GameTest world before a test launch.'
+    delete gameTestUniverseDir.map { it.dir('world') }
+}
+
+tasks.matching { it.name == 'prepareRunGameTestServer' }.configureEach {
+    dependsOn resetGameTestWorld
+}
 
 version = mod_version
 group = mod_group_id
@@ -105,6 +115,7 @@ minecraft {
         gameTestServer {
             property 'forge.enabledGameTestNamespaces', mod_id
             source gameTestSourceSet
+            args '--universe', gameTestUniverseDir.get().asFile.absolutePath, '--world', 'world'
             jvmArgs "-ea"
         }
 

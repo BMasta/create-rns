@@ -158,6 +158,12 @@ public class CompactMinerStatusDisplaySourceGameTest {
         var miner = createMiner(helper);
         miner.assemble(TEST_RPM);
 
+        helper.runAtTickTime(2, () -> {
+            helper.assertTrue(miner.isRunning(), "Miner should be assembled");
+            helper.assertTrue(miner.behavior().stats.isStarted(),
+                    "Assembled miner should start its statistics");
+        });
+
         helper.runAtTickTime(MiningStats.UPTIME_GRACE_PERIOD_TICKS - 1, () -> {
             var stats = miner.behavior().stats;
             CodecHelper.assertValueEqual(helper, stats.getElapsedTicks(helper.getLevel()), 0L,

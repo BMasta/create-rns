@@ -33,6 +33,8 @@ public class MiningBehaviourSerialization {
     private static final long SYNCHRONIZED_MINED_ITEMS = 123;
     private static final long RESTORED_UPTIME = 1_234;
     private static final long RESTORED_ELAPSED_TICKS = 100;
+    private static final int STATISTICS_ASSERTION_TICK =
+            MiningStats.UPTIME_GRACE_PERIOD_TICKS + (int) RESTORED_ELAPSED_TICKS + 2;
     private static final long RESTORED_MINED_RESOURCES = 56;
     private static final long RESTORED_CONSUMED_RESOURCES = 34;
     private static final long RESTORED_REMAINING_RESOURCES = 78;
@@ -355,7 +357,7 @@ public class MiningBehaviourSerialization {
         });
     }
 
-    @GameTest(template = "empty16x16", timeoutTicks = 15)
+    @GameTest(template = "empty16x16", timeoutTicks = STATISTICS_ASSERTION_TICK + 5)
     public void contraptionMiningStatisticsSerializeAndDisplaySourceIsAssociated(GameTestHelper helper) {
         var miner = createMiner(helper);
         var sources = DisplaySource.getAll(helper.getLevel(), helper.absolutePos(miner.bearingPos()));
@@ -364,11 +366,16 @@ public class MiningBehaviourSerialization {
 
         miner.assemble(TEST_RPM);
         helper.runAtTickTime(2, () -> {
+            helper.assertTrue(miner.isRunning(), "Miner should be assembled");
+            helper.assertTrue(miner.behavior().stats.isStarted(),
+                    "Assembled miner should start its statistics");
+            CodecHelper.assertValueEqual(helper, miner.behavior().stats.getUptimeTicks(), 0L,
+                    "Assembled miner should ignore uptime during the grace period");
+        });
+
+        helper.runAtTickTime(STATISTICS_ASSERTION_TICK, () -> {
             var behavior = miner.behavior();
             var level = behavior.getLevel();
-            CodecHelper.assertValueEqual(helper, behavior.stats.getUptimeTicks(), 0L,
-                    "Assembled miner should ignore uptime during the grace period");
-
             var diskTag = new CompoundTag();
             behavior.write(diskTag, false);
             helper.assertTrue(diskTag.get("stats") instanceof CompoundTag,

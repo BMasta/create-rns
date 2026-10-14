@@ -32,6 +32,7 @@ import java.util.Set;
 public class FullMinerStatusDisplaySourceGameTest {
     private static final int TEST_RPM = 128;
     private static final long ELAPSED_TICKS = 10;
+    private static final int STATISTICS_ASSERTION_TICK = MiningStats.UPTIME_GRACE_PERIOD_TICKS + (int) ELAPSED_TICKS + 2;
     private static final long UPTIME_TICKS = 8;
     private static final long MINED_RESOURCES = 12;
     private static final long CONSUMED_RESOURCES = 3;
@@ -62,7 +63,7 @@ public class FullMinerStatusDisplaySourceGameTest {
             "Remaining Resources: 0"
     );
 
-    @GameTest(template = "empty16x16", timeoutTicks = 5)
+    @GameTest(template = "empty16x16", timeoutTicks = STATISTICS_ASSERTION_TICK + 5)
     public void fullStatusProvidesSixUnlabeledRowsForFiniteDeposits(GameTestHelper helper) {
         var miner = createMiner(helper);
         var displayLink = attachDisplayLink(helper);
@@ -75,7 +76,7 @@ public class FullMinerStatusDisplaySourceGameTest {
                 "Miner bearing should advertise full status display support");
 
         miner.assemble(TEST_RPM);
-        helper.runAtTickTime(2, () -> {
+        helper.runAtTickTime(STATISTICS_ASSERTION_TICK, () -> {
             var level = helper.getLevel();
             var statsTag = new CompoundTag();
             statsTag.putLong("start_time",
