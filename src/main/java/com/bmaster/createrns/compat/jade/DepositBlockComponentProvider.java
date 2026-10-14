@@ -37,7 +37,7 @@ public enum DepositBlockComponentProvider implements IBlockComponentProvider, IS
         else if (dur == 0) durComp = CreateRNS.translatable("mining.infinite");
         else durComp = Component.literal(Long.toString(dur));
 
-        tooltip.add(CreateRNS.translatable("mining.remaining_deposit_uses").append(" "));
+        tooltip.add(CreateRNS.translatable("mining.tooltip.remaining_deposit_uses").append(" "));
         tooltip.append(durComp);
     }
 

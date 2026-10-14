@@ -51,15 +51,15 @@ public class FullMinerStatusDisplaySource extends TwoColumnDisplaySource {
             res.add(row("remaining", MinerDisplaySourceFormatter.formatCount(stats.getTotalRemainingResources())));
         }
         if (process != null && style == Style.WITH_CATALYSTS) {
-            boolean keyAdded = false;
             var activeCRSes = stats.getLastSatisfiedCRSes(process);
-            for (var crs : activeCRSes) {
-                var crsName = CatalystRequirementSet.getNameComponent(activeCRSes, crs);
+            int cnt = 0;
+            for (int i = 0; i < activeCRSes.size(); ++i) {
+                var crsName = CatalystRequirementSet.getNameComponent(activeCRSes, activeCRSes.get(i));
                 if (crsName == null) continue;
-
-                var key = !keyAdded ? "catalysts" : null;
-                keyAdded = true;
-                res.add(row(key, Component.literal(ChatFormatting.stripFormatting(crsName.getString()))));
+                cnt++;
+                res.add(new TwoColumnRow(
+                        CreateRNS.translatable("display_source.full_miner_status.catalyst", cnt + ""),
+                        Component.literal(ChatFormatting.stripFormatting(crsName.getString()))));
             }
         }
 

@@ -33,7 +33,7 @@ public class GoggleTooltipModifiers {
         if (!c.isFirstSection()) {
             CreateRNS.lang().space().forGoggles(tooltip);
         }
-        CreateRNS.lang().translate("mining.remaining_deposit_uses").forGoggles(tooltip);
+        CreateRNS.lang().translate("mining.tooltip.remaining_deposit_uses").forGoggles(tooltip);
 
         stats.remainingResources.object2LongEntrySet().stream().sorted((a, b) -> {
                     var au = (a.getLongValue() == 0) ? Long.MAX_VALUE : a.getLongValue();
@@ -65,7 +65,7 @@ public class GoggleTooltipModifiers {
         if (process == null || !miner.isMining()) return false;
 
         if (c.isFirstSection()) {
-            CreateRNS.lang().translate("mining.estimated_rates").forGoggles(tooltip);
+            CreateRNS.lang().translate("mining.tooltip.estimated_rates").forGoggles(tooltip);
         } else {
             // Newline between sections
             CreateRNS.lang().space().forGoggles(tooltip);
@@ -94,26 +94,43 @@ public class GoggleTooltipModifiers {
         var spec = miner.getSpec();
         if (process == null || spec == null) return false;
         var stats = miner.getStats();
+        var claimed = miner.getClaimedDepositBlocks();
+        var claimedCount = (claimed != null) ? claimed.size() : 0;
 
         if (c.isFirstSection()) {
             CreateRNS.lang()
-                    .translate("contraption_mining.info")
+                    .translate("mining.tooltip.info")
                     .forGoggles(tooltip);
         } else {
             // Newline between sections
             CreateRNS.lang().space().forGoggles(tooltip);
         }
 
+        // Add claimed blocks
         CreateRNS.lang()
-                .translate("mining.area", spec.miningDimensions().radius() * 2 + 1, spec.miningDimensions().length())
+                .translate("mining.tooltip.claimed_blocks",
+                        Component.literal(claimedCount + "").withStyle(ChatFormatting.GREEN))
                 .style(ChatFormatting.GRAY)
                 .forGoggles(tooltip);
 
-        // Add descriptions contributed by active CRSes
+        // Add mining area
+        CreateRNS.lang()
+                .translate("mining.tooltip.area", CreateRNS.translatable("mining.area",
+                                spec.miningDimensions().radius() * 2 + 1, spec.miningDimensions().length())
+                        .withStyle(ChatFormatting.GREEN))
+                .style(ChatFormatting.GRAY)
+                .forGoggles(tooltip);
+
+        // Add active CRSes
+        boolean lineAdded = false;
         var activeCRSes = stats.getLastSatisfiedCRSes(process);
         for (var crs : activeCRSes) {
             var comp = CatalystRequirementSet.getNameComponent(activeCRSes, crs);
             if (comp != null) {
+                if (!lineAdded) {
+                    CreateRNS.lang().space().forGoggles(tooltip);
+                    lineAdded = true;
+                }
                 CreateRNS.lang().add(comp).forGoggles(tooltip);
             }
         }
@@ -162,7 +179,7 @@ public class GoggleTooltipModifiers {
             default -> throw new IllegalStateException("Unexpected value: " + status);
         };
         CreateRNS.lang()
-                .add(CreateRNS.translatable("mining." + statusTag)
+                .add(CreateRNS.translatable("mining.tooltip." + statusTag)
                         .withStyle(ChatFormatting.DARK_GRAY))
                 .forGoggles(tooltip, 1);
     }
