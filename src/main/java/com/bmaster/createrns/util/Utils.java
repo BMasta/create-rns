@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.core.Vec3i;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
@@ -93,5 +94,21 @@ public class Utils {
         var id = ResourceLocation.tryParse(idString);
         if (id == null) return null;
         return registry.getOptional(id).orElse(null);
+    }
+
+    public static <T> ResourceLocation resourceFileLocation(ResourceKey<Registry<T>> registry, ResourceLocation resourceId) {
+        var registryId = registry.location();
+        var registryPath = registryId.getNamespace().equals(ResourceLocation.DEFAULT_NAMESPACE)
+                ? registryId.getPath()
+                : registryId.getNamespace() + "/" + registryId.getPath();
+        return ResourceLocation.fromNamespaceAndPath(resourceId.getNamespace(), registryPath + "/" + resourceId.getPath());
+    }
+
+    public static <T> ResourceLocation tagFileLocation(ResourceKey<Registry<T>> registry, ResourceLocation tagId) {
+        var registryId = registry.location();
+        var registryPath = registryId.getNamespace().equals(ResourceLocation.DEFAULT_NAMESPACE)
+                ? registryId.getPath()
+                : registryId.getNamespace() + "/" + registryId.getPath();
+        return ResourceLocation.fromNamespaceAndPath(tagId.getNamespace(), "tags/" + registryPath + "/" + tagId.getPath());
     }
 }

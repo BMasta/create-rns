@@ -8,13 +8,13 @@ ServerEvents.recipes(event => {
   // Built-in recipe ids can be found in:
   // src/generated/builtin_packs/default/create_rns_dynamic_data/data/create_rns/recipe
   // Remove the shipped recipe before adding your replacement.
-  event.remove({ id: 'create_rns:iron_deposit_block' })
+  event.remove({ id: 'create_rns:create_rns_iron_deposit_block' })
 
   event.recipes.create_rns.mining()
     // Existing deposit block to which this replacement recipe applies. Must be a single block.
     .block('create_rns:iron_deposit_block')
     // Use the original recipe id
-    .id('create_rns:iron_deposit_block')
+    .id('create_rns:create_rns_iron_deposit_block')
     // Use for nether deposits
     // .nether()
     // Replacement block does not have to be a deposit block.

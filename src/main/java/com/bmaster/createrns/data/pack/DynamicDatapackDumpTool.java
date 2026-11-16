@@ -2,6 +2,7 @@ package com.bmaster.createrns.data.pack;
 
 import com.bmaster.createrns.RNSDeposits;
 import com.bmaster.createrns.RNSPacks;
+import com.bmaster.createrns.data.deposit.DepositBlockBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.SharedConstants;
 

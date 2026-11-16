@@ -73,10 +73,9 @@ final class RNSKubeJSBuilderTestAssertions {
         return ResourceLocation.fromNamespaceAndPath(structureId.getNamespace(), "create_rns/deposit_spec/" + path);
     }
 
-    static ResourceLocation processorPath(ResourceLocation structureId) {
-        return ResourceLocation.fromNamespaceAndPath(structureId.getNamespace(),
-                "worldgen/processor_list/replace_with_" + structureId.getNamespace() + "_"
-                        + structureId.getPath().replace('/', '_'));
+    static ResourceLocation processorPath(String namespace, String blockId) {
+        return ResourceLocation.fromNamespaceAndPath(namespace,
+                "worldgen/processor_list/replace_with_" + blockId.replace(':', '_'));
     }
 
     static ResourceLocation structurePath(ResourceLocation structureId) {

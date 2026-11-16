@@ -1,9 +1,9 @@
 package com.bmaster.createrns.compat.kubejs;
 
-import com.bmaster.createrns.data.pack.DepositDimension;
-import com.bmaster.createrns.data.pack.DepositSpecBuilder;
-import com.bmaster.createrns.data.pack.DepositStructureBuilder;
-import com.bmaster.createrns.data.pack.DynamicDatapackContent;
+import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.RNSRegistries;
+import com.bmaster.createrns.data.deposit.DepositData;
+import com.bmaster.createrns.util.Utils;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -21,6 +21,7 @@ import net.minecraft.data.registries.VanillaRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -39,14 +40,13 @@ public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
             .collect(Collectors.toUnmodifiableSet());
 
     private final ResourceLocation id;
-    private final ResourceLocation processorId;
-    private final @Nullable DepositSpecBuilder.ConfiguredEntry builtInSpec;
+    private final @Nullable DepositData.StructureEntry builtInStructure;
     private final List<WeightedTemplate> weightedTemplates = new ArrayList<>();
     private final List<String> scannerIconCandidates = new ArrayList<>();
     private final List<String> mapIconCandidates = new ArrayList<>();
 
     private ResourceLocation blockId;
-    private DepositDimension dimension = DepositDimension.OVERWORLD;
+    private ResourceKey<Level> dimension = Level.OVERWORLD;
     private @Nullable String biomeSelector;
     private Integer height;
     private int heightDeviation;
@@ -66,37 +66,25 @@ public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
     DepositStructureKubeBuilder(ResourceLocation id, SourceLine sourceLine) {
         super(sourceLine, "rnsDepositStructures", "create|tweak");
         this.id = id;
-        processorId = ResourceLocation.fromNamespaceAndPath(id.getNamespace(),
-                "replace_with_" + id.getNamespace() + "_" + id.getPath().replace('/', '_'));
-        builtInSpec = null;
+        builtInStructure = null;
     }
 
-    DepositStructureKubeBuilder(
-            DepositStructureBuilder.ConfiguredEntry structureEntry,
-            DepositSpecBuilder.ConfiguredEntry specEntry
-    ) {
-        this(structureEntry, specEntry, SourceLine.UNKNOWN);
+    DepositStructureKubeBuilder(DepositData.StructureEntry structureEntry) {
+        this(structureEntry, SourceLine.UNKNOWN);
     }
 
-    DepositStructureKubeBuilder(
-            DepositStructureBuilder.ConfiguredEntry structureEntry,
-            DepositSpecBuilder.ConfiguredEntry specEntry,
-            SourceLine sourceLine
-    ) {
+    DepositStructureKubeBuilder(DepositData.StructureEntry structureEntry, SourceLine sourceLine) {
         super(sourceLine, "rnsDepositStructures", "create|tweak");
-        var structure = structureEntry.structure();
-
-        id = DepositStructureBuilder.structureId(structureEntry);
-        processorId = DynamicDatapackContent.processorId(structure.depositBlock());
-        builtInSpec = specEntry;
-        blockId = structure.depositBlock();
-        dimension = structure.dimension();
-        height = -structure.depth();
-        heightDeviation = structure.depthDeviation();
-        structureSetWeight = structure.weight();
-        scannerIconCandidates.addAll(specEntry.spec().scannerIconCandidates());
-        mapIconCandidates.addAll(specEntry.spec().mapIconCandidates());
-        for (var template : structure.weightedTemplates()) {
+        id = structureEntry.structureId();
+        builtInStructure = structureEntry;
+        blockId = DepositData.blockId(structureEntry.namespace(), structureEntry.keyword());
+        dimension = structureEntry.dimension();
+        height = -structureEntry.depth();
+        heightDeviation = structureEntry.depthDeviation();
+        structureSetWeight = structureEntry.weight();
+        scannerIconCandidates.addAll(structureEntry.scannerIconCandidates());
+        mapIconCandidates.addAll(structureEntry.mapIconCandidates());
+        for (var template : structureEntry.templates()) {
             weightedTemplates.add(new WeightedTemplate(template.template(), template.weight()));
         }
         scannerIconsInherited = true;
@@ -211,7 +199,7 @@ public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
 
     @HideFromJS
     public DepositStructureKubeBuilder scannerIconMetal(String material) {
-        for (var candidate : DepositSpecBuilder.metalScannerIconCandidates(material)) {
+        for (var candidate : DepositData.metalScannerIconCandidates(material)) {
             scannerIcon(candidate);
         }
         return this;
@@ -228,7 +216,7 @@ public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
 
     @HideFromJS
     public DepositStructureKubeBuilder scannerIconGem(String material) {
-        for (var candidate : DepositSpecBuilder.gemScannerIconCandidates(material)) {
+        for (var candidate : DepositData.gemScannerIconCandidates(material)) {
             scannerIcon(candidate);
         }
         return this;
@@ -245,7 +233,7 @@ public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
 
     @HideFromJS
     public DepositStructureKubeBuilder scannerIconDust(String material) {
-        for (var candidate : DepositSpecBuilder.dustScannerIconCandidates(material)) {
+        for (var candidate : DepositData.dustScannerIconCandidates(material)) {
             scannerIcon(candidate);
         }
         return this;
@@ -303,12 +291,13 @@ public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
 
     @HideFromJS
     public DepositStructureKubeBuilder preset(String presetId) {
-        var preset = DepositStructureBuilder.getPreset(presetId);
+        var preset = DepositData.getStructurePreset(presetId);
         weightedTemplates.clear();
         templatesInherited = false;
         weight(preset.weight());
         height(-preset.depth());
-        for (var template : preset.weightedTemplates()) {
+        heightDeviation = preset.depthDeviation();
+        for (var template : preset.templates()) {
             nbt(template.template().toString(), template.weight());
         }
         return this;
@@ -328,7 +317,7 @@ public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
     void generateLang(LangKubeEvent lang) {
         if (!validate()) return;
         if (displayName != null) {
-            lang.add(id.getNamespace(), structureLangKey(), displayName);
+            lang.add(id.getNamespace(), DepositData.structureLangKey(id), displayName);
         }
     }
 
@@ -336,11 +325,11 @@ public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
         return id;
     }
 
-    DepositDimension dimension() {
+    ResourceKey<Level> dimension() {
         return dimension;
     }
 
-    void setDimension(DepositDimension dimension) {
+    void setDimension(ResourceKey<Level> dimension) {
         this.dimension = dimension;
     }
 
@@ -353,12 +342,12 @@ public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
     }
 
     boolean defaultScannable() {
-        if (builtInSpec == null) return true;
-        return builtInSpec.spec().scannable().get();
+        if (builtInStructure == null) return true;
+        return builtInStructure.isScannable().get();
     }
 
     boolean isTweak() {
-        return builtInSpec != null;
+        return builtInStructure != null;
     }
 
     ResourceLocation blockId() {
@@ -369,39 +358,21 @@ public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
         return blockId;
     }
 
-    private ResourceLocation depositSpecId() {
-        return ResourceLocation.fromNamespaceAndPath(id.getNamespace(), normalizedStructureName());
-    }
-
     private ResourceLocation depositSpecPath() {
-        if (builtInSpec != null) return DynamicDatapackContent.depositSpecPath(builtInSpec);
-
-        var specId = depositSpecId();
-        return ResourceLocation.fromNamespaceAndPath(specId.getNamespace(), "create_rns/deposit_spec/" + specId.getPath());
+        var specId = builtInStructure != null ? builtInStructure.specId() : DepositData.specId(id);
+        return Utils.resourceFileLocation(RNSRegistries.DEPOSIT_SPEC, specId);
     }
 
     private ResourceLocation processorId() {
-        return processorId;
+        return DepositData.processorId(id.getNamespace(), blockId());
     }
 
     private ResourceLocation processorPath() {
-        var processorId = processorId();
-        return ResourceLocation.fromNamespaceAndPath(processorId.getNamespace(),
-                "worldgen/processor_list/" + processorId.getPath());
+        return Utils.resourceFileLocation(Registries.PROCESSOR_LIST, processorId());
     }
 
     private ResourceLocation structurePath() {
-        return ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "worldgen/structure/" + id.getPath());
-    }
-
-    private String structureLangKey() {
-        return id.getNamespace() + ".structure." + id.getPath().replace('/', '.');
-    }
-
-    private String normalizedStructureName() {
-        return id.getPath().startsWith("deposit_")
-                ? id.getPath().substring("deposit_".length())
-                : id.getPath();
+        return Utils.resourceFileLocation(Registries.STRUCTURE, id);
     }
 
     boolean validateForAvailability() {
@@ -442,8 +413,8 @@ public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
                 ? List.of(blockId.toString())
                 : mapIconCandidates));
         json.addProperty("structure", id.toString());
-        if (!isTweak() || dimension != DepositDimension.OVERWORLD) {
-            json.addProperty("dimension", dimension.levelDimension().location().toString());
+        if (!isTweak() || !dimension.equals(Level.OVERWORLD)) {
+            json.addProperty("dimension", dimension.location().toString());
         }
         if (!scannable) {
             json.addProperty("scannable", false);
@@ -461,7 +432,7 @@ public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
         var locationPredicate = new JsonObject();
         var outputState = new JsonObject();
 
-        inputPredicate.addProperty("block", DepositStructureBuilder.PROCESSOR_INPUT_BLOCK.toString());
+        inputPredicate.addProperty("block", DepositData.PROCESSOR_INPUT_BLOCK.toString());
         inputPredicate.addProperty("predicate_type", "minecraft:block_match");
         locationPredicate.addProperty("predicate_type", "minecraft:always_true");
         outputState.addProperty("Name", blockId.toString());
@@ -484,8 +455,9 @@ public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
         json.addProperty("type", "create_rns:deposit");
         json.addProperty("biomes", biomeSelector != null
                 ? biomeSelector
-                : DynamicDatapackContent.getBiomeSelector(dimension));
-        json.addProperty("placement_strategy", dimension.placement().getSerializedName());
+                : "#" + DepositData.biomeTagId(CreateRNS.ID, dimension));
+        json.addProperty("placement_strategy", (builtInStructure != null ? builtInStructure.placementStrategy()
+                : DepositData.defaultPlacementStrategy(dimension)).getSerializedName());
         if (heightDeviation == 0) {
             json.addProperty("height", resolvedHeight());
         } else {
@@ -514,9 +486,9 @@ public class DepositStructureKubeBuilder extends SourcedStartupKubeBuilder {
 
     private int resolvedHeight() {
         if (height != null) return height;
-        var preset = dimension == DepositDimension.NETHER
-                ? DepositStructureBuilder.NETHER_COMMON
-                : DepositStructureBuilder.OVERWORLD_COMMON;
+        var preset = dimension.equals(Level.NETHER)
+                ? DepositData.PRESET_NETHER_COMMON
+                : DepositData.PRESET_OVERWORLD_COMMON;
         return -preset.depth();
     }
 

@@ -4,11 +4,11 @@
 
 ServerEvents.recipes(event => {
   // Remove the built-in recipe before adding yours.
-  event.remove({ id: 'create_rns:iron_deposit_block' })
+  event.remove({ id: 'create_rns:create_rns_iron_deposit_block' })
 
   event.recipes.create_rns.mining()
     .block('create_rns:iron_deposit_block')
-    .id('create_rns:iron_deposit_block')
+    .id('create_rns:create_rns_iron_deposit_block')
     .replaceWhenDepleted('create_rns:depleted_deposit_block')
     // This yield only rolls when the custom catalyst is active.
     .yield(y => y

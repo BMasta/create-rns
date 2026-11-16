@@ -8,5 +8,6 @@
   ],
   "map_icon_item": "create_rns:wolframite_deposit_block",
   "structure": "create_rns:deposit_nether_wolframite",
-  "dimension": "minecraft:the_nether"
+  "dimension": "minecraft:the_nether",
+  "scannable": true
 }

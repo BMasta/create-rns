@@ -1,6 +1,7 @@
-package com.bmaster.createrns.data.pack;
+package com.bmaster.createrns.data.deposit;
 
 import com.bmaster.createrns.content.deposit.mining.recipe.Yield.WeightedItem;
+import com.bmaster.createrns.data.deposit.DepositData.WeightedItemEntry;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
 
@@ -12,11 +13,11 @@ import java.util.function.UnaryOperator;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class YieldBuilder {
-    protected final List<ConfiguredWeightedItem> items = new ArrayList<>();
-    private final List<ResourceLocation> catalysts = new ArrayList<>();
+    public final List<WeightedItemEntry> items = new ArrayList<>();
+    public final List<ResourceLocation> catalysts = new ArrayList<>();
 
-    private float chance = 1;
-    private int jeiSlotColor = 0;
+    public float chance = 1;
+    public int jeiSlotColor = 0;
 
     public YieldBuilder chance(float chance) {
         if (chance < 0 || chance > 1) throw new IllegalArgumentException("Yield chance must be between 0 and 1");
@@ -58,7 +59,7 @@ public class YieldBuilder {
 
     protected YieldBuilder item(List<String> candidateIds, int weight, boolean compat) {
         if (weight <= 0) throw new IllegalArgumentException("Yield item weight must be positive");
-        items.add(new ConfiguredWeightedItem(candidateIds, weight, compat));
+        items.add(new WeightedItemEntry(candidateIds, weight, compat));
         return this;
     }
 
@@ -84,21 +85,5 @@ public class YieldBuilder {
 
     public YieldBuilder transform(UnaryOperator<YieldBuilder> transform) {
         return transform.apply(this);
-    }
-
-    protected ConfiguredYield build() {
-        if (items.isEmpty()) throw new IllegalStateException("Yield must define at least one item");
-        return new ConfiguredYield(chance, List.copyOf(items), List.copyOf(catalysts), jeiSlotColor);
-    }
-
-    public record ConfiguredYield(
-            float chance,
-            List<ConfiguredWeightedItem> items,
-            List<ResourceLocation> catalysts,
-            int jeiSlotColor
-    ) {
-    }
-
-    public record ConfiguredWeightedItem(List<String> candidateIds, int weight, boolean compat) {
     }
 }

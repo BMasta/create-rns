@@ -1,8 +1,8 @@
 package com.bmaster.createrns.compat.kubejs;
 
-import com.bmaster.createrns.data.pack.DepositSpecBuilder;
-import com.bmaster.createrns.data.pack.DepositStructureBuilder;
+import com.bmaster.createrns.data.deposit.DepositData;
 import dev.latvian.mods.kubejs.event.KubeStartupEvent;
+import dev.latvian.mods.kubejs.script.SourceLine;
 import dev.latvian.mods.kubejs.typings.Info;
 import dev.latvian.mods.rhino.Context;
 import dev.latvian.mods.rhino.util.HideFromJS;
@@ -40,11 +40,11 @@ public class DepositStructuresKubeEvent implements KubeStartupEvent {
 
     @HideFromJS
     public DepositStructureKubeBuilder create(String structureId) {
-        return create(structureId, dev.latvian.mods.kubejs.script.SourceLine.UNKNOWN);
+        return create(structureId, SourceLine.UNKNOWN);
     }
 
     private DepositStructureKubeBuilder create(
-            String structureId, dev.latvian.mods.kubejs.script.SourceLine sourceLine
+            String structureId, SourceLine sourceLine
     ) {
         var id = ResourceLocation.parse(structureId);
         if (findBuiltInStructure(id) != null) {
@@ -78,11 +78,11 @@ public class DepositStructuresKubeEvent implements KubeStartupEvent {
 
     @HideFromJS
     public DepositStructureKubeBuilder tweak(String structureId) {
-        return tweak(structureId, dev.latvian.mods.kubejs.script.SourceLine.UNKNOWN);
+        return tweak(structureId, SourceLine.UNKNOWN);
     }
 
     private DepositStructureKubeBuilder tweak(
-            String structureId, dev.latvian.mods.kubejs.script.SourceLine sourceLine
+            String structureId, SourceLine sourceLine
     ) {
         var id = ResourceLocation.parse(structureId);
         var structure = findBuiltInStructure(id);
@@ -93,11 +93,7 @@ public class DepositStructuresKubeEvent implements KubeStartupEvent {
             throw new IllegalStateException("Built-in deposit structure already tweaked: " + id);
         }
 
-        var spec = DepositSpecBuilder.getSpecs().stream()
-                .filter(entry -> entry.spec().structureId().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Missing deposit spec for built-in structure " + id));
-        var builder = new DepositStructureKubeBuilder(structure, spec, sourceLine);
+        var builder = new DepositStructureKubeBuilder(structure, sourceLine);
         tweakedById.put(id, builder);
         tweaked.add(builder);
         return builder;
@@ -111,11 +107,11 @@ public class DepositStructuresKubeEvent implements KubeStartupEvent {
         return tweaked.stream().filter(builder -> !builder.isInvalid()).toList();
     }
 
-    private static @Nullable DepositStructureBuilder.ConfiguredEntry findBuiltInStructure(
+    private static @Nullable DepositData.StructureEntry findBuiltInStructure(
             ResourceLocation structureId
     ) {
-        return DepositStructureBuilder.getDeposits().stream()
-                .filter(entry -> DepositStructureBuilder.structureId(entry).equals(structureId))
+        return DepositData.getStructures().stream()
+                .filter(entry -> entry.structureId().equals(structureId))
                 .findFirst()
                 .orElse(null);
     }

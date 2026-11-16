@@ -1,6 +1,8 @@
 package com.bmaster.createrns.compat.kubejs;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.data.deposit.DepositData;
+import net.minecraft.world.level.Level;
 import dev.latvian.mods.kubejs.event.KubeStartupEvent;
 import dev.latvian.mods.kubejs.typings.Info;
 import dev.latvian.mods.rhino.Context;
@@ -31,7 +33,7 @@ public class EnableDepositsKubeEvent implements KubeStartupEvent {
     @Info("Returns the overworld deposit structure set builder.")
     public EnableDepositsKubeBuilder overworld(Context cx) {
         if (overworld == null) {
-            overworld = new EnableDepositsKubeBuilder(CreateRNS.asResource("deposits"), availableStructures,
+            overworld = new EnableDepositsKubeBuilder(DepositData.structureSetId(CreateRNS.ID, Level.OVERWORLD), availableStructures,
                     KubeJSStartupError.builderStart(cx, "rnsEnableDeposits", "overworld|nether"));
         }
         return overworld;
@@ -40,7 +42,7 @@ public class EnableDepositsKubeEvent implements KubeStartupEvent {
     @HideFromJS
     public EnableDepositsKubeBuilder overworld() {
         if (overworld == null) {
-            overworld = new EnableDepositsKubeBuilder(CreateRNS.asResource("deposits"), availableStructures);
+            overworld = new EnableDepositsKubeBuilder(DepositData.structureSetId(CreateRNS.ID, Level.OVERWORLD), availableStructures);
         }
         return overworld;
     }
@@ -48,7 +50,7 @@ public class EnableDepositsKubeEvent implements KubeStartupEvent {
     @Info("Returns the nether deposit structure set builder.")
     public EnableDepositsKubeBuilder nether(Context cx) {
         if (nether == null) {
-            nether = new EnableDepositsKubeBuilder(CreateRNS.asResource("nether_deposits"), availableStructures,
+            nether = new EnableDepositsKubeBuilder(DepositData.structureSetId(CreateRNS.ID, Level.NETHER), availableStructures,
                     KubeJSStartupError.builderStart(cx, "rnsEnableDeposits", "overworld|nether"));
         }
         return nether;
@@ -57,7 +59,7 @@ public class EnableDepositsKubeEvent implements KubeStartupEvent {
     @HideFromJS
     public EnableDepositsKubeBuilder nether() {
         if (nether == null) {
-            nether = new EnableDepositsKubeBuilder(CreateRNS.asResource("nether_deposits"), availableStructures);
+            nether = new EnableDepositsKubeBuilder(DepositData.structureSetId(CreateRNS.ID, Level.NETHER), availableStructures);
         }
         return nether;
     }

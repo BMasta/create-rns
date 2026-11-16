@@ -1,8 +1,8 @@
 package com.bmaster.createrns.content.deposit.spec;
 
+import com.bmaster.createrns.RNSRegistries;
+import com.bmaster.createrns.data.deposit.DepositData;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -28,7 +28,7 @@ public class DepositSpecLookup {
     private static Map<ResourceKey<Level>,List<Item>> dimToScannerIcons;
 
     public static void build(RegistryAccess access) {
-        var regEntries = access.registryOrThrow(DepositSpec.REGISTRY_KEY).entrySet();
+        var regEntries = access.registryOrThrow(RNSRegistries.DEPOSIT_SPEC).entrySet();
 
         scannerIconToDimToSpec = new HashMap<>();
         structureKeyToSpec = HashMap.newHashMap(regEntries.size());
@@ -88,10 +88,8 @@ public class DepositSpecLookup {
     }
 
     public static MutableComponent getDepositName(ResourceKey<Structure> depKey) {
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null) return Component.empty();
         var dRL = depKey.location();
-        return Component.translatable(dRL.getNamespace() + ".structure." + dRL.getPath());
+        return Component.translatable(DepositData.structureLangKey(dRL));
     }
 
     public static List<Item> getScannerIcons(Level l) {

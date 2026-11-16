@@ -6,5 +6,6 @@
     "#c:nuggets/iron"
   ],
   "map_icon_item": "create_rns:iron_deposit_block",
-  "structure": "create_rns:deposit_iron"
+  "structure": "create_rns:deposit_iron",
+  "scannable": true
 }

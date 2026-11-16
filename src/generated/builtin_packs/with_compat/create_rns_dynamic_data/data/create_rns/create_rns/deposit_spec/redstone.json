@@ -1,5 +1,6 @@
 {
   "scanner_icon_item": "#c:dusts/redstone",
   "map_icon_item": "create_rns:redstone_deposit_block",
-  "structure": "create_rns:deposit_redstone"
+  "structure": "create_rns:deposit_redstone",
+  "scannable": true
 }

@@ -80,7 +80,7 @@ public class RNSKubeJSAssemblerBuilderGameTest {
         helper.assertTrue(generated.hasJson(CreateRNS.asResource("worldgen/structure/" + structureId.getPath())),
                 "Expected custom deposit structure JSON");
         helper.assertTrue(generated.hasJson(CreateRNS.asResource(
-                "worldgen/processor_list/replace_with_" + structureId.getNamespace() + "_" + structureId.getPath())),
+                "worldgen/processor_list/replace_with_minecraft_ancient_debris")),
                 "Expected custom processor-list JSON");
 
         var structureSetJson = generated.jsonObject(CreateRNS.asResource("worldgen/structure_set/deposits"));
