@@ -133,8 +133,8 @@ public class CatalystKubeBuilder {
         if (amount <= 0) throw new IllegalArgumentException("Catalyst fluid amount must be positive");
 
         var consume = new JsonObject();
-        consume.addProperty("id", normalizeId(fluidId));
-        consume.addProperty("amount", amount);
+        consume.addProperty("FluidName", normalizeId(fluidId));
+        consume.addProperty("Amount", amount);
 
         var requirement = new JsonObject();
         requirement.addProperty("type", "fluid");

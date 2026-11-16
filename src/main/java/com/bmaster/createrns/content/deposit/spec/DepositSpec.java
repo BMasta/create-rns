@@ -1,12 +1,10 @@
 package com.bmaster.createrns.content.deposit.spec;
 
-import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.util.StrictOptionalField;
 import com.bmaster.createrns.util.codec.ItemWithFallbacks;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -35,9 +33,6 @@ public class DepositSpec {
             StrictOptionalField.of("scannable", Codec.BOOL, true)
                     .forGetter(ds -> ds.scannable)
     ).apply(i, DepositSpec::new));
-
-    public static final ResourceKey<Registry<DepositSpec>> REGISTRY_KEY =
-            ResourceKey.createRegistryKey(CreateRNS.asResource("deposit_spec"));
 
     public final ResourceLocation structure;
     public final ResourceKey<Level> dimension;

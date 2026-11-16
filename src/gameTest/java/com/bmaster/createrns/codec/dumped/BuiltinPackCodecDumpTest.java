@@ -47,8 +47,12 @@ public class BuiltinPackCodecDumpTest {
         var files = DumpedCodecHelper.findJsonFiles(helper,
                 "default/create_rns_dynamic_data/data/create_rns/create_rns/deposit_spec");
         DumpedCodecHelper.assertRoundTrips(helper, files, DepositSpec.CODEC,
-                CodecHelper.registries(helper), "dumped deposit spec",
-                DumpedCodecHelper::identity);
+                CodecHelper.registries(helper), "dumped deposit spec", json -> {
+                    // The codec omits the default value; explicit false must still survive the round trip.
+                    var root = json.getAsJsonObject();
+                    if (root.has("scannable") && root.get("scannable").getAsBoolean()) root.remove("scannable");
+                    return json;
+                });
         var scannableFiles = files.stream()
                 .filter(path -> {
                     var json = DumpedCodecHelper.readJson(path).getAsJsonObject();
@@ -66,6 +70,10 @@ public class BuiltinPackCodecDumpTest {
             helper.assertTrue(spec != null,
                     "Expected dumped deposit spec parse success for " + path + ", got: "
                             + parseResult.error().map(error -> error.message()).orElse("unknown codec error"));
+            var source = root.getAsJsonObject();
+            CodecHelper.assertValueEqual(helper, spec.scannable,
+                    !source.has("scannable") || source.get("scannable").getAsBoolean(),
+                    "dumped deposit spec scannability for " + path);
             helper.assertTrue(spec != null && spec.initialize(helper.getLevel().registryAccess()),
                     "Expected dumped deposit spec to initialize successfully for " + path);
         }

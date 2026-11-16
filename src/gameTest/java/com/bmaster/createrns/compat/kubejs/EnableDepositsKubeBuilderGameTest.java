@@ -1,10 +1,9 @@
 package com.bmaster.createrns.compat.kubejs;
 
+import com.bmaster.createrns.data.DumpSafeOverrides;
+
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.data.pack.DepositDimension;
-import com.bmaster.createrns.data.pack.DepositSpecBuilder;
-import com.bmaster.createrns.data.pack.DepositStructureBuilder;
-import com.bmaster.createrns.data.pack.DynamicDatapackContent;
+import com.bmaster.createrns.data.deposit.DepositData;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -29,8 +28,8 @@ public class EnableDepositsKubeBuilderGameTest {
     @RNSKubeJSBuilderTest
     private static void builtInSelectionsUseDefaultPlacementAndBuiltInWeights(RNSKubeJSBuilderTestContext context) {
         var helper = context.helper();
-        var overworld = firstBuiltInStructure(helper, DepositDimension.OVERWORLD);
-        var nether = firstBuiltInStructure(helper, DepositDimension.NETHER);
+        var overworld = firstBuiltInStructure(helper, DumpSafeOverrides.OVERWORLD);
+        var nether = firstBuiltInStructure(helper, DumpSafeOverrides.NETHER);
 
         context.structureSet().overworld().deposit(overworld.id().toString());
         context.structureSet().nether().deposit(nether.id().toString());
@@ -54,7 +53,7 @@ public class EnableDepositsKubeBuilderGameTest {
             RNSKubeJSBuilderTestContext context
     ) {
         var helper = context.helper();
-        var builtIns = enabledBuiltInStructures(DepositDimension.OVERWORLD);
+        var builtIns = enabledBuiltInStructures(DumpSafeOverrides.OVERWORLD);
         helper.assertTrue(builtIns.size() >= 2, "Expected at least two overworld built-in deposit structures");
         var tweakedDefault = builtIns.get(0);
         var explicitlyOverridden = builtIns.get(1);
@@ -139,10 +138,10 @@ public class EnableDepositsKubeBuilderGameTest {
     @RNSKubeJSBuilderTest
     private static void builtInSelectionsRewriteGlobalSpecVisibilityAndSortSelectedIds(RNSKubeJSBuilderTestContext context) {
         var helper = context.helper();
-        var overworldBuiltIns = enabledBuiltInStructures(DepositDimension.OVERWORLD).stream()
+        var overworldBuiltIns = enabledBuiltInStructures(DumpSafeOverrides.OVERWORLD).stream()
                 .sorted(java.util.Comparator.comparing(structure -> structure.id().toString()))
                 .toList();
-        var netherBuiltIn = firstBuiltInStructure(helper, DepositDimension.NETHER);
+        var netherBuiltIn = firstBuiltInStructure(helper, DumpSafeOverrides.NETHER);
         helper.assertTrue(overworldBuiltIns.size() >= 3, "Expected at least three overworld built-in structures");
 
         var selectedFirst = overworldBuiltIns.get(0);
@@ -169,7 +168,7 @@ public class EnableDepositsKubeBuilderGameTest {
         assertBuiltInScannableState(helper, generated, selectedFirst.id(), true);
         assertBuiltInScannableState(helper, generated, selectedLast.id(), true);
         assertBuiltInScannableState(helper, generated, omittedOverworld.id(), false);
-        helper.assertFalse(generated.hasJson(DynamicDatapackContent.depositSpecPath(findSpecByStructure(netherBuiltIn.id()))),
+        helper.assertFalse(generated.hasJson(depositSpecPath(netherBuiltIn.id())),
                 "Did not expect a nether deposit-spec override without configuring nether()");
     }
 
@@ -216,7 +215,7 @@ public class EnableDepositsKubeBuilderGameTest {
     private static void depositRejectsDuplicateSelections(RNSKubeJSBuilderTestContext context) {
         var helper = context.helper();
         var overworld = context.structureSet().overworld();
-        var builtIn = firstBuiltInStructure(helper, DepositDimension.OVERWORLD);
+        var builtIn = firstBuiltInStructure(helper, DumpSafeOverrides.OVERWORLD);
 
         overworld.deposit(builtIn.id().toString(), false);
 
@@ -227,7 +226,7 @@ public class EnableDepositsKubeBuilderGameTest {
     @RNSKubeJSBuilderTest
     private static void depositIntOverloadRejectsNonPositiveWeights(RNSKubeJSBuilderTestContext context) {
         var helper = context.helper();
-        var builtIn = firstBuiltInStructure(helper, DepositDimension.OVERWORLD);
+        var builtIn = firstBuiltInStructure(helper, DumpSafeOverrides.OVERWORLD);
         var overworld = context.structureSet().overworld();
 
         assertThrows(helper, IllegalArgumentException.class, "must be positive",
@@ -239,7 +238,7 @@ public class EnableDepositsKubeBuilderGameTest {
     @RNSKubeJSBuilderTest
     private static void depositDirectOverloadRejectsNonPositiveWeights(RNSKubeJSBuilderTestContext context) {
         var helper = context.helper();
-        var builtIn = firstBuiltInStructure(helper, DepositDimension.OVERWORLD);
+        var builtIn = firstBuiltInStructure(helper, DumpSafeOverrides.OVERWORLD);
         var overworld = context.structureSet().overworld();
 
         assertThrows(helper, IllegalArgumentException.class, "must be positive",
@@ -251,7 +250,7 @@ public class EnableDepositsKubeBuilderGameTest {
     @RNSKubeJSBuilderTest
     private static void spacingSeparationAndSaltSerializeExplicitValues(RNSKubeJSBuilderTestContext context) {
         var helper = context.helper();
-        var builtIn = firstBuiltInStructure(helper, DepositDimension.OVERWORLD);
+        var builtIn = firstBuiltInStructure(helper, DumpSafeOverrides.OVERWORLD);
 
         context.structureSet().overworld()
                 .deposit(builtIn.id().toString())
@@ -266,8 +265,8 @@ public class EnableDepositsKubeBuilderGameTest {
     @RNSKubeJSBuilderTest
     private static void partialPlacementOverridesAndNegativeSaltSerialize(RNSKubeJSBuilderTestContext context) {
         var helper = context.helper();
-        var overworldBuiltIn = firstBuiltInStructure(helper, DepositDimension.OVERWORLD);
-        var netherBuiltIn = firstBuiltInStructure(helper, DepositDimension.NETHER);
+        var overworldBuiltIn = firstBuiltInStructure(helper, DumpSafeOverrides.OVERWORLD);
+        var netherBuiltIn = firstBuiltInStructure(helper, DumpSafeOverrides.NETHER);
 
         context.structureSet().overworld()
                 .deposit(overworldBuiltIn.id().toString())
@@ -326,16 +325,16 @@ public class EnableDepositsKubeBuilderGameTest {
     }
 
     private static BuiltInStructure firstBuiltInStructure(
-            RNSKubeJSBuilderTestHelper helper, DepositDimension dimension
+            RNSKubeJSBuilderTestHelper helper, ResourceLocation dimension
     ) {
         var structures = enabledBuiltInStructures(dimension);
-        helper.assertTrue(!structures.isEmpty(), "Expected built-in " + dimension.getSerializedName() + " deposit structures");
+        helper.assertTrue(!structures.isEmpty(), "Expected built-in " + dimension + " deposit structures");
         return structures.get(0);
     }
 
-    private static List<BuiltInStructure> enabledBuiltInStructures(DepositDimension dimension) {
-        return DepositStructureBuilder.getScannableDeposits(dimension).stream()
-                .map(entry -> new BuiltInStructure(DepositStructureBuilder.structureId(entry), entry.structure().weight()))
+    private static List<BuiltInStructure> enabledBuiltInStructures(ResourceLocation dimension) {
+        return DepositData.getScannableStructures(dimension).stream()
+                .map(entry -> new BuiltInStructure(entry.structureId(), entry.weight()))
                 .toList();
     }
 
@@ -343,20 +342,9 @@ public class EnableDepositsKubeBuilderGameTest {
             RNSKubeJSBuilderTestHelper helper, RNSKubeJSBuilderTestData generated, ResourceLocation structureId,
             boolean expectedScannable
     ) {
-        var depositSpecJson = generated.jsonObject(DynamicDatapackContent.depositSpecPath(findSpecByStructure(structureId)));
-        helper.assertValueEqual(!depositSpecJson.has("scannable"), expectedScannable,
-                "selected built-in scannable field omission");
-        if (!expectedScannable) {
-            helper.assertFalse(depositSpecJson.get("scannable").getAsBoolean(),
-                    "omitted built-in deposits should be forced non-scannable");
-        }
-    }
-
-    private static DepositSpecBuilder.ConfiguredEntry findSpecByStructure(ResourceLocation structureId) {
-        return DepositSpecBuilder.getSpecs().stream()
-                .filter(entry -> entry.spec().structureId().equals(structureId))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Missing built-in deposit spec for structure " + structureId));
+        var depositSpecJson = generated.jsonObject(depositSpecPath(structureId));
+        helper.assertValueEqual(!depositSpecJson.has("scannable") || depositSpecJson.get("scannable").getAsBoolean(),
+                expectedScannable, "built-in scannability");
     }
 
     private static void assertPlacement(

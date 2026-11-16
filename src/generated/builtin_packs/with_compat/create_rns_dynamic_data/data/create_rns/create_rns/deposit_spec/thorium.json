@@ -7,5 +7,6 @@
     "#forge:nuggets/thorium"
   ],
   "map_icon_item": "create_rns:thorium_deposit_block",
-  "structure": "create_rns:deposit_thorium"
+  "structure": "create_rns:deposit_thorium",
+  "scannable": true
 }

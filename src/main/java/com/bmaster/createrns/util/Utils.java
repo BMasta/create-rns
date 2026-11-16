@@ -1,13 +1,16 @@
 package com.bmaster.createrns.util;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.data.DumpSafeOverrides;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import net.createmod.catnip.lang.LangBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
@@ -97,5 +100,26 @@ public class Utils {
         var id = ResourceLocation.tryParse(idString);
         if (id == null) return null;
         return registry.containsKey(id) ? registry.getValue(id) : null;
+    }
+
+    public static <T> ResourceLocation resourceFileLocation(ResourceKey<Registry<T>> registry, ResourceLocation resourceId) {
+        return resourceFileLocation(registry.location(), resourceId);
+    }
+
+    public static ResourceLocation resourceFileLocation(ResourceLocation registryId, ResourceLocation resourceId) {
+        var registryPath = registryId.getNamespace().equals(ResourceLocation.DEFAULT_NAMESPACE)
+                ? registryId.getPath()
+                : registryId.getNamespace() + "/" + registryId.getPath();
+        return ResourceLocation.fromNamespaceAndPath(resourceId.getNamespace(), registryPath + "/" + resourceId.getPath());
+    }
+
+    public static <T> ResourceLocation tagFileLocation(ResourceKey<Registry<T>> registry, ResourceLocation tagId) {
+        return tagFileLocation(registry.location(), tagId);
+    }
+
+    public static ResourceLocation tagFileLocation(ResourceLocation registryId, ResourceLocation tagId) {
+        var directory = DumpSafeOverrides.TAG_DIRECTORIES.get(registryId);
+        if (directory != null) return tagId.withPrefix(directory + "/");
+        return resourceFileLocation(registryId, tagId).withPrefix("tags/");
     }
 }

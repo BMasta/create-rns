@@ -1,6 +1,8 @@
 package com.bmaster.createrns.compat.kubejs;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.data.deposit.DepositData;
+import com.bmaster.createrns.data.DumpSafeOverrides;
 import dev.latvian.mods.kubejs.event.StartupEventJS;
 import dev.latvian.mods.kubejs.typings.Info;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -29,7 +31,7 @@ public class EnableDepositsKubeEvent extends StartupEventJS {
     @Info("Returns the overworld deposit structure set builder.")
     public EnableDepositsKubeBuilder overworld() {
         if (overworld == null) {
-            overworld = new EnableDepositsKubeBuilder(CreateRNS.asResource("deposits"), availableStructures);
+            overworld = new EnableDepositsKubeBuilder(DepositData.structureSetId(CreateRNS.ID, DumpSafeOverrides.OVERWORLD), availableStructures);
         }
         return overworld;
     }
@@ -37,7 +39,7 @@ public class EnableDepositsKubeEvent extends StartupEventJS {
     @Info("Returns the nether deposit structure set builder.")
     public EnableDepositsKubeBuilder nether() {
         if (nether == null) {
-            nether = new EnableDepositsKubeBuilder(CreateRNS.asResource("nether_deposits"), availableStructures);
+            nether = new EnableDepositsKubeBuilder(DepositData.structureSetId(CreateRNS.ID, DumpSafeOverrides.NETHER), availableStructures);
         }
         return nether;
     }

@@ -1,6 +1,8 @@
 package com.bmaster.createrns.compat.kubejs;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.FluidCatalystRequirement;
 import com.bmaster.createrns.util.CodecHelper;
 import com.google.gson.JsonObject;
 import net.minecraft.gametest.framework.GameTest;
@@ -8,6 +10,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
 
@@ -44,7 +47,10 @@ public class CatalystKubeBuilderGameTest {
         helper.assertValueEqual(requirements.size(), 1, "requirement count");
         assertFluidRequirement(helper, requirements.get(0).getAsJsonObject(), "minecraft:lava", 1000);
 
-        helper.assertFalse(generated.hasJson(CreateRNS.asResource("tags/block/miner_attachments")),
+        CodecHelper.assertParses(helper.raw(), CatalystRequirementSet.CODEC, CodecHelper.registries(helper.raw()),
+                json.toString(), "generated fluid-only catalyst");
+
+        helper.assertFalse(generated.hasJson(CreateRNS.asResource("tags/blocks/miner_attachments")),
                 "Fluid-only catalysts should not emit the miner attachment tag");
         helper.assertTrue(lang.map.isEmpty(), "Expected no lang entries without displayName()/description()");
     }
@@ -90,6 +96,9 @@ public class CatalystKubeBuilderGameTest {
         assertAttachmentRequirement(helper, requirements.get(0).getAsJsonObject(), "minecraft:stone", null);
         assertFluidRequirement(helper, requirements.get(1).getAsJsonObject(), "minecraft:lava", 250);
 
+        CodecHelper.assertParses(helper.raw(), CatalystRequirementSet.CODEC, CodecHelper.registries(helper.raw()),
+                json.toString(), "generated catalyst with metadata and mixed requirements");
+
         assertLangValue(helper, lang, "create_rns", "en_us",
                 "create_rns.catalyst.nested.test_catalyst.name", "Nested Catalyst");
         assertLangValue(helper, lang, "create_rns", "en_us",
@@ -127,7 +136,7 @@ public class CatalystKubeBuilderGameTest {
                 List.of("minecraft:granite", "minecraft:stone"), null);
         assertAttachmentRequirement(helper, secondRequirements.get(1).getAsJsonObject(), "minecraft:diorite", null);
 
-        var tagJson = generated.jsonObject(CreateRNS.asResource("tags/block/miner_attachments"));
+        var tagJson = generated.jsonObject(CreateRNS.asResource("tags/blocks/miner_attachments"));
         helper.assertFalse(tagJson.get("replace").getAsBoolean(), "Attachment tag should append instead of replace");
         assertArrayStrings(helper, tagJson.get("values"), "attachment tag values",
                 "minecraft:andesite",
@@ -235,8 +244,14 @@ public class CatalystKubeBuilderGameTest {
     ) {
         helper.assertValueEqual(requirement.get("type").getAsString(), "fluid", "fluid requirement type");
         var consume = requirement.getAsJsonObject("consume");
-        helper.assertValueEqual(consume.get("id").getAsString(), expectedFluidId, "fluid id");
-        helper.assertValueEqual(consume.get("amount").getAsInt(), expectedAmount, "fluid amount");
+        helper.assertValueEqual(consume.get("FluidName").getAsString(), expectedFluidId, "fluid id");
+        helper.assertValueEqual(consume.get("Amount").getAsInt(), expectedAmount, "fluid amount");
+
+        var decoded = CodecHelper.assertParses(helper.raw(), FluidCatalystRequirement.CODEC,
+                CodecHelper.registries(helper.raw()), requirement.toString(), "generated fluid requirement");
+        helper.assertValueEqual(ForgeRegistries.FLUIDS.getKey(decoded.fluidStack.getFluid()),
+                ResourceLocation.parse(expectedFluidId), "decoded fluid id");
+        helper.assertValueEqual(decoded.fluidStack.getAmount(), expectedAmount, "decoded fluid amount");
     }
 
     private static ResourceLocation catalystPath(ResourceLocation catalystId) {

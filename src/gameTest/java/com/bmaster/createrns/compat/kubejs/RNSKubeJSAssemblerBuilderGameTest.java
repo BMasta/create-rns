@@ -41,7 +41,7 @@ public class RNSKubeJSAssemblerBuilderGameTest {
         var catalystPath = ResourceLocation.fromNamespaceAndPath(catalystId.getNamespace(),
                 "create_rns/catalyst/" + catalystId.getPath());
         helper.assertTrue(generated.hasJson(catalystPath), "Expected generated catalyst JSON");
-        helper.assertTrue(generated.hasJson(CreateRNS.asResource("tags/block/miner_attachments")),
+        helper.assertTrue(generated.hasJson(CreateRNS.asResource("tags/blocks/miner_attachments")),
                 "Expected generated miner attachment tag");
 
         var catalystJson = generated.jsonObject(catalystPath);
@@ -51,7 +51,7 @@ public class RNSKubeJSAssemblerBuilderGameTest {
         helper.assertValueEqual(requirements.get(0).getAsJsonObject().get("attachment").getAsString(),
                 "minecraft:stone", "attachment block id");
 
-        var tagJson = generated.jsonObject(CreateRNS.asResource("tags/block/miner_attachments"));
+        var tagJson = generated.jsonObject(CreateRNS.asResource("tags/blocks/miner_attachments"));
         helper.assertFalse(tagJson.get("replace").getAsBoolean(), "Attachment tag should append instead of replace");
         var values = tagJson.getAsJsonArray("values");
         helper.assertValueEqual(values.size(), 1, "attachment tag value count");
@@ -80,7 +80,7 @@ public class RNSKubeJSAssemblerBuilderGameTest {
         helper.assertTrue(generated.hasJson(CreateRNS.asResource("worldgen/structure/" + structureId.getPath())),
                 "Expected custom deposit structure JSON");
         helper.assertTrue(generated.hasJson(CreateRNS.asResource(
-                "worldgen/processor_list/replace_with_" + structureId.getNamespace() + "_" + structureId.getPath())),
+                "worldgen/processor_list/replace_with_minecraft_ancient_debris")),
                 "Expected custom processor-list JSON");
 
         var structureSetJson = generated.jsonObject(CreateRNS.asResource("worldgen/structure_set/deposits"));

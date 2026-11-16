@@ -8,6 +8,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
+import java.util.List;
+
 import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.*;
 
 @GameTestHolder(CreateRNS.ID)
@@ -186,7 +188,7 @@ public class DepositStructureKubeBuilderGameTest {
 
         var generated = context.assembleData();
         var depositSpecJson = generated.jsonObject(depositSpecPath(structureId));
-        var processorJson = generated.jsonObject(processorPath(structureId));
+        var processorJson = generated.jsonObject(processorPath(structureId.getNamespace(), "minecraft:raw_iron_block"));
         var structureJson = generated.jsonObject(structurePath(structureId));
         var lang = context.assembleLang();
 
@@ -206,7 +208,7 @@ public class DepositStructureKubeBuilderGameTest {
         var structures = structureJson.getAsJsonArray("structures");
         helper.assertValueEqual(structures.size(), 1, "template count");
         assertStructureEntry(helper, structures, 0, DEFAULT_TEMPLATE_SMALL.toString(), 1,
-                "create_rns:replace_with_create_rns_deposit_test_default_structure");
+                "create_rns:replace_with_minecraft_raw_iron_block");
 
         var processors = processorJson.getAsJsonArray("processors");
         helper.assertValueEqual(processors.size(), 1, "processor count");
@@ -276,9 +278,9 @@ public class DepositStructureKubeBuilderGameTest {
                 "#forge:ingots/gold");
         helper.assertValueEqual(structures.size(), 2, "template count");
         assertStructureEntry(helper, structures, 0, DEFAULT_TEMPLATE_SMALL.toString(), 7,
-                "create_rns:replace_with_create_rns_test_template_accumulation");
+                "create_rns:replace_with_minecraft_gold_block");
         assertStructureEntry(helper, structures, 1, DEFAULT_TEMPLATE_LARGE.toString(), 3,
-                "create_rns:replace_with_create_rns_test_template_accumulation");
+                "create_rns:replace_with_minecraft_gold_block");
     }
 
     @RNSKubeJSBuilderTest
@@ -302,7 +304,7 @@ public class DepositStructureKubeBuilderGameTest {
 
         var generated = context.assembleData();
         var depositSpecJson = generated.jsonObject(depositSpecPath(structureId));
-        var processorJson = generated.jsonObject(processorPath(structureId));
+        var processorJson = generated.jsonObject(processorPath(structureId.getNamespace(), "minecraft:gold_block"));
         var structureJson = generated.jsonObject(structurePath(structureId));
         var lang = context.assembleLang();
 
@@ -397,14 +399,17 @@ public class DepositStructureKubeBuilderGameTest {
 
         var generated = context.assembleData();
         var structureSetEntries = generated.jsonObject(structureSetPath("deposits")).getAsJsonArray("structures");
-        assertPresetStructure(helper, generated, commonId, "#create_rns:has_deposit", "overworld", -8,
+        assertPresetStructure(helper, generated, commonId, "minecraft:iron_block",
+                "#create_rns:has_deposit", "overworld", -8,
                 new PresetTemplate(DEFAULT_TEMPLATE_MEDIUM, 70),
                 new PresetTemplate(DEFAULT_TEMPLATE_LARGE, 30));
-        assertPresetStructure(helper, generated, uncommonId, "#create_rns:has_deposit", "overworld", -10,
+        assertPresetStructure(helper, generated, uncommonId, "minecraft:copper_block",
+                "#create_rns:has_deposit", "overworld", -10,
                 new PresetTemplate(DEFAULT_TEMPLATE_SMALL, 30),
                 new PresetTemplate(DEFAULT_TEMPLATE_MEDIUM, 60),
                 new PresetTemplate(DEFAULT_TEMPLATE_LARGE, 10));
-        assertPresetStructure(helper, generated, rareId, "#create_rns:has_deposit", "overworld", -12,
+        assertPresetStructure(helper, generated, rareId, "minecraft:diamond_block",
+                "#create_rns:has_deposit", "overworld", -12,
                 new PresetTemplate(DEFAULT_TEMPLATE_SMALL, 70),
                 new PresetTemplate(DEFAULT_TEMPLATE_MEDIUM, 28),
                 new PresetTemplate(DEFAULT_TEMPLATE_LARGE, 2));
@@ -439,14 +444,17 @@ public class DepositStructureKubeBuilderGameTest {
 
         var generated = context.assembleData();
         var structureSetEntries = generated.jsonObject(structureSetPath("nether_deposits")).getAsJsonArray("structures");
-        assertPresetStructure(helper, generated, commonId, "#create_rns:has_deposit_nether", "nether", -4,
+        assertPresetStructure(helper, generated, commonId, "minecraft:gold_block",
+                "#create_rns:has_deposit_nether", "nether", -4,
                 new PresetTemplate(DEFAULT_TEMPLATE_MEDIUM, 70),
                 new PresetTemplate(DEFAULT_TEMPLATE_LARGE, 30));
-        assertPresetStructure(helper, generated, uncommonId, "#create_rns:has_deposit_nether", "nether", -4,
+        assertPresetStructure(helper, generated, uncommonId, "minecraft:ancient_debris",
+                "#create_rns:has_deposit_nether", "nether", -4,
                 new PresetTemplate(DEFAULT_TEMPLATE_SMALL, 30),
                 new PresetTemplate(DEFAULT_TEMPLATE_MEDIUM, 60),
                 new PresetTemplate(DEFAULT_TEMPLATE_LARGE, 10));
-        assertPresetStructure(helper, generated, rareId, "#create_rns:has_deposit_nether", "nether", -4,
+        assertPresetStructure(helper, generated, rareId, "minecraft:quartz_block",
+                "#create_rns:has_deposit_nether", "nether", -4,
                 new PresetTemplate(DEFAULT_TEMPLATE_SMALL, 70),
                 new PresetTemplate(DEFAULT_TEMPLATE_MEDIUM, 28),
                 new PresetTemplate(DEFAULT_TEMPLATE_LARGE, 2));
@@ -472,11 +480,11 @@ public class DepositStructureKubeBuilderGameTest {
 
         helper.assertValueEqual(structures.size(), 3, "preset plus manual template count");
         assertStructureEntry(helper, structures, 0, DEFAULT_TEMPLATE_MEDIUM.toString(), 70,
-                "create_rns:replace_with_create_rns_test_preset_then_manual_template");
+                "create_rns:replace_with_minecraft_emerald_block");
         assertStructureEntry(helper, structures, 1, DEFAULT_TEMPLATE_LARGE.toString(), 30,
-                "create_rns:replace_with_create_rns_test_preset_then_manual_template");
+                "create_rns:replace_with_minecraft_emerald_block");
         assertStructureEntry(helper, structures, 2, DEFAULT_TEMPLATE_SMALL.toString(), 5,
-                "create_rns:replace_with_create_rns_test_preset_then_manual_template");
+                "create_rns:replace_with_minecraft_emerald_block");
     }
 
     @RNSKubeJSBuilderTest
@@ -518,11 +526,11 @@ public class DepositStructureKubeBuilderGameTest {
         helper.assertValueEqual(structureJson.get("height").getAsInt(), -4, "nether preset height");
         helper.assertValueEqual(structures.size(), 3, "nether preset template count");
         assertStructureEntry(helper, structures, 0, DEFAULT_TEMPLATE_SMALL.toString(), 30,
-                "create_rns:replace_with_create_rns_test_nether_preset");
+                "create_rns:replace_with_minecraft_ancient_debris");
         assertStructureEntry(helper, structures, 1, DEFAULT_TEMPLATE_MEDIUM.toString(), 60,
-                "create_rns:replace_with_create_rns_test_nether_preset");
+                "create_rns:replace_with_minecraft_ancient_debris");
         assertStructureEntry(helper, structures, 2, DEFAULT_TEMPLATE_LARGE.toString(), 10,
-                "create_rns:replace_with_create_rns_test_nether_preset");
+                "create_rns:replace_with_minecraft_ancient_debris");
 
         var structureSetEntries = structureSetJson.getAsJsonArray("structures");
         helper.assertValueEqual(structureSetEntries.size(), 1, "nether structure-set entry count");
@@ -551,9 +559,9 @@ public class DepositStructureKubeBuilderGameTest {
         helper.assertValueEqual(structureJson.get("height").getAsInt(), 23, "overridden height");
         helper.assertValueEqual(structures.size(), 2, "common preset template count");
         assertStructureEntry(helper, structures, 0, DEFAULT_TEMPLATE_MEDIUM.toString(), 70,
-                "create_rns:replace_with_create_rns_test_preset_override");
+                "create_rns:replace_with_minecraft_emerald_block");
         assertStructureEntry(helper, structures, 1, DEFAULT_TEMPLATE_LARGE.toString(), 30,
-                "create_rns:replace_with_create_rns_test_preset_override");
+                "create_rns:replace_with_minecraft_emerald_block");
 
         helper.assertValueEqual(structureSetEntries.size(), 1, "structure-set entry count");
         assertStructureSetEntry(helper, structureSetEntries, 0, structureId.toString(), 9);
@@ -588,9 +596,48 @@ public class DepositStructureKubeBuilderGameTest {
                 () -> builder.preset("moon_legendary"));
     }
 
+    @RNSKubeJSBuilderTest
+    private static void customIdsPreservePathsAndShareProcessorsForTheSameBlock(
+            RNSKubeJSBuilderTestContext context
+    ) {
+        var helper = context.helper();
+        var firstId = ResourceLocation.parse("mymod:veins/tin");
+        var secondId = ResourceLocation.parse("mymod:deposit_other_tin");
+        context.depositStructures().create(firstId.toString())
+                .block("minecraft:raw_iron_block")
+                .displayName("Tin Vein")
+                .scannerIcon("minecraft:raw_iron")
+                .nbt(DEFAULT_TEMPLATE_SMALL.toString(), 1);
+        context.depositStructures().create(secondId.toString())
+                .block("minecraft:gold_block")
+                .block("minecraft:raw_iron_block")
+                .scannerIcon("minecraft:iron_ingot")
+                .nbt(DEFAULT_TEMPLATE_SMALL.toString(), 1);
+        context.structureSet().overworld().deposit(firstId.toString(), false).deposit(secondId.toString(), false);
+
+        var generated = context.assembleData();
+        helper.assertValueEqual(generated.jsonObject(ResourceLocation.parse("mymod:create_rns/deposit_spec/veins/tin"))
+                .get("structure").getAsString(), firstId.toString(), "Unprefixed structure id is preserved");
+        helper.assertValueEqual(generated.jsonObject(ResourceLocation.parse("mymod:create_rns/deposit_spec/other_tin"))
+                .get("structure").getAsString(), secondId.toString(), "Only the spec id loses its prefix");
+        for (var id : List.of(firstId, secondId)) {
+            assertStructureEntry(helper, generated.jsonObject(structurePath(id)).getAsJsonArray("structures"),
+                    0, DEFAULT_TEMPLATE_SMALL.toString(), 1, "mymod:replace_with_minecraft_raw_iron_block");
+        }
+        helper.assertValueEqual(generated.ids().stream()
+                .filter(id -> id.getNamespace().equals("mymod")
+                        && id.getPath().startsWith("worldgen/processor_list/"))
+                .count(), 1L, "Both structures share one processor using the final block id");
+        var processor = generated.jsonObject(processorPath("mymod", "minecraft:raw_iron_block"));
+        helper.assertValueEqual(processor.getAsJsonArray("processors").get(0).getAsJsonObject()
+                .getAsJsonArray("rules").get(0).getAsJsonObject().getAsJsonObject("output_state")
+                .get("Name").getAsString(), "minecraft:raw_iron_block", "Shared processor output block");
+        assertLangValue(helper, context.assembleLang(), "mymod", "en_us", "mymod.structure.veins.tin", "Tin Vein");
+    }
+
     private static void assertPresetStructure(
             RNSKubeJSBuilderTestHelper helper, RNSKubeJSBuilderTestData generated, ResourceLocation structureId,
-            String biomeTag, String placementStrategy, int height, PresetTemplate... templates
+            String blockId, String biomeTag, String placementStrategy, int height, PresetTemplate... templates
     ) {
         var structureJson = generated.jsonObject(structurePath(structureId));
         var structures = structureJson.getAsJsonArray("structures");
@@ -603,7 +650,7 @@ public class DepositStructureKubeBuilderGameTest {
 
         for (var i = 0; i < templates.length; i++) {
             assertStructureEntry(helper, structures, i, templates[i].template().toString(), templates[i].weight(),
-                    "create_rns:replace_with_" + structureId.getNamespace() + "_" + structureId.getPath());
+                    structureId.getNamespace() + ":replace_with_" + blockId.replace(':', '_'));
         }
     }
 

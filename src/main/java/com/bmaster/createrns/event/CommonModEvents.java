@@ -3,13 +3,12 @@ package com.bmaster.createrns.event;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSMisc;
 import com.bmaster.createrns.RNSRecipes;
-import com.bmaster.createrns.compat.kubejs.RNSKubeJSPluginBridge;
+import com.bmaster.createrns.RNSRegistries;
 import com.bmaster.createrns.content.deposit.info.IDepositIndex;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.content.deposit.spec.DepositSpec;
-import com.bmaster.createrns.data.gen.depositworldgen.DepositWorldgenProvider;
 import com.bmaster.createrns.data.pack.DynamicDatapack;
-import com.bmaster.createrns.data.pack.MiningRecipeBuilder;
+import com.bmaster.createrns.data.deposit.DepositData;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
@@ -25,7 +24,6 @@ import net.minecraftforge.registries.DataPackRegistryEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.HashSet;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
@@ -38,7 +36,7 @@ public class CommonModEvents {
 
     @SubscribeEvent
     public static void onNewRegistry(DataPackRegistryEvent.NewRegistry e) {
-        e.dataPackRegistry(DepositSpec.REGISTRY_KEY, DepositSpec.CODEC, DepositSpec.CODEC);
+        e.dataPackRegistry(RNSRegistries.DEPOSIT_SPEC, DepositSpec.CODEC, DepositSpec.CODEC);
         e.dataPackRegistry(CatalystRequirementSet.REGISTRY_KEY, CatalystRequirementSet.CODEC,
                 CatalystRequirementSet.STREAM_CODEC);
     }
@@ -61,24 +59,10 @@ public class CommonModEvents {
     public static void onBuildCreativeModeTabContents(BuildCreativeModeTabContentsEvent e) {
         if (e.getTabKey() != RNSMisc.MAIN_TAB.getKey()) return;
 
-        boolean depositsManagedByKubeJS = RNSKubeJSPluginBridge.isManagingDeposits();
-        var depositBlocksEnabledByKubeJS = RNSKubeJSPluginBridge.getEnabledDepositBlocks();
-
-        var processedDepositBlocks = new HashSet<>();
-
-        for (var r : MiningRecipeBuilder.getRecipes()) {
-            if (!processedDepositBlocks.add(r.recipe().depositBlockId())) continue;
-            var depItem = ForgeRegistries.ITEMS.getValue(r.recipe().depositBlockId());
+        for (var block : DepositData.getHiddenBlocks()) {
+            var depItem = ForgeRegistries.ITEMS.getValue(block.blockId());
             if (depItem == null) continue;
-
-            // If KubeJS is managing deposits, query the KubeJS plugin for enabled deposits.
-            // If not, use the locally determined compat availability.
-            boolean remove = depositsManagedByKubeJS
-                    ? !depositBlocksEnabledByKubeJS.contains(r.recipe().depositBlockId())
-                    : !r.isEnabled().get();
-            if (remove) {
-                e.getEntries().remove(new ItemStack(depItem));
-            }
+            e.getEntries().remove(new ItemStack(depItem));
         }
     }
 
@@ -88,6 +72,5 @@ public class CommonModEvents {
         PackOutput output = generator.getPackOutput();
         generator.addProvider(event.includeServer(), new RNSRecipes.MechanicalCrafting(output));
         generator.addProvider(event.includeServer(), new RNSRecipes.Polishing(output));
-        generator.addProvider(event.includeServer(), new DepositWorldgenProvider(output));
     }
 }

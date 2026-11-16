@@ -4,7 +4,7 @@
 
 ## Mining Recipe
 
-Path: `data/create_rns/recipe/tin_deposit_block.json`
+Path: `data/create_rns/recipes/your_pack_tin_deposit_block.json`
 
 See [default recipes](../src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/recipes) for reference.
 

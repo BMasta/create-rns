@@ -3,11 +3,14 @@ package com.bmaster.createrns.data.pack;
 import com.bmaster.createrns.CreateRNS;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.bmaster.createrns.util.Utils;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.SharedConstants;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
@@ -166,7 +169,19 @@ public class DynamicDatapack {
         this.title = Component.literal(id.toString());
     }
 
-    public record DatapackFile(String path, JsonElement data) {}
+    public record DatapackFile(String path, JsonElement data) {
+        public static DatapackFile of(ResourceLocation fileLocation, JsonElement data) {
+            return new DatapackFile(fileLocation.getNamespace() + "/" + fileLocation.getPath() + ".json", data);
+        }
+
+        public static DatapackFile ofResource(ResourceLocation registryId, ResourceLocation resourceId, JsonElement data) {
+            return of(Utils.resourceFileLocation(registryId, resourceId), data);
+        }
+
+        public static DatapackFile ofTag(ResourceLocation registryId, ResourceLocation tagId, JsonElement data) {
+            return of(Utils.tagFileLocation(registryId, tagId), data);
+        }
+    }
 
     /// Used for dumping datapack contents for inspection
     public record BuiltDynamicPack(
