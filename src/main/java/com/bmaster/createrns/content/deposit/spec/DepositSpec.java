@@ -58,12 +58,12 @@ public class DepositSpec {
     public boolean initialize(RegistryAccess access) {
         if (scannable && !scannerIconItemData.resolve(access, false)) return false;
         if (!mapIconItemData.resolve(access, false)) return false;
-        this.mapIcon = new ItemStack(mapIconItemData.item);
-        return (!scannable || scannerIconItemData.item != Items.AIR) && mapIconItemData.item != Items.AIR;
+        this.mapIcon = new ItemStack(mapIconItemData.value());
+        return (!scannable || scannerIconItemData.value() != Items.AIR) && mapIconItemData.value() != Items.AIR;
     }
 
     public @Nullable Item getScannerIcon() {
-        return (scannerIconItemData.item != Items.AIR) ? scannerIconItemData.item : null;
+        return (scannerIconItemData.value() != Items.AIR) ? scannerIconItemData.value() : null;
     }
 
     public ItemStack getMapIcon() {

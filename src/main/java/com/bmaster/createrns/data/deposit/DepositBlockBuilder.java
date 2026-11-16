@@ -5,6 +5,7 @@ import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.data.deposit.DepositData.RecipeEntry;
 import com.bmaster.createrns.data.deposit.DepositData.StructureEntry;
 import com.bmaster.createrns.data.pack.DynamicDatapackDumpTool;
+import com.mojang.logging.annotations.MethodsReturnNonnullByDefault;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.util.entry.BlockEntry;
@@ -13,11 +14,14 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public class DepositBlockBuilder {
     public static boolean dumpMode = false;
 
@@ -123,6 +127,7 @@ public class DepositBlockBuilder {
         }
 
         // Block is not registered with the registrate in dump mode
+        // noinspection DataFlowIssue
         return delegate != null ? delegate.register() : null;
     }
 

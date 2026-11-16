@@ -142,13 +142,13 @@ public class Yield {
         public WeightedItem(ItemWithFallbacks itemData, boolean compat, int weight) {
             this.itemData = itemData;
             this.compat = compat;
-            this.item = itemData.item;
+            this.item = itemData.value();
             this.weight = weight;
         }
 
         public boolean initialize(RegistryAccess access) {
             if (!itemData.resolve(access, compat)) return false;
-            item = itemData.item;
+            item = itemData.value();
             return item != Items.AIR;
         }
     }

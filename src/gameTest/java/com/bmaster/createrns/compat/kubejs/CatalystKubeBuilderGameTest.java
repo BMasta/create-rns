@@ -1,8 +1,11 @@
 package com.bmaster.createrns.compat.kubejs;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.FluidCatalystRequirement;
 import com.bmaster.createrns.util.CodecHelper;
 import com.google.gson.JsonObject;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -44,6 +47,9 @@ public class CatalystKubeBuilderGameTest {
         helper.assertValueEqual(requirements.size(), 1, "requirement count");
         assertFluidRequirement(helper, requirements.get(0).getAsJsonObject(), "minecraft:lava", 1000);
 
+        CodecHelper.assertParses(helper.raw(), CatalystRequirementSet.CODEC, CodecHelper.registries(helper.raw()),
+                json.toString(), "generated fluid-only catalyst");
+
         helper.assertFalse(generated.hasJson(CreateRNS.asResource("tags/block/miner_attachments")),
                 "Fluid-only catalysts should not emit the miner attachment tag");
         helper.assertTrue(lang.map().isEmpty(), "Expected no lang entries without displayName()/description()");
@@ -63,8 +69,8 @@ public class CatalystKubeBuilderGameTest {
                 .displayPriority(9)
                 .representativeItem("stone")
                 .representativeItem("minecraft:diamond")
-                .hideIfPresent("create_rns:alpha")
-                .hideIfPresent("create_rns:beta")
+                .hideIfPresent("create_rns:overclock")
+                .hideIfPresent("create_rns:resonance")
                 .playWhenActive("create_rns:mining")
                 .attachment("stone")
                 .fluid("lava", 250);
@@ -80,8 +86,8 @@ public class CatalystKubeBuilderGameTest {
                 "minecraft:stone",
                 "minecraft:diamond");
         assertArrayStrings(helper, json.get("hide_if_present"), "hide-if-present entries",
-                "create_rns:alpha",
-                "create_rns:beta");
+                "create_rns:overclock",
+                "create_rns:resonance");
         helper.assertValueEqual(json.getAsJsonObject("play_when_active").get("sound_id").getAsString(),
                 "create_rns:mining", "play-when-active sound id");
 
@@ -89,6 +95,9 @@ public class CatalystKubeBuilderGameTest {
         helper.assertValueEqual(requirements.size(), 2, "requirement count");
         assertAttachmentRequirement(helper, requirements.get(0).getAsJsonObject(), "minecraft:stone", null);
         assertFluidRequirement(helper, requirements.get(1).getAsJsonObject(), "minecraft:lava", 250);
+
+        CodecHelper.assertParses(helper.raw(), CatalystRequirementSet.CODEC, CodecHelper.registries(helper.raw()),
+                json.toString(), "generated catalyst with metadata and mixed requirements");
 
         assertLangValue(helper, lang, "create_rns", "en_us",
                 "create_rns.catalyst.nested.test_catalyst.name", "Nested Catalyst");
@@ -237,6 +246,12 @@ public class CatalystKubeBuilderGameTest {
         var consume = requirement.getAsJsonObject("consume");
         helper.assertValueEqual(consume.get("id").getAsString(), expectedFluidId, "fluid id");
         helper.assertValueEqual(consume.get("amount").getAsInt(), expectedAmount, "fluid amount");
+
+        var decoded = CodecHelper.assertParses(helper.raw(), FluidCatalystRequirement.MAP_CODEC.codec(),
+                CodecHelper.registries(helper.raw()), requirement.toString(), "generated fluid requirement");
+        helper.assertValueEqual(BuiltInRegistries.FLUID.getKey(decoded.fluidStack.getFluid()),
+                ResourceLocation.parse(expectedFluidId), "decoded fluid id");
+        helper.assertValueEqual(decoded.fluidStack.getAmount(), expectedAmount, "decoded fluid amount");
     }
 
     private static ResourceLocation catalystPath(ResourceLocation catalystId) {

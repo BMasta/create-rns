@@ -93,7 +93,7 @@ public class DepositSpecCodecTest {
                           "map_icon_item": "minecraft:compass",
                           "structure": "create_rns:deposit_iron"
                         }
-                        """, "No items or item tags specified");
+                        """, "No item resources or tags specified");
         helper.succeed();
     }
 }

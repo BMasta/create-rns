@@ -190,7 +190,7 @@ public class DumpedCodecHelper {
                         "Expected " + resourceType + " item fallback to resolve at " + file + " " + path + "."
                                 + fieldName);
                 if (!compat && parsed != null) {
-                    helper.assertTrue(parsed.item != Items.AIR,
+                    helper.assertTrue(parsed.value() != Items.AIR,
                             "Expected " + resourceType + " strict item fallback to resolve to a non-air item at "
                                     + file + " " + path + "." + fieldName);
                 }

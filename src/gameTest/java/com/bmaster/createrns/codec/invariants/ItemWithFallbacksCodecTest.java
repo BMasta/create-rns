@@ -3,10 +3,12 @@ package com.bmaster.createrns.codec.invariants;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.util.CodecHelper;
 import com.bmaster.createrns.util.LogCapture;
+import com.bmaster.createrns.util.codec.ResourceOrTagLocation;
 import com.bmaster.createrns.util.codec.ItemWithFallbacks;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.Unpooled;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -22,6 +24,9 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.network.connection.ConnectionType;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.List;
+
 @GameTestHolder(CreateRNS.ID)
 @PrefixGameTestTemplate(false)
 public class ItemWithFallbacksCodecTest {
@@ -34,11 +39,11 @@ public class ItemWithFallbacksCodecTest {
         var parsed = CodecHelper.assertParses(helper, codec, CodecHelper.json(), "\"minecraft:diamond\"",
                 "item fallback scalar");
 
-        CodecHelper.assertSame(helper, Items.AIR, parsed.item,
+        CodecHelper.assertSame(helper, Items.AIR, parsed.value(),
                 "Direct-item fallback should stay unresolved until live registry resolution");
         helper.assertTrue(parsed.resolve(helper.getLevel().registryAccess(), false),
                 "Direct-item fallback should resolve against live registry data");
-        CodecHelper.assertSame(helper, Items.DIAMOND, parsed.item, "resolved fallback item");
+        CodecHelper.assertSame(helper, Items.DIAMOND, parsed.value(), "resolved fallback item");
         assertRoundTrips(helper, codec, parsed, "\"minecraft:diamond\"", "scalar item fallback");
         helper.succeed();
     }
@@ -49,13 +54,13 @@ public class ItemWithFallbacksCodecTest {
         var parsed = CodecHelper.assertParses(helper, codec, CodecHelper.json(), "[\"#minecraft:planks\"]",
                 "item fallback singleton list");
 
-        CodecHelper.assertSame(helper, Items.AIR, parsed.item,
+        CodecHelper.assertSame(helper, Items.AIR, parsed.value(),
                 "Tag-backed fallback should stay unresolved until live registry initialization");
         helper.assertTrue(parsed.resolve(helper.getLevel().registryAccess(), false),
                 "Singleton-list tag fallback should initialize against live registry data");
-        helper.assertTrue(BuiltInRegistries.ITEM.wrapAsHolder(parsed.item).is(PLANKS_TAG),
+        helper.assertTrue(BuiltInRegistries.ITEM.wrapAsHolder(parsed.value()).is(PLANKS_TAG),
                 "Singleton-list tag fallback should resolve to an item from the live planks tag");
-        helper.assertTrue(parsed.item != Items.AIR,
+        helper.assertTrue(parsed.value() != Items.AIR,
                 "Singleton-list tag fallback should not resolve to air");
         assertRoundTrips(helper, codec, parsed, "[\"#minecraft:planks\"]", "singleton-list item fallback");
         helper.succeed();
@@ -74,11 +79,11 @@ public class ItemWithFallbacksCodecTest {
         var parsed = CodecHelper.assertParses(helper, codec, CodecHelper.json(), sourceJson,
                 "ordered item fallback list");
 
-        CodecHelper.assertSame(helper, Items.AIR, parsed.item,
+        CodecHelper.assertSame(helper, Items.AIR, parsed.value(),
                 "Fallbacks that depend on tags should stay unresolved until initialization");
         helper.assertTrue(parsed.resolve(helper.getLevel().registryAccess(), false),
                 "Ordered item fallback list should initialize against live registry data");
-        helper.assertTrue(BuiltInRegistries.ITEM.wrapAsHolder(parsed.item).is(PLANKS_TAG),
+        helper.assertTrue(BuiltInRegistries.ITEM.wrapAsHolder(parsed.value()).is(PLANKS_TAG),
                 "Fallback resolution should stop at the first entry that resolves");
         assertRoundTrips(helper, codec, parsed, sourceJson, "ordered item fallback list");
         helper.succeed();
@@ -91,7 +96,7 @@ public class ItemWithFallbacksCodecTest {
                   "create_rns:first_missing_item",
                   "create_rns:second_missing_item"
                 ]
-                """, "None of the items resolved: [create_rns:first_missing_item, create_rns:second_missing_item]");
+                """, "None of the item resources or tags resolved: [create_rns:first_missing_item, create_rns:second_missing_item]");
         helper.succeed();
     }
 
@@ -100,7 +105,7 @@ public class ItemWithFallbacksCodecTest {
         var parsed = CodecHelper.assertParses(helper, ItemWithFallbacks.STRICT_CODEC, CodecHelper.json(),
                 "\"create_rns:definitely_missing_item\"", "deferred item fallback");
 
-        CodecHelper.assertSame(helper, Items.AIR, parsed.item,
+        CodecHelper.assertSame(helper, Items.AIR, parsed.value(),
                 "Unregistered strict fallback should remain unresolved until initialization");
         helper.succeed();
     }
@@ -138,11 +143,11 @@ public class ItemWithFallbacksCodecTest {
 
         var restored = roundTrip(ItemWithFallbacks.STREAM_CODEC, parsed, helper.getLevel().registryAccess());
 
-        CodecHelper.assertSame(helper, Items.AIR, restored.item,
+        CodecHelper.assertSame(helper, Items.AIR, restored.value(),
                 "Stream codec should preserve unresolved tag-backed fallbacks before initialization");
         helper.assertTrue(restored.resolve(helper.getLevel().registryAccess(), false),
                 "Restored fallback should initialize against live registry data");
-        helper.assertTrue(BuiltInRegistries.ITEM.wrapAsHolder(restored.item).is(PLANKS_TAG),
+        helper.assertTrue(BuiltInRegistries.ITEM.wrapAsHolder(restored.value()).is(PLANKS_TAG),
                 "Stream codec should preserve the resolved main item");
         assertRoundTrips(helper, codec, restored, """
                 [
@@ -151,6 +156,18 @@ public class ItemWithFallbacksCodecTest {
                   "minecraft:diamond"
                 ]
                 """, "stream round-trip item fallback");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty16x16")
+    public void stackSubstitutionAppliesOnlyToResolvedTags(GameTestHelper helper) {
+        var direct = new SubstitutingItemFallback("minecraft:stone");
+        helper.assertTrue(direct.resolve(helper.getLevel().registryAccess(), false), "Stone should resolve");
+        CodecHelper.assertSame(helper, Items.STONE, direct.value(), "direct resource should remain unchanged");
+
+        var tag = new SubstitutingItemFallback("#minecraft:planks");
+        helper.assertTrue(tag.resolve(helper.getLevel().registryAccess(), false), "Planks tag should resolve");
+        CodecHelper.assertSame(helper, Items.DIAMOND, tag.value(), "tag result should use the stack substitution");
         helper.succeed();
     }
 
@@ -169,5 +186,18 @@ public class ItemWithFallbacksCodecTest {
         var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), access, ConnectionType.NEOFORGE);
         codec.encode(buffer, value);
         return codec.decode(buffer);
+    }
+
+    @ParametersAreNonnullByDefault
+    @MethodsReturnNonnullByDefault
+    private static class SubstitutingItemFallback extends ItemWithFallbacks {
+        private SubstitutingItemFallback(String entry) {
+            super(List.of(ResourceOrTagLocation.parse(entry)), false);
+        }
+
+        @Override
+        protected Item resolveFromResourceStack(Item resource) {
+            return Items.DIAMOND;
+        }
     }
 }

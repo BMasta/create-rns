@@ -4,17 +4,21 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.compat.kubejs.RNSKubeJSPluginBridge;
 import com.bmaster.createrns.content.deposit.mining.recipe.DepositDurability;
 import com.bmaster.createrns.content.deposit.worldgen.PlacementStrategy;
+import com.mojang.logging.annotations.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public final class DepositData {
 
     static final List<BlockEntry> BLOCKS = new ArrayList<>();
@@ -27,8 +31,7 @@ public final class DepositData {
     public static final ResourceLocation TEMPLATE_MEDIUM = CreateRNS.asResource("ore_deposit_medium");
     public static final ResourceLocation TEMPLATE_LARGE = CreateRNS.asResource("ore_deposit_large");
 
-    private static final ResourceLocation DEPOSIT_STRUCTURE_TAG_ID = ResourceLocation.fromNamespaceAndPath(CreateRNS.ID, "deposits");
-    private static final String BIOME_TAG_PREFIX = "has_deposit";
+    private static final ResourceLocation DEPOSIT_STRUCTURE_TAG_ID = CreateRNS.asResource("deposits");
 
     //=================================================== Presets ====================================================//
     public static final StructurePreset PRESET_OVERWORLD_RARE = new StructurePreset(
@@ -162,7 +165,7 @@ public final class DepositData {
     }
 
     public static ResourceLocation biomeTagId(String namespace, ResourceKey<Level> dimension) {
-        return ResourceLocation.fromNamespaceAndPath(namespace, BIOME_TAG_PREFIX + dimSuffix(dimension));
+        return ResourceLocation.fromNamespaceAndPath(namespace, "has_deposit" + dimSuffix(dimension));
     }
 
     public static ResourceLocation structureTagId() {

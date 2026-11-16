@@ -51,7 +51,7 @@ public class YieldCodecTest {
                   "item": "create_rns:definitely_missing_item",
                   "weight": 1
                 }
-                """, "None of the items resolved: [create_rns:definitely_missing_item]");
+                """, "None of the item resources or tags resolved: [create_rns:definitely_missing_item]");
         helper.succeed();
     }
 
@@ -205,7 +205,7 @@ public class YieldCodecTest {
                             }
                           ]
                         }
-                        """, "No items or item tags specified");
+                        """, "No item resources or tags specified");
         helper.succeed();
     }
 

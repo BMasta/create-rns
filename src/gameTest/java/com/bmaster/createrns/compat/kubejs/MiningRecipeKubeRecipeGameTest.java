@@ -277,7 +277,7 @@ public class MiningRecipeKubeRecipeGameTest {
                 .yield(yield -> yield.item("create_rns:definitely_missing_item")));
 
         assertRecipeFails(context.helper(), json,
-                "None of the items resolved: [create_rns:definitely_missing_item]");
+                "None of the item resources or tags resolved: [create_rns:definitely_missing_item]");
     }
 
     @RNSKubeJSBuilderTest
@@ -294,7 +294,7 @@ public class MiningRecipeKubeRecipeGameTest {
         context.helper().assertValueEqual(marker.get("line").getAsInt(), expectedSource.line(),
                 "invalid item error line");
         assertRecipeFails(context.helper(), json,
-                "None of the items resolved: [create_rns:definitely_missing_item]");
+                "None of the item resources or tags resolved: [create_rns:definitely_missing_item]");
     }
 
     @RNSKubeJSBuilderTest
