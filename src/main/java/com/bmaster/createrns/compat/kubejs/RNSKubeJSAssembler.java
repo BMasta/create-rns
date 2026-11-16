@@ -3,10 +3,9 @@ package com.bmaster.createrns.compat.kubejs;
 import com.bmaster.createrns.*;
 import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.data.deposit.DepositData;
-import com.bmaster.createrns.data.pack.DynamicDatapackContent;
+import com.bmaster.createrns.data.deposit.DepositJson;
 import com.bmaster.createrns.util.Utils;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import com.bmaster.createrns.util.codec.ResourceOrTagLocation;
 import dev.latvian.mods.kubejs.client.LangKubeEvent;
 import dev.latvian.mods.kubejs.generator.KubeDataGenerator;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -132,15 +131,11 @@ public class RNSKubeJSAssembler {
 
         if (structureSetEvent == null || !structureSetEvent.hasConfiguredDimensions()) return;
 
-        var values = new JsonArray();
-        for (var structureId : selectedStructureIds) {
-            values.add(structureId.toString());
-        }
-
-        var json = new JsonObject();
-        json.addProperty("replace", true);
-        json.add("values", values);
-        generator.json(Utils.tagFileLocation(Registries.STRUCTURE, DepositData.structureTagId()), json);
+        var structures = selectedStructureIds.stream()
+                .map(id -> new ResourceOrTagLocation(id, false))
+                .toList();
+        generator.json(Utils.tagFileLocation(Registries.STRUCTURE, DepositData.structureTagId()),
+                DepositJson.tag(structures, true));
     }
 
     public void generateLang(LangKubeEvent event) {
@@ -418,7 +413,9 @@ public class RNSKubeJSAssembler {
         if (structureSet == null) return;
 
         generator.json(structureSetPath(structureSet.id()),
-                structureSetJson(structureSet.worldgenStructures(),
+                DepositJson.structureSet(structureSet.worldgenStructures().stream()
+                                .map(entry -> new DepositData.WeightedStructure(entry.id(), entry.resolvedWeight()))
+                                .toList(),
                         structureSet.resolvedSeparation(defaultSeparation),
                         structureSet.resolvedSpacing(defaultSpacing),
                         structureSet.resolvedSalt(defaultSalt)));
@@ -475,8 +472,8 @@ public class RNSKubeJSAssembler {
             if (tweakedStructureIds.contains(entry.structureId())) continue;
 
             var scannable = selectedStructureIds.contains(entry.structureId());
-            var json = DynamicDatapackContent.depositSpecJson(entry);
-            json.addProperty("scannable", scannable);
+            var json = DepositJson.spec(entry.structureId(), entry.dimension(),
+                    entry.scannerIconCandidates(), entry.mapIconCandidates(), scannable);
             generator.json(Utils.resourceFileLocation(RNSRegistries.DEPOSIT_SPEC, entry.specId()), json);
         }
     }
@@ -490,40 +487,9 @@ public class RNSKubeJSAssembler {
         }
         if (attachmentBlocks.isEmpty()) return;
 
-        var values = new JsonArray();
-        for (var blockId : attachmentBlocks.stream().sorted().toList()) {
-            values.add(blockId);
-        }
-
-        var json = new JsonObject();
-        json.addProperty("replace", false);
-        json.add("values", values);
-        generator.json(Utils.tagFileLocation(Registries.BLOCK, RNSBlockTags.MINER_ATTACHMENTS.location()), json);
-    }
-
-    private static JsonObject structureSetJson(
-            List<EnableDepositsKubeBuilder.SelectedStructure> structures,
-            int separation, int spacing, int salt
-    ) {
-        var root = new JsonObject();
-        var placement = new JsonObject();
-        var structureList = new JsonArray();
-
-        placement.addProperty("type", "minecraft:random_spread");
-        placement.addProperty("separation", separation);
-        placement.addProperty("spacing", spacing);
-        placement.addProperty("salt", salt);
-        root.add("placement", placement);
-
-        for (var entry : structures) {
-            var structure = new JsonObject();
-            structure.addProperty("structure", entry.id().toString());
-            structure.addProperty("weight", entry.resolvedWeight());
-            structureList.add(structure);
-        }
-
-        root.add("structures", structureList);
-        return root;
+        var entries = attachmentBlocks.stream().sorted().map(ResourceOrTagLocation::parse).toList();
+        generator.json(Utils.tagFileLocation(Registries.BLOCK, RNSBlockTags.MINER_ATTACHMENTS.location()),
+                DepositJson.tag(entries, false));
     }
 
     private static ResourceLocation structureSetPath(ResourceLocation structureSetId) {

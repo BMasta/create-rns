@@ -5,6 +5,7 @@ import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.data.deposit.DepositData.RecipeEntry;
 import com.bmaster.createrns.data.deposit.DepositData.StructureEntry;
 import com.bmaster.createrns.data.pack.DynamicDatapackDumpTool;
+import com.bmaster.createrns.util.codec.ResourceOrTagLocation;
 import com.mojang.logging.annotations.MethodsReturnNonnullByDefault;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.tterrag.registrate.builders.BlockBuilder;
@@ -102,7 +103,7 @@ public class DepositBlockBuilder {
                     // Enabled deposits are set as scannable
                     sb.scannerIconItemCandidates,
                     // Use deposit block as map icon
-                    List.of(blockId.toString())
+                    List.of(new ResourceOrTagLocation(blockId, false))
             ));
         }
 

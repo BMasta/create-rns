@@ -1,6 +1,10 @@
 package com.bmaster.createrns.compat.kubejs;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.content.deposit.spec.DepositSpec;
+import com.bmaster.createrns.data.deposit.DepositData;
+import com.bmaster.createrns.data.pack.DynamicDatapackContent;
+import com.bmaster.createrns.util.CodecHelper;
 import com.google.gson.JsonArray;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -25,6 +29,27 @@ public class DepositStructureKubeBuilderGameTest {
     @GameTest(template = "empty16x16")
     public void structureBuilderScenarios(GameTestHelper helper) {
         RNSKubeJSBuilderTestRunner.runAll(helper, DepositStructureKubeBuilderGameTest.class);
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void unchangedTweaksMatchDynamicDatapackResources(RNSKubeJSBuilderTestContext context) {
+        for (var structure : DepositData.getStructures()) {
+            context.depositStructures().tweak(structure.structureId().toString());
+        }
+        var generated = context.assembleData();
+        var providers = List.of(DynamicDatapackContent.depositProcessorLists(),
+                DynamicDatapackContent.depositStructures(), DynamicDatapackContent.depositSpecs());
+        for (var provider : providers) {
+            for (var file : provider.get()) {
+                int slash = file.path().indexOf('/');
+                var id = ResourceLocation.fromNamespaceAndPath(
+                        file.path().substring(0, slash), file.path().substring(slash + 1));
+                // Blocks without structures still have processor lists in the default pack.
+                if (file.path().contains("/worldgen/processor_list/") && !generated.hasJson(id)) continue;
+                context.helper().assertTrue(generated.hasJson(id), "Expected tweaked resource " + id);
+                context.helper().assertValueEqual(generated.json(id), file.data(), "provider parity for " + id);
+            }
+        }
     }
 
     @RNSKubeJSBuilderTest
@@ -196,10 +221,12 @@ public class DepositStructureKubeBuilderGameTest {
                 "default scanner icon");
         helper.assertValueEqual(depositSpecJson.get("map_icon_item").getAsString(), "minecraft:raw_iron_block",
                 "default map icon");
+        CodecHelper.assertParses(helper.raw(), DepositSpec.CODEC, CodecHelper.registries(helper.raw()),
+                depositSpecJson.toString(), "generated custom deposit spec");
         helper.assertValueEqual(depositSpecJson.get("structure").getAsString(), structureId.toString(),
                 "deposit spec structure id");
-        helper.assertValueEqual(depositSpecJson.get("dimension").getAsString(), "minecraft:overworld",
-                "default structure dimension");
+        helper.assertFalse(depositSpecJson.has("dimension"),
+                "Default overworld dimension should be omitted");
 
         helper.assertValueEqual(structureJson.get("type").getAsString(), "create_rns:deposit", "structure type");
         helper.assertValueEqual(structureJson.get("biomes").getAsString(), "#create_rns:has_deposit", "biome tag");

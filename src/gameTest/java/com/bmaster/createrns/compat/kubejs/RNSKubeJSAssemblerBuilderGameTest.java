@@ -52,7 +52,8 @@ public class RNSKubeJSAssemblerBuilderGameTest {
                 "minecraft:stone", "attachment block id");
 
         var tagJson = generated.jsonObject(CreateRNS.asResource("tags/block/miner_attachments"));
-        helper.assertFalse(tagJson.get("replace").getAsBoolean(), "Attachment tag should append instead of replace");
+        helper.assertFalse(tagJson.has("replace") && tagJson.get("replace").getAsBoolean(),
+                "Attachment tag should append instead of replace");
         var values = tagJson.getAsJsonArray("values");
         helper.assertValueEqual(values.size(), 1, "attachment tag value count");
         helper.assertValueEqual(values.get(0).getAsString(), "minecraft:stone", "attachment tag block");

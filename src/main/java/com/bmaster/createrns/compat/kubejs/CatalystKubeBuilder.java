@@ -19,7 +19,7 @@ import java.util.*;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class CatalystKubeBuilder extends SourcedStartupKubeBuilder {
+public class CatalystKubeBuilder extends RNSStartupKubeBuilder {
     private static final float DEFAULT_CHANCE_MULTIPLIER = 1f;
     private static final int DEFAULT_ATTACHMENT_COUNT = 1;
 

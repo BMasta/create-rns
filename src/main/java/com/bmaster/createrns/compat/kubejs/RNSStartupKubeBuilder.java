@@ -2,16 +2,20 @@ package com.bmaster.createrns.compat.kubejs;
 
 import dev.latvian.mods.kubejs.script.SourceLine;
 import dev.latvian.mods.rhino.Context;
+import net.minecraft.MethodsReturnNonnullByDefault;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.function.Supplier;
 
-abstract class SourcedStartupKubeBuilder {
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
+abstract class RNSStartupKubeBuilder {
     private final SourceLine creationSourceLine;
     private final String eventName;
     private final String builderMethods;
     private boolean invalid;
 
-    protected SourcedStartupKubeBuilder(SourceLine creationSourceLine, String eventName, String builderMethods) {
+    protected RNSStartupKubeBuilder(SourceLine creationSourceLine, String eventName, String builderMethods) {
         this.creationSourceLine = creationSourceLine;
         this.eventName = eventName;
         this.builderMethods = builderMethods;

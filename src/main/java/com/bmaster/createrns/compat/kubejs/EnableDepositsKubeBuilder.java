@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class EnableDepositsKubeBuilder extends SourcedStartupKubeBuilder {
+public class EnableDepositsKubeBuilder extends RNSStartupKubeBuilder {
 
     private final ResourceLocation id;
     private final Supplier<Map<ResourceLocation, AvailableStructure>> availableStructures;

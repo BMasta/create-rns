@@ -137,7 +137,8 @@ public class CatalystKubeBuilderGameTest {
         assertAttachmentRequirement(helper, secondRequirements.get(1).getAsJsonObject(), "minecraft:diorite", null);
 
         var tagJson = generated.jsonObject(CreateRNS.asResource("tags/block/miner_attachments"));
-        helper.assertFalse(tagJson.get("replace").getAsBoolean(), "Attachment tag should append instead of replace");
+        helper.assertFalse(tagJson.has("replace") && tagJson.get("replace").getAsBoolean(),
+                "Attachment tag should append instead of replace");
         assertArrayStrings(helper, tagJson.get("values"), "attachment tag values",
                 "minecraft:andesite",
                 "minecraft:cobblestone",

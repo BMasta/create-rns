@@ -4,6 +4,7 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.compat.kubejs.RNSKubeJSPluginBridge;
 import com.bmaster.createrns.content.deposit.mining.recipe.DepositDurability;
 import com.bmaster.createrns.content.deposit.worldgen.PlacementStrategy;
+import com.bmaster.createrns.util.codec.ResourceOrTagLocation;
 import com.mojang.logging.annotations.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -109,24 +110,24 @@ public final class DepositData {
                 .toList();
     }
 
-    public static List<String> metalScannerIconCandidates(String material) {
+    public static List<ResourceOrTagLocation> metalScannerIconCandidates(String material) {
         return List.of(
-                "#c:raw_materials/" + material,
-                "#c:ores/" + material,
-                "#c:ingots/" + material,
-                "#c:nuggets/" + material);
+                ResourceOrTagLocation.fromNamespaceAndPath("c", "raw_materials/" + material, true),
+                ResourceOrTagLocation.fromNamespaceAndPath("c", "ores/" + material, true),
+                ResourceOrTagLocation.fromNamespaceAndPath("c", "ingots/" + material, true),
+                ResourceOrTagLocation.fromNamespaceAndPath("c", "nuggets/" + material, true));
     }
 
-    public static List<String> gemScannerIconCandidates(String material) {
-        return List.of("#c:gems/" + material);
+    public static List<ResourceOrTagLocation> gemScannerIconCandidates(String material) {
+        return List.of(ResourceOrTagLocation.fromNamespaceAndPath("c", "gems/" + material, true));
     }
 
-    public static List<String> dustScannerIconCandidates(String material) {
-        return List.of("#c:dusts/" + material);
+    public static List<ResourceOrTagLocation> dustScannerIconCandidates(String material) {
+        return List.of(ResourceOrTagLocation.fromNamespaceAndPath("c", "dusts/" + material, true));
     }
 
-    public static List<String> coalScannerIconCandidates() {
-        return List.of("#minecraft:coals");
+    public static List<ResourceOrTagLocation> coalScannerIconCandidates() {
+        return List.of(ResourceOrTagLocation.withDefaultNamespace("coals", true));
     }
 
     public static ResourceLocation blockId(String namespace, String keyword) {
@@ -211,6 +212,8 @@ public final class DepositData {
 
     public record WeightedTemplate(ResourceLocation template, int weight) {}
 
+    public record WeightedStructure(ResourceLocation structureId, int weight) {}
+
     public record StructurePreset(
             ResourceKey<Level> dimension, int depth, int depthDeviation, int weight, List<WeightedTemplate> templates
     ) {
@@ -243,8 +246,8 @@ public final class DepositData {
             int weight,
             List<WeightedTemplate> templates,
             PlacementStrategy placementStrategy,
-            List<String> scannerIconCandidates,
-            List<String> mapIconCandidates
+            List<ResourceOrTagLocation> scannerIconCandidates,
+            List<ResourceOrTagLocation> mapIconCandidates
     ) {
         public StructureEntry {
             templates = List.copyOf(templates);

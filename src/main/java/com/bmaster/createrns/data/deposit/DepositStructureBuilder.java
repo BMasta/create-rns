@@ -3,6 +3,7 @@ package com.bmaster.createrns.data.deposit;
 import com.bmaster.createrns.data.deposit.DepositBlockBuilder.DepositBuildingContext;
 import com.bmaster.createrns.data.deposit.DepositData.StructurePreset;
 import com.bmaster.createrns.data.deposit.DepositData.WeightedTemplate;
+import com.bmaster.createrns.util.codec.ResourceOrTagLocation;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -24,7 +25,7 @@ public class DepositStructureBuilder {
     public int depthDeviation = 0;
     public int weight = 2;
     public final List<WeightedTemplate> templates = new ArrayList<>();
-    public final List<String> scannerIconItemCandidates = new ArrayList<>();
+    public final List<ResourceOrTagLocation> scannerIconItemCandidates = new ArrayList<>();
 
     public DepositStructureBuilder dimension(ResourceKey<Level> dimension) {
         this.dimension = dimension;
@@ -65,7 +66,7 @@ public class DepositStructureBuilder {
     }
 
     public DepositStructureBuilder scannerIcon(String candidateId) {
-        scannerIconItemCandidates.add(candidateId);
+        scannerIconItemCandidates.add(ResourceOrTagLocation.parse(candidateId));
         return this;
     }
 
