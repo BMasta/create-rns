@@ -5,10 +5,10 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
-import javax.annotation.ParametersAreNonnullByDefault;
 
 /// Used for safely interacting with the plugin regardless of KubeJS availability
 @MethodsReturnNonnullByDefault

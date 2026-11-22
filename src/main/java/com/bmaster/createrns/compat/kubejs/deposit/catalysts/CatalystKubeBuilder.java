@@ -1,7 +1,7 @@
 package com.bmaster.createrns.compat.kubejs.deposit.catalysts;
 
-import com.bmaster.createrns.compat.kubejs.util.StartupKubeBuilder;
 import com.bmaster.createrns.compat.kubejs.util.JSMethod;
+import com.bmaster.createrns.compat.kubejs.util.StartupKubeBuilder;
 import com.bmaster.createrns.data.deposit.DepositResources;
 import dev.latvian.mods.kubejs.typings.Info;
 import net.minecraft.MethodsReturnNonnullByDefault;

@@ -3,10 +3,10 @@ package com.bmaster.createrns.compat.kubejs.deposit.catalysts;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSDeposits;
 import com.bmaster.createrns.RNSTags.RNSBlockTags;
-import com.bmaster.createrns.data.deposit.DepositResources;
 import com.bmaster.createrns.compat.kubejs.util.JSMethod;
 import com.bmaster.createrns.compat.kubejs.util.StartupJSObject;
 import com.bmaster.createrns.compat.kubejs.util.StartupKubeBuilder;
+import com.bmaster.createrns.data.deposit.DepositResources;
 import com.bmaster.createrns.util.codec.ResourceOrTagLocation;
 import dev.latvian.mods.kubejs.event.KubeStartupEvent;
 import dev.latvian.mods.kubejs.typings.Info;
@@ -14,11 +14,7 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault

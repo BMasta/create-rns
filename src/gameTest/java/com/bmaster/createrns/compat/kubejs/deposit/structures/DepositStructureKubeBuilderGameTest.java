@@ -1,15 +1,11 @@
 package com.bmaster.createrns.compat.kubejs.deposit.structures;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.compat.kubejs.util.KubeStartupEventProcessor;
-import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTest;
-import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestContext;
-import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestData;
-import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestHelper;
-import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestRunner;
+import com.bmaster.createrns.compat.kubejs.*;
 import com.bmaster.createrns.compat.kubejs.deposit.catalysts.CatalystsKubeEvent;
 import com.bmaster.createrns.compat.kubejs.deposit.enable.EnableDepositsKubeEvent;
 import com.bmaster.createrns.compat.kubejs.util.KubeStartupError;
+import com.bmaster.createrns.compat.kubejs.util.KubeStartupEventProcessor;
 import com.bmaster.createrns.content.deposit.spec.DepositSpec;
 import com.bmaster.createrns.data.deposit.DepositResources;
 import com.bmaster.createrns.data.pack.DynamicDatapackContent;

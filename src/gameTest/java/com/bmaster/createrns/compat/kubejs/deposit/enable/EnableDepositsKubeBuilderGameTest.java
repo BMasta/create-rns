@@ -1,11 +1,7 @@
 package com.bmaster.createrns.compat.kubejs.deposit.enable;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTest;
-import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestContext;
-import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestData;
-import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestHelper;
-import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestRunner;
+import com.bmaster.createrns.compat.kubejs.*;
 import com.bmaster.createrns.compat.kubejs.util.StartupErrorTestHelper;
 import com.bmaster.createrns.data.pack.DynamicDatapackContent;
 import com.bmaster.createrns.util.CodecHelper;

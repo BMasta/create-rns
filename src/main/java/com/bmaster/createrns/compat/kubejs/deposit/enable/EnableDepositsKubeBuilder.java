@@ -2,9 +2,9 @@ package com.bmaster.createrns.compat.kubejs.deposit.enable;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSPacks;
-import com.bmaster.createrns.compat.kubejs.util.StartupKubeBuilder;
 import com.bmaster.createrns.compat.kubejs.deposit.enable.EnableDepositsKubeEvent.AvailableStructure;
 import com.bmaster.createrns.compat.kubejs.util.JSMethod;
+import com.bmaster.createrns.compat.kubejs.util.StartupKubeBuilder;
 import com.bmaster.createrns.data.deposit.DepositResources;
 import dev.latvian.mods.kubejs.typings.Info;
 import net.minecraft.MethodsReturnNonnullByDefault;

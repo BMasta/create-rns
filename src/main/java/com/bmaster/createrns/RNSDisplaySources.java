@@ -1,8 +1,8 @@
 package com.bmaster.createrns;
 
 import com.bmaster.createrns.content.deposit.mining.display.CompactMinerStatusDisplaySource;
-import com.bmaster.createrns.content.deposit.mining.display.MinerRatesDisplaySource;
 import com.bmaster.createrns.content.deposit.mining.display.FullMinerStatusDisplaySource;
+import com.bmaster.createrns.content.deposit.mining.display.MinerRatesDisplaySource;
 import com.bmaster.createrns.content.deposit.mining.display.RemainingMinerResourcesDisplaySource;
 import com.simibubi.create.api.behaviour.display.DisplaySource;
 import com.tterrag.registrate.util.entry.RegistryEntry;

@@ -1,8 +1,8 @@
 package com.bmaster.createrns.compat.map;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.RNSTextures;
 import com.bmaster.createrns.RNSItems;
+import com.bmaster.createrns.RNSTextures;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.simibubi.create.foundation.gui.RemovedGuiUtils;
 import net.minecraft.MethodsReturnNonnullByDefault;

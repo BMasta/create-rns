@@ -1,10 +1,6 @@
 package com.bmaster.createrns.compat.kubejs.util;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Exposes a public instance method of {@link StartupJSObject} and attributes failures to its script call.
