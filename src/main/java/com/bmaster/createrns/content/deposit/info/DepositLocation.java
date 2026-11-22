@@ -8,8 +8,8 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 import java.util.Objects;
 
 public abstract class DepositLocation {
-    protected ResourceKey<Structure> key;
-    protected ChunkPos origin;
+    protected final ResourceKey<Structure> key;
+    protected final ChunkPos origin;
 
     public DepositLocation(ResourceKey<Structure> key, ChunkPos origin) {
         this.key = key;

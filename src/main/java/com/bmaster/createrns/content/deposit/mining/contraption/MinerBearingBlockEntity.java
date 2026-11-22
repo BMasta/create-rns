@@ -31,11 +31,6 @@ public class MinerBearingBlockEntity extends MechanicalBearingBlockEntity
         super(type, pos, state);
     }
 
-    @Override
-    public void invalidate() {
-        super.invalidate();
-    }
-
     public void assembleNextTick() {
         assembleNextTick = true;
     }

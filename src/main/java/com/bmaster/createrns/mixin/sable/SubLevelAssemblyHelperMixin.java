@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.Pseudo;
 
 import java.util.ArrayList;
 
+@SuppressWarnings("NameDoesntMatchTargetClass")
 @Pseudo
 @Mixin(targets = "dev.ryanhcode.sable.api.SubLevelAssemblyHelper", remap = false)
 public abstract class SubLevelAssemblyHelperMixin {

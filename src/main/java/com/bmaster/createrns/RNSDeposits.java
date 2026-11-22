@@ -582,6 +582,7 @@ public class RNSDeposits {
         return "#c:gems/" + keyword;
     }
 
+    @SuppressWarnings("EmptyMethod")
     public static void register() {
     }
 }

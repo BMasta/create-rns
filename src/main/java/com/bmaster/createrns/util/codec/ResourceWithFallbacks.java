@@ -113,7 +113,7 @@ public abstract class ResourceWithFallbacks<T> {
 
         if (lenient && resolved == null) resolved = emptyFallbackValue();
         if (resolved == null) {
-            if (report.isEmpty()) CreateRNS.LOGGER.error("No " + resourceName + " resources or tags specified");
+            if (report.isEmpty()) CreateRNS.LOGGER.error("No {} resources or tags specified", resourceName);
             for (var line : report) CreateRNS.LOGGER.error(line);
             return false;
         }

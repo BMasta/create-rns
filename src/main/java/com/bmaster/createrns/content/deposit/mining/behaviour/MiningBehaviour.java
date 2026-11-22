@@ -35,7 +35,7 @@ public abstract class MiningBehaviour extends ClaimingBehaviour implements IDepo
 
     // When claimed area changes, the progress percentage towards mining a block is saved here.
     // This way, no matter how the area changes, the progress does not get reset until the miner is destroyed or unloaded.
-    protected Object2FloatOpenHashMap<Block> savedProgress = new Object2FloatOpenHashMap<>();
+    protected final Object2FloatOpenHashMap<Block> savedProgress = new Object2FloatOpenHashMap<>();
 
     // Defers disk or client process state until the process can be initialized.
     protected @Nullable Tuple<CompoundTag, Boolean> pendingProcessTag = null;

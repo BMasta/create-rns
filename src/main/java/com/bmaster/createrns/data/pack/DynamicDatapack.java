@@ -31,8 +31,8 @@ import java.util.function.UnaryOperator;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class DynamicDatapack {
-    public static List<DynamicDatapack> DATAPACKS = new ArrayList<>();
-    public static List<DynamicDatapack> RESOURCE_PACKS = new ArrayList<>();
+    public static final List<DynamicDatapack> DATAPACKS = new ArrayList<>();
+    public static final List<DynamicDatapack> RESOURCE_PACKS = new ArrayList<>();
     public static final List<BuiltDynamicPack> PACK_SNAPSHOTS = new ArrayList<>();
 
     public static DynamicDatapack createDatapack(String id) {

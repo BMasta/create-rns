@@ -146,7 +146,7 @@ public class MiningRecipe implements Recipe<SingleRecipeInput> {
     }
 
     public static class Serializer implements RecipeSerializer<MiningRecipe> {
-        public static MiningRecipe.Serializer INSTANCE = new MiningRecipe.Serializer();
+        public static final MiningRecipe.Serializer INSTANCE = new MiningRecipe.Serializer();
 
         @Override
         public MapCodec<MiningRecipe> codec() {

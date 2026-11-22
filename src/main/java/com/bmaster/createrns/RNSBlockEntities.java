@@ -50,6 +50,7 @@ public class RNSBlockEntities {
             .renderer(() -> ResonanceBufferRenderer::new)
             .register();
 
+    @SuppressWarnings("EmptyMethod")
     public static void register() {
     }
 }

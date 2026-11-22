@@ -98,6 +98,7 @@ public class RNSPacks {
                 .overwritesLoadedPacks();
     }
 
+    @SuppressWarnings("EmptyMethod")
     public static void register() {
     }
 }

@@ -6,7 +6,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.structure.Structure;
 
 public class ClientDepositLocation extends DepositLocation {
-    protected BlockPos location;
+    protected final BlockPos location;
 
     public ClientDepositLocation(ResourceKey<Structure> key, ChunkPos origin, BlockPos location) {
         super(key, origin);

@@ -23,6 +23,7 @@ public class RNSStartupKubeEvents {
             StartupEvents.GROUP.startup("rnsEnableDeposits", () -> EnableDepositsKubeEvent.class)
                     .exceptionHandler(KubeStartupError.eventHandler("rnsEnableDeposits"));
 
+    @SuppressWarnings("EmptyMethod")
     public static void init() {
     }
 

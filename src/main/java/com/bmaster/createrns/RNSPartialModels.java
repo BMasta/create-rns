@@ -60,6 +60,7 @@ public class RNSPartialModels {
 
     WHEEL = PartialModel.of(CreateRNS.asResource("item/deposit_scanner/wheel"));
 
+    @SuppressWarnings("EmptyMethod")
     public static void register() {
     }
 }

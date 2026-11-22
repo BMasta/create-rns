@@ -23,9 +23,9 @@ public class InnerProcess {
     public final Level level;
     public final List<BlockPos> depositPositions;
     public final MiningRecipe recipe;
-    public int maxProgress;
-    public int progress;
     public final CatalystHandler catalystHandler;
+    public final int maxProgress;
+    public int progress;
 
     public InnerProcess(
             Level level, List<BlockPos> depositPositions, MiningRecipe recipe, int maxProgress, Set<Catalyst> catalysts

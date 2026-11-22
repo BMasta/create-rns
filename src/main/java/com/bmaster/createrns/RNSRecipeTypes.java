@@ -24,6 +24,7 @@ public class RNSRecipeTypes {
                 }
             });
 
+    @SuppressWarnings("EmptyMethod")
     public static void register() {
     }
 }

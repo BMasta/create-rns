@@ -30,6 +30,7 @@ public class RNSTags {
                 TagKey.create(Registries.STRUCTURE, CreateRNS.asResource("deposits"));
     }
 
+    @SuppressWarnings("EmptyMethod")
     public static void register() {
     }
 }

@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import xaero.map.gui.GuiMap;
 
+@SuppressWarnings("NameDoesntMatchTargetClass")
 @Mixin(GuiMap.class)
 public abstract class RNSXaeroFullscreenMapMixin {
     @Unique
@@ -26,7 +27,7 @@ public abstract class RNSXaeroFullscreenMapMixin {
     ) {
         if (create_rns$failedToRenderDepositOverlay) return;
         try {
-            var screen = (Screen) (Object) this;
+            @SuppressWarnings("DataFlowIssue") var screen = (Screen) (Object) this;
             var accessor = (RNSXaeroFullscreenMapAccessor) this;
             var currentDimension = accessor.create_rns$getMapProcessor().getMapWorld().getCurrentDimension();
             if (currentDimension == null) return;

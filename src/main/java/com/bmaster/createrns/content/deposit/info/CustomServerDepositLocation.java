@@ -102,7 +102,7 @@ public class CustomServerDepositLocation extends ServerDepositLocation {
         return new CustomServerDepositLocation(key, location);
     }
 
-    protected BlockPos location;
+    protected final BlockPos location;
 
     public CustomServerDepositLocation(ResourceKey<Structure> key, BlockPos pos) {
         super(key, new ChunkPos(pos));

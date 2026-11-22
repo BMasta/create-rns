@@ -159,7 +159,7 @@ public class StructureServerDepositLocation extends ServerDepositLocation {
         return spacing;
     }
 
-    protected ServerLevel level;
+    protected final ServerLevel level;
     protected @Nullable BlockPos center;
     protected @Nullable StructureStart start;
 

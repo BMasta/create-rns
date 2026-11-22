@@ -76,7 +76,7 @@ public class EnableDepositsKubeEvent extends StartupJSObject implements KubeStar
         for (var structureSet : configuredStructureSets().values()) structureSet.gatherResources(resources);
         if (selected.isEmpty()) return;
 
-        var tagged = new TreeSet<ResourceLocation>(Comparator.comparing(ResourceLocation::toString));
+        var tagged = new TreeSet<>(Comparator.comparing(ResourceLocation::toString));
         selected.values().forEach(tagged::addAll);
         for (var structure : DynamicDatapackContent.RESOURCES.structures) {
             if (!selected.containsKey(structure.dimension())) tagged.add(structure.id());

@@ -27,6 +27,7 @@ public class DepositScannerItem extends Item {
         super(pProperties);
     }
 
+    @SuppressWarnings("removal")
     @Override
     @OnlyIn(Dist.CLIENT)
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {

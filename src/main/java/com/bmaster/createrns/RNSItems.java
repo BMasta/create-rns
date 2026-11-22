@@ -54,6 +54,7 @@ public class RNSItems {
             .removeTab(RNSMisc.MAIN_TAB.getKey())
             .register();
 
+    @SuppressWarnings("EmptyMethod")
     public static void register() {
     }
 }

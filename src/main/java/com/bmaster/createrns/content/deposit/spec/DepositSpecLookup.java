@@ -41,7 +41,7 @@ public class DepositSpecLookup {
             if (structureKeyToSpec.containsKey(structureKey)) {
                 throw new KeyAlreadyExistsException("Found deposit spec with the same structure: " + spec.structure);
             }
-            structureKeyToSpec.put(structureKey, spec);;
+            structureKeyToSpec.put(structureKey, spec);
 
             if (!spec.scannable) return;
             var scannerIcon = spec.getScannerIcon();

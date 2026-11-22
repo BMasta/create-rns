@@ -93,7 +93,7 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
         };
     }
 
-    IDrawable SLOT;
+    final IDrawable SLOT;
 
     public MiningRecipeCategory(IGuiHelper gui, RecipeType<RecipeHolder<MiningRecipe>> recipeType) {
         super(getInfo(recipeType));
@@ -156,7 +156,7 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
     }
 
     public static class TintedDrawable implements IDrawable {
-        protected static int BASE_COLOR = 0x8B8B8B;
+        protected static final int BASE_COLOR = 0x8B8B8B;
 
         private final IDrawable delegate;
         private final float r, g, b;
@@ -181,9 +181,9 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
 
             float eps = 1e-6f;
 
-            float tr = cr / Math.max(br, eps);
-            float tg = cg / Math.max(bg, eps);
-            float tb = cb / Math.max(bb, eps);
+            float tr = cr / (br > 0 ? br : eps);
+            float tg = cg / (bg > 0 ? bg : eps);
+            float tb = cb / (bb > 0 ? bb : eps);
 
             r = tr;
             g = tg;
@@ -210,7 +210,7 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
 
     protected static class MinerOutput {
         public final Item item;
-        public int count;
+        public final int count;
         public final int itemsInGroup;
         public final float weightRatio;
         public final float chance;

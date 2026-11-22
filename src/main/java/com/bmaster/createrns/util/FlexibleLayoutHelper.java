@@ -12,19 +12,19 @@ public class FlexibleLayoutHelper implements LayoutHelper {
         START, CENTER, END
     }
 
-    int itemCount;
-    int rows;
-    int width;
-    int height;
-    int spacing;
+    final int itemCount;
+    final int rows;
+    final int width;
+    final int height;
+    final int spacing;
+    final int[] rowCounts;
 
     int currentColumn = 0;
     int currentRow = 0;
-    int[] rowCounts;
     int x = 0, y = 0;
 
-    Anchor xAnchor;
-    Anchor yAnchor;
+    final Anchor xAnchor;
+    final Anchor yAnchor;
 
     public FlexibleLayoutHelper(int itemCount, int rows, int width, int height, int spacing,
                                 Anchor xAnchor, Anchor yAnchor) {

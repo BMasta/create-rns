@@ -19,47 +19,47 @@ import java.util.List;
 public class RNSSoundEvents {
     public static final List<RNSSoundEntry> ALL = new ArrayList<>();
 
-    public static RNSSoundEntry SCANNER_SCROLL = create("scanner_scroll")
+    public static final RNSSoundEntry SCANNER_SCROLL = create("scanner_scroll")
             .category(SoundSource.PLAYERS)
             .build();
 
-    public static RNSSoundEntry SCANNER_CLICK = create("scanner_click", 2)
+    public static final RNSSoundEntry SCANNER_CLICK = create("scanner_click", 2)
             .category(SoundSource.PLAYERS)
             .build();
 
-    public static RNSSoundEntry SCANNER_DISCOVERY_PING = create("scanner_discovery_ping", 2)
+    public static final RNSSoundEntry SCANNER_DISCOVERY_PING = create("scanner_discovery_ping", 2)
             .category(SoundSource.PLAYERS)
             .build();
 
-    public static RNSSoundEntry SCANNER_DISCOVERY_SUCCESS = create("scanner_discovery_success")
+    public static final RNSSoundEntry SCANNER_DISCOVERY_SUCCESS = create("scanner_discovery_success")
             .category(SoundSource.PLAYERS)
             .build();
 
-    public static RNSSoundEntry SCANNER_TRACKING_PING = create("scanner_tracking_ping")
+    public static final RNSSoundEntry SCANNER_TRACKING_PING = create("scanner_tracking_ping")
             .category(SoundSource.PLAYERS)
             .build();
 
-    public static RNSSoundEntry DEPOSIT_FOUND = create("deposit_found")
+    public static final RNSSoundEntry DEPOSIT_FOUND = create("deposit_found")
             .category(SoundSource.PLAYERS)
             .build();
 
-    public static RNSSoundEntry MINING = create("mining", 3)
+    public static final RNSSoundEntry MINING = create("mining", 3)
             .category(SoundSource.AMBIENT)
             .build();
 
-    public static RNSSoundEntry MINING_RESONANCE_ACCENT = create("mining_resonance_accent")
+    public static final RNSSoundEntry MINING_RESONANCE_ACCENT = create("mining_resonance_accent")
             .category(SoundSource.AMBIENT)
             .build();
 
-    public static RNSSoundEntry MINING_LARGE_HEAD_ACCENT = create("mining_large_head_accent")
+    public static final RNSSoundEntry MINING_LARGE_HEAD_ACCENT = create("mining_large_head_accent")
             .category(SoundSource.AMBIENT)
             .build();
 
-    public static RNSSoundEntry MINING_OVERCLOCKED_ACCENT = create("mining_overclocked_accent")
+    public static final RNSSoundEntry MINING_OVERCLOCKED_ACCENT = create("mining_overclocked_accent")
             .category(SoundSource.AMBIENT)
             .build();
 
-    public static RNSSoundEntry MINED = create("mined")
+    public static final RNSSoundEntry MINED = create("mined")
             .category(SoundSource.AMBIENT)
             .build();
 

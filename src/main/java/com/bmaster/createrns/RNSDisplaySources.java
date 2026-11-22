@@ -36,6 +36,7 @@ public class RNSDisplaySources {
                             DisplaySource.BY_BLOCK_ENTITY.add(RNSBlockEntities.MINER_BEARING.get(), source))
                     .register();
 
+    @SuppressWarnings("EmptyMethod")
     public static void register() {
     }
 }

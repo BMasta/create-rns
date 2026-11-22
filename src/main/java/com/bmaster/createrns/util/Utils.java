@@ -22,7 +22,7 @@ import java.util.function.Function;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class Utils {
-    protected static DecimalFormat df = new DecimalFormat("0.##");
+    protected static final DecimalFormat df = new DecimalFormat("0.##");
 
     public static boolean isPosInChunk(BlockPos pos, ChunkPos chunkPos) {
         return (pos.getX() >> 4) == chunkPos.x && (pos.getZ() >> 4) == chunkPos.z;

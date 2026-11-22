@@ -14,6 +14,7 @@ public class RNSContraptionTypes {
             new ContraptionType(MinerContraption::new)
     );
 
+    @SuppressWarnings("EmptyMethod")
     public static void register(RegisterEvent event) {
     }
 }

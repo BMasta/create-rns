@@ -572,10 +572,10 @@ public class RNSPonderScenes {
         protected final BlockPos bearing;
         protected final BlockPos mineHead;
         protected final ItemParticleOption particle;
-        protected ParticleEmitter particleEmitter;
-        protected Selection contraption;
+        protected final ParticleEmitter particleEmitter;
+        protected final Selection contraption;
+        protected final Map<Selection, Boolean> syncedKinetics = new Object2ObjectOpenHashMap<>();
         protected ElementLink<WorldSectionElement> contraptionLink = null;
-        protected Map<Selection, Boolean> syncedKinetics = new Object2ObjectOpenHashMap<>();
 
         protected MinerContraption(CreateSceneBuilder scene, SceneBuildingUtil util,
                 BlockPos bearing, BlockPos mineHead, Selection contraption, DepositBlock depBlock

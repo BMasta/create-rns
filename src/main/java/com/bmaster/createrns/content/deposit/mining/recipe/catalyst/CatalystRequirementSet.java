@@ -137,14 +137,14 @@ public class CatalystRequirementSet {
         if (catalysts.isEmpty()) return false;
         boolean allSatisfied = true;
         for (var cr : requirements) {
-            boolean satisifed = false;
+            boolean satisfied = false;
             if (cr.useCatalysts(catalysts, simulate)) {
-                for (var c : catalysts) {
-                    satisifed = true;
+                for (var ignored : catalysts) {
+                    satisfied = true;
                     break;
                 }
             }
-            if (!satisifed) allSatisfied = false;
+            if (!satisfied) allSatisfied = false;
         }
         return allSatisfied;
     }

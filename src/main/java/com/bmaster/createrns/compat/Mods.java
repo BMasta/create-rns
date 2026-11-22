@@ -3,6 +3,7 @@ package com.bmaster.createrns.compat;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.LoadingModList;
 
+@SuppressWarnings("SpellCheckingInspection")
 public enum Mods {
     KUBEJS("kubejs"),
     SABLE("sable"),

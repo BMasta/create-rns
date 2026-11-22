@@ -16,7 +16,7 @@ public class FluidCatalyst extends Catalyst {
         return new FluidCatalyst(tank);
     }
 
-    public IFluidHandler tank;
+    public final IFluidHandler tank;
 
     public FluidCatalyst(IFluidHandler tank) {
         this.tank = tank;

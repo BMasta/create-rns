@@ -27,8 +27,8 @@ public class RNSMovementChecks {
     protected static BlockMovementChecks.CheckResult isMineHeadAttachedTowards(
             BlockState state, Level level, BlockPos pos, Direction direction
     ) {
-        BlockPos controllerPos = null;
-        BlockState controllerState = null;
+        BlockPos controllerPos;
+        BlockState controllerState;
 
         if (state.is(RNSBlocks.MINE_HEAD.get())) {
             controllerPos = pos;

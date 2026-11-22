@@ -21,12 +21,11 @@ import java.util.concurrent.CompletableFuture;
 @ParametersAreNonnullByDefault
 public class RNSRecipes {
     static {
-        CreateRNS.REGISTRATE.addDataGenerator(ProviderType.RECIPE, prov -> {
-            ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, Items.REDSTONE)
-                    .requires(RNSItems.REDSTONE_SMALL_DUST.get(), 9)
-                    .unlockedBy("has_item", RegistrateRecipeProvider.has(RNSItems.REDSTONE_SMALL_DUST))
-                    .save(prov, CreateRNS.asResource("redstone_from_small_dust"));
-        });
+        CreateRNS.REGISTRATE.addDataGenerator(ProviderType.RECIPE, prov ->
+                ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, Items.REDSTONE)
+                        .requires(RNSItems.REDSTONE_SMALL_DUST.get(), 9)
+                        .unlockedBy("has_item", RegistrateRecipeProvider.has(RNSItems.REDSTONE_SMALL_DUST))
+                        .save(prov, CreateRNS.asResource("redstone_from_small_dust")));
     }
 
     public static class MechanicalCrafting extends MechanicalCraftingRecipeGen {
@@ -82,6 +81,7 @@ public class RNSRecipes {
         }
     }
 
+    @SuppressWarnings("EmptyMethod")
     public static void register() {
     }
 }

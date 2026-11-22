@@ -155,6 +155,7 @@ public class RNSBlocks {
                 .build();
     }
 
+    @SuppressWarnings("EmptyMethod")
     public static void register() {
     }
 }
