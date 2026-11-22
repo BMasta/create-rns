@@ -3,10 +3,10 @@ package com.bmaster.createrns.data.pack;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSRegistries;
 import com.bmaster.createrns.content.deposit.mining.recipe.Yield.WeightedItem;
-import com.bmaster.createrns.data.deposit.DepositData;
 import com.bmaster.createrns.data.deposit.DepositJson;
-import com.bmaster.createrns.util.codec.ResourceOrTagLocation;
+import com.bmaster.createrns.data.deposit.DepositResources;
 import com.bmaster.createrns.data.pack.DynamicDatapack.DatapackFile;
+import com.bmaster.createrns.util.codec.ResourceOrTagLocation;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -17,11 +17,14 @@ import net.minecraft.world.level.Level;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class DynamicDatapackContent {
+    public static final DepositResources RESOURCES = new DepositResources();
+
     public static Supplier<List<DatapackFile>> depositBiomeTag(ResourceKey<Level> dimension, boolean disableGeneration) {
         return () -> {
             var biomes = new ArrayList<ResourceOrTagLocation>();
@@ -35,7 +38,7 @@ public class DynamicDatapackContent {
                 }
             }
 
-            var biomeSelectorId = DepositData.biomeTagId(CreateRNS.ID, dimension);
+            var biomeSelectorId = DepositResources.biomeTagId(CreateRNS.ID, dimension);
             return List.of(DatapackFile.ofTag(Registries.BIOME, biomeSelectorId,
                     DepositJson.tag(biomes, disableGeneration)));
         };
@@ -43,11 +46,11 @@ public class DynamicDatapackContent {
 
     public static Supplier<List<DatapackFile>> depositProcessorLists() {
         return () -> {
-            var blockEntries = DepositData.getBlocks();
-            var files = new ArrayList<DatapackFile>(blockEntries.size());
-            for (var block : blockEntries) {
-                files.add(DatapackFile.ofResource(Registries.PROCESSOR_LIST, block.processorId(),
-                        DepositJson.processorList(DepositData.PROCESSOR_INPUT_BLOCK, block.blockId())));
+            var processors = RESOURCES.processors;
+            var files = new ArrayList<DatapackFile>(processors.size());
+            for (var processor : processors) {
+                files.add(DatapackFile.ofResource(Registries.PROCESSOR_LIST, processor.id(),
+                        DepositJson.processorList(DepositResources.PROCESSOR_INPUT_BLOCK, processor.targetBlock())));
             }
             return files;
         };
@@ -56,13 +59,11 @@ public class DynamicDatapackContent {
     public static Supplier<List<DatapackFile>> depositStructures() {
         return () -> {
             var files = new ArrayList<DatapackFile>();
-            for (var structure : DepositData.getStructures()) {
-                var biomes = new ResourceOrTagLocation(DepositData.biomeTagId(CreateRNS.ID, structure.dimension()), true);
-                var processorId = DepositData.processorId(structure.namespace(), structure.keyword());
-                var json = DepositJson.structure(biomes, structure.placementStrategy(),
+            for (var structure : RESOURCES.structures) {
+                var json = DepositJson.structure(structure.biomeSelector(), structure.placementStrategy(),
                         -structure.depth() - structure.depthDeviation(), -structure.depth() + structure.depthDeviation(),
-                        structure.templates(), processorId);
-                files.add(DatapackFile.ofResource(Registries.STRUCTURE, structure.structureId(), json));
+                        structure.templates(), structure.processorId());
+                files.add(DatapackFile.ofResource(Registries.STRUCTURE, structure.id(), json));
             }
             return files;
         };
@@ -70,10 +71,10 @@ public class DynamicDatapackContent {
 
     public static Supplier<List<DatapackFile>> depositStructureTag() {
         return () -> {
-            var structures = DepositData.getStructures().stream()
-                    .map(structure -> new ResourceOrTagLocation(structure.structureId(), false))
+            var structures = RESOURCES.structures.stream()
+                    .map(structure -> new ResourceOrTagLocation(structure.id(), false))
                     .toList();
-            return List.of(DatapackFile.ofTag(Registries.STRUCTURE, DepositData.structureTagId(),
+            return List.of(DatapackFile.ofTag(Registries.STRUCTURE, DepositResources.structureTagId(),
                     DepositJson.tag(structures, false)));
         };
     }
@@ -82,18 +83,19 @@ public class DynamicDatapackContent {
             ResourceKey<Level> dimension, int separation, int spacing, int salt
     ) {
         return () -> {
-            var structures = DepositData.getScannableStructures(dimension).stream()
-                    .map(structure -> new DepositData.WeightedStructure(structure.structureId(), structure.weight()))
+            var structures = RESOURCES.getScannableStructures(dimension).stream()
+                    .map(entry -> new DepositResources.WeightedStructure(entry.id(), Objects.requireNonNull(
+                            entry.weight(), () -> "Missing weight for built-in structure " + entry.id())))
                     .toList();
             var json = DepositJson.structureSet(structures, separation, spacing, salt);
-            var id = DepositData.structureSetId(CreateRNS.ID, dimension);
+            var id = DepositResources.structureSetId(CreateRNS.ID, dimension);
             return List.of(DatapackFile.ofResource(Registries.STRUCTURE_SET, id, json));
         };
     }
 
     public static Supplier<List<DatapackFile>> miningRecipes() {
         return () -> {
-            var recipes = DepositData.getEnabledRecipes();
+            var recipes = RESOURCES.getEnabledRecipes();
             var files = new ArrayList<DatapackFile>(recipes.size());
 
             for (var r : recipes) {
@@ -164,7 +166,7 @@ public class DynamicDatapackContent {
                 }
                 root.add("yields", yields);
 
-                files.add(DatapackFile.ofResource(Registries.RECIPE, r.recipeId(), root));
+                files.add(DatapackFile.ofResource(Registries.RECIPE, r.id(), root));
             }
 
             return files;
@@ -173,13 +175,12 @@ public class DynamicDatapackContent {
 
     public static Supplier<List<DatapackFile>> depositSpecs() {
         return () -> {
-            var structures = DepositData.getStructures();
-            var files = new ArrayList<DatapackFile>(structures.size());
-            for (var structure : structures) {
-                var json = DepositJson.spec(structure.structureId(), structure.dimension(),
-                        structure.scannerIconCandidates(), structure.mapIconCandidates(),
-                        structure.isScannable().get());
-                files.add(DatapackFile.ofResource(RNSRegistries.DEPOSIT_SPEC, structure.specId(), json));
+            var specs = RESOURCES.specs;
+            var files = new ArrayList<DatapackFile>(specs.size());
+            for (var spec : specs) {
+                var json = DepositJson.spec(spec.structureId(), spec.dimension(),
+                        spec.scannerIconCandidates(), spec.mapIconCandidates(), spec.isScannable().get());
+                files.add(DatapackFile.ofResource(RNSRegistries.DEPOSIT_SPEC, spec.id(), json));
             }
             return files;
         };

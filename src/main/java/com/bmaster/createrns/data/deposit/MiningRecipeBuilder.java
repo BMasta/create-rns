@@ -2,7 +2,7 @@ package com.bmaster.createrns.data.deposit;
 
 import com.bmaster.createrns.content.deposit.mining.recipe.DepositDurability;
 import com.bmaster.createrns.data.deposit.DepositBlockBuilder.DepositBuildingContext;
-import com.bmaster.createrns.data.deposit.DepositData.YieldEntry;
+import com.bmaster.createrns.data.deposit.DepositResources.YieldEntry;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;

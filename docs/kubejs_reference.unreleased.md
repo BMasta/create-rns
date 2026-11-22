@@ -276,14 +276,11 @@ Creates a deposit structure.
 Tweaks a built-in deposit structure while inheriting every value that is not changed.
 Available built-in structures can be found [here](../src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure).
 
-For `scannerIcon(...)`, `mapIcon(...)`, and `nbt(...)`, the first call clears the defaults.
-
-
 * `structureId`: full id of an existing built-in structure, such as `create_rns:deposit_iron` or
   `create_rns:deposit_nether_gold`.
 
 ### `block(blockId)`
-Sets the deposit block used by this deposit structure.
+Sets the deposit block for a new structure. This method is available only on the builder returned by `event.create(...)`.
 
 * `blockId`: id of an existing deposit block to use for this structure.
 
@@ -297,12 +294,12 @@ the chance of selecting structure 1 is `w1/(w1+w2+w3)`.
 ### `scannerIcon(itemOrTagId)`
 Sets an item or an item tag to be rendered in the scanner nixie tube.
 Can be called multiple times to add more items as fallbacks in case the original item does not exist.
-On a tweaked built-in structure, the first call will clear the default values.
+On a tweaked built-in deposit, the first call will clear the default values.
 
 * `itemOrTagId`: item id or item tag such as `yourmod:raw_tin` or `#c:raw_materials/tin`
 
 ### `scannerIconMetal(material)`
-Shortcut that expands to :
+Shortcut that expands to:
 ```js
 .scannerIcon("#c:raw_materials/<material>")
 .scannerIcon("#c:ores/<material>")
@@ -443,9 +440,9 @@ Expands to:
 ## Configure deposit generation and visibility
 Create: Rock & Stone adds a custom deposit-enablement event `StartupEvents.rnsEnableDeposits`.
 
-***IMPORTANT!*** Calling either `event.overworld()` or `event.nether()` overrides the default deposit configuration.
-Only the deposits selected through these builders stay enabled.
-For default deposits it also controls if the respective deposit block will be added to the creative menu.
+***IMPORTANT!*** Calling either `event.overworld()` or `event.nether()` overrides the default deposits in that dimension.
+Each unconfigured dimension keeps its defaults.
+For default deposits, it also controls if the respective deposit block will be added to the creative menu.
 
 Default deposits (including compat) can be found [here](../src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure).
 
@@ -476,27 +473,27 @@ The only exception is the depleted deposit block, which is always available.
 ### `deposit(structureId, weight)` / `deposit(structureId, enableWorldgen)` / `deposit(structureId, weight, enableWorldgen)`
 Makes deposit scannable in the current dimension. Unless `enableWorldgen` is set to false, also makes it generate in the world.
 
-* `structureId`: id of a default or custom deposit structure
-* `weight`: Overrides the deposit weight (if a deposit does not configure its weight, this parameter is required)
+* `structureId`: ID of a default or custom deposit structure
+* `weight`: Overrides the deposit weight (if a worldgen-enabled deposit does not configure its weight, this parameter is required)
 * `enableWorldgen`: makes the deposit generate in the world (default: true)
 
 ### `spacing(value)` (optional)
 Average distance between two deposits in chunks.
 
-* `value`: positive integer
+* `value`: integer from `1` through `4096`, greater than `separation`
 
 Default: `24` for `event.overworld()`, `8` for `event.nether()`.
 
 ### `separation(value)` (optional)
 Minimum distance between two deposits in chunks. Must be smaller than `spacing`.
 
-* `value`: non-negative integer
+* `value`: integer from `0` up to `spacing - 1`
 
 Default: `4` for `event.overworld()`, `2` for `event.nether()`.
 
 ### `salt(value)` (optional)
 A "seed" used for calculating the random spread of deposits across the world.
 
-* `value`: integer
+* `value`: non-negative integer
 
 Default: `591646342` for `event.overworld()`, `781087034` for `event.nether()`.

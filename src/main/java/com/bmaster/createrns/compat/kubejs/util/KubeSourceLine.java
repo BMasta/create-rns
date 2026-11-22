@@ -1,4 +1,4 @@
-package com.bmaster.createrns.compat.kubejs;
+package com.bmaster.createrns.compat.kubejs.util;
 
 import dev.latvian.mods.kubejs.KubeJSPaths;
 import dev.latvian.mods.kubejs.script.SourceLine;
@@ -6,32 +6,34 @@ import dev.latvian.mods.kubejs.script.SourceLine;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-final class KubeJSSourceLine {
+public final class KubeSourceLine {
     private static final Pattern RECIPE_CALL = Pattern.compile(
             "\\b[A-Za-z_$][\\w$]*\\s*\\.\\s*recipes\\s*\\.\\s*create_rns\\s*\\.\\s*mining\\s*\\(");
     private static final Map<Path, CachedSource> SOURCE_CACHE = new ConcurrentHashMap<>();
 
-    static SourceLine expressionStart(SourceLine coarse) {
+    public static SourceLine expressionStart(SourceLine coarse) {
         var source = readSource(coarse);
         return source == null ? coarse : expressionStart(coarse, source.sanitized());
     }
 
-    static SourceLine methodCall(SourceLine coarse, String methodName) {
+    public static SourceLine methodCall(SourceLine coarse, String methodName) {
         var source = readSource(coarse);
         return source == null ? coarse : methodCall(coarse, source.sanitized(), methodName);
     }
 
-    static SourceLine startupBuilderStart(SourceLine coarse, String eventName, String builderMethods) {
+    public static SourceLine startupBuilderStart(SourceLine coarse, String eventName, String builderMethods) {
         var source = readSource(coarse);
         return source == null ? coarse : startupBuilderStart(
                 coarse, source.sanitized(), eventName, builderMethods);
     }
 
-    static SourceLine startupMethodCall(
+    public static SourceLine startupMethodCall(
             SourceLine coarse, String eventName, String builderMethods, String methodName
     ) {
         var source = readSource(coarse);
@@ -39,14 +41,14 @@ final class KubeJSSourceLine {
                 coarse, source.sanitized(), eventName, builderMethods, methodName);
     }
 
-    static SourceLine startupBuilderStart(
+    public static SourceLine startupBuilderStart(
             SourceLine coarse, String script, String eventName, String builderMethods
     ) {
         var builderStart = findStartupBuilder(script, coarse.line(), eventName, builderMethods);
         return builderStart < 0 ? coarse : SourceLine.of(coarse.source(), lineAt(script, builderStart));
     }
 
-    static SourceLine startupMethodCall(
+    public static SourceLine startupMethodCall(
             SourceLine coarse, String script, String eventName, String builderMethods, String methodName
     ) {
         var builderStart = findStartupBuilder(script, coarse.line(), eventName, builderMethods);
@@ -69,12 +71,12 @@ final class KubeJSSourceLine {
         return coarse;
     }
 
-    static SourceLine expressionStart(SourceLine coarse, String script) {
+    public static SourceLine expressionStart(SourceLine coarse, String script) {
         var recipeCall = findRecipeCall(script, coarse.line());
         return recipeCall < 0 ? coarse : SourceLine.of(coarse.source(), lineAt(script, recipeCall));
     }
 
-    static SourceLine methodCall(SourceLine coarse, String script, String methodName) {
+    public static SourceLine methodCall(SourceLine coarse, String script, String methodName) {
         var recipeCall = findRecipeCall(script, coarse.line());
         if (recipeCall < 0) return coarse;
 
@@ -178,7 +180,10 @@ final class KubeJSSourceLine {
     }
 
     private static Pattern methodPattern(String methodNames) {
-        return Pattern.compile("\\.\\s*(?:" + methodNames + ")\\s*\\(");
+        var calls = Arrays.stream(methodNames.split("\\|"))
+                .map(name -> "\\.\\s*" + Pattern.quote(name) + "\\s*\\(")
+                .collect(Collectors.joining("|"));
+        return Pattern.compile(calls);
     }
 
     private static int endOfLine(String script, int line) {
@@ -286,6 +291,6 @@ final class KubeJSSourceLine {
     private record CachedSource(long modified, long size, String sanitized) {
     }
 
-    private KubeJSSourceLine() {
+    private KubeSourceLine() {
     }
 }

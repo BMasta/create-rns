@@ -9,19 +9,20 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(CreateRNS.ID)
 @PrefixGameTestTemplate(false)
-public class RNSKubeJSAssemblerBuilderGameTest {
+public class StartupEventProcessorGameTest {
     @GameTest(template = "empty16x16")
     public void builderEmissionScenarios(GameTestHelper helper) {
-        RNSKubeJSBuilderTestRunner.runAll(helper, RNSKubeJSAssemblerBuilderGameTest.class);
+        RNSKubeJSBuilderTestRunner.runAll(helper, StartupEventProcessorGameTest.class);
     }
 
     @RNSKubeJSBuilderTest
-    private static void freshAssemblerDoesNotEmitResources(RNSKubeJSBuilderTestContext context) {
+    private static void freshProcessorDoesNotEmitResources(RNSKubeJSBuilderTestContext context) {
         var helper = context.helper();
-        helper.assertTrue(context.assembler() != null, "Expected builder test context to create an assembler eagerly");
+        helper.assertTrue(context.processor().getProcessedEvents().selectedDepositBlocks().isEmpty(),
+                "No enable event selection retains built-in defaults");
 
         var generated = context.assembleData();
-        helper.assertValueEqual(generated.size(), 0, "fresh assembler resource count");
+        helper.assertValueEqual(generated.size(), 0, "fresh processor resource count");
     }
 
     @RNSKubeJSBuilderTest
@@ -29,14 +30,12 @@ public class RNSKubeJSAssemblerBuilderGameTest {
         var helper = context.helper();
         var catalystId = CreateRNS.asResource("test_kubejs_stone_boost");
 
-        var assembler = context.assembler();
         context.catalysts().create(catalystId.toString())
                 .attachment("minecraft:stone", 2)
                 .representativeItem("minecraft:stone")
                 .displayPriority(123);
 
         var generated = context.assembleData();
-        helper.assertTrue(assembler != null, "Expected the eagerly-created assembler to remain usable after configuration");
 
         var catalystPath = ResourceLocation.fromNamespaceAndPath(catalystId.getNamespace(),
                 "create_rns/catalyst/" + catalystId.getPath());
@@ -64,6 +63,7 @@ public class RNSKubeJSAssemblerBuilderGameTest {
         var helper = context.helper();
         var structureId = CreateRNS.asResource("test_kubejs_custom_structure");
 
+        context.structureSet().nether();
         var overworld = context.structureSet().overworld();
         context.depositStructures().create(structureId.toString())
                 .block("minecraft:ancient_debris")
@@ -74,8 +74,8 @@ public class RNSKubeJSAssemblerBuilderGameTest {
         var generated = context.assembleData();
         helper.assertTrue(generated.hasJson(CreateRNS.asResource("worldgen/structure_set/deposits")),
                 "Expected overworld structure-set JSON");
-        helper.assertFalse(generated.hasJson(CreateRNS.asResource("worldgen/structure_set/nether_deposits")),
-                "Did not expect nether structure-set JSON without calling event.nether()");
+        helper.assertTrue(generated.hasJson(CreateRNS.asResource("worldgen/structure_set/nether_deposits")),
+                "Explicitly empty Nether emits a structure set");
         helper.assertTrue(generated.hasJson(ResourceLocation.fromNamespaceAndPath(structureId.getNamespace(),
                 "create_rns/deposit_spec/" + structureId.getPath())), "Expected custom deposit spec JSON");
         helper.assertTrue(generated.hasJson(CreateRNS.asResource("worldgen/structure/" + structureId.getPath())),

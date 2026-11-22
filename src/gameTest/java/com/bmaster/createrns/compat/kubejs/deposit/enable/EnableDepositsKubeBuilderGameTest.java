@@ -1,16 +1,26 @@
-package com.bmaster.createrns.compat.kubejs;
+package com.bmaster.createrns.compat.kubejs.deposit.enable;
 
 import com.bmaster.createrns.CreateRNS;
-import com.bmaster.createrns.data.deposit.DepositData;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.level.Level;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTest;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestContext;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestData;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestHelper;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestRunner;
+import com.bmaster.createrns.compat.kubejs.util.StartupErrorTestHelper;
+import com.bmaster.createrns.data.pack.DynamicDatapackContent;
+import com.bmaster.createrns.util.CodecHelper;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.structure.placement.StructurePlacement;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.TreeSet;
 
 import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.*;
 
@@ -127,8 +137,7 @@ public class EnableDepositsKubeBuilderGameTest {
         assertPlacement(helper, structureSetJson, 4, 24, 591646342);
         helper.assertValueEqual(structures.size(), 0, "worldgen structure count");
         assertArrayStrings(helper, depositsTagJson.get("values"), "selected structure ids",
-                firstId.toString(),
-                secondId.toString());
+                withDefaultNether(firstId, secondId));
         helper.assertTrue(generated.hasJson(depositSpecPath(firstId)), "Expected first custom deposit spec JSON");
         helper.assertTrue(generated.hasJson(depositSpecPath(secondId)), "Expected second custom deposit spec JSON");
         helper.assertTrue(generated.hasJson(structurePath(firstId)), "Expected first custom structure JSON");
@@ -162,8 +171,7 @@ public class EnableDepositsKubeBuilderGameTest {
         helper.assertFalse(generated.hasJson(structureSetPath("nether_deposits")),
                 "Did not expect a nether structure-set file without configuring nether()");
         assertArrayStrings(helper, depositsTagJson.get("values"), "selected structure ids",
-                selectedFirst.id().toString(),
-                selectedLast.id().toString());
+                withDefaultNether(selectedFirst.id(), selectedLast.id()));
 
         assertBuiltInScannableState(helper, generated, selectedFirst.id(), true);
         assertBuiltInScannableState(helper, generated, selectedLast.id(), true);
@@ -186,6 +194,42 @@ public class EnableDepositsKubeBuilderGameTest {
                 "empty overworld builder should emit an empty structure-set file");
         helper.assertFalse(generated.hasJson(structureSetPath("nether_deposits")),
                 "Did not expect a nether structure-set file without configuring nether()");
+        assertBuiltInScannableState(helper, generated, firstBuiltInStructure(helper, Level.OVERWORLD).id(), false);
+        helper.assertFalse(generated.hasJson(depositSpecPath(firstBuiltInStructure(helper, Level.NETHER).id())),
+                "An unconfigured dimension must retain its default deposit specs");
+        var builtin = DynamicDatapackContent.RESOURCES;
+        var selectedBlocks = context.processor().getProcessedEvents().selectedDepositBlocks();
+        var expectedNetherBlocks = builtin.getScannableStructures(Level.NETHER).stream()
+                .map(structure -> builtin.getProcessor(structure.processorId()).targetBlock())
+                .collect(java.util.stream.Collectors.toSet());
+        helper.assertValueEqual(selectedBlocks.get(Level.NETHER), expectedNetherBlocks,
+                "Unconfigured Nether uses default scannability, including installed compat");
+        var tag = generated.jsonObject(CreateRNS.asResource("tags/worldgen/structure/deposits"));
+        helper.assertTrue(tag.get("replace").getAsBoolean(), "Explicit empty selection replaces the structure tag");
+        assertArrayStrings(helper, tag.get("values"), "Unconfigured Nether keeps every built-in tag member", withDefaultNether());
+    }
+
+    private static String[] withDefaultNether(ResourceLocation... selectedOverworld) {
+        var ids = new TreeSet<String>();
+        for (var id : selectedOverworld) ids.add(id.toString());
+        for (var structure : DynamicDatapackContent.RESOURCES.structures) {
+            if (structure.dimension().equals(Level.NETHER)) ids.add(structure.id().toString());
+        }
+        return ids.toArray(String[]::new);
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void sharedBlockSelectionTracksItsDimension(RNSKubeJSBuilderTestContext context) {
+        var helper = context.helper();
+        context.structureSet().overworld().deposit("create_rns:deposit_gold", false);
+        context.structureSet().nether();
+
+        var selection = context.processor().getProcessedEvents().selectedDepositBlocks();
+        var gold = CreateRNS.asResource("gold_deposit_block");
+        var depleted = CreateRNS.asResource("depleted_deposit_block");
+        helper.assertTrue(selection.get(Level.OVERWORLD).contains(gold), "Scan-only gold is enabled in the Overworld");
+        helper.assertTrue(selection.get(Level.NETHER).isEmpty(), "An empty Nether selection excludes shared gold");
+        helper.assertTrue(selection.get(Level.OVERWORLD).contains(depleted), "Depleted block stays enabled");
     }
 
     @RNSKubeJSBuilderTest
@@ -199,7 +243,18 @@ public class EnableDepositsKubeBuilderGameTest {
                 .nbt(DEFAULT_TEMPLATE_SMALL.toString(), 1);
         context.structureSet().overworld().deposit(structureId.toString());
 
-        assertThrows(helper, IllegalStateException.class, "does not have an assigned weight", context::assembleData);
+        assertValidationError(context, "does not have an assigned weight");
+        var generated = context.assembleData();
+        helper.assertTrue(generated.jsonObject(depositSpecPath(structureId)).get("scannable").getAsBoolean(),
+                "Missing worldgen weight must not disable scanning");
+        helper.assertValueEqual(generated.jsonObject(structureSetPath("deposits"))
+                .getAsJsonArray("structures").size(), 0, "Only the missing-weight worldgen entry is skipped");
+        var repeatedErrors = StartupErrorTestHelper.capture(() -> {
+            context.processor().getProcessedEvents();
+            context.assembleData();
+            context.assembleLang();
+        });
+        helper.assertTrue(repeatedErrors.isEmpty(), "Non-fatal validation errors must only be reported once");
     }
 
     @RNSKubeJSBuilderTest
@@ -207,8 +262,25 @@ public class EnableDepositsKubeBuilderGameTest {
         var helper = context.helper();
         var overworld = context.structureSet().overworld();
 
-        assertThrows(helper, IllegalArgumentException.class, "Unknown deposit structure",
-                () -> overworld.deposit("create_rns:missing_structure"));
+        overworld.deposit("create_rns:missing_structure");
+        assertValidationError(context, "Unknown deposit structure");
+        helper.assertFalse(overworld.isValid(), "Unknown structure invalidates the selection builder");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void builtInSelectionRejectsWrongDimension(RNSKubeJSBuilderTestContext context) {
+        var helper = context.helper();
+        var quartz = CreateRNS.asResource("deposit_nether_quartz");
+        var overworld = context.structureSet().overworld().deposit(quartz.toString());
+        context.structureSet().nether();
+
+        assertValidationError(context, quartz + " belongs to " + Level.NETHER.location());
+        helper.assertFalse(overworld.isValid(), "Wrong dimension invalidates the selection");
+        assertBuiltInScannableState(helper, context.assembleData(), quartz, false);
+        var selected = context.processor().getProcessedEvents().selectedDepositBlocks();
+        var block = CreateRNS.asResource("quartz_deposit_block");
+        helper.assertTrue(selected.values().stream().noneMatch(ids -> ids.contains(block)),
+                "Rejected quartz selection must not enable its block or mining recipe");
     }
 
     @RNSKubeJSBuilderTest
@@ -219,7 +291,7 @@ public class EnableDepositsKubeBuilderGameTest {
 
         overworld.deposit(builtIn.id().toString(), false);
 
-        assertThrows(helper, IllegalStateException.class, "already selected in structure set",
+        assertFatalBuilderError(helper, overworld, "already selected in structure set",
                 () -> overworld.deposit(builtIn.id().toString(), false));
     }
 
@@ -229,9 +301,9 @@ public class EnableDepositsKubeBuilderGameTest {
         var builtIn = firstBuiltInStructure(helper, Level.OVERWORLD);
         var overworld = context.structureSet().overworld();
 
-        assertThrows(helper, IllegalArgumentException.class, "must be positive",
+        assertFatalBuilderError(helper, overworld, "must be positive",
                 () -> overworld.deposit(builtIn.id().toString(), 0));
-        assertThrows(helper, IllegalArgumentException.class, "must be positive",
+        assertFatalBuilderError(helper, overworld, "must be positive",
                 () -> overworld.deposit(builtIn.id().toString(), -1));
     }
 
@@ -241,9 +313,9 @@ public class EnableDepositsKubeBuilderGameTest {
         var builtIn = firstBuiltInStructure(helper, Level.OVERWORLD);
         var overworld = context.structureSet().overworld();
 
-        assertThrows(helper, IllegalArgumentException.class, "must be positive",
+        assertFatalBuilderError(helper, overworld, "must be positive",
                 () -> overworld.deposit(builtIn.id().toString(), Integer.valueOf(0), true));
-        assertThrows(helper, IllegalArgumentException.class, "must be positive",
+        assertFatalBuilderError(helper, overworld, "must be positive",
                 () -> overworld.deposit(builtIn.id().toString(), Integer.valueOf(-1), false));
     }
 
@@ -254,16 +326,16 @@ public class EnableDepositsKubeBuilderGameTest {
 
         context.structureSet().overworld()
                 .deposit(builtIn.id().toString())
-                .spacing(40)
-                .separation(7)
+                .spacing(4096)
+                .separation(4095)
                 .salt(321);
 
         var generated = context.assembleData();
-        assertPlacement(helper, generated.jsonObject(structureSetPath("deposits")), 7, 40, 321);
+        assertPlacement(helper, generated.jsonObject(structureSetPath("deposits")), 4095, 4096, 321);
     }
 
     @RNSKubeJSBuilderTest
-    private static void partialPlacementOverridesAndNegativeSaltSerialize(RNSKubeJSBuilderTestContext context) {
+    private static void partialPlacementOverridesAndZeroSaltSerialize(RNSKubeJSBuilderTestContext context) {
         var helper = context.helper();
         var overworldBuiltIn = firstBuiltInStructure(helper, Level.OVERWORLD);
         var netherBuiltIn = firstBuiltInStructure(helper, Level.NETHER);
@@ -273,28 +345,23 @@ public class EnableDepositsKubeBuilderGameTest {
                 .spacing(40);
         context.structureSet().nether()
                 .deposit(netherBuiltIn.id().toString())
-                .salt(-7);
+                .salt(0);
 
         var generated = context.assembleData();
         assertPlacement(helper, generated.jsonObject(structureSetPath("deposits")), 4, 40, 591646342);
-        assertPlacement(helper, generated.jsonObject(structureSetPath("nether_deposits")), 2, 8, -7);
+        assertPlacement(helper, generated.jsonObject(structureSetPath("nether_deposits")), 2, 8, 0);
     }
 
     @RNSKubeJSBuilderTest
-    private static void spacingRejectsNonPositiveValues(RNSKubeJSBuilderTestContext context) {
+    private static void placementRejectsOutOfRangeValues(RNSKubeJSBuilderTestContext context) {
         var helper = context.helper();
         var builder = context.structureSet().overworld();
 
-        assertThrows(helper, IllegalArgumentException.class, "must be positive", () -> builder.spacing(0));
-        assertThrows(helper, IllegalArgumentException.class, "must be positive", () -> builder.spacing(-1));
-    }
-
-    @RNSKubeJSBuilderTest
-    private static void separationRejectsNegativeValues(RNSKubeJSBuilderTestContext context) {
-        var helper = context.helper();
-        var builder = context.structureSet().overworld();
-
-        assertThrows(helper, IllegalArgumentException.class, "must be non-negative", () -> builder.separation(-1));
+        assertFatalBuilderError(helper, builder, "between 1 and 4096", () -> builder.spacing(0));
+        assertFatalBuilderError(helper, builder, "between 1 and 4096", () -> builder.spacing(4097));
+        assertFatalBuilderError(helper, builder, "between 0 and 4096", () -> builder.separation(-1));
+        assertFatalBuilderError(helper, builder, "between 0 and 4096", () -> builder.separation(4097));
+        assertFatalBuilderError(helper, builder, "salt must be non-negative", () -> builder.salt(-7));
     }
 
     @RNSKubeJSBuilderTest
@@ -303,8 +370,10 @@ public class EnableDepositsKubeBuilderGameTest {
         var overworld = context.structureSet().overworld();
         var nether = context.structureSet().nether();
 
-        assertThrows(helper, IllegalArgumentException.class, "greater than separation", () -> overworld.spacing(4).separation(4));
-        assertThrows(helper, IllegalArgumentException.class, "greater than separation", () -> nether.separation(3).spacing(3));
+        overworld.spacing(4).separation(4);
+        nether.separation(3).spacing(3);
+        assertValidationError(context, "greater than separation");
+        helper.assertTrue(!overworld.isValid() && !nether.isValid(), "Both final configurations are invalid");
     }
 
     @RNSKubeJSBuilderTest
@@ -320,17 +389,36 @@ public class EnableDepositsKubeBuilderGameTest {
         context.structureSet().overworld().deposit(structureId.toString(), false);
         context.structureSet().nether().deposit(structureId.toString(), false);
 
-        assertThrows(helper, IllegalStateException.class, "cannot belong to both overworld and nether",
-                context::assembleData);
+        assertValidationError(context, "cannot belong to both overworld and nether");
+        helper.assertFalse(context.structureSet().hasConfiguredDimensions(), "Conflicting selections are invalidated");
     }
 
-    private static void assertPlacement(GameTestHelper helper, com.google.gson.JsonObject structureSetJson,
-                                        int separation, int spacing, int salt) {
-        var placement = structureSetJson.getAsJsonObject("placement");
-        helper.assertValueEqual(placement.get("type").getAsString(), "minecraft:random_spread", "placement type");
-        helper.assertValueEqual(placement.get("separation").getAsInt(), separation, "placement separation");
-        helper.assertValueEqual(placement.get("spacing").getAsInt(), spacing, "placement spacing");
-        helper.assertValueEqual(placement.get("salt").getAsInt(), salt, "placement salt");
+    @RNSKubeJSBuilderTest
+    private static void selectionResolvesCompletedDefinitionsAndFinalPlacementValues(RNSKubeJSBuilderTestContext context) {
+        var helper = context.helper();
+        var structureId = CreateRNS.asResource("test_later_definition");
+        var overworld = context.structureSet().overworld().deposit(structureId.toString());
+        // An intermediate invalid relationship is allowed; only the final values matter.
+        overworld.spacing(4).separation(4).spacing(6);
+        var structure = context.depositStructures().create(structureId.toString())
+                .block("minecraft:coal_block")
+                .scannerIcon("minecraft:coal")
+                .nbt(DEFAULT_TEMPLATE_SMALL.toString(), 1);
+        structure.weight(7);
+
+        helper.assertTrue(context.validationErrors().isEmpty(), "Final configuration is valid");
+        var json = context.assembleData().jsonObject(structureSetPath("deposits"));
+        assertStructureSetEntry(helper, json.getAsJsonArray("structures"), 0, structureId.toString(), 7);
+        helper.assertValueEqual(json.getAsJsonObject("placement").get("spacing").getAsInt(), 6, "Final spacing");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void placementValidationIncludesDefaults(RNSKubeJSBuilderTestContext context) {
+        var overworld = context.structureSet().overworld().spacing(4);
+        var nether = context.structureSet().nether().separation(8);
+        assertValidationError(context, "greater than separation");
+        context.helper().assertTrue(!overworld.isValid() && !nether.isValid(),
+                "Explicit values must be compatible with the omitted setting's default");
     }
 
     private static BuiltInStructure firstBuiltInStructure(
@@ -342,8 +430,8 @@ public class EnableDepositsKubeBuilderGameTest {
     }
 
     private static List<BuiltInStructure> enabledBuiltInStructures(ResourceKey<Level> dimension) {
-        return DepositData.getScannableStructures(dimension).stream()
-                .map(entry -> new BuiltInStructure(entry.structureId(), entry.weight()))
+        return DynamicDatapackContent.RESOURCES.getScannableStructures(dimension).stream()
+                .map(entry -> new BuiltInStructure(entry.id(), Objects.requireNonNull(entry.weight())))
                 .toList();
     }
 
@@ -361,6 +449,8 @@ public class EnableDepositsKubeBuilderGameTest {
             int separation, int spacing, int salt
     ) {
         var placement = structureSetJson.getAsJsonObject("placement");
+        CodecHelper.assertParses(helper.raw(), StructurePlacement.CODEC, CodecHelper.registries(helper.raw()),
+                placement.toString(), "generated deposit placement");
         helper.assertValueEqual(placement.get("type").getAsString(), "minecraft:random_spread", "placement type");
         helper.assertValueEqual(placement.get("separation").getAsInt(), separation, "placement separation");
         helper.assertValueEqual(placement.get("spacing").getAsInt(), spacing, "placement spacing");

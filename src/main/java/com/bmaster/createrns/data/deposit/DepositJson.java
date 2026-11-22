@@ -18,6 +18,52 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public final class DepositJson {
+    private static final float DEFAULT_CHANCE_MULTIPLIER = 1f;
+    private static final int DEFAULT_ATTACHMENT_COUNT = 1;
+
+    public static JsonObject catalyst(DepositResources.Catalyst catalyst) {
+        var root = new JsonObject();
+        if (catalyst.chanceMultiplier() != DEFAULT_CHANCE_MULTIPLIER) {
+            root.addProperty("chance_multiplier", catalyst.chanceMultiplier());
+        }
+        if (catalyst.optional()) root.addProperty("optional", true);
+        if (catalyst.displayPriority() != null) root.addProperty("display_priority", catalyst.displayPriority());
+        if (!catalyst.representativeItems().isEmpty()) {
+            root.add("representative_items", resourceArray(catalyst.representativeItems()));
+        }
+        if (!catalyst.hideIfPresent().isEmpty()) {
+            root.add("hide_if_present", resourceArray(catalyst.hideIfPresent()));
+        }
+        if (catalyst.playWhenActive() != null) {
+            var sound = new JsonObject();
+            sound.addProperty("sound_id", catalyst.playWhenActive().toString());
+            root.add("play_when_active", sound);
+        }
+        var requirements = new JsonArray();
+        for (var requirement : catalyst.requirements()) {
+            var json = new JsonObject();
+            switch (requirement) {
+                case DepositResources.AttachmentRequirement attachment -> {
+                    json.addProperty("type", "attachment");
+                    var blocks = attachment.blockIds();
+                    json.add("attachment", blocks.size() == 1
+                            ? new JsonPrimitive(blocks.getFirst().toString()) : resourceArray(blocks));
+                    if (attachment.count() != DEFAULT_ATTACHMENT_COUNT) json.addProperty("count", attachment.count());
+                }
+                case DepositResources.FluidRequirement fluid -> {
+                    json.addProperty("type", "fluid");
+                    var consume = new JsonObject();
+                    consume.addProperty("id", fluid.fluidId().toString());
+                    consume.addProperty("amount", fluid.amount());
+                    json.add("consume", consume);
+                }
+            }
+            requirements.add(json);
+        }
+        root.add("requirements", requirements);
+        return root;
+    }
+
     public static JsonObject processorList(ResourceLocation inputBlock, ResourceLocation outputBlock) {
         var inputPredicate = new JsonObject();
         inputPredicate.addProperty("block", inputBlock.toString());
@@ -46,7 +92,7 @@ public final class DepositJson {
 
     public static JsonObject structure(
             ResourceOrTagLocation biomes, PlacementStrategy placementStrategy, int minHeight, int maxHeight,
-            List<DepositData.WeightedTemplate> templates, ResourceLocation processorId
+            List<DepositResources.WeightedTemplate> templates, ResourceLocation processorId
     ) {
         if (minHeight > maxHeight) throw new IllegalArgumentException("Minimum height must not exceed maximum height");
 
@@ -92,7 +138,7 @@ public final class DepositJson {
     }
 
     public static JsonObject structureSet(
-            List<DepositData.WeightedStructure> structures, int separation, int spacing, int salt
+            List<DepositResources.WeightedStructure> structures, int separation, int spacing, int salt
     ) {
         var placement = new JsonObject();
         placement.addProperty("type", "minecraft:random_spread");
@@ -127,6 +173,12 @@ public final class DepositJson {
         var values = new JsonArray();
         for (var entry : entries) values.add(entry.toString());
         return values;
+    }
+
+    private static JsonArray resourceArray(List<ResourceLocation> ids) {
+        var array = new JsonArray();
+        for (var id : ids) array.add(id.toString());
+        return array;
     }
 
     private DepositJson() {

@@ -1,7 +1,7 @@
 package com.bmaster.createrns.data.deposit;
 
 import com.bmaster.createrns.content.deposit.mining.recipe.Yield.WeightedItem;
-import com.bmaster.createrns.data.deposit.DepositData.WeightedItemEntry;
+import com.bmaster.createrns.data.deposit.DepositResources.WeightedItemEntry;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
 

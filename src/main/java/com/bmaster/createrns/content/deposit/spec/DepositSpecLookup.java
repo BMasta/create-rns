@@ -1,7 +1,7 @@
 package com.bmaster.createrns.content.deposit.spec;
 
 import com.bmaster.createrns.RNSRegistries;
-import com.bmaster.createrns.data.deposit.DepositData;
+import com.bmaster.createrns.data.deposit.DepositResources;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
@@ -89,7 +89,7 @@ public class DepositSpecLookup {
 
     public static MutableComponent getDepositName(ResourceKey<Structure> depKey) {
         var dRL = depKey.location();
-        return Component.translatable(DepositData.structureLangKey(dRL));
+        return Component.translatable(DepositResources.structureLangKey(dRL));
     }
 
     public static List<Item> getScannerIcons(Level l) {

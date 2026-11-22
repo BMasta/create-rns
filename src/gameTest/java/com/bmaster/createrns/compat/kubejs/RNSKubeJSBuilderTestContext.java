@@ -1,11 +1,20 @@
 package com.bmaster.createrns.compat.kubejs;
 
+import com.bmaster.createrns.compat.kubejs.deposit.catalysts.CatalystsKubeEvent;
+import com.bmaster.createrns.compat.kubejs.deposit.enable.EnableDepositsKubeEvent;
+import com.bmaster.createrns.compat.kubejs.deposit.recipe.MiningRecipeKubeRecipe;
+import com.bmaster.createrns.compat.kubejs.deposit.recipe.MiningRecipeKubeRecipeTestHelper;
+import com.bmaster.createrns.compat.kubejs.deposit.structures.DepositStructuresKubeEvent;
+import com.bmaster.createrns.compat.kubejs.util.KubeStartupError.SourcedError;
+import com.bmaster.createrns.compat.kubejs.util.KubeStartupEventProcessor;
+import com.bmaster.createrns.data.deposit.DepositResources;
 import dev.latvian.mods.kubejs.client.LangKubeEvent;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.gametest.framework.GameTestHelper;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
@@ -14,11 +23,9 @@ public class RNSKubeJSBuilderTestContext {
     private final CatalystsKubeEvent catalysts = new CatalystsKubeEvent();
     private final DepositStructuresKubeEvent depositStructures = new DepositStructuresKubeEvent();
     private final EnableDepositsKubeEvent structureSet =
-            new EnableDepositsKubeEvent(() -> RNSKubeJSAssembler.availableStructures(
-                    depositStructures.created(), depositStructures.tweaked()));
-    private final RNSKubeJSAssembler assembler =
-            new RNSKubeJSAssembler(
-                    catalysts::created, depositStructures::created, depositStructures::tweaked, structureSet);
+            new EnableDepositsKubeEvent(depositStructures);
+    private final KubeStartupEventProcessor processor =
+            new KubeStartupEventProcessor(catalysts, depositStructures, structureSet);
 
     public RNSKubeJSBuilderTestContext(GameTestHelper helper) {
         this.helper = new RNSKubeJSBuilderTestHelper(helper);
@@ -40,8 +47,16 @@ public class RNSKubeJSBuilderTestContext {
         return structureSet;
     }
 
-    public RNSKubeJSAssembler assembler() {
-        return assembler;
+    public KubeStartupEventProcessor processor() {
+        return processor;
+    }
+
+    public DepositResources resources() {
+        return processor.getProcessedEvents().resources();
+    }
+
+    public List<SourcedError> validationErrors() {
+        return processor.getProcessedEvents().errors();
     }
 
     public MiningRecipeKubeRecipe miningRecipe(String id) {
@@ -50,13 +65,13 @@ public class RNSKubeJSBuilderTestContext {
 
     public RNSKubeJSBuilderTestData assembleData() {
         var generator = new RNSKubeJSBuilderTestGenerator();
-        assembler.generateData(generator);
+        processor.generateData(generator);
         return new RNSKubeJSBuilderTestData(generator.generatedById());
     }
 
     public LangKubeEvent assembleLang(String langId) {
         var event = new LangKubeEvent(langId, new LinkedHashMap<>());
-        assembler.generateLang(event);
+        processor.generateLang(event);
         return event;
     }
 

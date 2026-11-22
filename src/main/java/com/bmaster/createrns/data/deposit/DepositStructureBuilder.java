@@ -1,8 +1,8 @@
 package com.bmaster.createrns.data.deposit;
 
 import com.bmaster.createrns.data.deposit.DepositBlockBuilder.DepositBuildingContext;
-import com.bmaster.createrns.data.deposit.DepositData.StructurePreset;
-import com.bmaster.createrns.data.deposit.DepositData.WeightedTemplate;
+import com.bmaster.createrns.data.deposit.DepositResources.StructurePreset;
+import com.bmaster.createrns.data.deposit.DepositResources.WeightedTemplate;
 import com.bmaster.createrns.util.codec.ResourceOrTagLocation;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceKey;
@@ -71,22 +71,22 @@ public class DepositStructureBuilder {
     }
 
     public DepositStructureBuilder scannerIconMetal(String material) {
-        scannerIconItemCandidates.addAll(DepositData.metalScannerIconCandidates(material));
+        scannerIconItemCandidates.addAll(DepositResources.metalScannerIconCandidates(material));
         return this;
     }
 
     public DepositStructureBuilder scannerIconGem(String dustKeyword) {
-        scannerIconItemCandidates.addAll(DepositData.gemScannerIconCandidates(dustKeyword));
+        scannerIconItemCandidates.addAll(DepositResources.gemScannerIconCandidates(dustKeyword));
         return this;
     }
 
     public DepositStructureBuilder scannerIconDust(String material) {
-        scannerIconItemCandidates.addAll(DepositData.dustScannerIconCandidates(material));
+        scannerIconItemCandidates.addAll(DepositResources.dustScannerIconCandidates(material));
         return this;
     }
 
     public DepositStructureBuilder scannerIconCoal() {
-        scannerIconItemCandidates.addAll(DepositData.coalScannerIconCandidates());
+        scannerIconItemCandidates.addAll(DepositResources.coalScannerIconCandidates());
         return this;
     }
 

@@ -1,6 +1,9 @@
 package com.bmaster.createrns.compat.kubejs;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.compat.kubejs.deposit.block.DepositBlockKubeBuilder;
+import com.bmaster.createrns.compat.kubejs.deposit.recipe.MiningRecipeKubeSchema;
+import com.bmaster.createrns.compat.kubejs.util.KubeStartupEventProcessor;
 import dev.latvian.mods.kubejs.event.EventGroupRegistry;
 import dev.latvian.mods.kubejs.generator.KubeDataGenerator;
 import dev.latvian.mods.kubejs.plugin.KubeJSPlugin;
@@ -15,11 +18,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class RNSKubeJSPlugin implements KubeJSPlugin {
     static {
-        RNSKubeJSPluginBridge.install(
-                RNSKubeJSAssembler::isManagingDeposits,
-                RNSKubeJSAssembler::getEnabledDepositBlocks,
-                RNSKubeJSAssembler::getSelectedStructureIds
-        );
+        RNSKubeJSPluginBridge.install(() -> KubeStartupEventProcessor.INSTANCE.getProcessedEvents().selectedDepositBlocks());
     }
 
     @Override
@@ -42,17 +41,11 @@ public class RNSKubeJSPlugin implements KubeJSPlugin {
 
     @Override
     public void generateData(KubeDataGenerator generator) {
-        RNSKubeJSAssembler.fromCurrentEvents().generateData(generator);
+        KubeStartupEventProcessor.INSTANCE.generateData(generator);
     }
 
     @Override
     public void generateLang(dev.latvian.mods.kubejs.client.LangKubeEvent event) {
-        RNSKubeJSAssembler.fromCurrentEvents().generateLang(event);
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void clearCaches() {
-        RNSKubeJSAssembler.resetCaches();
+        KubeStartupEventProcessor.INSTANCE.generateLang(event);
     }
 }

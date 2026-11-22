@@ -4,7 +4,7 @@ import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.spec.DepositSpec;
 import com.bmaster.createrns.content.deposit.worldgen.DepositStructure;
 import com.bmaster.createrns.content.deposit.worldgen.PlacementStrategy;
-import com.bmaster.createrns.data.deposit.DepositData;
+import com.bmaster.createrns.data.deposit.DepositResources;
 import com.bmaster.createrns.data.deposit.DepositJson;
 import com.bmaster.createrns.util.CodecHelper;
 import com.bmaster.createrns.util.codec.ResourceOrTagLocation;
@@ -26,7 +26,7 @@ public class DepositJsonCodecTest {
     @GameTest(template = "empty16x16")
     public void structuresSupportScalarAndAsymmetricHeightRanges(GameTestHelper helper) {
         var processorId = ResourceLocation.withDefaultNamespace("empty");
-        var templates = List.of(new DepositData.WeightedTemplate(DepositData.TEMPLATE_SMALL, 1));
+        var templates = List.of(new DepositResources.WeightedTemplate(DepositResources.TEMPLATE_SMALL, 1));
         var biome = ResourceOrTagLocation.parse("plains");
         var scalar = DepositJson.structure(biome, PlacementStrategy.OVERWORLD, -8, -8, templates, processorId);
         helper.assertValueEqual(scalar.get("height").getAsInt(), -8, "scalar height");
@@ -72,7 +72,7 @@ public class DepositJsonCodecTest {
         CodecHelper.assertParses(helper, StructureProcessorType.LIST_CODEC, CodecHelper.registries(helper),
                 processor.toString(), "deposit processor list");
 
-        var structures = List.of(new DepositData.WeightedStructure(CreateRNS.asResource("deposit_iron"), 7));
+        var structures = List.of(new DepositResources.WeightedStructure(CreateRNS.asResource("deposit_iron"), 7));
         var structureSet = DepositJson.structureSet(structures, 8, 16, 12345);
         CodecHelper.assertParses(helper, StructureSet.DIRECT_CODEC, CodecHelper.registries(helper),
                 structureSet.toString(), "deposit structure set");

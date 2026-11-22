@@ -14,7 +14,7 @@ import com.bmaster.createrns.content.deposit.scanning.DepositScannerC2SPayload;
 import com.bmaster.createrns.content.deposit.scanning.DepositScannerS2CPayload;
 import com.bmaster.createrns.content.deposit.spec.DepositSpec;
 import com.bmaster.createrns.data.pack.DynamicDatapack;
-import com.bmaster.createrns.data.deposit.DepositData;
+import com.bmaster.createrns.data.pack.DynamicDatapackContent;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.packs.PackType;
@@ -69,8 +69,8 @@ public class CommonEvents {
     public static void onBuildCreativeModeTabContents(BuildCreativeModeTabContentsEvent e) {
         if (e.getTabKey() != RNSMisc.MAIN_TAB.getKey()) return;
 
-        for (var block : DepositData.getHiddenBlocks()) {
-            var depItem = BuiltInRegistries.ITEM.get(block.blockId());
+        for (var block : DynamicDatapackContent.RESOURCES.getHiddenBlocks()) {
+            var depItem = BuiltInRegistries.ITEM.get(block.id());
             e.remove(new ItemStack(depItem), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
         }
     }

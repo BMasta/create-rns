@@ -1,5 +1,5 @@
 /*
-// Tweak deposit structure parameters.
+// Tweak deposit structure parameters. Deposit block cannot be changed.
 StartupEvents.rnsDepositStructures(event => {
   event.tweak('create_rns:deposit_tin')
     .scannerIcon("some_mod:raw_tin")
@@ -17,6 +17,7 @@ StartupEvents.rnsDepositStructures(event => {
 */
 
 StartupEvents.rnsEnableDeposits(event => {
+  // Call overworld() without deposits to disable all overworld deposits.
   event.overworld()
     // Keep the deposits you want. Setting the second argument to false will disable worldgen, but keep the deposit enabled.
     .deposit('create_rns:deposit_coal', true)

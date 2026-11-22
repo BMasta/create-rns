@@ -1,6 +1,7 @@
-package com.bmaster.createrns.compat.kubejs;
+package com.bmaster.createrns.compat.kubejs.deposit.recipe;
 
 import com.bmaster.createrns.RNSTags.RNSBlockTags;
+import com.bmaster.createrns.compat.kubejs.util.KubeSourceLine;
 import dev.latvian.mods.kubejs.recipe.KubeRecipe;
 import dev.latvian.mods.kubejs.recipe.RecipeScriptContext;
 import dev.latvian.mods.kubejs.recipe.component.CustomObjectRecipeComponent;
@@ -15,8 +16,8 @@ import net.minecraft.world.level.Level;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
+import java.util.List;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
@@ -27,8 +28,8 @@ public class MiningRecipeKubeRecipe extends KubeRecipe {
     @Info("Sets the deposit block mined by this mining recipe.")
     public MiningRecipeKubeRecipe block(Context cx, String blockId) {
         var coarseSourceLine = SourceLine.of(cx);
-        return block(blockId, KubeJSSourceLine.expressionStart(coarseSourceLine),
-                KubeJSSourceLine.methodCall(coarseSourceLine, "block"));
+        return block(blockId, KubeSourceLine.expressionStart(coarseSourceLine),
+                KubeSourceLine.methodCall(coarseSourceLine, "block"));
     }
 
     @HideFromJS
@@ -64,7 +65,7 @@ public class MiningRecipeKubeRecipe extends KubeRecipe {
             A recipe can only target a single dimension.
             """)
     public MiningRecipeKubeRecipe overworld(Context cx) {
-        captureFallbackSourceLine(KubeJSSourceLine.expressionStart(SourceLine.of(cx)));
+        captureFallbackSourceLine(KubeSourceLine.expressionStart(SourceLine.of(cx)));
         return overworld();
     }
 
@@ -76,7 +77,7 @@ public class MiningRecipeKubeRecipe extends KubeRecipe {
 
     @Info("Makes this recipe functional in the nether. A recipe can only target a single dimension.")
     public MiningRecipeKubeRecipe nether(Context cx) {
-        captureFallbackSourceLine(KubeJSSourceLine.expressionStart(SourceLine.of(cx)));
+        captureFallbackSourceLine(KubeSourceLine.expressionStart(SourceLine.of(cx)));
         return nether();
     }
 
@@ -91,7 +92,7 @@ public class MiningRecipeKubeRecipe extends KubeRecipe {
             Note that finite deposits must be enabled in the server config for this setting to take effect.
             """)
     public MiningRecipeKubeRecipe replaceWhenDepleted(Context cx, String blockId) {
-        captureFallbackSourceLine(KubeJSSourceLine.expressionStart(SourceLine.of(cx)));
+        captureFallbackSourceLine(KubeSourceLine.expressionStart(SourceLine.of(cx)));
         return replaceWhenDepleted(blockId);
     }
 
@@ -109,8 +110,8 @@ public class MiningRecipeKubeRecipe extends KubeRecipe {
             """)
     public MiningRecipeKubeRecipe durability(Context cx, long core, long edge, float randomSpread) {
         var coarseSourceLine = SourceLine.of(cx);
-        return durability(core, edge, randomSpread, KubeJSSourceLine.expressionStart(coarseSourceLine),
-                KubeJSSourceLine.methodCall(coarseSourceLine, "durability"));
+        return durability(core, edge, randomSpread, KubeSourceLine.expressionStart(coarseSourceLine),
+                KubeSourceLine.methodCall(coarseSourceLine, "durability"));
     }
 
     @HideFromJS
@@ -137,7 +138,7 @@ public class MiningRecipeKubeRecipe extends KubeRecipe {
 
     @Info("Adds a yield entry to this mining recipe. Each yield is independent of other yields.")
     public MiningRecipeKubeRecipe yield(Context cx, Consumer<YieldKubeBuilder> yield) {
-        return this.yield(yield, KubeJSSourceLine.expressionStart(SourceLine.of(cx)));
+        return this.yield(yield, KubeSourceLine.expressionStart(SourceLine.of(cx)));
     }
 
     @HideFromJS

@@ -1,4 +1,4 @@
-package com.bmaster.createrns.compat.kubejs;
+package com.bmaster.createrns.compat.kubejs.deposit.block;
 
 import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.content.deposit.DepositBlock;

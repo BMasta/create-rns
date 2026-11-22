@@ -1,5 +1,6 @@
-package com.bmaster.createrns.compat.kubejs;
+package com.bmaster.createrns.compat.kubejs.deposit.recipe;
 
+import com.bmaster.createrns.compat.kubejs.util.KubeSourceLine;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import dev.latvian.mods.kubejs.recipe.component.CustomObjectRecipeComponent;
 import dev.latvian.mods.kubejs.script.SourceLine;
@@ -36,7 +37,7 @@ public class YieldKubeBuilder {
     @Info("Sets the chance for this yield to roll. Must be between 0 and 1.")
     public YieldKubeBuilder chance(Context cx, float chance) {
         var coarseSourceLine = SourceLine.of(cx);
-        return chance(chance, KubeJSSourceLine.methodCall(coarseSourceLine, "chance"));
+        return chance(chance, KubeSourceLine.methodCall(coarseSourceLine, "chance"));
     }
 
     @HideFromJS
@@ -146,7 +147,7 @@ public class YieldKubeBuilder {
     @Info("Requires the specified catalyst requirement set for this yield.")
     public YieldKubeBuilder catalyst(Context cx, String catalyst) {
         var coarseSourceLine = SourceLine.of(cx);
-        return catalyst(catalyst, KubeJSSourceLine.methodCall(coarseSourceLine, "catalyst"),
+        return catalyst(catalyst, KubeSourceLine.methodCall(coarseSourceLine, "catalyst"),
                 RegistryAccessContainer.of(cx).access());
     }
 

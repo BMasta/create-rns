@@ -1,6 +1,10 @@
-package com.bmaster.createrns.compat.kubejs;
+package com.bmaster.createrns.compat.kubejs.deposit.catalysts;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTest;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestContext;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestHelper;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestRunner;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.FluidCatalystRequirement;
 import com.bmaster.createrns.util.CodecHelper;
@@ -152,8 +156,47 @@ public class CatalystKubeBuilderGameTest {
         context.catalysts().create(CreateRNS.asResource("test_missing_requirements").toString())
                 .displayName("Missing Requirements");
 
-        assertThrows(context.helper(), IllegalStateException.class,
-                "must define at least one requirement", context::assembleData);
+        assertValidationError(context, "must define at least one requirement");
+        context.helper().assertValueEqual(context.assembleData().size(), 0, "Invalid catalysts emit no data");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void hideIfPresentResolvesForwardReferencesAndPermitsExternalDatapacks(
+            RNSKubeJSBuilderTestContext context
+    ) {
+        context.catalysts().create("testmod:test_forward_reference")
+                .hideIfPresent("testmod:test_later_catalyst")
+                .hideIfPresent("create_rns:overclock")
+                .hideIfPresent("external_datapack:unknown_to_kubejs")
+                .fluid("water", 1);
+        context.catalysts().create("testmod:test_later_catalyst").fluid("water", 1);
+        context.helper().assertTrue(context.validationErrors().isEmpty(),
+                "Forward references and external datapack catalysts are accepted");
+        context.helper().assertValueEqual(context.assembleData().size(), 2, "Both valid catalysts generate");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void unknownOwnedCatalystReferenceInvalidatesOnlyItsBuilder(RNSKubeJSBuilderTestContext context) {
+        var invalid = context.catalysts().create("create_rns:test_bad_reference")
+                .hideIfPresent("create_rns:unknown_catalyst")
+                .fluid("water", 1);
+        var valid = context.catalysts().create("create_rns:test_good_reference").fluid("water", 1);
+        assertValidationError(context, "Unknown catalyst in hideIfPresent");
+        context.helper().assertFalse(invalid.isValid(), "Unknown owned reference invalidates its builder");
+        context.helper().assertTrue(valid.isValid(), "Unrelated builder remains valid");
+        context.helper().assertValueEqual(context.assembleData().size(), 1, "Only valid catalyst generates");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void catalystNamespaceOwnershipIncludesLaterDeclarations(RNSKubeJSBuilderTestContext context) {
+        var invalid = context.catalysts().create("create_rns:test_later_namespace")
+                .hideIfPresent("testmod:missing")
+                .fluid("water", 1);
+        context.catalysts().create("testmod:declared_later").fluid("water", 1);
+
+        assertValidationError(context, "Unknown catalyst in hideIfPresent: testmod:missing");
+        context.helper().assertFalse(invalid.isValid(), "A later declaration makes its namespace owned");
+        context.helper().assertValueEqual(context.assembleData().size(), 1, "Valid later declaration still generates");
     }
 
     @RNSKubeJSBuilderTest
@@ -161,7 +204,7 @@ public class CatalystKubeBuilderGameTest {
         var helper = context.helper();
         var builder = context.catalysts().create(CreateRNS.asResource("test_invalid_chance").toString());
 
-        assertThrows(helper, IllegalArgumentException.class, "must be non-negative",
+        assertFatalBuilderError(helper, builder, "must be non-negative",
                 () -> builder.chanceMultiplier(-0.01f));
     }
 
@@ -170,15 +213,15 @@ public class CatalystKubeBuilderGameTest {
         var helper = context.helper();
         var builder = context.catalysts().create(CreateRNS.asResource("test_invalid_ids").toString());
 
-        assertThrows(helper, IllegalArgumentException.class, "Id cannot be blank",
+        assertFatalBuilderError(helper, builder, "Id cannot be blank",
                 () -> builder.representativeItem(" "));
-        assertThrows(helper, IllegalArgumentException.class, "Id cannot be blank",
+        assertFatalBuilderError(helper, builder, "Id cannot be blank",
                 () -> builder.playWhenActive(" "));
-        assertThrows(helper, IllegalArgumentException.class, "Id cannot be blank",
+        assertFatalBuilderError(helper, builder, "Id cannot be blank",
                 () -> builder.fluid(" ", 1));
-        assertThrows(helper, IllegalArgumentException.class, "Catalyst id cannot be blank",
+        assertFatalBuilderError(helper, builder, "Catalyst id cannot be blank",
                 () -> builder.hideIfPresent(" "));
-        assertThrows(helper, IllegalArgumentException.class, "Invalid catalyst id: create_rns:bad id",
+        assertFatalBuilderError(helper, builder, "Invalid catalyst id: create_rns:bad id",
                 () -> builder.hideIfPresent("create_rns:bad id"));
     }
 
@@ -187,19 +230,20 @@ public class CatalystKubeBuilderGameTest {
         var helper = context.helper();
         var builder = context.catalysts().create(CreateRNS.asResource("test_invalid_attachments").toString());
 
-        assertThrows(helper, IllegalArgumentException.class, "must be positive",
+        assertFatalBuilderError(helper, builder, "must be positive",
                 () -> builder.attachment("stone", 0));
-        assertThrows(helper, IllegalArgumentException.class, "must be positive",
+        assertFatalBuilderError(helper, builder, "must be positive",
                 () -> builder.attachment("stone", -1));
-        assertThrows(helper, IllegalArgumentException.class, "cannot be blank",
+        assertFatalBuilderError(helper, builder, "cannot be blank",
                 () -> builder.attachment(" "));
-        assertThrows(helper, IllegalArgumentException.class, "Tags are not supported",
+        assertFatalBuilderError(helper, builder, "Tags are not supported",
                 () -> builder.attachment("#c:stones"));
-        assertThrows(helper, IllegalArgumentException.class, "cannot be empty",
+        assertFatalBuilderError(helper, builder, "cannot be empty",
                 () -> builder.attachment(List.of()));
-        assertThrows(helper, IllegalArgumentException.class, "must contain only strings",
+        assertFatalBuilderError(helper, builder, "must contain only strings",
                 () -> builder.attachment(List.of("stone", Integer.valueOf(1))));
-        assertThrows(helper, IllegalArgumentException.class, "must be a block id or list of block ids",
+        helper.assertTrue(builder.attachmentBlocks().isEmpty(), "A rejected list must not add any attachment blocks");
+        assertFatalBuilderError(helper, builder, "must be a block id or list of block ids",
                 () -> builder.attachment(Integer.valueOf(1)));
     }
 
@@ -208,9 +252,9 @@ public class CatalystKubeBuilderGameTest {
         var helper = context.helper();
         var builder = context.catalysts().create(CreateRNS.asResource("test_invalid_fluid_amount").toString());
 
-        assertThrows(helper, IllegalArgumentException.class, "must be positive",
+        assertFatalBuilderError(helper, builder, "must be positive",
                 () -> builder.fluid("lava", 0));
-        assertThrows(helper, IllegalArgumentException.class, "must be positive",
+        assertFatalBuilderError(helper, builder, "must be positive",
                 () -> builder.fluid("lava", -1));
     }
 

@@ -1,4 +1,4 @@
-package com.bmaster.createrns.compat.kubejs;
+package com.bmaster.createrns.compat.kubejs.deposit.recipe;
 
 import com.bmaster.createrns.CreateRNS;
 import com.mojang.serialization.Codec;

@@ -1,7 +1,12 @@
-package com.bmaster.createrns.compat.kubejs;
+package com.bmaster.createrns.compat.kubejs.deposit.recipe;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSDeposits;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTest;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestContext;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestHelper;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestRunner;
+import com.bmaster.createrns.compat.kubejs.util.KubeSourceLine;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.util.CodecHelper;
 import com.google.gson.JsonArray;
@@ -83,15 +88,15 @@ public class MiningRecipeKubeRecipeGameTest {
                 """;
         var coarse = SourceLine.of("server_scripts:main.js", 6);
 
-        assertSourceLine(context.helper(), KubeJSSourceLine.expressionStart(coarse, script),
+        assertSourceLine(context.helper(), KubeSourceLine.expressionStart(coarse, script),
                 SourceLine.of(coarse.source(), 2), "recipe expression start");
-        assertSourceLine(context.helper(), KubeJSSourceLine.methodCall(coarse, script, "block"),
+        assertSourceLine(context.helper(), KubeSourceLine.methodCall(coarse, script, "block"),
                 SourceLine.of(coarse.source(), 4), "block call");
-        assertSourceLine(context.helper(), KubeJSSourceLine.methodCall(coarse, script, "durability"),
+        assertSourceLine(context.helper(), KubeSourceLine.methodCall(coarse, script, "durability"),
                 SourceLine.of(coarse.source(), 5), "durability call");
-        assertSourceLine(context.helper(), KubeJSSourceLine.methodCall(coarse, script, "chance"),
+        assertSourceLine(context.helper(), KubeSourceLine.methodCall(coarse, script, "chance"),
                 SourceLine.of(coarse.source(), 7), "chance call");
-        assertSourceLine(context.helper(), KubeJSSourceLine.methodCall(coarse, script, "catalyst"),
+        assertSourceLine(context.helper(), KubeSourceLine.methodCall(coarse, script, "catalyst"),
                 SourceLine.of(coarse.source(), 9), "catalyst call");
     }
 
@@ -126,22 +131,22 @@ public class MiningRecipeKubeRecipeGameTest {
         var selectionCoarse = SourceLine.of("startup_scripts:main.js", 13);
         var catalystCoarse = SourceLine.of("startup_scripts:main.js", 20);
 
-        assertSourceLine(context.helper(), KubeJSSourceLine.startupBuilderStart(
+        assertSourceLine(context.helper(), KubeSourceLine.startupBuilderStart(
                         structureCoarse, script, "rnsDepositStructures", "create|tweak"),
                 SourceLine.of(structureCoarse.source(), 2), "deposit structure builder start");
-        assertSourceLine(context.helper(), KubeJSSourceLine.startupMethodCall(
+        assertSourceLine(context.helper(), KubeSourceLine.startupMethodCall(
                         structureCoarse, script, "rnsDepositStructures", "create|tweak", "weight"),
                 SourceLine.of(structureCoarse.source(), 6), "deposit structure method call");
-        assertSourceLine(context.helper(), KubeJSSourceLine.startupBuilderStart(
+        assertSourceLine(context.helper(), KubeSourceLine.startupBuilderStart(
                         selectionCoarse, script, "rnsEnableDeposits", "overworld|nether"),
                 SourceLine.of(selectionCoarse.source(), 10), "deposit selection builder start");
-        assertSourceLine(context.helper(), KubeJSSourceLine.startupMethodCall(
+        assertSourceLine(context.helper(), KubeSourceLine.startupMethodCall(
                         selectionCoarse, script, "rnsEnableDeposits", "overworld|nether", "separation"),
                 SourceLine.of(selectionCoarse.source(), 13), "deposit selection method call");
-        assertSourceLine(context.helper(), KubeJSSourceLine.startupBuilderStart(
+        assertSourceLine(context.helper(), KubeSourceLine.startupBuilderStart(
                         catalystCoarse, script, "rnsCatalysts", "create"),
                 SourceLine.of(catalystCoarse.source(), 17), "catalyst builder start");
-        assertSourceLine(context.helper(), KubeJSSourceLine.startupMethodCall(
+        assertSourceLine(context.helper(), KubeSourceLine.startupMethodCall(
                         catalystCoarse, script, "rnsCatalysts", "create", "hideIfPresent"),
                 SourceLine.of(catalystCoarse.source(), 19), "hide-if-present method call");
     }

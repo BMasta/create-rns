@@ -1,18 +1,31 @@
-package com.bmaster.createrns.compat.kubejs;
+package com.bmaster.createrns.compat.kubejs.deposit.structures;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.compat.kubejs.util.KubeStartupEventProcessor;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTest;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestContext;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestData;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestHelper;
+import com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestRunner;
+import com.bmaster.createrns.compat.kubejs.deposit.catalysts.CatalystsKubeEvent;
+import com.bmaster.createrns.compat.kubejs.deposit.enable.EnableDepositsKubeEvent;
+import com.bmaster.createrns.compat.kubejs.util.KubeStartupError;
 import com.bmaster.createrns.content.deposit.spec.DepositSpec;
-import com.bmaster.createrns.data.deposit.DepositData;
+import com.bmaster.createrns.data.deposit.DepositResources;
 import com.bmaster.createrns.data.pack.DynamicDatapackContent;
 import com.bmaster.createrns.util.CodecHelper;
 import com.google.gson.JsonArray;
+import dev.latvian.mods.kubejs.script.SourceLine;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.bmaster.createrns.compat.kubejs.RNSKubeJSBuilderTestAssertions.*;
 
@@ -32,9 +45,134 @@ public class DepositStructureKubeBuilderGameTest {
     }
 
     @RNSKubeJSBuilderTest
+    private static void eventsGatherTheirDefinitionsWithoutAnAssembler(RNSKubeJSBuilderTestContext context) {
+        var helper = context.helper();
+        var catalysts = new CatalystsKubeEvent();
+        var structures = new DepositStructuresKubeEvent();
+        var enable = new EnableDepositsKubeEvent(structures);
+        var customId = CreateRNS.asResource("test_event_owned_structure");
+        var ironId = CreateRNS.asResource("deposit_iron");
+        catalysts.create("create_rns:test_event_owned_catalyst").fluid("water", 1).displayName("Water Catalyst");
+        enable.nether().deposit(customId.toString(), false);
+        structures.create(customId.toString()).block("minecraft:gold_block").scannerIcon("minecraft:gold_ingot")
+                .preset("overworld_common").displayName("Selected Gold");
+        structures.tweak(ironId.toString()).weight(9);
+
+        catalysts.assertValid();
+        structures.assertValid();
+        enable.assertValid();
+        var selection = enable.selectedStructuresByDimension();
+        var resources = new DepositResources();
+        catalysts.gatherResources(resources);
+        structures.gatherResources(resources, selection);
+        enable.gatherResources(resources, selection);
+        helper.assertValueEqual(resources.catalysts.getFirst().id().toString(),
+                "create_rns:test_event_owned_catalyst", "Catalyst event gathers its own definitions");
+        helper.assertValueEqual(resources.getSpec(customId).dimension(), Level.NETHER,
+                "Structure event uses the enable event's selection");
+        var overworldSet = resources.structureSets.stream()
+                .filter(set -> set.id().equals(CreateRNS.asResource("deposits"))).findFirst().orElseThrow();
+        helper.assertValueEqual(overworldSet.structureIds().stream()
+                .filter(entry -> entry.structureId().equals(ironId)).findFirst().orElseThrow().weight(),
+                9, "Default set retains tweaked weight");
+        var netherSet = resources.structureSets.stream()
+                .filter(set -> set.id().equals(CreateRNS.asResource("nether_deposits"))).findFirst().orElseThrow();
+        helper.assertTrue(netherSet.structureIds().isEmpty(), "Enable event gathers a scan-only set");
+        helper.assertTrue(resources.structureTags.getFirst().structureIds().stream().anyMatch(entry -> entry.id().equals(customId)),
+                "Selected structure tag");
+        helper.assertTrue(resources.langEntries.contains(new DepositResources.LangEntry("create_rns",
+                DepositResources.structureLangKey(customId), "Selected Gold")), "Structure translation is gathered");
+        helper.assertTrue(resources.langEntries.contains(new DepositResources.LangEntry("create_rns",
+                "create_rns.catalyst.test_event_owned_catalyst.name", "Water Catalyst")), "Catalyst translation is gathered");
+    }
+    @RNSKubeJSBuilderTest
+    private static void languageFirstInitializesOneIndependentResourceSnapshot(RNSKubeJSBuilderTestContext context) {
+        var helper = context.helper();
+        var id = CreateRNS.asResource("test_resource_snapshot");
+        var structure = context.depositStructures().create(id.toString())
+                .block("minecraft:gold_block").scannerIcon("minecraft:gold_ingot")
+                .preset("overworld_common").displayName("Original Name");
+        context.structureSet().nether().deposit(id.toString(), false);
+        var lang = context.assembleLang();
+        int specCount = context.resources().specs.size();
+        helper.assertValueEqual(context.resources().structures.size(), 1, "Language initializes structure records");
+        helper.assertValueEqual(context.resources().getSpec(id).dimension(), Level.NETHER, "Final selected dimension");
+        assertLangValue(helper, lang, "create_rns", "en_us", DepositResources.structureLangKey(id), "Original Name");
+
+        // Generation consumes the completed snapshot, not subsequent changes to the builder.
+        structure.height(31).displayName("Later Name").scannerIcon("minecraft:diamond");
+        var first = context.assembleData();
+        var second = context.assembleData();
+        helper.assertValueEqual(first.ids(), second.ids(), "Repeated output contains the same files");
+        for (var path : first.ids()) helper.assertValueEqual(first.json(path), second.json(path), "Stable output " + path);
+        helper.assertValueEqual(first.jsonObject(structurePath(id)).get("height").getAsInt(), -8,
+                "Recorded height stays unchanged");
+        helper.assertValueEqual(context.resources().getSpec(id).scannerIconCandidates().size(), 1,
+                "Candidate lists are copied into records");
+        helper.assertValueEqual(context.resources().specs.size(), specCount, "Repeated generation does not append specs");
+        assertLangValue(helper, context.assembleLang(), "create_rns", "en_us",
+                DepositResources.structureLangKey(id), "Original Name");
+
+        var other = new RNSKubeJSBuilderTestContext(helper.raw());
+        other.processor().getProcessedEvents();
+        helper.assertTrue(other.resources().specs.isEmpty(), "Independent assemblers do not share definitions");
+        helper.assertValueEqual(context.resources().specs.size(), specCount, "Other initialization preserves the first snapshot");
+        helper.assertTrue(context.resources() != other.resources(), "Tests use isolated resource containers");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void sharedBlocksProduceOneProcessorAndSpecOnlyOverridesStayPartial(RNSKubeJSBuilderTestContext context) {
+        var helper = context.helper();
+        for (var name : List.of("first", "second")) {
+            var id = CreateRNS.asResource("test_shared_processor_" + name);
+            context.depositStructures().create(id.toString()).block("minecraft:gold_block")
+                    .scannerIcon("minecraft:gold_ingot").preset("overworld_common");
+            context.structureSet().overworld().deposit(id.toString(), false);
+        }
+        var data = context.assembleData();
+        helper.assertValueEqual(context.resources().processors.size(), 1, "Shared processor is recorded once");
+        helper.assertValueEqual(context.resources().structures.size(), 2, "Only custom structures are emitted");
+        var ironId = CreateRNS.asResource("deposit_iron");
+        helper.assertTrue(data.hasJson(depositSpecPath(ironId)), "Selection overrides built-in spec visibility");
+        helper.assertFalse(data.hasJson(structurePath(ironId)), "Spec override does not rewrite built-in structure");
+        helper.assertTrue(context.processor().getProcessedEvents().selectedDepositBlocks().get(Level.OVERWORLD)
+                .contains(ResourceLocation.withDefaultNamespace("gold_block")), "Runtime enabled blocks include the selected custom block");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void failedGatherDoesNotPublishPartialResources(RNSKubeJSBuilderTestContext context) {
+        var helper = context.helper();
+        var catalysts = new CatalystsKubeEvent() {
+            private boolean fail = true;
+
+            @Override
+            public void gatherResources(@NotNull DepositResources resources) {
+                super.gatherResources(resources);
+                if (fail) {
+                    fail = false;
+                    KubeStartupError.add("failed attempt", SourceLine.UNKNOWN);
+                    throw new IllegalStateException("test gathering failure");
+                }
+                KubeStartupError.add("successful retry", SourceLine.UNKNOWN);
+            }
+        };
+        catalysts.create("create_rns:test_retry_snapshot").fluid("water", 1).displayName("Retry Catalyst");
+        var structures = new DepositStructuresKubeEvent();
+        var processor = new KubeStartupEventProcessor(catalysts, structures, new EnableDepositsKubeEvent(structures));
+        assertThrows(helper, IllegalStateException.class, "test gathering failure", processor::getProcessedEvents);
+        var snapshot = processor.getProcessedEvents();
+        helper.assertTrue(processor.getProcessedEvents() == snapshot, "Successful retry is cached");
+        helper.assertValueEqual(snapshot.resources().catalysts.size(), 1, "Retry publishes one complete snapshot");
+        helper.assertValueEqual(snapshot.resources().langEntries.size(), 1, "Retry publishes the translation once");
+        helper.assertValueEqual(snapshot.errors().stream().map(KubeStartupError.SourcedError::message).toList(),
+                List.of("successful retry"), "Retry retains only its own errors");
+        helper.assertTrue(context.validationErrors().isEmpty(), "Independent processors do not share errors");
+    }
+
+    @RNSKubeJSBuilderTest
     private static void unchangedTweaksMatchDynamicDatapackResources(RNSKubeJSBuilderTestContext context) {
-        for (var structure : DepositData.getStructures()) {
-            context.depositStructures().tweak(structure.structureId().toString());
+        for (var structure : DynamicDatapackContent.RESOURCES.structures) {
+            context.depositStructures().tweak(structure.id().toString());
         }
         var generated = context.assembleData();
         var providers = List.of(DynamicDatapackContent.depositProcessorLists(),
@@ -146,17 +284,40 @@ public class DepositStructureKubeBuilderGameTest {
     }
 
     @RNSKubeJSBuilderTest
-    private static void tweakRejectsUnknownDuplicateAndBlockReplacement(RNSKubeJSBuilderTestContext context) {
+    private static void defaultWeightOverridesPreserveOtherEntriesInBothDimensions(
+            RNSKubeJSBuilderTestContext context
+    ) {
+        var helper = context.helper();
+        for (var dimension : List.of(Level.OVERWORLD, Level.NETHER)) {
+            var defaults = DynamicDatapackContent.RESOURCES.getScannableStructures(dimension);
+            helper.assertFalse(defaults.isEmpty(), "Expected default deposits in " + dimension.location());
+            var first = defaults.getFirst();
+            context.depositStructures().tweak(first.id().toString()).weight(Objects.requireNonNull(first.weight()) + 1);
+        }
+
+        var generated = context.assembleData();
+        for (var dimension : List.of(Level.OVERWORLD, Level.NETHER)) {
+            var defaults = DynamicDatapackContent.RESOURCES.getScannableStructures(dimension);
+            var path = dimension.equals(Level.NETHER) ? "nether_deposits" : "deposits";
+            var entries = generated.jsonObject(structureSetPath(path)).getAsJsonArray("structures");
+            helper.assertValueEqual(entries.size(), defaults.size(), "All default deposits remain in " + path);
+            for (var entry : defaults) {
+                int expectedWeight = Objects.requireNonNull(entry.weight()) + (entry == defaults.getFirst() ? 1 : 0);
+                assertStructureSetWeight(helper, entries, entry.id(), expectedWeight);
+            }
+        }
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void structureFactoriesRejectUnknownAndConflictingIds(RNSKubeJSBuilderTestContext context) {
         var helper = context.helper();
         var structureId = CreateRNS.asResource("deposit_iron");
-        var builder = context.depositStructures().tweak(structureId.toString());
+        context.depositStructures().tweak(structureId.toString());
 
         assertThrows(helper, IllegalArgumentException.class, "Unknown built-in deposit structure",
                 () -> context.depositStructures().tweak("create_rns:missing_deposit"));
         assertThrows(helper, IllegalStateException.class, "already tweaked",
                 () -> context.depositStructures().tweak(structureId.toString()));
-        assertThrows(helper, UnsupportedOperationException.class, "block cannot be changed",
-                () -> builder.block("minecraft:gold_block"));
         assertThrows(helper, IllegalArgumentException.class, "must be modified with tweak",
                 () -> context.depositStructures().create(structureId.toString()));
     }
@@ -171,7 +332,8 @@ public class DepositStructureKubeBuilderGameTest {
                 .nbt(DEFAULT_TEMPLATE_SMALL.toString(), 1);
         context.structureSet().overworld().deposit(structureId.toString(), false);
 
-        assertThrows(helper, IllegalStateException.class, "must specify a deposit block", context::assembleData);
+        assertValidationError(context, "must specify a deposit block");
+        helper.assertFalse(context.assembleData().hasJson(structurePath(structureId)), "Invalid structure omitted");
     }
 
     @RNSKubeJSBuilderTest
@@ -184,7 +346,8 @@ public class DepositStructureKubeBuilderGameTest {
                 .nbt(DEFAULT_TEMPLATE_SMALL.toString(), 1);
         context.structureSet().overworld().deposit(structureId.toString(), false);
 
-        assertThrows(helper, IllegalStateException.class, "must specify at least one scanner icon", context::assembleData);
+        assertValidationError(context, "must specify at least one scanner icon");
+        helper.assertFalse(context.assembleData().hasJson(depositSpecPath(structureId)), "Invalid spec omitted");
     }
 
     @RNSKubeJSBuilderTest
@@ -197,7 +360,8 @@ public class DepositStructureKubeBuilderGameTest {
                 .scannerIcon("minecraft:raw_iron");
         context.structureSet().overworld().deposit(structureId.toString(), false);
 
-        assertThrows(helper, IllegalStateException.class, "must specify at least one nbt template", context::assembleData);
+        assertValidationError(context, "must specify at least one nbt template");
+        helper.assertFalse(context.assembleData().hasJson(structurePath(structureId)), "Invalid structure omitted");
     }
 
     @RNSKubeJSBuilderTest
@@ -375,10 +539,10 @@ public class DepositStructureKubeBuilderGameTest {
         var helper = context.helper();
         var builder = context.depositStructures().create(CreateRNS.asResource("test_invalid_biome").toString());
 
-        assertThrows(helper, IllegalArgumentException.class, "cannot be blank", () -> builder.biome(""));
-        assertThrows(helper, IllegalArgumentException.class, "Invalid biome or biome tag id",
+        assertFatalBuilderError(helper, builder, "cannot be blank", () -> builder.biome(""));
+        assertFatalBuilderError(helper, builder, "Invalid biome or biome tag id",
                 () -> builder.biome("#not a tag"));
-        assertThrows(helper, IllegalArgumentException.class, "Unknown vanilla biome",
+        assertFatalBuilderError(helper, builder, "Unknown vanilla biome",
                 () -> builder.biome("minecraft:ld_growth_birch_forest"));
     }
 
@@ -524,7 +688,43 @@ public class DepositStructureKubeBuilderGameTest {
                 .nbt(DEFAULT_TEMPLATE_SMALL.toString(), 1);
         context.structureSet().overworld().deposit(structureId.toString(), false);
 
-        assertThrows(helper, IllegalStateException.class, "must specify a deposit block", context::assembleLang);
+        helper.assertTrue(context.assembleLang().map().isEmpty(), "Invalid structure emits no language entries");
+        helper.assertTrue(context.processor().getProcessedEvents().errors().stream()
+                        .anyMatch(d -> d.message().contains("must specify a deposit block")),
+                "Language-first validation retains the diagnostic for server data loading");
+        helper.assertFalse(context.depositStructures().created().getFirst().isValid(),
+                "Language generation must validate structures before emitting entries");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void languageBeforeDataPreservesSelectionAndDimension(RNSKubeJSBuilderTestContext context) {
+        var helper = context.helper();
+        var selectedId = CreateRNS.asResource("test_lang_first_nether");
+        var unselectedId = CreateRNS.asResource("test_unselected_lang");
+        context.depositStructures().create(selectedId.toString())
+                .block("minecraft:quartz_block").scannerIcon("minecraft:quartz")
+                .preset("overworld_common").displayName("Selected Quartz");
+        context.depositStructures().create(unselectedId.toString())
+                .block("minecraft:coal_block").scannerIcon("minecraft:coal")
+                .preset("overworld_common").displayName("Unselected Coal");
+        context.depositStructures().tweak("create_rns:deposit_iron").displayName("Tweaked Iron");
+        context.structureSet().nether().deposit(selectedId.toString(), false);
+
+        var langBefore = context.assembleLang();
+        helper.assertValueEqual(langBefore.map().size(), 2, "Only the selected custom structure and built-in tweak have names");
+        assertLangValue(helper, langBefore, "create_rns", "en_us",
+                DepositResources.structureLangKey(selectedId), "Selected Quartz");
+        assertLangValue(helper, langBefore, "create_rns", "en_us",
+                DepositResources.structureLangKey(CreateRNS.asResource("deposit_iron")), "Tweaked Iron");
+
+        var data = context.assembleData();
+        var spec = data.jsonObject(depositSpecPath(selectedId));
+        helper.assertValueEqual(spec.get("dimension").getAsString(), "minecraft:the_nether", "Selected dimension");
+        helper.assertTrue(spec.get("scannable").getAsBoolean(), "Scan-only selection stays scannable");
+        helper.assertFalse(data.hasJson(structurePath(unselectedId)), "Unselected custom structure emits no data");
+        helper.assertValueEqual(data.jsonObject(structureSetPath("nether_deposits"))
+                .getAsJsonArray("structures").size(), 0, "Scan-only selection does not enable worldgen");
+        helper.assertValueEqual(context.assembleLang().map(), langBefore.map(), "Language output is independent of generation order");
     }
 
     @RNSKubeJSBuilderTest
@@ -599,8 +799,8 @@ public class DepositStructureKubeBuilderGameTest {
         var helper = context.helper();
         var builder = context.depositStructures().create(CreateRNS.asResource("test_invalid_weight").toString());
 
-        assertThrows(helper, IllegalArgumentException.class, "must be positive", () -> builder.weight(0));
-        assertThrows(helper, IllegalArgumentException.class, "must be positive", () -> builder.weight(-1));
+        assertFatalBuilderError(helper, builder, "must be positive", () -> builder.weight(0));
+        assertFatalBuilderError(helper, builder, "must be positive", () -> builder.weight(-1));
     }
 
     @RNSKubeJSBuilderTest
@@ -608,9 +808,9 @@ public class DepositStructureKubeBuilderGameTest {
         var helper = context.helper();
         var builder = context.depositStructures().create(CreateRNS.asResource("test_invalid_nbt_weight").toString());
 
-        assertThrows(helper, IllegalArgumentException.class, "must be positive",
+        assertFatalBuilderError(helper, builder, "must be positive",
                 () -> builder.nbt(DEFAULT_TEMPLATE_SMALL.toString(), 0));
-        assertThrows(helper, IllegalArgumentException.class, "must be positive",
+        assertFatalBuilderError(helper, builder, "must be positive",
                 () -> builder.nbt(DEFAULT_TEMPLATE_SMALL.toString(), -1));
     }
 

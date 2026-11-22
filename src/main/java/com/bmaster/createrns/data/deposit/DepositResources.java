@@ -13,19 +13,15 @@ import net.minecraft.world.level.Level;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.function.Supplier;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public final class DepositData {
-
-    static final List<BlockEntry> BLOCKS = new ArrayList<>();
-    static final List<StructureEntry> STRUCTURES = new ArrayList<>();
-    static final List<RecipeEntry> RECIPES = new ArrayList<>();
-
+public final class DepositResources {
     public static final ResourceLocation PROCESSOR_INPUT_BLOCK = ResourceLocation.withDefaultNamespace("end_stone");
 
     public static final ResourceLocation TEMPLATE_SMALL = CreateRNS.asResource("ore_deposit_small");
@@ -69,45 +65,11 @@ public final class DepositData {
     //================================================================================================================//
 
     public static StructurePreset getStructurePreset(String presetId) {
-        var preset = DepositData.PRESETS.get(presetId);
+        var preset = DepositResources.PRESETS.get(presetId);
         if (preset != null) return preset;
 
         throw new IllegalArgumentException("Unknown deposit preset: " + presetId + "\n" +
-                "Available presets: " + String.join(", ", DepositData.PRESETS.keySet()));
-    }
-
-    public static List<BlockEntry> getBlocks() {
-        return Collections.unmodifiableList(BLOCKS);
-    }
-
-    public static List<BlockEntry> getHiddenBlocks() {
-        return BLOCKS.stream()
-                .filter(b -> RNSKubeJSPluginBridge.isManagingDeposits()
-                        ? !RNSKubeJSPluginBridge.getEnabledDepositBlocks().contains(b.blockId())
-                        : !b.isVisible.get())
-                .toList();
-    }
-
-    public static List<StructureEntry> getStructures() {
-        return Collections.unmodifiableList(STRUCTURES);
-    }
-
-    public static List<StructureEntry> getScannableStructures(ResourceKey<Level> dimension) {
-        return STRUCTURES.stream()
-                .filter(s -> s.dimension.equals(dimension) && s.isScannable.get())
-                .toList();
-    }
-
-    public static List<RecipeEntry> getRecipes() {
-        return Collections.unmodifiableList(RECIPES);
-    }
-
-    public static List<RecipeEntry> getEnabledRecipes() {
-        return RECIPES.stream()
-                .filter(r -> RNSKubeJSPluginBridge.isManagingDeposits()
-                        ? RNSKubeJSPluginBridge.getEnabledDepositBlocks().contains(r.sourceBlockId())
-                        : r.isEnabled.get())
-                .toList();
+                "Available presets: " + String.join(", ", DepositResources.PRESETS.keySet()));
     }
 
     public static List<ResourceOrTagLocation> metalScannerIconCandidates(String material) {
@@ -161,6 +123,10 @@ public final class DepositData {
         return structureId.getNamespace() + ".structure." + structureId.getPath().replace('/', '.');
     }
 
+    public static String catalystLangKey(ResourceLocation catalystId, String suffix) {
+        return catalystId.getNamespace() + ".catalyst." + catalystId.getPath().replace('/', '.') + "." + suffix;
+    }
+
     public static ResourceLocation structureSetId(String namespace, ResourceKey<Level> dimension) {
         return ResourceLocation.fromNamespaceAndPath(namespace, dimPrefix(dimension) + "deposits");
     }
@@ -210,8 +176,56 @@ public final class DepositData {
         return name.isBlank() ? "" : "_" + name;
     }
 
+    public final List<Block> blocks = new ArrayList<>();
+    public final List<BlockTag> blockTags = new ArrayList<>();
+    public final List<Structure> structures = new ArrayList<>();
+    public final List<StructureTag> structureTags = new ArrayList<>();
+    public final List<Spec> specs = new ArrayList<>();
+    public final List<BiomeSelectorTag> biomeSelectorTags = new ArrayList<>();
+    public final List<Processor> processors = new ArrayList<>();
+    public final List<StructureSet> structureSets = new ArrayList<>();
+    public final List<Recipe> recipes = new ArrayList<>();
+    public final List<Catalyst> catalysts = new ArrayList<>();
+    public final List<LangEntry> langEntries = new ArrayList<>();
+
+    public List<Block> getHiddenBlocks() {
+        var selection = RNSKubeJSPluginBridge.getSelectedDepositBlocks();
+        var visible = selection.values().stream().flatMap(Set::stream).collect(Collectors.toSet());
+        return blocks.stream()
+                .filter(b -> !selection.isEmpty()
+                        ? !visible.contains(b.id())
+                        : !b.isVisible.get())
+                .toList();
+    }
+
+    public List<Structure> getScannableStructures(ResourceKey<Level> dimension) {
+        return structures.stream()
+                .filter(s -> s.dimension.equals(dimension) && getSpec(s.id()).isScannable().get())
+                .toList();
+    }
+
+    public Spec getSpec(ResourceLocation structureId) {
+        return specs.stream().filter(spec -> spec.structureId().equals(structureId)).findFirst()
+                .orElseThrow(() -> new IllegalStateException("Missing deposit spec for structure: " + structureId));
+    }
+
+    public Processor getProcessor(ResourceLocation id) {
+        return processors.stream().filter(processor -> processor.id().equals(id)).findFirst()
+                .orElseThrow(() -> new IllegalStateException("Missing deposit processor: " + id));
+    }
+
+    public List<Recipe> getEnabledRecipes() {
+        var selection = RNSKubeJSPluginBridge.getSelectedDepositBlocks();
+        return recipes.stream()
+                .filter(r -> !selection.isEmpty()
+                        ? selection.getOrDefault(r.dimension(), Set.of()).contains(r.sourceBlockId())
+                        : r.isEnabled.get())
+                .toList();
+    }
+
     public record WeightedTemplate(ResourceLocation template, int weight) {}
 
+    /// Used in a structure set
     public record WeightedStructure(ResourceLocation structureId, int weight) {}
 
     public record StructurePreset(
@@ -222,69 +236,136 @@ public final class DepositData {
         }
     }
 
-    public record BlockEntry(
-            String namespace,
-            String keyword,
+    public record Block(
+            ResourceLocation id,
             Supplier<Boolean> isVisible
-    ) {
-        public ResourceLocation blockId() {
-            return DepositData.blockId(namespace, keyword);
-        }
+    ) {}
 
-        public ResourceLocation processorId() {
-            return DepositData.processorId(namespace, keyword);
+    public record BlockTag(
+            ResourceLocation id,
+            List<ResourceOrTagLocation> blockIds,
+            boolean replace
+    ) {
+        public BlockTag {
+            blockIds = List.copyOf(blockIds);
         }
     }
 
-    public record StructureEntry(
-            String namespace,
-            String keyword,
+    public record Structure(
+            ResourceLocation id,
+            ResourceLocation processorId,
             ResourceKey<Level> dimension,
-            Supplier<Boolean> isScannable,
+            ResourceOrTagLocation biomeSelector,
             int depth,
             int depthDeviation,
-            int weight,
-            List<WeightedTemplate> templates,
+            @Nullable Integer weight,
             PlacementStrategy placementStrategy,
+            List<WeightedTemplate> templates
+    ) {
+        public Structure {
+            templates = List.copyOf(templates);
+        }
+    }
+
+    public record Spec(
+            ResourceLocation id,
+            ResourceLocation structureId,
+            ResourceKey<Level> dimension,
+            Supplier<Boolean> isScannable,
             List<ResourceOrTagLocation> scannerIconCandidates,
             List<ResourceOrTagLocation> mapIconCandidates
     ) {
-        public StructureEntry {
-            templates = List.copyOf(templates);
+        public Spec {
             scannerIconCandidates = List.copyOf(scannerIconCandidates);
             mapIconCandidates = List.copyOf(mapIconCandidates);
         }
+    }
 
-        public ResourceLocation structureId() {
-            return DepositData.structureId(namespace, dimension, keyword);
-        }
+    public record Processor(
+            ResourceLocation id,
+            ResourceLocation targetBlock
+    ) {}
 
-        public ResourceLocation specId() {
-            return DepositData.specId(namespace, dimension, keyword);
+    public record StructureTag(
+            ResourceLocation id,
+            List<ResourceOrTagLocation> structureIds,
+            boolean replace
+    ) {
+        public StructureTag {
+            structureIds = List.copyOf(structureIds);
         }
     }
 
-    public record RecipeEntry(
-            String namespace,
-            String keyword,
+    public record BiomeSelectorTag(
+            ResourceLocation id,
+            List<ResourceOrTagLocation> biomeIds,
+            boolean replace
+    ) {
+        public BiomeSelectorTag {
+            biomeIds = List.copyOf(biomeIds);
+        }
+    }
+
+    public record StructureSet(
+            ResourceLocation id,
+            List<WeightedStructure> structureIds,
+            int spacing,
+            int separation,
+            int salt
+    ) {
+        public StructureSet {
+            structureIds = List.copyOf(structureIds);
+        }
+    }
+
+    public record Recipe(
+            ResourceLocation id,
+            ResourceLocation sourceBlockId,
             ResourceKey<Level> dimension,
             Supplier<Boolean> isEnabled,
             @Nullable ResourceLocation replacementBlockId,
             @Nullable DepositDurability durability,
             List<YieldEntry> yields
     ) {
-        public RecipeEntry {
+        public Recipe {
             yields = List.copyOf(yields);
         }
+    }
 
-        public ResourceLocation sourceBlockId() {
-            return DepositData.blockId(namespace, keyword);
-        }
-
-        public ResourceLocation recipeId() {
-            return DepositData.recipeId(namespace, dimension, keyword);
+    public record Catalyst(
+            ResourceLocation id,
+            float chanceMultiplier,
+            boolean optional,
+            @Nullable Integer displayPriority,
+            List<ResourceLocation> representativeItems,
+            List<ResourceLocation> hideIfPresent,
+            @Nullable ResourceLocation playWhenActive,
+            List<CatalystRequirement> requirements
+    ) {
+        public Catalyst {
+            representativeItems = List.copyOf(representativeItems);
+            hideIfPresent = List.copyOf(hideIfPresent);
+            requirements = List.copyOf(requirements);
         }
     }
+
+    public sealed interface CatalystRequirement permits AttachmentRequirement, FluidRequirement {}
+
+    public record AttachmentRequirement(
+            List<ResourceLocation> blockIds,
+            int count
+    ) implements CatalystRequirement {
+        public AttachmentRequirement {
+            blockIds = List.copyOf(blockIds);
+        }
+    }
+
+    public record FluidRequirement(
+            ResourceLocation fluidId,
+            int amount
+    ) implements CatalystRequirement {}
+
+    public record LangEntry(String assetNamespace, String key, String value) {}
 
     public record YieldEntry(
             float chance,

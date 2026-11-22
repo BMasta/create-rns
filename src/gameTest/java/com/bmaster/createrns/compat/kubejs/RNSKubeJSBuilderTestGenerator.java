@@ -39,7 +39,7 @@ public class RNSKubeJSBuilderTestGenerator implements KubeDataGenerator {
         throw new UnsupportedOperationException("KubeJS builder emission tests do not support data-map generation");
     }
 
-    Map<ResourceLocation, GeneratedData> generatedById() {
+    public Map<ResourceLocation, GeneratedData> generatedById() {
         return Map.copyOf(generatedById);
     }
 }

@@ -2,8 +2,9 @@ package com.bmaster.createrns.data.deposit;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.DepositBlock;
-import com.bmaster.createrns.data.deposit.DepositData.RecipeEntry;
-import com.bmaster.createrns.data.deposit.DepositData.StructureEntry;
+import com.bmaster.createrns.data.deposit.DepositResources.Recipe;
+import com.bmaster.createrns.data.deposit.DepositResources.Structure;
+import com.bmaster.createrns.data.pack.DynamicDatapackContent;
 import com.bmaster.createrns.data.pack.DynamicDatapackDumpTool;
 import com.bmaster.createrns.util.codec.ResourceOrTagLocation;
 import com.mojang.logging.annotations.MethodsReturnNonnullByDefault;
@@ -62,19 +63,20 @@ public class DepositBlockBuilder {
 
     /// Returns null only when in dump mode
     public BlockEntry<DepositBlock> register() {
-        var blockId = DepositData.blockId(CreateRNS.ID, ctx.depositKeyword);
+        var blockId = DepositResources.blockId(CreateRNS.ID, ctx.depositKeyword);
 
         // Register block
-        for (var existing : DepositData.BLOCKS) {
-            if (existing.keyword().equals(ctx.depositKeyword)) {
+        for (var existing : DynamicDatapackContent.RESOURCES.blocks) {
+            if (existing.id().equals(blockId)) {
                 throw new IllegalStateException("Conflicting deposit block entry already exists: " + ctx.depositKeyword);
             }
         }
-        DepositData.BLOCKS.add(new DepositData.BlockEntry(
-                CreateRNS.ID,
-                ctx.depositKeyword,
+        DynamicDatapackContent.RESOURCES.blocks.add(new DepositResources.Block(
+                blockId,
                 ctx.isEnabled
         ));
+        var processorId = DepositResources.processorId(CreateRNS.ID, blockId);
+        DynamicDatapackContent.RESOURCES.processors.add(new DepositResources.Processor(processorId, blockId));
 
         // Register structure
         for (var sb : ctx.structureBuilders) {
@@ -84,23 +86,30 @@ public class DepositBlockBuilder {
             if (sb.scannerIconItemCandidates.isEmpty()) {
                 throw new IllegalStateException("At least one scanner icon must be configured before registering");
             }
-            for (var existing : DepositData.STRUCTURES) {
-                if (existing.keyword().equals(ctx.depositKeyword) && existing.dimension().equals(sb.dimension)) {
+            var structureId = DepositResources.structureId(CreateRNS.ID, sb.dimension, ctx.depositKeyword);
+            for (var existing : DynamicDatapackContent.RESOURCES.structures) {
+                if (existing.id().equals(structureId)) {
                     throw new IllegalStateException("Conflicting deposit structure entry already exists: " +
                             ctx.depositKeyword + "(" + sb.dimension.location() + ")");
                 }
             }
-            DepositData.STRUCTURES.add(new StructureEntry(
-                    CreateRNS.ID,
-                    ctx.depositKeyword,
+            DynamicDatapackContent.RESOURCES.structures.add(new Structure(
+                    structureId,
+                    processorId,
                     sb.dimension,
-                    ctx.isEnabled,
+                    new ResourceOrTagLocation(DepositResources.biomeTagId(CreateRNS.ID, sb.dimension), true),
                     sb.depth,
                     sb.depthDeviation,
                     sb.weight,
-                    sb.templates,
-                    DepositData.defaultPlacementStrategy(sb.dimension),
+                    DepositResources.defaultPlacementStrategy(sb.dimension),
+                    sb.templates
+            ));
+            DynamicDatapackContent.RESOURCES.specs.add(new DepositResources.Spec(
+                    DepositResources.specId(structureId),
+                    structureId,
+                    sb.dimension,
                     // Enabled deposits are set as scannable
+                    ctx.isEnabled,
                     sb.scannerIconItemCandidates,
                     // Use deposit block as map icon
                     List.of(new ResourceOrTagLocation(blockId, false))
@@ -110,15 +119,16 @@ public class DepositBlockBuilder {
         // Register recipe
         for (var rb : ctx.recipeBuilders) {
             if (rb.yields.isEmpty()) throw new IllegalStateException("Mining recipe must define at least one yield");
-            for (var existing : DepositData.RECIPES) {
-                if (existing.keyword().equals(ctx.depositKeyword) && existing.dimension().equals(rb.dimension)) {
+            var recipeId = DepositResources.recipeId(CreateRNS.ID, rb.dimension, ctx.depositKeyword);
+            for (var existing : DynamicDatapackContent.RESOURCES.recipes) {
+                if (existing.id().equals(recipeId)) {
                     throw new IllegalStateException("Conflicting mining recipe entry already exists: " +
                             ctx.depositKeyword + "(" + rb.dimension.location() + ")");
                 }
             }
-            DepositData.RECIPES.add(new RecipeEntry(
-                    CreateRNS.ID,
-                    ctx.depositKeyword,
+            DynamicDatapackContent.RESOURCES.recipes.add(new Recipe(
+                    recipeId,
+                    blockId,
                     rb.dimension,
                     ctx.isEnabled,
                     rb.replacementBlockId,
