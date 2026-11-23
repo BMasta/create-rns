@@ -11,6 +11,8 @@ import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.util.CodecHelper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.mojang.serialization.JsonOps;
 import dev.latvian.mods.kubejs.recipe.KubeRecipe;
 import dev.latvian.mods.kubejs.script.SourceLine;
 import net.minecraft.gametest.framework.GameTest;
@@ -193,7 +195,7 @@ public class MiningRecipeKubeRecipeGameTest {
         helper.assertValueEqual(items.size(), 1, "yield item count");
         var item = items.get(0).getAsJsonObject();
         helper.assertValueEqual(item.get("item").getAsString(), "minecraft:diamond", "default yield item");
-        helper.assertFalse(item.has("compat"), "Strict items should omit compat flag");
+        helper.assertFalse(item.get("compat").getAsBoolean(), "Scripted items require strict resolution");
         helper.assertFalse(item.has("weight"), "Default item weight should stay omitted");
 
         var parsed = parseRecipe(helper, json, "minimal mining recipe");
@@ -306,8 +308,8 @@ public class MiningRecipeKubeRecipeGameTest {
         var expectedSource = new SourceLine("server_scripts/main.js", 14);
         var json = serialize(context.miningRecipe("missing_required_item_source")
                 .block(VALID_DEPOSIT_BLOCK)
-                .yield(yield -> yield.item(
-                        List.of("create_rns:definitely_missing_item"), 1, false, expectedSource)));
+                .yield(yield -> yield.addItemStack(
+                        "create_rns:definitely_missing_item", 1, 1, expectedSource)));
 
         var marker = json.getAsJsonObject(KubeRecipe.CHANGED_MARKER);
         context.helper().assertValueEqual(marker.get("source").getAsString(), expectedSource.source(),
@@ -374,7 +376,7 @@ public class MiningRecipeKubeRecipeGameTest {
         var expectedSource = SourceLine.of("server_scripts/main.js", 63);
         var json = serialize(context.miningRecipe("invalid_item_weight_source")
                 .block(VALID_DEPOSIT_BLOCK)
-                .yield(yield -> yield.item(List.of("diamond"), -5, false, expectedSource)));
+                .yield(yield -> yield.addItemStack("diamond", 1, -5, expectedSource)));
 
         CodecHelper.assertFails(context.helper().raw(), MiningRecipeKubeSchema.WEIGHT_COMPONENT.codec(),
                 CodecHelper.registries(context.helper().raw()), "-5", "outside of range [1:2147483647]");
@@ -384,6 +386,17 @@ public class MiningRecipeKubeRecipeGameTest {
                 "invalid item weight value");
         assertSourceLine(context.helper(), json, expectedSource, "invalid item weight");
         assertRecipeFails(context.helper(), json, "outside of range [1:2147483647]");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void invalidStackCountIsAttributedToItsCallSite(RNSKubeJSBuilderTestContext context) {
+        var source = SourceLine.of("server_scripts/main.js", 64);
+        for (int count : List.of(0, 100)) {
+            var json = serialize(context.miningRecipe("invalid_item_count_" + count).block(VALID_DEPOSIT_BLOCK)
+                    .yield(yield -> yield.addItemStack("diamond", count, 1, source)));
+            assertSourceLine(context.helper(), json, source, "invalid stack count");
+            assertRecipeFails(context.helper(), json, "outside of range [1:99]");
+        }
     }
 
     @RNSKubeJSBuilderTest
@@ -423,7 +436,7 @@ public class MiningRecipeKubeRecipeGameTest {
         recipe.block(VALID_DEPOSIT_BLOCK)
                 .yield(yield -> yield.chance(0.25f)
                         .item("diamond")
-                        .compatItem(List.of("compatmod:raw_ore", "#planks"), 2)
+                        .item("#planks", 2)
                         .catalyst("create_rns:alpha")
                         .catalyst("create_rns:beta")
                         .jeiSlotColor("#123abc"))
@@ -449,11 +462,9 @@ public class MiningRecipeKubeRecipeGameTest {
         helper.assertValueEqual(firstItems.get(0).getAsJsonObject().get("item").getAsString(),
                 "minecraft:diamond", "first weighted item");
 
-        var compatItem = firstItems.get(1).getAsJsonObject();
-        helper.assertTrue(compatItem.get("compat").getAsBoolean(), "Compat entry should serialize compat flag");
-        helper.assertValueEqual(compatItem.get("weight").getAsInt(), 2, "compat item weight");
-        assertStringArray(helper, compatItem.getAsJsonArray("item"),
-                "compat item candidates", "compatmod:raw_ore", "#minecraft:planks");
+        var taggedItem = firstItems.get(1).getAsJsonObject();
+        helper.assertValueEqual(taggedItem.get("item").getAsString(), "#minecraft:planks", "second weighted item");
+        helper.assertValueEqual(taggedItem.get("weight").getAsInt(), 2, "tagged item weight");
 
         var secondYield = yields.get(1).getAsJsonObject();
         helper.assertValueEqual(secondYield.get("jei_slot_color").getAsInt(), EXPLICIT_SLOT_COLOR,
@@ -463,38 +474,42 @@ public class MiningRecipeKubeRecipeGameTest {
     @RNSKubeJSBuilderTest
     private static void serializesEveryYieldItemOverload(RNSKubeJSBuilderTestContext context) {
         var helper = context.helper();
-        var recipe = context.miningRecipe("yield_item_overloads");
-
-        recipe.block(VALID_DEPOSIT_BLOCK)
+        var recipe = context.miningRecipe("yield_item_overloads").block(VALID_DEPOSIT_BLOCK)
                 .yield(yield -> yield.item("diamond"))
-                .yield(yield -> yield.item("emerald", 2))
-                .yield(yield -> yield.item(List.of("diamond", "#planks")))
-                .yield(yield -> yield.item(List.of("emerald", "#logs"), 3))
-                .yield(yield -> yield.compatItem("compatmod:raw_ore"))
-                .yield(yield -> yield.compatItem("compatmod:rich_ore", 4))
-                .yield(yield -> yield.compatItem(List.of("compatmod:raw_ore", "#planks")))
-                .yield(yield -> yield.compatItem(List.of("compatmod:rich_ore", "#logs"), 5));
+                .yield(yield -> yield.item("#planks", 2))
+                .yield(yield -> yield.itemStack("emerald", 3))
+                .yield(yield -> yield.itemStack("#minecraft:logs", 4, 5));
 
         var json = serialize(recipe);
         var yields = json.getAsJsonArray("yields");
-        helper.assertValueEqual(yields.size(), 8, "yield overload count");
-
-        assertWeightedItemObject(helper, yieldItem(yields, 0), "item(String)", "minecraft:diamond", false, null);
-        assertWeightedItemObject(helper, yieldItem(yields, 1), "item(String, int)", "minecraft:emerald", false, 2);
-        assertWeightedItemArray(helper, yieldItem(yields, 2), "item(List<String>)",
-                List.of("minecraft:diamond", "#minecraft:planks"), false, null);
-        assertWeightedItemArray(helper, yieldItem(yields, 3), "item(List<String>, int)",
-                List.of("minecraft:emerald", "#minecraft:logs"), false, 3);
-        assertWeightedItemObject(helper, yieldItem(yields, 4), "compatItem(String)", "compatmod:raw_ore", true, null);
-        assertWeightedItemObject(helper, yieldItem(yields, 5), "compatItem(String, int)",
-                "compatmod:rich_ore", true, 4);
-        assertWeightedItemArray(helper, yieldItem(yields, 6), "compatItem(List<String>)",
-                List.of("compatmod:raw_ore", "#minecraft:planks"), true, null);
-        assertWeightedItemArray(helper, yieldItem(yields, 7), "compatItem(List<String>, int)",
-                List.of("compatmod:rich_ore", "#minecraft:logs"), true, 5);
-
         var parsed = parseRecipe(helper, json, "recipe using every yield item overload");
-        helper.assertValueEqual(parsed.getYields().size(), 8, "parsed yield count");
+        var ids = List.of("minecraft:diamond", "#minecraft:planks", "minecraft:emerald", "#minecraft:logs");
+        var counts = List.of(1, 1, 3, 4);
+        var weights = List.of(1, 2, 1, 5);
+        helper.assertValueEqual(yields.size(), ids.size(), "yield count");
+        for (int i = 0; i < ids.size(); i++) {
+            var item = yieldItem(yields, i);
+            helper.assertTrue(item.get("item").isJsonPrimitive(), "Item or tag should serialize as a single ID");
+            helper.assertValueEqual(item.get("item").getAsString(), ids.get(i), "serialized item or tag");
+            helper.assertValueEqual(item.has("count"), counts.get(i) != 1, "omit default count");
+            helper.assertValueEqual(item.has("weight"), weights.get(i) != 1, "omit default weight");
+            helper.assertFalse(item.get("compat").getAsBoolean(), "All scripted yield overloads set compat to false");
+
+            var stack = parsed.getYields().get(i).items.getFirst();
+            helper.assertValueEqual(stack.count, counts.get(i), "decoded count");
+            helper.assertValueEqual(stack.weight, weights.get(i), "decoded weight");
+        }
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void preservesFallbackItemsInExistingDatapackRecipes(RNSKubeJSBuilderTestContext context) {
+        var json = JsonParser.parseString("""
+                {"item":["compatmod:raw_ore","#c:ores/iron"],"compat":true,"count":2,"weight":3}
+                """);
+        var codec = MiningRecipeKubeSchema.WEIGHTED_ITEM_COMPONENT.codec();
+        var decoded = codec.parse(JsonOps.INSTANCE, json).getOrThrow();
+        var encoded = codec.encodeStart(JsonOps.INSTANCE, decoded).getOrThrow();
+        context.helper().assertValueEqual(encoded, json, "datapack fallback order and compat metadata");
     }
 
     @RNSKubeJSBuilderTest
@@ -593,15 +608,6 @@ public class MiningRecipeKubeRecipeGameTest {
                 "later valid yield should serialize normally");
     }
 
-    private static void assertStringArray(
-            RNSKubeJSBuilderTestHelper helper, JsonArray actual, String valueName, String... expected
-    ) {
-        helper.assertValueEqual(actual.size(), expected.length, valueName + " size");
-        for (var i = 0; i < expected.length; i++) {
-            helper.assertValueEqual(actual.get(i).getAsString(), expected[i], valueName + " [" + i + "]");
-        }
-    }
-
     private static void assertThrows(
             RNSKubeJSBuilderTestHelper helper, Class<? extends Throwable> expectedType, String expectedMessagePart,
             Runnable action
@@ -621,37 +627,6 @@ public class MiningRecipeKubeRecipeGameTest {
         helper.assertTrue(thrown.getMessage() != null && thrown.getMessage().contains(expectedMessagePart),
                 "Expected exception containing '" + expectedMessagePart + "', got "
                         + (thrown == null ? "null" : thrown.getMessage()));
-    }
-
-    private static void assertWeightedItemArray(
-            RNSKubeJSBuilderTestHelper helper, JsonObject item, String valueName, List<String> expectedIds, boolean compat,
-            Integer expectedWeight
-    ) {
-        assertStringArray(helper, item.getAsJsonArray("item"), valueName + " candidates",
-                expectedIds.toArray(String[]::new));
-        assertWeightedItemFlags(helper, item, valueName, compat, expectedWeight);
-    }
-
-    private static void assertWeightedItemFlags(
-            RNSKubeJSBuilderTestHelper helper, JsonObject item, String valueName, boolean compat, Integer expectedWeight
-    ) {
-        helper.assertValueEqual(item.has("compat"), compat, valueName + " compat presence");
-        if (compat) {
-            helper.assertTrue(item.get("compat").getAsBoolean(), valueName + " compat flag");
-        }
-
-        helper.assertValueEqual(item.has("weight"), expectedWeight != null, valueName + " weight presence");
-        if (expectedWeight != null) {
-            helper.assertValueEqual(item.get("weight").getAsInt(), expectedWeight, valueName + " weight");
-        }
-    }
-
-    private static void assertWeightedItemObject(
-            RNSKubeJSBuilderTestHelper helper, JsonObject item, String valueName, String expectedId, boolean compat,
-            Integer expectedWeight
-    ) {
-        helper.assertValueEqual(item.get("item").getAsString(), expectedId, valueName + " item");
-        assertWeightedItemFlags(helper, item, valueName, compat, expectedWeight);
     }
 
     private static JsonObject codecJson(JsonObject json) {

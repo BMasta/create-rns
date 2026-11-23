@@ -30,7 +30,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
@@ -113,7 +112,7 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
                 .addItemStack(new ItemStack(recipe.getDepositBlock().asItem()));
 
         var slots = recipe.getYields().stream()
-                .flatMap(y -> y.items.stream().map(i -> new MinerOutput(y, i, 1)))
+                .flatMap(y -> y.items.stream().map(i -> new MinerOutput(y, i)))
                 .collect(Collectors.toCollection(ArrayList::new));
 
         if (EMI_LOADED) {
@@ -125,7 +124,7 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
                 builder.addSlot(RecipeIngredientRole.OUTPUT, 124 + layout.getX(), 6 + layout.getY())
                         .setBackground(slotBGs.computeIfAbsent(slot.bgColor, c -> new TintedDrawable(SLOT, c)), -1, -1)
                         .addRichTooltipCallback(addStochasticTooltip(slot))
-                        .addItemStack(new ItemStack(slot.item, slot.count));
+                        .addItemStack(slot.stack);
                 layout.next();
             }
             return;
@@ -136,7 +135,7 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
                     .setBackground(slotBGs.computeIfAbsent(slot.bgColor, c -> new TintedDrawable(SLOT, c)), -1, -1)
                     .setSlotName(SCROLL_GROUP)
                     .addRichTooltipCallback(addStochasticTooltip(slot))
-                    .addItemStack(new ItemStack(slot.item, slot.count));
+                    .addItemStack(slot.stack);
         }
     }
 
@@ -209,22 +208,17 @@ public class MiningRecipeCategory extends CreateRecipeCategory<MiningRecipe> {
     }
 
     protected static class MinerOutput {
-        public final Item item;
-        public final int count;
+        public final ItemStack stack;
         public final int itemsInGroup;
         public final float weightRatio;
         public final float chance;
         public final int bgColor;
         public final List<Holder<CatalystRequirementSet>> crsList;
 
-        public MinerOutput(Yield yield, Yield.WeightedItem wItem, int count) {
-            var conn = Minecraft.getInstance().getConnection();
-            var access = (conn != null) ? conn.registryAccess() : RegistryAccess.EMPTY;
-
-            this.item = wItem.item;
-            this.count = count;
+        public MinerOutput(Yield yield, Yield.WeightedItemStack wis) {
+            this.stack = wis.itemStack();
             this.itemsInGroup = yield.items.size();
-            this.weightRatio = (float) wItem.weight / yield.getTotalWeight();
+            this.weightRatio = (float) wis.weight / yield.getTotalWeight();
             this.chance = yield.chance;
             this.bgColor = yield.slotColor;
             this.crsList = yield.getCRSes();

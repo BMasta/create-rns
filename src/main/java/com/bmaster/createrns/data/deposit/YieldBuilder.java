@@ -1,9 +1,10 @@
 package com.bmaster.createrns.data.deposit;
 
-import com.bmaster.createrns.content.deposit.mining.recipe.Yield.WeightedItem;
-import com.bmaster.createrns.data.deposit.DepositResources.WeightedItemEntry;
+import com.bmaster.createrns.content.deposit.mining.recipe.Yield.WeightedItemStack;
+import com.bmaster.createrns.data.deposit.DepositResources.WeightedItemStackEntry;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ import java.util.function.UnaryOperator;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class YieldBuilder {
-    public final List<WeightedItemEntry> items = new ArrayList<>();
+    public final List<WeightedItemStackEntry> items = new ArrayList<>();
     public final List<ResourceLocation> catalysts = new ArrayList<>();
 
     public float chance = 1;
@@ -25,41 +26,76 @@ public class YieldBuilder {
         return this;
     }
 
-    public YieldBuilder item(List<String> candidateIds, int weight) {
-        return item(candidateIds, weight, false);
-    }
-
-    public YieldBuilder item(List<String> candidateIds) {
-        return item(candidateIds, WeightedItem.DEFAULT_WEIGHT, false);
+    public YieldBuilder item(String candidateId) {
+        return addItemStack(List.of(candidateId), 1, WeightedItemStack.DEFAULT_WEIGHT, false);
     }
 
     public YieldBuilder item(String candidateId, int weight) {
-        return item(List.of(candidateId), weight, false);
+        return addItemStack(List.of(candidateId), 1, weight, false);
     }
 
-    public YieldBuilder item(String candidateId) {
-        return item(List.of(candidateId), WeightedItem.DEFAULT_WEIGHT, false);
+    public YieldBuilder item(List<String> candidateIds) {
+        return addItemStack(candidateIds, 1, WeightedItemStack.DEFAULT_WEIGHT, false);
     }
 
-    public YieldBuilder compatItem(List<String> candidateIds, int weight) {
-        return item(candidateIds, weight, true);
+    public YieldBuilder item(List<String> candidateIds, int weight) {
+        return addItemStack(candidateIds, 1, weight, false);
     }
 
-    public YieldBuilder compatItem(List<String> candidateIds) {
-        return item(candidateIds, WeightedItem.DEFAULT_WEIGHT, true);
+    public YieldBuilder itemStack(String candidateId, int count) {
+        return addItemStack(List.of(candidateId), count, WeightedItemStack.DEFAULT_WEIGHT, false);
     }
 
-    public YieldBuilder compatItem(String candidateId, int weight) {
-        return item(List.of(candidateId), weight, true);
+    public YieldBuilder itemStack(String candidateId, int count, int weight) {
+        return addItemStack(List.of(candidateId), count, weight, false);
+    }
+
+    public YieldBuilder itemStack(List<String> candidateIds, int count) {
+        return addItemStack(candidateIds, count, WeightedItemStack.DEFAULT_WEIGHT, false);
+    }
+
+    public YieldBuilder itemStack(List<String> candidateIds, int count, int weight) {
+        return addItemStack(candidateIds, count, weight, false);
     }
 
     public YieldBuilder compatItem(String candidateId) {
-        return item(List.of(candidateId), WeightedItem.DEFAULT_WEIGHT, true);
+        return addItemStack(List.of(candidateId), 1, WeightedItemStack.DEFAULT_WEIGHT, true);
     }
 
-    protected YieldBuilder item(List<String> candidateIds, int weight, boolean compat) {
+    public YieldBuilder compatItem(String candidateId, int weight) {
+        return addItemStack(List.of(candidateId), 1, weight, true);
+    }
+
+    public YieldBuilder compatItem(List<String> candidateIds) {
+        return addItemStack(candidateIds, 1, WeightedItemStack.DEFAULT_WEIGHT, true);
+    }
+
+    public YieldBuilder compatItem(List<String> candidateIds, int weight) {
+        return addItemStack(candidateIds, 1, weight, true);
+    }
+
+    public YieldBuilder compatItemStack(String candidateId, int count) {
+        return addItemStack(List.of(candidateId), count, WeightedItemStack.DEFAULT_WEIGHT, true);
+    }
+
+    public YieldBuilder compatItemStack(String candidateId, int count, int weight) {
+        return addItemStack(List.of(candidateId), count, weight, true);
+    }
+
+    public YieldBuilder compatItemStack(List<String> candidateIds, int count) {
+        return addItemStack(candidateIds, count, WeightedItemStack.DEFAULT_WEIGHT, true);
+    }
+
+    public YieldBuilder compatItemStack(List<String> candidateIds, int count, int weight) {
+        return addItemStack(candidateIds, count, weight, true);
+    }
+
+    private YieldBuilder addItemStack(List<String> candidateIds, int count, int weight, boolean compat) {
+        if (count < 1 || count > Item.ABSOLUTE_MAX_STACK_SIZE) {
+            throw new IllegalArgumentException("Yield item count must be between 1 and " + Item.ABSOLUTE_MAX_STACK_SIZE);
+        }
         if (weight <= 0) throw new IllegalArgumentException("Yield item weight must be positive");
-        items.add(new WeightedItemEntry(candidateIds, weight, compat));
+        items.add(new WeightedItemStackEntry(candidateIds, count, weight, compat));
         return this;
     }
 

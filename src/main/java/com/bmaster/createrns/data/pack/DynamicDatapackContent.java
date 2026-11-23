@@ -2,7 +2,7 @@ package com.bmaster.createrns.data.pack;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSRegistries;
-import com.bmaster.createrns.content.deposit.mining.recipe.Yield.WeightedItem;
+import com.bmaster.createrns.content.deposit.mining.recipe.Yield.WeightedItemStack;
 import com.bmaster.createrns.data.deposit.DepositJson;
 import com.bmaster.createrns.data.deposit.DepositResources;
 import com.bmaster.createrns.data.pack.DynamicDatapack.DatapackFile;
@@ -146,7 +146,10 @@ public class DynamicDatapackContent {
                             itemJson.add("item", icArr);
                         }
 
-                        if (item.weight() != WeightedItem.DEFAULT_WEIGHT) {
+                        if (item.count() != 1) {
+                            itemJson.addProperty("count", item.count());
+                        }
+                        if (item.weight() != WeightedItemStack.DEFAULT_WEIGHT) {
                             itemJson.addProperty("weight", item.weight());
                         }
                         items.add(itemJson);

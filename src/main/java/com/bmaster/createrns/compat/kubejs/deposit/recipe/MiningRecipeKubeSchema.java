@@ -9,6 +9,7 @@ import dev.latvian.mods.kubejs.recipe.schema.RecipeConstructor;
 import dev.latvian.mods.kubejs.recipe.schema.RecipeSchema;
 import dev.latvian.mods.kubejs.util.IntBounds;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 
@@ -24,17 +25,20 @@ public class MiningRecipeKubeSchema {
             .withCodec(Codec.of(Codec.FLOAT, Codec.floatRange(0, 1)));
     static final RecipeComponent<Integer> WEIGHT_COMPONENT = NumberComponent.POSITIVE_INT.instance()
             .withCodec(Codec.of(Codec.INT, Codec.intRange(1, Integer.MAX_VALUE)));
+    static final RecipeComponent<Integer> COUNT_COMPONENT = NumberComponent.intRange(1, Item.ABSOLUTE_MAX_STACK_SIZE)
+            .withCodec(Codec.of(Codec.INT, Codec.intRange(1, Item.ABSOLUTE_MAX_STACK_SIZE)));
     static final CustomObjectRecipeComponent DURABILITY_COMPONENT = new CustomObjectRecipeComponent(List.of(
             new CustomObjectRecipeComponent.Key("core", NumberComponent.POSITIVE_LONG.instance()),
             new CustomObjectRecipeComponent.Key("edge", NumberComponent.POSITIVE_LONG.instance()),
             new CustomObjectRecipeComponent.Key("random_spread", NumberComponent.floatRange(0, 1))
     ));
-    static final ListRecipeComponent<String> CANDIDATE_IDS_COMPONENT = ListRecipeComponent.create(
-            StringComponent.STRING.instance(), true, false, IntBounds.DEFAULT, Optional.empty());
+    // Scripted yields use one ID. Existing datapack recipes can also supply an ordered fallback list.
+    private static final RecipeComponent<String> ITEM_ID = StringComponent.STRING.instance();
     static final CustomObjectRecipeComponent WEIGHTED_ITEM_COMPONENT = new CustomObjectRecipeComponent(List.of(
-            new CustomObjectRecipeComponent.Key("item", CANDIDATE_IDS_COMPONENT),
-            new CustomObjectRecipeComponent.Key("compat", BooleanComponent.BOOLEAN.instance(), true),
-            new CustomObjectRecipeComponent.Key("weight", WEIGHT_COMPONENT, true)
+            new CustomObjectRecipeComponent.Key("item", ITEM_ID.or(ITEM_ID.asList())),
+            new CustomObjectRecipeComponent.Key("count", COUNT_COMPONENT, true),
+            new CustomObjectRecipeComponent.Key("weight", WEIGHT_COMPONENT, true),
+            new CustomObjectRecipeComponent.Key("compat", BooleanComponent.BOOLEAN.instance(), true)
     ));
     static final ListRecipeComponent<String> CATALYSTS_COMPONENT = ListRecipeComponent.create(
             StringComponent.STRING.instance(), false, false, IntBounds.OPTIONAL, Optional.empty());

@@ -386,7 +386,7 @@ public final class DepositResources {
 
     public record YieldEntry(
             float chance,
-            List<WeightedItemEntry> items,
+            List<WeightedItemStackEntry> items,
             List<ResourceLocation> catalysts,
             int jeiSlotColor
     ) {
@@ -396,12 +396,13 @@ public final class DepositResources {
         }
     }
 
-    public record WeightedItemEntry(
+    public record WeightedItemStackEntry(
             List<String> candidateIds,
+            int count,
             int weight,
             boolean compat
     ) {
-        public WeightedItemEntry {
+        public WeightedItemStackEntry {
             candidateIds = List.copyOf(candidateIds);
         }
     }

@@ -57,6 +57,9 @@ The runtime format is still the same JSON shown below, and datapacks can overrid
       "items": [
         {
           "item": "your_pack:raw_tin",
+          // Optional (default 1, max 99)
+          // Stack size when selected.
+          "count": 3,
           // Optional (default 1)
           // Will be selected 6/(6+2+2)*100% = 60% of the time.
           "weight": 6

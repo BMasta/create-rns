@@ -4,7 +4,7 @@ import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.compat.Mods;
 import com.bmaster.createrns.content.deposit.DepositBlock;
 import com.bmaster.createrns.data.deposit.*;
-import com.bmaster.createrns.data.deposit.DepositResources.WeightedItemEntry;
+import com.bmaster.createrns.data.deposit.DepositResources.WeightedItemStackEntry;
 import com.simibubi.create.Create;
 import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.util.entry.BlockEntry;
@@ -429,16 +429,16 @@ public class RNSDeposits {
     }
 
     private static UnaryOperator<MiningRecipeBuilder> addYield(
-            List<WeightedItemEntry> items, UnaryOperator<YieldBuilder> andThenApply
+            List<WeightedItemStackEntry> items, UnaryOperator<YieldBuilder> andThenApply
     ) {
         if (items.isEmpty()) return y -> y;
         return b -> b.yield(y -> {
             var yld = y;
             for (var item : items) {
                 if (item.compat()) {
-                    yld = yld.compatItem(item.candidateIds());
+                    yld = yld.compatItemStack(item.candidateIds(), item.count(), item.weight());
                 } else {
-                    yld = yld.item(item.candidateIds());
+                    yld = yld.itemStack(item.candidateIds(), item.count(), item.weight());
                 }
             }
             andThenApply.apply(yld);

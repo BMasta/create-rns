@@ -2,6 +2,8 @@ package com.bmaster.createrns.compat.kubejs.deposit.recipe;
 
 import com.bmaster.createrns.compat.kubejs.util.KubeSourceLine;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
+import com.bmaster.createrns.util.codec.ResourceOrTagLocation;
+import com.mojang.datafixers.util.Either;
 import dev.latvian.mods.kubejs.recipe.component.CustomObjectRecipeComponent;
 import dev.latvian.mods.kubejs.script.SourceLine;
 import dev.latvian.mods.kubejs.typings.Info;
@@ -13,6 +15,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -23,6 +26,7 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 public class YieldKubeBuilder {
     private static final int DEFAULT_WEIGHT = 1;
+    private static final int DEFAULT_COUNT = 1;
     private static final int RGB_STRING_LENGTH = 7;
     private static final long OPAQUE_ARGB_MASK = 0xFF000000L;
 
@@ -53,95 +57,43 @@ public class YieldKubeBuilder {
     }
 
     @HideFromJS
-    public YieldKubeBuilder item(List<String> candidateIds, int weight) {
-        return item(candidateIds, weight, false, SourceLine.UNKNOWN);
+    public YieldKubeBuilder item(String itemOrTagId) {
+        return addItemStack(itemOrTagId, DEFAULT_COUNT, DEFAULT_WEIGHT, SourceLine.UNKNOWN);
     }
 
-    @Info("Adds an item or ordered item-tag fallback list with an explicit weight.")
-    public YieldKubeBuilder item(Context cx, List<String> candidateIds, int weight) {
-        return item(candidateIds, weight, false, SourceLine.of(cx));
-    }
-
-    @HideFromJS
-    public YieldKubeBuilder item(List<String> candidateIds) {
-        return item(candidateIds, DEFAULT_WEIGHT, false, SourceLine.UNKNOWN);
-    }
-
-    @Info("Adds an item or ordered item-tag fallback list with the default weight of 1.")
-    public YieldKubeBuilder item(Context cx, List<String> candidateIds) {
-        return item(candidateIds, DEFAULT_WEIGHT, false, SourceLine.of(cx));
+    @Info("Adds an item with the default weight of 1. Passing an item tag will pick the first available item.")
+    public YieldKubeBuilder item(Context cx, String itemOrTagId) {
+        return addItemStack(itemOrTagId, DEFAULT_COUNT, DEFAULT_WEIGHT, SourceLine.of(cx));
     }
 
     @HideFromJS
-    public YieldKubeBuilder item(String candidateId, int weight) {
-        return item(List.of(candidateId), weight, false, SourceLine.UNKNOWN);
+    public YieldKubeBuilder item(String itemOrTagId, int weight) {
+        return addItemStack(itemOrTagId, DEFAULT_COUNT, weight, SourceLine.UNKNOWN);
     }
 
-    @Info("Adds a single item or item tag with an explicit weight.")
-    public YieldKubeBuilder item(Context cx, String candidateId, int weight) {
-        return item(List.of(candidateId), weight, false, SourceLine.of(cx));
-    }
-
-    @HideFromJS
-    public YieldKubeBuilder item(String candidateId) {
-        return item(List.of(candidateId), DEFAULT_WEIGHT, false, SourceLine.UNKNOWN);
-    }
-
-    @Info("Adds a single item or item tag with the default weight of 1.")
-    public YieldKubeBuilder item(Context cx, String candidateId) {
-        return item(List.of(candidateId), DEFAULT_WEIGHT, false, SourceLine.of(cx));
+    @Info("Adds an item with configurable weight. Passing an item tag will pick the first available item.")
+    public YieldKubeBuilder item(Context cx, String itemOrTagId, int weight) {
+        return addItemStack(itemOrTagId, DEFAULT_COUNT, weight, SourceLine.of(cx));
     }
 
     @HideFromJS
-    public YieldKubeBuilder compatItem(List<String> candidateIds, int weight) {
-        return item(candidateIds, weight, true, SourceLine.UNKNOWN);
+    public YieldKubeBuilder itemStack(String itemOrTagId, int count) {
+        return addItemStack(itemOrTagId, count, DEFAULT_WEIGHT, SourceLine.UNKNOWN);
     }
 
-    @Info("""
-            Adds a compat item or ordered item-tag fallback list with an explicit weight.
-            Compat items are allowed to resolve to nothing without making the whole recipe invalid.
-            """)
-    public YieldKubeBuilder compatItem(Context cx, List<String> candidateIds, int weight) {
-        return item(candidateIds, weight, true, SourceLine.of(cx));
+    @Info("Adds an item stack with the default weight of 1. Passing an item tag will pick the first available item.")
+    public YieldKubeBuilder itemStack(Context cx, String itemOrTagId, int count) {
+        return addItemStack(itemOrTagId, count, DEFAULT_WEIGHT, SourceLine.of(cx));
     }
 
     @HideFromJS
-    public YieldKubeBuilder compatItem(List<String> candidateIds) {
-        return item(candidateIds, DEFAULT_WEIGHT, true, SourceLine.UNKNOWN);
+    public YieldKubeBuilder itemStack(String itemOrTagId, int count, int weight) {
+        return addItemStack(itemOrTagId, count, weight, SourceLine.UNKNOWN);
     }
 
-    @Info("""
-            Adds a compat item or ordered item-tag fallback list with the default weight of 1.
-            Compat items are allowed to resolve to nothing without making the whole recipe invalid.
-            """)
-    public YieldKubeBuilder compatItem(Context cx, List<String> candidateIds) {
-        return item(candidateIds, DEFAULT_WEIGHT, true, SourceLine.of(cx));
-    }
-
-    @HideFromJS
-    public YieldKubeBuilder compatItem(String candidateId, int weight) {
-        return item(List.of(candidateId), weight, true, SourceLine.UNKNOWN);
-    }
-
-    @Info("""
-            Adds a single compat item or item tag with an explicit weight.
-            Compat items are allowed to resolve to nothing without making the whole recipe invalid.
-            """)
-    public YieldKubeBuilder compatItem(Context cx, String candidateId, int weight) {
-        return item(List.of(candidateId), weight, true, SourceLine.of(cx));
-    }
-
-    @HideFromJS
-    public YieldKubeBuilder compatItem(String candidateId) {
-        return item(List.of(candidateId), DEFAULT_WEIGHT, true, SourceLine.UNKNOWN);
-    }
-
-    @Info("""
-            Adds a single compat item or item tag with the default weight of 1.
-            Compat items are allowed to resolve to nothing without making the whole recipe invalid.
-            """)
-    public YieldKubeBuilder compatItem(Context cx, String candidateId) {
-        return item(List.of(candidateId), DEFAULT_WEIGHT, true, SourceLine.of(cx));
+    @Info("Adds an item stack with configurable weight. Passing an item tag will pick the first available item.")
+    public YieldKubeBuilder itemStack(Context cx, String itemOrTagId, int count, int weight) {
+        return addItemStack(itemOrTagId, count, weight, SourceLine.of(cx));
     }
 
     @Info("Requires the specified catalyst requirement set for this yield.")
@@ -207,59 +159,28 @@ public class YieldKubeBuilder {
         return List.copyOf(yield);
     }
 
-    YieldKubeBuilder item(List<String> candidateIds, int weight, boolean compat, SourceLine sourceLine) {
-        var normalizedIds = candidateIds.stream()
-                .map(YieldKubeBuilder::normalizeCandidateId)
-                .toList();
-        var hasMalformedCandidate = normalizedIds.stream().anyMatch(YieldKubeBuilder::isMalformedCandidate);
-        var hasNoRegisteredDirectCandidate = !compat
-                && normalizedIds.stream().noneMatch(YieldKubeBuilder::isTag)
-                && normalizedIds.stream().noneMatch(YieldKubeBuilder::isRegisteredItem);
-        if (recipeErrorSourceLine.isUnknown()
-                && (weight <= 0 || hasMalformedCandidate || hasNoRegisteredDirectCandidate)) {
+    YieldKubeBuilder addItemStack(String itemOrTagId, int count, int weight, SourceLine sourceLine) {
+        var parsed = ResourceOrTagLocation.tryParse(itemOrTagId);
+        if (recipeErrorSourceLine.isUnknown() && (count < 1 || count > Item.ABSOLUTE_MAX_STACK_SIZE
+                || weight <= 0 || parsed == null
+                || (!parsed.isTag() && BuiltInRegistries.ITEM.get(parsed.id()) == Items.AIR))) {
             recipeErrorSourceLine = sourceLine;
         }
 
         var keys = MiningRecipeKubeSchema.WEIGHTED_ITEM_COMPONENT.keys();
         var item = new ArrayList<CustomObjectRecipeComponent.Value>(keys.size());
-
-        item.add(new CustomObjectRecipeComponent.Value(keys.get(0), 0, normalizedIds));
-        if (compat) {
-            item.add(new CustomObjectRecipeComponent.Value(keys.get(1), 1, true));
+        var id = parsed == null ? itemOrTagId : parsed.encode();
+        item.add(new CustomObjectRecipeComponent.Value(keys.getFirst(), 0, Either.left(id)));
+        if (count != DEFAULT_COUNT) {
+            item.add(new CustomObjectRecipeComponent.Value(keys.get(1), 1, count));
         }
         if (weight != DEFAULT_WEIGHT) {
             item.add(new CustomObjectRecipeComponent.Value(keys.get(2), 2, weight));
         }
+        item.add(new CustomObjectRecipeComponent.Value(keys.get(3), 3, false));
 
         items.add(List.copyOf(item));
         return this;
-    }
-
-    private static String normalizeCandidateId(String candidateId) {
-        if (candidateId.startsWith("#")) {
-            var tagId = candidateId.substring(1);
-            return "#" + (tagId.contains(":") ? tagId : "minecraft:" + tagId);
-        }
-
-        return candidateId.contains(":") ? candidateId : "minecraft:" + candidateId;
-    }
-
-    private static boolean isMalformedCandidate(String candidateId) {
-        var id = isTag(candidateId) ? candidateId.substring(1) : candidateId;
-        return ResourceLocation.tryParse(id) == null;
-    }
-
-    private static boolean isRegisteredItem(String candidateId) {
-        var id = ResourceLocation.tryParse(candidateId);
-        if (id == null) return false;
-
-        return BuiltInRegistries.ITEM.getOptional(id)
-                .filter(item -> item != Items.AIR)
-                .isPresent();
-    }
-
-    private static boolean isTag(String candidateId) {
-        return candidateId.startsWith("#");
     }
 
     private static boolean catalystExists(RegistryAccess registryAccess, ResourceLocation id) {

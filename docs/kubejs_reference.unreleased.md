@@ -98,23 +98,17 @@ Sets the chance for this yield to roll.
 
 Default: `1`
 
-### `item(itemOrTagId, weight)` / `item(itemOrTagId)` / `item(itemOrTagIdList, weight)` / `item(itemOrTagIdList)`
-Adds an item, item tag, or ordered fallback list of item ids and item tags to this yield.
-When multiple items are added to the same yield, one of them is rolled by weight.
+### `item(id)` / `item(id, weight)`
+### `itemStack(id, count)` / `itemStack(id, count, weight)`
+Adds an item to this yield. If a tag is provided, picks the first available item with this tag.
+When multiple items are added to the same yield, one of them is rolled by weight (items with higher weight are picked more often).
 
 ***IMPORTANT!*** Item tags do not have the same level of validation as items.
-If you specify a non-existent or empty tag, KubeJS will not report any errors.
+If you specify a non-existent or empty tag, KubeJS will not report any errors, but the recipe will still be invalidated.
 
-* `itemOrTagId`: item id or item tag such as `minecraft:raw_iron` or `#c:raw_materials/iron`
-* `itemOrTagIdList`: ordered list of item ids and item tags used as fallbacks; elements are tried one by one until at least one item is resolved
-* `weight`: positive integer (default: `1`)
-
-### `compatItem(itemOrTagId, weight)` / `compatItem(itemOrTagId)` / `compatItem(itemOrTagIdList, weight)` / `compatItem(itemOrTagIdList)`
-Adds a compat-gated item, item tag, or ordered fallback list of item ids and item tags to this yield.
-If it resolves to nothing at runtime, the entry is discarded instead of making the recipe invalid.
-
-* `itemOrTagId`: item id or item tag
-* `itemOrTagIdList`: ordered list of item ids and item tags used as fallbacks; elements are tried one by one until at least one item is resolved
+* `id`: item id or item tag such as `minecraft:raw_iron` or `#c:raw_materials/iron`
+* `idList`: ordered list of item ids and item tags used as fallbacks; elements are tried one by one until at least one item is resolved
+* `count`: integer from `1` to `99` inclusive (default: `1`)
 * `weight`: positive integer (default: `1`)
 
 ### `catalyst(id)` (optional)

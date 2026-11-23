@@ -39,10 +39,8 @@ ServerEvents.recipes(event => {
       .catalyst('create_rns:faint_resonance')
       .catalyst('create_rns:overclock')
       .jeiSlotColor('#968CB3'))
-    // Compat items are allowed to reference non-existent item ids without invalidating the recipe.
     .yield(y => y
         .chance(5.0e-4)
-        .compatItem('minecraft:glooperblooper')
         .item('create_rns:resonant_amethyst')
         .catalyst('create_rns:resonance')
         .catalyst('create_rns:overclock')
@@ -80,7 +78,7 @@ ServerEvents.recipes(event => {
         .jeiSlotColor('#8EA9B2'))
     .yield(y => y
         .chance(0.06)
-        .item('minecraft:redstone', 5)
+        .itemStack('minecraft:redstone', 2, 5) // Stack size 2, weight 5.
         .item('minecraft:diamond')
         .catalyst('create_rns:stabilizing_resonance')
         .catalyst('create_rns:overclock')

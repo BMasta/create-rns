@@ -27,7 +27,7 @@ public class YieldCodecTest {
 
     @GameTest(template = "empty16x16")
     public void weightedItemParsesAndInitializesFromItemCandidate(GameTestHelper helper) {
-        var weightedItem = CodecHelper.assertParses(helper, Yield.WeightedItem.CODEC,
+        var weightedItem = CodecHelper.assertParses(helper, Yield.WeightedItemStack.CODEC,
                 CodecHelper.json(), """
                         {
                           "item": "minecraft:diamond",
@@ -46,7 +46,7 @@ public class YieldCodecTest {
 
     @GameTest(template = "empty16x16")
     public void weightedItemRejectsUnregisteredStrictDirectItemDuringDecoding(GameTestHelper helper) {
-        CodecHelper.assertFails(helper, Yield.WeightedItem.CODEC, CodecHelper.json(), """
+        CodecHelper.assertFails(helper, Yield.WeightedItemStack.CODEC, CodecHelper.json(), """
                 {
                   "item": "create_rns:definitely_missing_item",
                   "weight": 1
@@ -57,7 +57,7 @@ public class YieldCodecTest {
 
     @GameTest(template = "empty16x16")
     public void weightedItemInitializesFromLiveItemTags(GameTestHelper helper) {
-        var weightedItem = CodecHelper.assertParses(helper, Yield.WeightedItem.CODEC,
+        var weightedItem = CodecHelper.assertParses(helper, Yield.WeightedItemStack.CODEC,
                 CodecHelper.json(), """
                         {
                           "item": "#minecraft:planks",
@@ -78,7 +78,7 @@ public class YieldCodecTest {
 
     @GameTest(template = "empty16x16")
     public void compatWeightedItemAllowsMissingCandidates(GameTestHelper helper) {
-        var weightedItem = CodecHelper.assertParses(helper, Yield.WeightedItem.CODEC,
+        var weightedItem = CodecHelper.assertParses(helper, Yield.WeightedItemStack.CODEC,
                 CodecHelper.json(), """
                         {
                           "item": "create_rns:definitely_missing_item",
@@ -100,6 +100,7 @@ public class YieldCodecTest {
                           "items": [
                             {
                               "item": "minecraft:diamond",
+                              "count": 99,
                               "weight": 2
                             }
                           ],
@@ -114,12 +115,17 @@ public class YieldCodecTest {
         helper.assertValueEqual(yield.slotColor, 0, "yield slot color");
 
         var restored = roundTrip(Yield.STREAM_CODEC, yield, helper.getLevel().registryAccess());
+        helper.assertValueEqual(restored.items.getFirst().count, 99, "stream codec stack count");
+        var encoded = Yield.CODEC.encodeStart(CodecHelper.registries(helper), yield).getOrThrow();
+        var entry = encoded.getAsJsonObject().getAsJsonArray("items").get(0).getAsJsonObject();
+        helper.assertValueEqual(entry.get("count").getAsInt(), 99, "encoded count is independent of weight");
         helper.assertValueEqual(restored.getCRSIds(), yield.getCRSIds(),
                 "stream codec catalyst ids");
         helper.assertTrue(yield.initialize(helper.getLevel().registryAccess()),
                 "Yield initialization should succeed when referenced catalysts exist in the live registry");
         CodecHelper.assertSame(helper, Items.DIAMOND, yield.items.getFirst().item,
                 "initialized yield item");
+        helper.assertValueEqual(yield.roll(helper.getLevel().random).getCount(), 99, "rolled stack count");
         helper.succeed();
     }
 

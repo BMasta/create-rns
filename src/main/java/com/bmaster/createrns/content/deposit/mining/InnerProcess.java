@@ -60,7 +60,7 @@ public class InnerProcess {
             if (chance > 0) {
                 var chanceRoll = (chance < 1f) ? level.random.nextFloat() : 0;
                 if (chance > chanceRoll) {
-                    var myPrecious = new ItemStack(yields.get(yieldIdx).roll(level.random));
+                    var myPrecious = yields.get(yieldIdx).roll(level.random);
                     spoils.add(myPrecious);
                     if (chance < 1) {
                         CreateRNS.LOGGER.trace("Successfully rolled for {} ({}% chance)", myPrecious, (int) (chance * 100));

@@ -140,11 +140,11 @@ public class MiningStats implements INBTSerializable<CompoundTag> {
             if (!cs.isComputed()) continue;
             var ys = p.recipe.getYields();
             for (int i = 0; i < ys.size(); ++i) {
-                float chance = cs.getLastComputedChance(i);
+                float chance = Math.min(cs.getLastComputedChance(i), 1f);
                 if (chance <= 0f) continue;
                 var y = ys.get(i);
-                for (var wi : ys.get(i).items) {
-                    rates.addTo(wi.item, (float) wi.weight / y.getTotalWeight() / p.maxProgress * chance * uptime);
+                for (var wis : ys.get(i).items) {
+                    rates.addTo(wis.item, (float) wis.count * wis.weight / y.getTotalWeight() / p.maxProgress * chance * uptime);
                 }
             }
         }
