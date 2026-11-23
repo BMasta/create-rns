@@ -6,12 +6,11 @@ import com.bmaster.createrns.compat.kubejs.util.StartupKubeBuilder;
 import com.bmaster.createrns.content.deposit.worldgen.PlacementStrategy;
 import com.bmaster.createrns.data.deposit.DepositResources;
 import com.bmaster.createrns.data.deposit.DepositResources.WeightedTemplate;
+import com.bmaster.createrns.util.Utils;
 import com.bmaster.createrns.util.codec.ResourceOrTagLocation;
 import dev.latvian.mods.kubejs.typings.Info;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.data.registries.VanillaRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
@@ -21,18 +20,10 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public abstract class StructureKubeBuilder<B extends StructureKubeBuilder<B>> extends StartupKubeBuilder {
-    private static final Set<ResourceLocation> VANILLA_BIOMES = VanillaRegistries.createLookup()
-            .lookupOrThrow(Registries.BIOME)
-            .listElementIds()
-            .map(ResourceKey::location)
-            .collect(Collectors.toUnmodifiableSet());
-
     private final ResourceLocation id;
     private final List<WeightedTemplate> weightedTemplates = new ArrayList<>();
     private final List<ResourceOrTagLocation> scannerIconCandidates = new ArrayList<>();
@@ -87,29 +78,13 @@ public abstract class StructureKubeBuilder<B extends StructureKubeBuilder<B>> ex
     }
 
     @Info("""
-            Sets the biome or biome tag in which this deposit structure may generate.
-            Only one biome or biome tag may be set! If you need more biomes, consider creating a new biome tag.
+            Sets the biome or biome tag in which the deposit structure may generate.
+            Only one biome or biome tag can be specified. Unless you need a structure-specific biome selector,
+            prefer using biome() from rnsEnableDeposits, which allows multiple biomes or biome tags.
             """)
     @JSMethod
     public B biome(String biomeOrTagId) {
-        if (biomeOrTagId.isBlank()) {
-            error("Biome or biome tag id cannot be blank", true);
-            return self();
-        }
-
-        boolean isTag = biomeOrTagId.startsWith("#");
-        var idString = isTag ? biomeOrTagId.substring(1) : biomeOrTagId;
-        var id = ResourceLocation.tryParse(idString);
-        if (id == null || id.getPath().isEmpty()) {
-            error("Invalid biome or biome tag id: " + biomeOrTagId, true);
-            return self();
-        }
-        if (!isTag && id.getNamespace().equals("minecraft") && !VANILLA_BIOMES.contains(id)) {
-            error("Unknown vanilla biome: " + id, true);
-            return self();
-        }
-
-        biomeSelector = new ResourceOrTagLocation(id, isTag);
+        biomeSelector = Utils.parseBiome(biomeOrTagId);
         return self();
     }
 
@@ -229,7 +204,8 @@ public abstract class StructureKubeBuilder<B extends StructureKubeBuilder<B>> ex
     @Info("""
             Applies a preset that covers height, weighted nbts, and the default structure set weight.
             These presets are used by the default deposits (iron - common, nickel - uncommon, redstone - precious).
-            Supported values: overworld_common, overworld_uncommon, overworld_rare, nether_common, nether_uncommon, nether_rare.
+            Supported values: overworld_common, overworld_uncommon, overworld_rare,
+            nether_common, nether_uncommon, nether_rare, end_common, end_uncommon, end_rare
             """)
     @JSMethod
     public B preset(String presetId) {

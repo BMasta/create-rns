@@ -35,6 +35,8 @@ public class DynamicDatapackContent {
                     }
                 } else if (dimension.equals(Level.NETHER)) {
                     biomes.add(ResourceOrTagLocation.withDefaultNamespace("is_nether", true));
+                } else if (dimension.equals(Level.END)) {
+                    biomes.add(ResourceOrTagLocation.withDefaultNamespace("is_end", true));
                 }
             }
 

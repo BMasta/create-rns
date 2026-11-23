@@ -101,7 +101,7 @@ public class DepositStructureKubeBuilderGameTest {
         var second = context.assembleData();
         helper.assertValueEqual(first.ids(), second.ids(), "Repeated output contains the same files");
         for (var path : first.ids()) helper.assertValueEqual(first.json(path), second.json(path), "Stable output " + path);
-        helper.assertValueEqual(first.jsonObject(structurePath(id)).get("height").getAsInt(), -8,
+        helper.assertValueEqual(first.jsonObject(structurePath(id)).get("height").getAsInt(), -4,
                 "Recorded height stays unchanged");
         helper.assertValueEqual(context.resources().getSpec(id).scannerIconCandidates().size(), 1,
                 "Candidate lists are copied into records");
@@ -206,7 +206,7 @@ public class DepositStructureKubeBuilderGameTest {
                 "create_rns:iron_deposit_block", "inherited map icon");
         helper.assertFalse(depositSpecJson.has("dimension"),
                 "Overworld built-in tweak should preserve omitted dimension");
-        helper.assertValueEqual(structureJson.get("height").getAsInt(), -8, "inherited height");
+        helper.assertValueEqual(structureJson.get("height").getAsInt(), -4, "inherited height");
         helper.assertValueEqual(structures.size(), 2, "inherited template count");
         assertStructureEntry(helper, structures, 0, DEFAULT_TEMPLATE_MEDIUM.toString(), 70,
                 "create_rns:replace_with_create_rns_iron_deposit_block");
@@ -268,7 +268,7 @@ public class DepositStructureKubeBuilderGameTest {
         var structureSetEntries = generated.jsonObject(structureSetPath("deposits"))
                 .getAsJsonArray("structures");
 
-        helper.assertValueEqual(structureJson.get("height").getAsInt(), -12, "preset height");
+        helper.assertValueEqual(structureJson.get("height").getAsInt(), -8, "preset height");
         helper.assertValueEqual(structures.size(), 3, "preset template count");
         assertStructureEntry(helper, structures, 0, DEFAULT_TEMPLATE_SMALL.toString(), 70,
                 "create_rns:replace_with_create_rns_iron_deposit_block");
@@ -280,21 +280,24 @@ public class DepositStructureKubeBuilderGameTest {
     }
 
     @RNSKubeJSBuilderTest
-    private static void defaultWeightOverridesPreserveOtherEntriesInBothDimensions(
+    private static void defaultWeightOverridesPreserveOtherEntriesInAllBuiltInDimensions(
             RNSKubeJSBuilderTestContext context
     ) {
         var helper = context.helper();
-        for (var dimension : List.of(Level.OVERWORLD, Level.NETHER)) {
+        var dimensions = DynamicDatapackContent.RESOURCES.structures.stream()
+                .map(DepositResources.Structure::dimension).distinct()
+                .filter(dimension -> !DynamicDatapackContent.RESOURCES.getScannableStructures(dimension).isEmpty())
+                .toList();
+        for (var dimension : dimensions) {
             var defaults = DynamicDatapackContent.RESOURCES.getScannableStructures(dimension);
-            helper.assertFalse(defaults.isEmpty(), "Expected default deposits in " + dimension.location());
             var first = defaults.getFirst();
             context.depositStructures().tweak(first.id().toString()).weight(Objects.requireNonNull(first.weight()) + 1);
         }
 
         var generated = context.assembleData();
-        for (var dimension : List.of(Level.OVERWORLD, Level.NETHER)) {
+        for (var dimension : dimensions) {
             var defaults = DynamicDatapackContent.RESOURCES.getScannableStructures(dimension);
-            var path = dimension.equals(Level.NETHER) ? "nether_deposits" : "deposits";
+            var path = DepositResources.structureSetId(CreateRNS.ID, dimension).getPath();
             var entries = generated.jsonObject(structureSetPath(path)).getAsJsonArray("structures");
             helper.assertValueEqual(entries.size(), defaults.size(), "All default deposits remain in " + path);
             for (var entry : defaults) {
@@ -390,8 +393,8 @@ public class DepositStructureKubeBuilderGameTest {
 
         helper.assertValueEqual(structureJson.get("type").getAsString(), "create_rns:deposit", "structure type");
         helper.assertValueEqual(structureJson.get("biomes").getAsString(), "#create_rns:has_deposit", "biome tag");
-        helper.assertValueEqual(structureJson.get("placement_strategy").getAsString(), "overworld", "placement strategy");
-        helper.assertValueEqual(structureJson.get("height").getAsInt(), -8, "default overworld height");
+        helper.assertValueEqual(structureJson.get("placement_strategy").getAsString(), "default", "placement strategy");
+        helper.assertValueEqual(structureJson.get("height").getAsInt(), -4, "default overworld height");
         var structures = structureJson.getAsJsonArray("structures");
         helper.assertValueEqual(structures.size(), 1, "template count");
         assertStructureEntry(helper, structures, 0, DEFAULT_TEMPLATE_SMALL.toString(), 1,
@@ -535,10 +538,10 @@ public class DepositStructureKubeBuilderGameTest {
         var helper = context.helper();
         var builder = context.depositStructures().create(CreateRNS.asResource("test_invalid_biome").toString());
 
-        assertFatalBuilderError(helper, builder, "cannot be blank", () -> builder.biome(""));
-        assertFatalBuilderError(helper, builder, "Invalid biome or biome tag id",
+        assertThrows(helper, IllegalArgumentException.class, "cannot be blank", () -> builder.biome(""));
+        assertThrows(helper, IllegalArgumentException.class, "Invalid biome or biome tag id",
                 () -> builder.biome("#not a tag"));
-        assertFatalBuilderError(helper, builder, "Unknown vanilla biome",
+        assertThrows(helper, IllegalArgumentException.class, "Unknown vanilla biome",
                 () -> builder.biome("minecraft:ld_growth_birch_forest"));
     }
 
@@ -587,16 +590,16 @@ public class DepositStructureKubeBuilderGameTest {
         var generated = context.assembleData();
         var structureSetEntries = generated.jsonObject(structureSetPath("deposits")).getAsJsonArray("structures");
         assertPresetStructure(helper, generated, commonId, "minecraft:iron_block",
-                "#create_rns:has_deposit", "overworld", -8,
+                "#create_rns:has_deposit", "default", -4,
                 new PresetTemplate(DEFAULT_TEMPLATE_MEDIUM, 70),
                 new PresetTemplate(DEFAULT_TEMPLATE_LARGE, 30));
         assertPresetStructure(helper, generated, uncommonId, "minecraft:copper_block",
-                "#create_rns:has_deposit", "overworld", -10,
+                "#create_rns:has_deposit", "default", -6,
                 new PresetTemplate(DEFAULT_TEMPLATE_SMALL, 30),
                 new PresetTemplate(DEFAULT_TEMPLATE_MEDIUM, 60),
                 new PresetTemplate(DEFAULT_TEMPLATE_LARGE, 10));
         assertPresetStructure(helper, generated, rareId, "minecraft:diamond_block",
-                "#create_rns:has_deposit", "overworld", -12,
+                "#create_rns:has_deposit", "default", -8,
                 new PresetTemplate(DEFAULT_TEMPLATE_SMALL, 70),
                 new PresetTemplate(DEFAULT_TEMPLATE_MEDIUM, 28),
                 new PresetTemplate(DEFAULT_TEMPLATE_LARGE, 2));

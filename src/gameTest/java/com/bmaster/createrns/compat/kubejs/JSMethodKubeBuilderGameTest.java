@@ -60,6 +60,22 @@ public class JSMethodKubeBuilderGameTest {
     }
 
     @RNSKubeJSBuilderTest
+    private static void biomeParseErrorIsSourcedAtTheJsCall(RNSKubeJSBuilderTestContext context) {
+        var cx = new ContextFactory().enter();
+        var scope = cx.initStandardObjects();
+        var builder = context.structureSet().end();
+        scope.put(cx, "builder", scope, cx.javaToJS(builder, scope));
+        var error = expectScriptError(cx, scope, "\nbuilder.biome('#bad tag')");
+        var line = new ConsoleLine(ConsoleJS.STARTUP, 0, error.getMessage());
+        error.apply(line);
+        context.helper().assertValueEqual(line.sourceLines.iterator().next(), new SourceLine(SCRIPT_NAME, 2),
+                "Invalid biome attributed to its script call");
+        context.helper().assertValueEqual(error.getMessage(), "Invalid biome or biome tag id: #bad tag",
+                "Preserve the parser diagnostic");
+        context.helper().assertFalse(builder.isValid(), "A parser exception invalidates the dimension builder");
+    }
+
+    @RNSKubeJSBuilderTest
     private static void blockSetterIsOnlyAvailableOnCreatedStructures(RNSKubeJSBuilderTestContext context) {
         var cx = new ContextFactory().enter();
         var scope = cx.initStandardObjects();

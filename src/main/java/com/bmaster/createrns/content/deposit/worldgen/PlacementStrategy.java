@@ -21,7 +21,7 @@ import java.util.OptionalInt;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public enum PlacementStrategy implements StringRepresentable {
-    OVERWORLD("overworld", new OverworldPlacementHelper()),
+    DEFAULT("default", new DefaultPlacementHelper()),
     NETHER("nether", new NetherPlacementHelper());
 
     public static final Codec<PlacementStrategy> CODEC = StringRepresentable.fromEnum(PlacementStrategy::values);
@@ -61,16 +61,21 @@ public enum PlacementStrategy implements StringRepresentable {
         public abstract OptionalInt getPlacementBottomY(GenerationContext context, PoolElementStructurePiece piece, int yOffset);
     }
 
-    private static class OverworldPlacementHelper extends PlacementHelper {
+    private static class DefaultPlacementHelper extends PlacementHelper {
         @Override
         public OptionalInt getPlacementBottomY(GenerationContext context, PoolElementStructurePiece piece, int yOffset) {
-            var center = piece.getBoundingBox().getCenter();
-            return OptionalInt.of(yOffset + context.chunkGenerator().getFirstFreeHeight(
+            var bounds = piece.getBoundingBox();
+            var center = bounds.getCenter();
+            int surfaceY = context.chunkGenerator().getFirstOccupiedHeight(
                     center.getX(),
                     center.getZ(),
                     Heightmap.Types.OCEAN_FLOOR_WG,
                     context.heightAccessor(),
-                    context.randomState()));
+                    context.randomState());
+            if (surfaceY < context.heightAccessor().getMinBuildHeight()) return OptionalInt.empty();
+
+            int topY = surfaceY + yOffset;
+            return OptionalInt.of(topY - (bounds.getYSpan() - 1));
         }
     }
 

@@ -101,6 +101,18 @@ public class MiningRecipeKubeRecipe extends KubeRecipe {
         return this;
     }
 
+    @Info("Shortcut for dimension(\"minecraft:the_end\")")
+    public MiningRecipeKubeRecipe end(Context cx) {
+        captureFallbackSourceLine(KubeSourceLine.expressionStart(SourceLine.of(cx)));
+        return end();
+    }
+
+    @HideFromJS
+    public MiningRecipeKubeRecipe end() {
+        setValue(MiningRecipeKubeSchema.DIMENSION, Level.END);
+        return this;
+    }
+
     @Info("""
             Deposits that run out of resources will be replaced with this block. Does not have to be a deposit block.
             Note that finite deposits must be enabled in the server config for this setting to take effect.

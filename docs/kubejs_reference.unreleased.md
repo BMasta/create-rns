@@ -68,6 +68,9 @@ Shortcut for `.dimension('minecraft:overworld')`
 ### `nether()` (optional)
 Shortcut for `.dimension('minecraft:the_nether')`
 
+### `end()` (optional)
+Shortcut for `.dimension('minecraft:the_end')`.
+
 ## Adding mining recipes (yield builder)
 
 Builds a yield to be used in a mining recipe.
@@ -352,20 +355,24 @@ Set to a negative value to have deposits generate underground.
 
 * `value`: height offset as an integer
 
-Default: * `-8` for overworld deposits, `-4` for nether deposits.
+Default: `-4`.
 
-### `biome(biomeOrTagId)`
+### `biome(biomeOrTagId)` (optional)
 Sets the biome or biome tag in which the deposit structure may generate.
-Structures selected in a custom dimension (or the end) require one explicit biome or biome tag. Only one biome or biome tag is allowed.
+Only one biome or biome tag can be specified. Unless you need a structure-specific biome selector,
+prefer using biome() from rnsEnableDeposits, which allows multiple biomes or biome tags.
 
-***IMPORTANT!*** Choose biomes carefully because a structure can generate in any dimension that has them. Make sure to select ONLY the biomes that correspond to the dimension the deposit is configured for.
+***IMPORTANT!*** Choose biomes carefully because a structure can generate in any dimension that has them.
+Make sure to select ONLY the biomes that correspond to the dimension the deposit is configured for.
 
 ***IMPORTANT!*** The existence of modded biomes cannot be properly validated before the datapack is loaded. If you specify
 a non-existent modded biome, you will get a non-descriptive datapack load error.
 
 * `biomeOrTagId`: biome id or biome tag such as `minecraft:badlands` or `#minecraft:is_badlands`
 
-Default: `#create_rns:has_deposit` for overworld deposits and `#create_rns:has_deposit_nether` for nether deposits.
+By default, structures use the dimension's deposit biome tag. The built-in tags are `#create_rns:has_deposit`,
+`#create_rns:has_deposit_nether`, and `#create_rns:has_deposit_end`. When configuring biomes in rnsEnableDeposits,
+a similar biome tag is automatically created for you.
 
 ### `mapIcon(itemOrTagId)` (optional)
 Sets an item or an item tag to be rendered on the map as a marker for found deposits.
@@ -384,33 +391,31 @@ The exact values depend on the selected preset. For reference:
 * rare - redstone, zinc
 
 ***IMPORTANT!*** The preset name identifies the intended dimension defaults, but does not assign the structure to that dimension.
-Dimension is assigned when the structure is selected through `event.dimension(id)`, `event.overworld()`, or `event.nether()` in
-`StartupEvents.rnsEnableDeposits`.
 
-#### overworld_common
+#### overworld_common/end_common
 Expands to:
 ```js
 .weight(50)
-.height(-8)
+.height(-4)
 .nbt('create_rns:ore_deposit_medium', 70)
 .nbt('create_rns:ore_deposit_large', 30)
 ```
 
-#### overworld_uncommon
+#### overworld_uncommon/end_uncommon
 Expands to:
 ```js
 .weight(35)
-.height(-10)
+.height(-6)
 .nbt('create_rns:ore_deposit_small', 30)
 .nbt('create_rns:ore_deposit_medium', 60)
 .nbt('create_rns:ore_deposit_large', 10)
 ```
 
-#### overworld_rare
+#### overworld_rare/end_rare
 Expands to:
 ```js
 .weight(20)
-.height(-12)
+.height(-8)
 .nbt('create_rns:ore_deposit_small', 70)
 .nbt('create_rns:ore_deposit_medium', 28)
 .nbt('create_rns:ore_deposit_large', 2)
@@ -472,13 +477,15 @@ StartupEvents.rnsEnableDeposits(event => {
 Configure deposit selection for the respective dimension.
 
 ```js
-event.dimension('mymod:moon', 'overworld')
+event.dimension('mymod:moon', 'default')
+  .biome('mymod:lunar_plains')
+  .biome('#mymod:lunar_highlands')
   .deposit('mymod:deposit_lunar_iron')
   .jeiMiningTitle('Lunar Mining')
 ```
 
 * `id`: dimension ID for which to configure the deposit selection
-* `placementStrategy`: the rules of how the placement for deposits is decided; can be 'overworld' or 'nether' (default: 'nether' for the Nether, 'overworld' otherwise)
+* `placementStrategy` controls placement for newly created structures. The Nether uses `nether`, all other dimensions use `default`.
 
 ***IMPORTANT!*** When called, replaces the default selection.
 Calling it without adding deposits with `deposit()` essentially removes all deposits from the respective dimension.
@@ -488,6 +495,25 @@ Shortcut for `dimension('minecraft:overworld')`
 
 ### `nether()`
 Shortcut for `dimension('minecraft:the_nether')`
+
+### `end()`
+Shortcut for `dimension('minecraft:the_end')`. End structures use `#create_rns:has_deposit_end`
+(containing `#minecraft:is_end`) by default. The generated structure set is `create_rns:end_deposits`.
+
+### `biome(biomeOrTagId)`
+Adds a biome or biome tag in which a deposit may generate. Applies to all deposits selected in this dimension.
+Can be called multiple times to specify more biomes. Structure-specific biome selectors take precedence if configured.
+
+* `biomeOrTagId`: biome id or biome tag such as `minecraft:badlands` or `#minecraft:is_badlands`
+
+***IMPORTANT!*** Choose biomes carefully because a structure can generate in any dimension that has them.
+Make sure to select the biomes that exist ONLY in this dimension.
+
+***IMPORTANT!*** The existence of modded biomes cannot be properly validated before the datapack is loaded. If you specify
+a non-existent modded biome, you will get a non-descriptive datapack load error.
+
+Creates a biome tag `#create_rns:has_deposit_<dimension namespace>_<dimension path>`.
+Unless configured otherwise, all structures selected in this dimension will automatically use it.
 
 ### `deposit(structureId, weight)` / `deposit(structureId, enableWorldgen)` / `deposit(structureId, weight, enableWorldgen)`
 Makes deposit scannable in the current dimension. Unless `enableWorldgen` is set to false, also makes it generate in the world.
@@ -520,5 +546,5 @@ A "seed" used for calculating the random spread of deposits across the world.
 
 * `value`: non-negative integer
 
-Default: `591646342` for `event.overworld()`, `781087034` for `event.nether()`.
-Other dimensions derive salt from the dimension ID.
+The default salts are `591646342` for the Overworld, `781087034` for the Nether, and `196423253` for the End.
+Custom dimensions derive their salt from the dimension ID.

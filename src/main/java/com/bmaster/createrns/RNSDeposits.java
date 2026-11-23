@@ -145,7 +145,6 @@ public class RNSDeposits {
                     .preset(DepositResources.PRESET_OVERWORLD_RARE)
                     .scannerIconMetal("gold"))
             .attach(ctx -> DepositStructureBuilder.create(ctx)
-                    .dimension(Level.NETHER)
                     .preset(DepositResources.PRESET_NETHER_COMMON)
                     .scannerIconMetal("gold"))
             .attach(id -> MiningRecipeBuilder.create(id)
@@ -356,7 +355,6 @@ public class RNSDeposits {
             .create("quartz")
             .transform(depositBlockDefaults())
             .attach(ctx -> DepositStructureBuilder.create(ctx)
-                    .dimension(Level.NETHER)
                     .preset(DepositResources.PRESET_NETHER_COMMON)
                     .scannerIconGem("quartz"))
             .attach(id -> MiningRecipeBuilder.create(id)
@@ -378,7 +376,6 @@ public class RNSDeposits {
             .transform(depositBlockDefaults())
             .enableWhenBlockPresent("cobalt_ore")
             .attach(ctx -> DepositStructureBuilder.create(ctx)
-                    .dimension(Level.NETHER)
                     .preset(DepositResources.PRESET_NETHER_RARE)
                     .scannerIconMetal("cobalt"))
             .attach(ctx -> MiningRecipeBuilder.create(ctx)
@@ -396,7 +393,6 @@ public class RNSDeposits {
             .transform(depositBlockDefaults())
             .enableWhenBlockPresent("wolframite_ore")
             .attach(ctx -> DepositStructureBuilder.create(ctx)
-                    .dimension(Level.NETHER)
                     .preset(DepositResources.PRESET_NETHER_RARE)
                     .scannerIconMetal("wolframite")
                     .scannerIcon(Mods.METALLURGY.ID + ":raw_tungsten"))
@@ -490,6 +486,38 @@ public class RNSDeposits {
                         .item(List.of("soul_sand"))
                         .item(List.of("soul_soil"))
                         .item(List.of("magma_block")))
+                .yield(y -> y
+                        .item(List.of(CreateRNS.ID + ":resonant_amethyst"))
+                        .chance(CHANCE_EXTREMELY_LOW)
+                        .catalyst(CATA_OVERCLOCK))
+                // T0
+                .yield(y -> t0.apply(y)
+                        .catalyst(CATA_OVERCLOCK))
+                // T1
+                .yield(y -> t1.apply(y)
+                        .catalyst(CATA_FAINT_RESONANCE)
+                        .catalyst(CATA_OVERCLOCK)
+                        .jeiSlotColor(COLOR_FAINT_RESONANCE))
+                .yield(y -> y
+                        .item(List.of(CreateRNS.ID + ":resonant_amethyst"))
+                        .chance(CHANCE_EXTREMELY_LOW)
+                        .catalyst(CATA_RESONANCE)
+                        .catalyst(CATA_OVERCLOCK)
+                        .jeiSlotColor(COLOR_RESONANCE))
+
+                // T2
+                .yield(y -> t2.apply(y)
+                        .catalyst(CATA_RESONANCE)
+                        .catalyst(CATA_OVERCLOCK)
+                        .jeiSlotColor(COLOR_RESONANCE));
+    }
+
+    private static UnaryOperator<MiningRecipeBuilder> baseEndYields(
+            UnaryOperator<YieldBuilder> t0, UnaryOperator<YieldBuilder> t1, UnaryOperator<YieldBuilder> t2
+    ) {
+        return b -> b
+                .dimension(Level.END)
+                .yield(y -> y.item(List.of("end_stone")))
                 .yield(y -> y
                         .item(List.of(CreateRNS.ID + ":resonant_amethyst"))
                         .chance(CHANCE_EXTREMELY_LOW)

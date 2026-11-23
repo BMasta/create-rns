@@ -133,7 +133,7 @@ public class EnableDepositsKubeBuilderGameTest {
         assertPlacement(helper, structureSetJson, 4, 24, 591646342);
         helper.assertValueEqual(structures.size(), 0, "worldgen structure count");
         assertArrayStrings(helper, depositsTagJson.get("values"), "selected structure ids",
-                withDefaultNether(firstId, secondId));
+                expectedTagForOverworldSelection(firstId, secondId));
         helper.assertTrue(generated.hasJson(depositSpecPath(firstId)), "Expected first custom deposit spec JSON");
         helper.assertTrue(generated.hasJson(depositSpecPath(secondId)), "Expected second custom deposit spec JSON");
         helper.assertTrue(generated.hasJson(structurePath(firstId)), "Expected first custom structure JSON");
@@ -167,7 +167,7 @@ public class EnableDepositsKubeBuilderGameTest {
         helper.assertFalse(generated.hasJson(structureSetPath("nether_deposits")),
                 "Did not expect a nether structure-set file without configuring nether()");
         assertArrayStrings(helper, depositsTagJson.get("values"), "selected structure ids",
-                withDefaultNether(selectedFirst.id(), selectedLast.id()));
+                expectedTagForOverworldSelection(selectedFirst.id(), selectedLast.id()));
 
         assertBuiltInScannableState(helper, generated, selectedFirst.id(), true);
         assertBuiltInScannableState(helper, generated, selectedLast.id(), true);
@@ -202,14 +202,15 @@ public class EnableDepositsKubeBuilderGameTest {
                 "Unconfigured Nether uses default scannability, including installed compat");
         var tag = generated.jsonObject(CreateRNS.asResource("tags/worldgen/structure/deposits"));
         helper.assertTrue(tag.get("replace").getAsBoolean(), "Explicit empty selection replaces the structure tag");
-        assertArrayStrings(helper, tag.get("values"), "Unconfigured Nether keeps every built-in tag member", withDefaultNether());
+        assertArrayStrings(helper, tag.get("values"), "Unconfigured dimensions keep all built-in tag members",
+                expectedTagForOverworldSelection());
     }
 
-    private static String[] withDefaultNether(ResourceLocation... selectedOverworld) {
+    private static String[] expectedTagForOverworldSelection(ResourceLocation... selectedOverworld) {
         var ids = new TreeSet<String>();
         for (var id : selectedOverworld) ids.add(id.toString());
         for (var structure : DynamicDatapackContent.RESOURCES.structures) {
-            if (structure.dimension().equals(Level.NETHER)) ids.add(structure.id().toString());
+            if (!structure.dimension().equals(Level.OVERWORLD)) ids.add(structure.id().toString());
         }
         return ids.toArray(String[]::new);
     }
@@ -444,6 +445,69 @@ public class EnableDepositsKubeBuilderGameTest {
     }
 
     @RNSKubeJSBuilderTest
+    private static void structureBiomesOverrideTheSharedSelector(RNSKubeJSBuilderTestContext context) {
+        var helper = context.helper();
+        var iron = "create_rns:deposit_iron";
+        var copper = "create_rns:deposit_copper";
+        context.depositStructures().tweak(iron).weight(3);
+        context.depositStructures().tweak(copper).biome("minecraft:desert");
+        context.structureSet().overworld().deposit(iron).deposit(copper, 5)
+                .biome("plains").biome("#minecraft:is_hill").biome("minecraft:plains");
+
+        helper.assertTrue(context.validationErrors().isEmpty(), "Shared and structure biomes may be combined");
+        var data = context.assembleData();
+        var tag = data.jsonObject(CreateRNS.asResource("tags/worldgen/biome/has_deposit"));
+        helper.assertTrue(tag.get("replace").getAsBoolean(), "Override the built-in biome list");
+        var values = tag.getAsJsonArray("values");
+        helper.assertValueEqual(values.size(), 2, "Ignore duplicate biome IDs");
+        helper.assertValueEqual(values.get(0).getAsString(), "minecraft:plains", "Direct biome");
+        helper.assertValueEqual(values.get(1).getAsString(), "#minecraft:is_hill", "Nested tag");
+        var entries = data.jsonObject(structureSetPath("deposits")).getAsJsonArray("structures");
+        helper.assertValueEqual(entries.size(), 2, "Both structures remain eligible for worldgen");
+        assertStructureSetEntry(helper, entries, 0, iron, 3);
+        assertStructureSetEntry(helper, entries, 1, copper, 5);
+        helper.assertValueEqual(data.jsonObject(structurePath(ResourceLocation.parse(iron))).get("biomes").getAsString(),
+                "#create_rns:has_deposit", "Iron inherits the shared biome tag");
+        helper.assertValueEqual(data.jsonObject(structurePath(ResourceLocation.parse(copper))).get("biomes").getAsString(),
+                "minecraft:desert", "Copper uses only its explicit biome");
+        assertBuiltInScannableState(helper, data, ResourceLocation.parse(copper), true);
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void endUsesBundledTagAndCustomDimensionUsesGeneratedTag(RNSKubeJSBuilderTestContext context) {
+        var helper = context.helper();
+        var end = context.structureSet().end();
+        helper.assertTrue(end == context.structureSet().dimension("minecraft:the_end"), "End alias");
+        var moon = context.structureSet().dimension("mymod:moon", "default").biome("mymod:lunar_plains");
+        for (var name : List.of("end", "moon")) {
+            var id = "mymod:" + name;
+            context.depositStructures().create(id).block("minecraft:iron_block").scannerIcon("iron_ingot")
+                    .preset("end_common");
+            (name.equals("end") ? end : moon).deposit(id);
+        }
+        var data = context.assembleData();
+        var endStructure = data.jsonObject(structurePath(ResourceLocation.parse("mymod:end")));
+        helper.assertValueEqual(endStructure.get("placement_strategy").getAsString(), "default", "Placement in the End");
+        helper.assertValueEqual(endStructure.get("biomes").getAsString(), "#create_rns:has_deposit_end", "End tag");
+        assertPlacement(helper, data.jsonObject(structureSetPath("end_deposits")), 4, 24, 196423253);
+        helper.assertFalse(data.hasJson(CreateRNS.asResource("tags/worldgen/biome/has_deposit_end")),
+                "Omitting biome() uses the bundled End tag");
+        var moonStructure = data.jsonObject(structurePath(ResourceLocation.parse("mymod:moon")));
+        helper.assertValueEqual(moonStructure.get("placement_strategy").getAsString(), "default", "Explicit default placement");
+        helper.assertValueEqual(moonStructure.get("biomes").getAsString(), "#create_rns:has_deposit_mymod_moon",
+                "Custom dimension uses the generated tag");
+        helper.assertTrue(data.hasJson(CreateRNS.asResource("tags/worldgen/biome/has_deposit_mymod_moon")),
+                "Custom dimension tag is generated");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void sharedBiomeTagRejectsSelfReference(RNSKubeJSBuilderTestContext context) {
+        var builder = context.structureSet().end();
+        assertFatalBuilderError(context.helper(), builder, "cannot include itself",
+                () -> builder.biome("#create_rns:has_deposit_end"));
+    }
+
+    @RNSKubeJSBuilderTest
     private static void missingBiomeSkipsOnlyTheAffectedStructure(RNSKubeJSBuilderTestContext context) {
         var builder = context.structureSet().dimension("mymod:moon");
         for (var name : List.of("missing", "explicit")) {
@@ -458,7 +522,7 @@ public class EnableDepositsKubeBuilderGameTest {
         context.helper().assertFalse(data.hasJson(structurePath(ResourceLocation.parse("mymod:missing"))),
                 "Missing selector excludes even a scan-only structure");
         var json = data.jsonObject(structurePath(ResourceLocation.parse("mymod:explicit")));
-        context.helper().assertValueEqual(json.get("placement_strategy").getAsString(), "overworld",
+        context.helper().assertValueEqual(json.get("placement_strategy").getAsString(), "default",
                 "Other structures still generate with the default strategy");
     }
 
@@ -467,7 +531,7 @@ public class EnableDepositsKubeBuilderGameTest {
         var event = context.structureSet();
         var builder = event.dimension("mymod:moon", "nether");
         assertFatalBuilderError(context.helper(), builder, "Conflicting placement strategies",
-                () -> event.dimension("mymod:moon", "overworld"));
+                () -> event.dimension("mymod:moon", "default"));
         assertThrows(context.helper(), IllegalArgumentException.class, "Unknown placement strategy",
                 () -> event.dimension("mymod:moon", "unknown"));
     }

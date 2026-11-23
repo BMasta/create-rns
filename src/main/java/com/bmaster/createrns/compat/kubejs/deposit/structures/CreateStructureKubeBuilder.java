@@ -14,7 +14,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public final class CreateStructureKubeBuilder extends StructureKubeBuilder<CreateStructureKubeBuilder> {
-    private PlacementStrategy strategy = PlacementStrategy.OVERWORLD;
+    private PlacementStrategy strategy = PlacementStrategy.DEFAULT;
 
     public CreateStructureKubeBuilder(ResourceLocation id) {
         super(id);

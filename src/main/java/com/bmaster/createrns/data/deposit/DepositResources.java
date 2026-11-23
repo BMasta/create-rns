@@ -6,7 +6,6 @@ import com.bmaster.createrns.content.deposit.mining.recipe.DepositDurability;
 import com.bmaster.createrns.content.deposit.worldgen.PlacementStrategy;
 import com.bmaster.createrns.util.codec.ResourceOrTagLocation;
 import com.mojang.logging.annotations.MethodsReturnNonnullByDefault;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
@@ -33,27 +32,39 @@ public final class DepositResources {
 
     //=================================================== Presets ====================================================//
     public static final StructurePreset PRESET_OVERWORLD_RARE = new StructurePreset(
-            Level.OVERWORLD, 12, 0, 20,
+            Level.OVERWORLD, 8, 0, 20,
             List.of(new WeightedTemplate(TEMPLATE_SMALL, 70), new WeightedTemplate(TEMPLATE_MEDIUM, 28),
                     new WeightedTemplate(TEMPLATE_LARGE, 2)));
 
     public static final StructurePreset PRESET_NETHER_RARE = new StructurePreset(
             Level.NETHER, 4, 0, 20, PRESET_OVERWORLD_RARE.templates());
 
+    public static final StructurePreset PRESET_END_RARE = new StructurePreset(
+            Level.END, PRESET_OVERWORLD_RARE.depth(), PRESET_OVERWORLD_RARE.depthDeviation(),
+            PRESET_OVERWORLD_RARE.weight(), PRESET_OVERWORLD_RARE.templates());
+
     public static final StructurePreset PRESET_OVERWORLD_UNCOMMON = new StructurePreset(
-            Level.OVERWORLD, 10, 0, 35,
+            Level.OVERWORLD, 6, 0, 35,
             List.of(new WeightedTemplate(TEMPLATE_SMALL, 30), new WeightedTemplate(TEMPLATE_MEDIUM, 60),
                     new WeightedTemplate(TEMPLATE_LARGE, 10)));
 
     public static final StructurePreset PRESET_NETHER_UNCOMMON = new StructurePreset(
             Level.NETHER, 4, 0, 35, PRESET_OVERWORLD_UNCOMMON.templates());
 
+    public static final StructurePreset PRESET_END_UNCOMMON = new StructurePreset(
+            Level.END, PRESET_OVERWORLD_UNCOMMON.depth(), PRESET_OVERWORLD_UNCOMMON.depthDeviation(),
+            PRESET_OVERWORLD_UNCOMMON.weight(), PRESET_OVERWORLD_UNCOMMON.templates());
+
     public static final StructurePreset PRESET_OVERWORLD_COMMON = new StructurePreset(
-            Level.OVERWORLD, 8, 0, 50,
+            Level.OVERWORLD, 4, 0, 50,
             List.of(new WeightedTemplate(TEMPLATE_MEDIUM, 70), new WeightedTemplate(TEMPLATE_LARGE, 30)));
 
     public static final StructurePreset PRESET_NETHER_COMMON = new StructurePreset(
             Level.NETHER, 4, 0, 50, PRESET_OVERWORLD_COMMON.templates());
+
+    public static final StructurePreset PRESET_END_COMMON = new StructurePreset(
+            Level.END, PRESET_OVERWORLD_COMMON.depth(), PRESET_OVERWORLD_COMMON.depthDeviation(),
+            PRESET_OVERWORLD_COMMON.weight(), PRESET_OVERWORLD_COMMON.templates());
 
     private static final Map<String, StructurePreset> PRESETS = Map.of(
             "overworld_common", PRESET_OVERWORLD_COMMON,
@@ -61,7 +72,10 @@ public final class DepositResources {
             "overworld_rare", PRESET_OVERWORLD_RARE,
             "nether_common", PRESET_NETHER_COMMON,
             "nether_uncommon", PRESET_NETHER_UNCOMMON,
-            "nether_rare", PRESET_NETHER_RARE
+            "nether_rare", PRESET_NETHER_RARE,
+            "end_common", PRESET_END_COMMON,
+            "end_uncommon", PRESET_END_UNCOMMON,
+            "end_rare", PRESET_END_RARE
     );
     //================================================================================================================//
 
@@ -147,11 +161,7 @@ public final class DepositResources {
     }
 
     public static PlacementStrategy defaultPlacementStrategy(ResourceKey<Level> dimension) {
-        if (dimension.equals(Level.NETHER)) {
-            return PlacementStrategy.NETHER;
-        } else {
-            return PlacementStrategy.OVERWORLD;
-        }
+        return dimension.equals(Level.NETHER) ? PlacementStrategy.NETHER : PlacementStrategy.DEFAULT;
     }
 
     public static ResourceLocation miningCategoryId(ResourceKey<Level> dimension) {

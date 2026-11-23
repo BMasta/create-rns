@@ -40,8 +40,8 @@ public class DepositDataGameTest {
         helper.assertTrue(DepositResources.defaultPlacementStrategy(Level.NETHER) == PlacementStrategy.NETHER,
                 "Nether placement");
         var custom = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("mymod:custom_dimension"));
-        helper.assertTrue(DepositResources.defaultPlacementStrategy(custom) == PlacementStrategy.OVERWORLD,
-                "Other dimensions use overworld placement");
+        helper.assertTrue(DepositResources.defaultPlacementStrategy(custom) == PlacementStrategy.DEFAULT,
+                "Custom dimensions use default placement");
         helper.succeed();
     }
 

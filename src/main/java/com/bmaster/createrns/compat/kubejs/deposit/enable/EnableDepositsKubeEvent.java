@@ -27,20 +27,26 @@ public class EnableDepositsKubeEvent extends StartupJSObject implements KubeStar
     private final Map<ResourceKey<Level>, EnableDepositsKubeBuilder> dimensions = new LinkedHashMap<>();
 
     public EnableDepositsKubeEvent(DepositStructuresKubeEvent structures) {
-        super("rnsEnableDeposits", "overworld|nether|dimension");
+        super("rnsEnableDeposits", "overworld|nether|end|dimension");
         this.structures = structures;
     }
 
-    @Info("Returns the overworld deposit structure set builder.")
+    @Info("Returns the Overworld deposit selection builder.")
     @JSMethod
     public EnableDepositsKubeBuilder overworld() {
         return dimension(Level.OVERWORLD, null);
     }
 
-    @Info("Returns the nether deposit structure set builder.")
+    @Info("Returns the Nether deposit selection builder.")
     @JSMethod
     public EnableDepositsKubeBuilder nether() {
         return dimension(Level.NETHER, null);
+    }
+
+    @Info("Returns the End deposit selection builder.")
+    @JSMethod
+    public EnableDepositsKubeBuilder end() {
+        return dimension(Level.END, null);
     }
 
     @JSMethod
@@ -51,10 +57,10 @@ public class EnableDepositsKubeEvent extends StartupJSObject implements KubeStar
     @JSMethod
     public EnableDepositsKubeBuilder dimension(String id, String placementStrategy) {
         var strategy = switch (placementStrategy) {
-            case "overworld" -> PlacementStrategy.OVERWORLD;
+            case "default" -> PlacementStrategy.DEFAULT;
             case "nether" -> PlacementStrategy.NETHER;
             default -> throw new IllegalArgumentException("Unknown placement strategy: " + placementStrategy
-                    + ". Expected overworld or nether");
+                    + ". Expected default or nether");
         };
         return dimension(Utils.parseDimension(id), strategy);
     }

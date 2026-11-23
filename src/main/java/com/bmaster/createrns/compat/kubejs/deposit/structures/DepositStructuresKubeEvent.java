@@ -134,12 +134,10 @@ public class DepositStructuresKubeEvent extends StartupJSObject implements KubeS
     private void gatherDefaultStructureSetWeightOverrides(
             DepositResources resources, Set<ResourceKey<Level>> configuredDimensions
     ) {
-        for (var dimension : List.of(Level.OVERWORLD, Level.NETHER)) {
+        var dimensions = tweaked.stream().filter(tweak -> tweak.weightChanged() && tweak.isValid())
+                .map(TweakStructureKubeBuilder::dimension).distinct().toList();
+        for (var dimension : dimensions) {
             if (configuredDimensions.contains(dimension)) continue;
-            if (tweaked.stream().noneMatch(tweak -> tweak.dimension().equals(dimension)
-                    && tweak.weightChanged() && tweak.isValid())) {
-                continue;
-            }
 
             // Default overrides use validated definitions without creating another script builder.
             var structures = new ArrayList<DepositResources.WeightedStructure>();
@@ -154,7 +152,7 @@ public class DepositStructuresKubeEvent extends StartupJSObject implements KubeS
                     DepositResources.structureSetId(CreateRNS.ID, dimension), structures,
                     nether ? RNSPacks.DEFAULT_NETHER_SPACING : RNSPacks.DEFAULT_SPACING,
                     nether ? RNSPacks.DEFAULT_NETHER_SEPARATION : RNSPacks.DEFAULT_SEPARATION,
-                    nether ? RNSPacks.NETHER_SALT : RNSPacks.SALT));
+                    RNSPacks.defaultSalt(dimension)));
         }
     }
 

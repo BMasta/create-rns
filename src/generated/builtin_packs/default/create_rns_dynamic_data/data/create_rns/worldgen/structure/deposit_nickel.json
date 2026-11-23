@@ -1,8 +1,8 @@
 {
   "type": "create_rns:deposit",
   "biomes": "#create_rns:has_deposit",
-  "placement_strategy": "overworld",
-  "height": -10,
+  "placement_strategy": "default",
+  "height": -6,
   "structures": [
     {
       "id": "create_rns:ore_deposit_small",

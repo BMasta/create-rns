@@ -4,6 +4,7 @@ import com.bmaster.createrns.data.pack.DynamicDatapack;
 import com.bmaster.createrns.data.pack.DynamicDatapackContent;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.world.level.Level;
 
@@ -21,6 +22,7 @@ public class RNSPacks {
 
     public static final int SALT = 591646342;
     public static final int NETHER_SALT = 781087034;
+    public static final int END_SALT = 196423253;
 
     private static final PackSource OPTIONAL = PackSource.create(PackSource.DEFAULT::decorate, false);
 
@@ -28,6 +30,7 @@ public class RNSPacks {
             // Create a new biome tag that includes all biomes in which deposits should spawn
             .addContent(DynamicDatapackContent.depositBiomeTag(Level.OVERWORLD, false))
             .addContent(DynamicDatapackContent.depositBiomeTag(Level.NETHER, false))
+            .addContent(DynamicDatapackContent.depositBiomeTag(Level.END, false))
             // Create a structure tag for deposits. All deposits must be tagged with it.
             .addContent(DynamicDatapackContent.depositStructureTag())
             // Create dynamically registered deposit specs.
@@ -41,6 +44,8 @@ public class RNSPacks {
                     DEFAULT_SEPARATION, DEFAULT_SPACING, SALT))
             .addContent(DynamicDatapackContent.depositStructureSet(Level.NETHER,
                     DEFAULT_NETHER_SEPARATION, DEFAULT_NETHER_SPACING, NETHER_SALT))
+            .addContent(DynamicDatapackContent.depositStructureSet(Level.END,
+                    DEFAULT_SEPARATION, DEFAULT_SPACING, END_SALT))
             .register();
 
     public static DynamicDatapack NO_DEPOSIT_PACK = DynamicDatapack.createDatapack("no_deposit_worldgen")
@@ -51,6 +56,7 @@ public class RNSPacks {
             // Generate an alternative version of the deposit biome tag that includes no biomes
             .addContent(DynamicDatapackContent.depositBiomeTag(Level.OVERWORLD, true))
             .addContent(DynamicDatapackContent.depositBiomeTag(Level.NETHER, true))
+            .addContent(DynamicDatapackContent.depositBiomeTag(Level.END, true))
             .register();
 
     public static DynamicDatapack RARE_DEPOSIT_PACK = DynamicDatapack.createDatapack("rare_deposit_worldgen")
@@ -60,6 +66,8 @@ public class RNSPacks {
                     8, 48,  SALT))
             .addContent(DynamicDatapackContent.depositStructureSet(Level.NETHER,
                     3, 16, NETHER_SALT))
+            .addContent(DynamicDatapackContent.depositStructureSet(Level.END,
+                    8, 48, END_SALT))
             .register();
 
     public static DynamicDatapack STANDARD_DEPOSIT_PACK = DynamicDatapack.createDatapack("standard_deposit_worldgen")
@@ -69,6 +77,8 @@ public class RNSPacks {
                     DEFAULT_SEPARATION, DEFAULT_SPACING,  SALT))
             .addContent(DynamicDatapackContent.depositStructureSet(Level.NETHER,
                     DEFAULT_NETHER_SEPARATION, DEFAULT_NETHER_SPACING, NETHER_SALT))
+            .addContent(DynamicDatapackContent.depositStructureSet(Level.END,
+                    DEFAULT_SEPARATION, DEFAULT_SPACING, END_SALT))
             .register();
 
     public static DynamicDatapack FREQUENT_DEPOSIT_PACK = DynamicDatapack.createDatapack("frequent_deposit_worldgen")
@@ -78,6 +88,8 @@ public class RNSPacks {
                     3, 16,  SALT))
             .addContent(DynamicDatapackContent.depositStructureSet(Level.NETHER,
                     2, 6, NETHER_SALT))
+            .addContent(DynamicDatapackContent.depositStructureSet(Level.END,
+                    3, 16, END_SALT))
             .register();
 
     public static DynamicDatapack VERY_FREQUENT_DEPOSIT_PACK = DynamicDatapack.createDatapack("very_frequent_deposit_worldgen")
@@ -87,7 +99,16 @@ public class RNSPacks {
                     2, 12,  SALT))
             .addContent(DynamicDatapackContent.depositStructureSet(Level.NETHER,
                     1, 4, NETHER_SALT))
+            .addContent(DynamicDatapackContent.depositStructureSet(Level.END,
+                    2, 12, END_SALT))
             .register();
+
+    public static int defaultSalt(ResourceKey<Level> dimension) {
+        if (dimension.equals(Level.OVERWORLD)) return SALT;
+        if (dimension.equals(Level.NETHER)) return NETHER_SALT;
+        if (dimension.equals(Level.END)) return END_SALT;
+        return dimension.location().toString().hashCode() & Integer.MAX_VALUE;
+    }
 
     private static UnaryOperator<DynamicDatapack> frequencyPackCommon(String id, boolean enableByDefault) {
         return d -> d

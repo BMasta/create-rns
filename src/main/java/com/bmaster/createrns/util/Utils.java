@@ -1,6 +1,8 @@
 package com.bmaster.createrns.util;
 
 import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.util.codec.ResourceOrTagLocation;
+import com.google.common.base.Suppliers;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import net.createmod.catnip.lang.LangBuilder;
@@ -10,6 +12,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.data.registries.VanillaRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -19,12 +22,18 @@ import net.minecraft.world.level.Level;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.text.DecimalFormat;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class Utils {
     protected static final DecimalFormat df = new DecimalFormat("0.##");
+    private static final Supplier<Set<ResourceLocation>> VANILLA_BIOMES = Suppliers.memoize(() ->
+            VanillaRegistries.createLookup().lookupOrThrow(Registries.BIOME).listElementIds()
+                    .map(ResourceKey::location).collect(Collectors.toUnmodifiableSet()));
 
     public static boolean isPosInChunk(BlockPos pos, ChunkPos chunkPos) {
         return (pos.getX() >> 4) == chunkPos.x && (pos.getZ() >> 4) == chunkPos.z;
@@ -118,5 +127,18 @@ public class Utils {
         var location = ResourceLocation.parse(id);
         if (location.getPath().isEmpty()) throw new IllegalArgumentException("Dimension id must have a path");
         return ResourceKey.create(Registries.DIMENSION, location);
+    }
+
+    public static ResourceOrTagLocation parseBiome(String input) {
+        if (input.isBlank()) throw new IllegalArgumentException("Biome or biome tag id cannot be blank");
+        var selector = ResourceOrTagLocation.tryParse(input);
+        if (selector == null || selector.getPath().isEmpty()) {
+            throw new IllegalArgumentException("Invalid biome or biome tag id: " + input);
+        }
+        if (!selector.isTag() && selector.getNamespace().equals("minecraft")
+                && !VANILLA_BIOMES.get().contains(selector.id())) {
+            throw new IllegalArgumentException("Unknown vanilla biome: " + selector.id());
+        }
+        return selector;
     }
 }

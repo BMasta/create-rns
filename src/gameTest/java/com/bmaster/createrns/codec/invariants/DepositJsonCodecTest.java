@@ -12,7 +12,10 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagFile;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.structure.Structure.GenerationContext;
 import net.minecraft.world.level.levelgen.structure.StructureSet;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -28,7 +31,7 @@ public class DepositJsonCodecTest {
         var processorId = ResourceLocation.withDefaultNamespace("empty");
         var templates = List.of(new DepositResources.WeightedTemplate(DepositResources.TEMPLATE_SMALL, 1));
         var biome = ResourceOrTagLocation.parse("plains");
-        var scalar = DepositJson.structure(biome, PlacementStrategy.OVERWORLD, -8, -8, templates, processorId);
+        var scalar = DepositJson.structure(biome, PlacementStrategy.DEFAULT, -8, -8, templates, processorId);
         helper.assertValueEqual(scalar.get("height").getAsInt(), -8, "scalar height");
         helper.assertValueEqual(scalar.get("biomes").getAsString(), "minecraft:plains", "direct biome");
         CodecHelper.assertParses(helper, DepositStructure.CODEC.codec(), CodecHelper.registries(helper),
@@ -40,6 +43,33 @@ public class DepositJsonCodecTest {
         helper.assertValueEqual(range.getAsJsonObject("height").get("max").getAsInt(), -2, "maximum height");
         CodecHelper.assertParses(helper, DepositStructure.CODEC.codec(), CodecHelper.registries(helper),
                 range.toString(), "structure with asymmetric height range and biome tag");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty16x16")
+    public void defaultPlacementUsesIslandSurfaceAndSkipsVoid(GameTestHelper helper) {
+        var end = helper.getLevel().getServer().getLevel(Level.END);
+        helper.assertTrue(end != null, "Expected the End dimension");
+        var generator = end.getChunkSource().getGenerator();
+        var randomState = end.getChunkSource().randomState();
+        // The central island surrounds the origin. The gap before the outer islands includes x = 512.
+        var island = new GenerationContext(end.registryAccess(), generator, generator.getBiomeSource(), randomState,
+                end.getStructureManager(), end.getSeed(), new ChunkPos(0, 0), end, biome -> true);
+        var voidGap = new GenerationContext(end.registryAccess(), generator, generator.getBiomeSource(), randomState,
+                end.getStructureManager(), end.getSeed(), new ChunkPos(32, 0), end, biome -> true);
+        for (int offset : List.of(-8, 0, 4)) {
+            var json = DepositJson.structure(ResourceOrTagLocation.parse("#minecraft:is_end"), PlacementStrategy.DEFAULT,
+                    offset, offset, List.of(new DepositResources.WeightedTemplate(DepositResources.TEMPLATE_SMALL, 1)),
+                    ResourceLocation.withDefaultNamespace("empty"));
+            var structure = CodecHelper.assertParses(helper, DepositStructure.CODEC.codec(), CodecHelper.registries(helper),
+                    json.toString(), "End deposit structure");
+            var bounds = structure.findGenerationPoint(island).orElseThrow().getPiecesBuilder().getBoundingBox();
+            var center = bounds.getCenter();
+            int firstFreeY = generator.getFirstFreeHeight(center.getX(), center.getZ(), Heightmap.Types.OCEAN_FLOOR_WG,
+                    end, randomState);
+            helper.assertValueEqual(bounds.maxY(), firstFreeY - 1 + offset, "Top of deposit at offset " + offset);
+            helper.assertTrue(structure.findGenerationPoint(voidGap).isEmpty(), "Void rejects offset " + offset);
+        }
         helper.succeed();
     }
 

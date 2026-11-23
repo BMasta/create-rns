@@ -181,11 +181,12 @@ See [default structures](../src/generated/builtin_packs/with_compat/create_rns_d
 ```json5
 {
   "type": "create_rns:deposit",
-  // This mod ships two biome tags: "has_deposit" and "has_deposit_nether", but any biome or biome tag is accepted.
+  // This mod ships three biome tags: "has_deposit", "has_deposit_nether", and "has_deposit_end", but any biome or biome tag is accepted.
   "biomes": "#create_rns:has_deposit",
-  // Should be either "overworld" or "nether". This affects how deposits are placed in a target chunk.
-  "placement_strategy": "overworld",
-  // Y offset from the ground level to the top of the deposit.
+  // Accepts "default" or "nether". The default strategy measures height from the surface
+  // and skips the deposit if its center is over the void. Edges may overhang.
+  "placement_strategy": "default",
+  // Y offset from the surface block to the top of the deposit bounding box.
   "height": -8,
   // or..
   "height": {

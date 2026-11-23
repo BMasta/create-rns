@@ -7,6 +7,8 @@ import com.bmaster.createrns.compat.kubejs.util.JSMethod;
 import com.bmaster.createrns.compat.kubejs.util.StartupKubeBuilder;
 import com.bmaster.createrns.content.deposit.worldgen.PlacementStrategy;
 import com.bmaster.createrns.data.deposit.DepositResources;
+import com.bmaster.createrns.util.Utils;
+import com.bmaster.createrns.util.codec.ResourceOrTagLocation;
 import dev.latvian.mods.kubejs.typings.Info;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceKey;
@@ -17,6 +19,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -30,6 +33,7 @@ public class EnableDepositsKubeBuilder extends StartupKubeBuilder {
     private final ResourceLocation id;
     private final Supplier<Map<ResourceLocation, AvailableStructure>> availableStructures;
     private final Map<ResourceLocation, SelectedStructure> selectedStructures = new LinkedHashMap<>();
+    private final LinkedHashSet<ResourceOrTagLocation> biomes = new LinkedHashSet<>();
     private Integer separation;
     private Integer spacing;
     private Integer salt;
@@ -39,7 +43,7 @@ public class EnableDepositsKubeBuilder extends StartupKubeBuilder {
 
     EnableDepositsKubeBuilder(ResourceKey<Level> dimension,
                               Supplier<Map<ResourceLocation, AvailableStructure>> availableStructures) {
-        super("rnsEnableDeposits", "overworld|nether|dimension");
+        super("rnsEnableDeposits", "overworld|nether|end|dimension");
         this.dimension = dimension;
         this.id = DepositResources.structureSetId(CreateRNS.ID, dimension);
         this.availableStructures = availableStructures;
@@ -48,6 +52,22 @@ public class EnableDepositsKubeBuilder extends StartupKubeBuilder {
     @JSMethod
     public EnableDepositsKubeBuilder jeiMiningTitle(String title) {
         jeiTitle = title;
+        return this;
+    }
+
+    @Info("""
+            Adds a biome or biome tag in which a deposit may generate.
+            Can be called multiple times to specify more biomes.
+            Make sure to include the biomes that exist ONLY in this dimension.
+            """)
+    @JSMethod
+    public EnableDepositsKubeBuilder biome(String biomeOrTagId) {
+        var selector = Utils.parseBiome(biomeOrTagId);
+        if (selector.isTag() && selector.id().equals(DepositResources.biomeTagId(CreateRNS.ID, dimension))) {
+            error("Deposit biome tag cannot include itself: " + selector, true);
+            return this;
+        }
+        biomes.add(selector);
         return this;
     }
 
@@ -139,16 +159,17 @@ public class EnableDepositsKubeBuilder extends StartupKubeBuilder {
 
     public void gatherResources(DepositResources resources) {
         if (!isValid()) return;
+        if (!biomes.isEmpty()) {
+            resources.biomeSelectorTags.add(new DepositResources.BiomeSelectorTag(
+                    DepositResources.biomeTagId(CreateRNS.ID, dimension), List.copyOf(biomes), true));
+        }
         boolean nether = dimension.equals(Level.NETHER);
-        int defaultSalt = dimension.location().toString().hashCode() & Integer.MAX_VALUE;
-        if (nether) defaultSalt = RNSPacks.NETHER_SALT;
-        else if (dimension.equals(Level.OVERWORLD)) defaultSalt = RNSPacks.SALT;
         var structures = worldgenStructures().stream()
                 .map(entry -> new DepositResources.WeightedStructure(entry.id(), entry.resolvedWeight())).toList();
         resources.structureSets.add(new DepositResources.StructureSet(id, structures,
                 resolvedSpacing(nether ? RNSPacks.DEFAULT_NETHER_SPACING : RNSPacks.DEFAULT_SPACING),
                 resolvedSeparation(nether ? RNSPacks.DEFAULT_NETHER_SEPARATION : RNSPacks.DEFAULT_SEPARATION),
-                resolvedSalt(defaultSalt)));
+                resolvedSalt(RNSPacks.defaultSalt(dimension))));
         if (jeiTitle != null) {
             var category = DepositResources.miningCategoryId(dimension);
             resources.langEntries.add(new DepositResources.LangEntry(CreateRNS.ID,
@@ -206,9 +227,10 @@ public class EnableDepositsKubeBuilder extends StartupKubeBuilder {
                 selected.valid = false;
                 continue;
             }
-            if (structure.valid() && !structure.hasBiome() && !nether && !dimension.equals(Level.OVERWORLD)) {
+            if (structure.valid() && !structure.hasBiome() && biomes.isEmpty()
+                    && !nether && !dimension.equals(Level.OVERWORLD) && !dimension.equals(Level.END)) {
                 error("Deposit structure " + selected.id + " must specify a biome for dimension "
-                        + dimension.location(), false);
+                        + dimension.location() + " on the structure or the dimension selection", false);
                 selected.valid = false;
                 continue;
             }

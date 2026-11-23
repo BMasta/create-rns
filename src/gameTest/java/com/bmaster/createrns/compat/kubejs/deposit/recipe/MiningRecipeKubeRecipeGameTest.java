@@ -43,6 +43,14 @@ public class MiningRecipeKubeRecipeGameTest {
     }
 
     @RNSKubeJSBuilderTest
+    private static void endShortcutTargetsTheEnd(RNSKubeJSBuilderTestContext context) {
+        var recipe = context.miningRecipe("end_iron").block(VALID_DEPOSIT_BLOCK)
+                .end().yield(y -> y.item("minecraft:iron_ingot"));
+        var parsed = parseRecipe(context.helper(), serialize(recipe), "End mining recipe");
+        context.helper().assertValueEqual(parsed.getDimension(), Level.END, "End recipe dimension");
+    }
+
+    @RNSKubeJSBuilderTest
     private static void invalidDurabilityValuesAreDroppedFromSerializedJson(RNSKubeJSBuilderTestContext context) {
         var helper = context.helper();
         var recipe = context.miningRecipe("invalid_durability");
