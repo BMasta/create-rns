@@ -2,6 +2,7 @@ package com.bmaster.createrns.compat.kubejs.deposit.recipe;
 
 import com.bmaster.createrns.RNSTags.RNSBlockTags;
 import com.bmaster.createrns.compat.kubejs.util.KubeSourceLine;
+import com.bmaster.createrns.util.Utils;
 import dev.latvian.mods.kubejs.recipe.KubeRecipe;
 import dev.latvian.mods.kubejs.recipe.RecipeScriptContext;
 import dev.latvian.mods.kubejs.recipe.component.CustomObjectRecipeComponent;
@@ -61,9 +62,22 @@ public class MiningRecipeKubeRecipe extends KubeRecipe {
     }
 
     @Info("""
-            Makes this recipe functional in overworld. This is the default dimension unless specified otherwise.
-            A recipe can only target a single dimension.
+            Sets the target dimension for this mining recipe.
+            One recipe can only target a single dimension.
+            If a dimension does not have a recipe, it will use the existing recipe for any other dimension.
             """)
+    public MiningRecipeKubeRecipe dimension(Context cx, String id) {
+        captureFallbackSourceLine(KubeSourceLine.expressionStart(SourceLine.of(cx)));
+        return dimension(id);
+    }
+
+    @HideFromJS
+    public MiningRecipeKubeRecipe dimension(String id) {
+        setValue(MiningRecipeKubeSchema.DIMENSION, Utils.parseDimension(id));
+        return this;
+    }
+
+    @Info("Shortcut for dimension(\"minecraft:overworld\")")
     public MiningRecipeKubeRecipe overworld(Context cx) {
         captureFallbackSourceLine(KubeSourceLine.expressionStart(SourceLine.of(cx)));
         return overworld();
@@ -75,7 +89,7 @@ public class MiningRecipeKubeRecipe extends KubeRecipe {
         return this;
     }
 
-    @Info("Makes this recipe functional in the nether. A recipe can only target a single dimension.")
+    @Info("Shortcut for dimension(\"minecraft:the_nether\")")
     public MiningRecipeKubeRecipe nether(Context cx) {
         captureFallbackSourceLine(KubeSourceLine.expressionStart(SourceLine.of(cx)));
         return nether();

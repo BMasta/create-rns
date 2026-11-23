@@ -5,9 +5,11 @@ import com.bmaster.createrns.RNSPacks;
 import com.bmaster.createrns.compat.kubejs.deposit.enable.EnableDepositsKubeEvent.AvailableStructure;
 import com.bmaster.createrns.compat.kubejs.util.JSMethod;
 import com.bmaster.createrns.compat.kubejs.util.StartupKubeBuilder;
+import com.bmaster.createrns.content.deposit.worldgen.PlacementStrategy;
 import com.bmaster.createrns.data.deposit.DepositResources;
 import dev.latvian.mods.kubejs.typings.Info;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
@@ -24,6 +26,7 @@ import java.util.function.Supplier;
 public class EnableDepositsKubeBuilder extends StartupKubeBuilder {
     private static final int MAX_PLACEMENT_DISTANCE = 4096;
 
+    final ResourceKey<Level> dimension;
     private final ResourceLocation id;
     private final Supplier<Map<ResourceLocation, AvailableStructure>> availableStructures;
     private final Map<ResourceLocation, SelectedStructure> selectedStructures = new LinkedHashMap<>();
@@ -31,18 +34,21 @@ public class EnableDepositsKubeBuilder extends StartupKubeBuilder {
     private Integer spacing;
     private Integer salt;
 
-    public EnableDepositsKubeBuilder(
-            ResourceLocation id, Map<ResourceLocation, AvailableStructure> availableStructures
-    ) {
-        this(id, () -> Map.copyOf(availableStructures));
+    private @Nullable PlacementStrategy explicitStrategy;
+    private @Nullable String jeiTitle;
+
+    EnableDepositsKubeBuilder(ResourceKey<Level> dimension,
+                              Supplier<Map<ResourceLocation, AvailableStructure>> availableStructures) {
+        super("rnsEnableDeposits", "overworld|nether|dimension");
+        this.dimension = dimension;
+        this.id = DepositResources.structureSetId(CreateRNS.ID, dimension);
+        this.availableStructures = availableStructures;
     }
 
-    public EnableDepositsKubeBuilder(
-            ResourceLocation id, Supplier<Map<ResourceLocation, AvailableStructure>> availableStructures
-    ) {
-        super("rnsEnableDeposits", "overworld|nether");
-        this.id = id;
-        this.availableStructures = availableStructures;
+    @JSMethod
+    public EnableDepositsKubeBuilder jeiMiningTitle(String title) {
+        jeiTitle = title;
+        return this;
     }
 
     @Info("""
@@ -133,13 +139,21 @@ public class EnableDepositsKubeBuilder extends StartupKubeBuilder {
 
     public void gatherResources(DepositResources resources) {
         if (!isValid()) return;
-        boolean nether = id.equals(DepositResources.structureSetId(CreateRNS.ID, Level.NETHER));
+        boolean nether = dimension.equals(Level.NETHER);
+        int defaultSalt = dimension.location().toString().hashCode() & Integer.MAX_VALUE;
+        if (nether) defaultSalt = RNSPacks.NETHER_SALT;
+        else if (dimension.equals(Level.OVERWORLD)) defaultSalt = RNSPacks.SALT;
         var structures = worldgenStructures().stream()
                 .map(entry -> new DepositResources.WeightedStructure(entry.id(), entry.resolvedWeight())).toList();
         resources.structureSets.add(new DepositResources.StructureSet(id, structures,
                 resolvedSpacing(nether ? RNSPacks.DEFAULT_NETHER_SPACING : RNSPacks.DEFAULT_SPACING),
                 resolvedSeparation(nether ? RNSPacks.DEFAULT_NETHER_SEPARATION : RNSPacks.DEFAULT_SEPARATION),
-                resolvedSalt(nether ? RNSPacks.NETHER_SALT : RNSPacks.SALT)));
+                resolvedSalt(defaultSalt)));
+        if (jeiTitle != null) {
+            var category = DepositResources.miningCategoryId(dimension);
+            resources.langEntries.add(new DepositResources.LangEntry(CreateRNS.ID,
+                    CreateRNS.ID + ".jei.title." + category.getPath(), jeiTitle));
+        }
     }
 
     public List<SelectedStructure> selectedStructures() {
@@ -171,7 +185,7 @@ public class EnableDepositsKubeBuilder extends StartupKubeBuilder {
 
     @Override
     protected void assertValid() {
-        boolean nether = id.equals(DepositResources.structureSetId(CreateRNS.ID, Level.NETHER));
+        boolean nether = dimension.equals(Level.NETHER);
         int effectiveSpacing = resolvedSpacing(nether ? RNSPacks.DEFAULT_NETHER_SPACING : RNSPacks.DEFAULT_SPACING);
         int effectiveSeparation = resolvedSeparation(nether ? RNSPacks.DEFAULT_NETHER_SEPARATION : RNSPacks.DEFAULT_SEPARATION);
         if (effectiveSpacing <= effectiveSeparation) {
@@ -185,10 +199,16 @@ public class EnableDepositsKubeBuilder extends StartupKubeBuilder {
                 selected.valid = false;
                 continue;
             }
-            var dimension = structure.builtInDimension();
-            if (dimension != null && !id.equals(DepositResources.structureSetId(CreateRNS.ID, dimension))) {
-                error("Built-in deposit structure " + selected.id + " belongs to " + dimension.location()
+            var builtInDimension = structure.builtInDimension();
+            if (builtInDimension != null && !dimension.equals(builtInDimension)) {
+                error("Built-in deposit structure " + selected.id + " belongs to " + builtInDimension.location()
                         + " and cannot be selected in structure set " + id, true);
+                selected.valid = false;
+                continue;
+            }
+            if (structure.valid() && !structure.hasBiome() && !nether && !dimension.equals(Level.OVERWORLD)) {
+                error("Deposit structure " + selected.id + " must specify a biome for dimension "
+                        + dimension.location(), false);
                 selected.valid = false;
                 continue;
             }
@@ -199,6 +219,18 @@ public class EnableDepositsKubeBuilder extends StartupKubeBuilder {
                 error("Structure '" + selected.id + "' does not have an assigned weight", false);
             }
         }
+    }
+
+    void setPlacementStrategy(PlacementStrategy strategy) {
+        if (explicitStrategy != null && explicitStrategy != strategy) {
+            error("Conflicting placement strategies for dimension " + dimension.location(), true);
+            return;
+        }
+        explicitStrategy = strategy;
+    }
+
+    PlacementStrategy placementStrategy() {
+        return explicitStrategy != null ? explicitStrategy : DepositResources.defaultPlacementStrategy(dimension);
     }
 
     public static class SelectedStructure {

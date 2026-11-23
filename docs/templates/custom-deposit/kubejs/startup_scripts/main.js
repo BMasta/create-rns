@@ -17,6 +17,8 @@ StartupEvents.rnsDepositStructures(event => {
 //    .preset('overworld_common')
     .scannerIcon('minecraft:netherite_scrap')
     .mapIcon('minecraft:ancient_debris')
+    // For a custom dimension, set a biome or biome tag present in that dimension.
+//    .biome('#mymod:lunar_biomes')
 })
 
 StartupEvents.rnsEnableDeposits(event => {
@@ -50,4 +52,9 @@ StartupEvents.rnsEnableDeposits(event => {
     .deposit('mymod:deposit_netherite', true)
     .spacing(8)
     .separation(2)
+
+  // For a custom dimension (don't forget to remove it from the nether selection):
+//  event.dimension('mymod:moon')
+//    .deposit('mymod:deposit_netherite')
+//    .jeiMiningTitle('Lunar Mining')
 })

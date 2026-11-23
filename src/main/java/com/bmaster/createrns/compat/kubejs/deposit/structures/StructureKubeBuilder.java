@@ -100,7 +100,7 @@ public abstract class StructureKubeBuilder<B extends StructureKubeBuilder<B>> ex
         boolean isTag = biomeOrTagId.startsWith("#");
         var idString = isTag ? biomeOrTagId.substring(1) : biomeOrTagId;
         var id = ResourceLocation.tryParse(idString);
-        if (id == null) {
+        if (id == null || id.getPath().isEmpty()) {
             error("Invalid biome or biome tag id: " + biomeOrTagId, true);
             return self();
         }
@@ -267,6 +267,10 @@ public abstract class StructureKubeBuilder<B extends StructureKubeBuilder<B>> ex
         }
     }
 
+    boolean hasBiome() {
+        return biomeSelector != null;
+    }
+
     public ResourceLocation id() {
         return id;
     }
@@ -294,9 +298,7 @@ public abstract class StructureKubeBuilder<B extends StructureKubeBuilder<B>> ex
         return DepositResources.specId(id);
     }
 
-    protected PlacementStrategy placementStrategy() {
-        return DepositResources.defaultPlacementStrategy(dimension);
-    }
+    protected abstract PlacementStrategy placementStrategy();
 
     protected ResourceLocation processorId() {
         return DepositResources.processorId(id.getNamespace(), blockId());

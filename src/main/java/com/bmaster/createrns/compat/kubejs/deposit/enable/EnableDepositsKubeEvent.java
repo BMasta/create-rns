@@ -1,11 +1,12 @@
 package com.bmaster.createrns.compat.kubejs.deposit.enable;
 
-import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.content.deposit.worldgen.PlacementStrategy;
 import com.bmaster.createrns.compat.kubejs.deposit.structures.DepositStructuresKubeEvent;
 import com.bmaster.createrns.compat.kubejs.util.JSMethod;
 import com.bmaster.createrns.compat.kubejs.util.StartupJSObject;
 import com.bmaster.createrns.data.deposit.DepositResources;
 import com.bmaster.createrns.data.pack.DynamicDatapackContent;
+import com.bmaster.createrns.util.Utils;
 import com.bmaster.createrns.util.codec.ResourceOrTagLocation;
 import dev.latvian.mods.kubejs.event.KubeStartupEvent;
 import dev.latvian.mods.kubejs.typings.Info;
@@ -23,61 +24,72 @@ import java.util.stream.Collectors;
 @ParametersAreNonnullByDefault
 public class EnableDepositsKubeEvent extends StartupJSObject implements KubeStartupEvent {
     private final DepositStructuresKubeEvent structures;
-    private @Nullable EnableDepositsKubeBuilder overworld;
-    private @Nullable EnableDepositsKubeBuilder nether;
+    private final Map<ResourceKey<Level>, EnableDepositsKubeBuilder> dimensions = new LinkedHashMap<>();
 
     public EnableDepositsKubeEvent(DepositStructuresKubeEvent structures) {
-        super("rnsEnableDeposits", "overworld|nether");
+        super("rnsEnableDeposits", "overworld|nether|dimension");
         this.structures = structures;
     }
 
     @Info("Returns the overworld deposit structure set builder.")
     @JSMethod
     public EnableDepositsKubeBuilder overworld() {
-        if (overworld == null) {
-            overworld = new EnableDepositsKubeBuilder(
-                    DepositResources.structureSetId(CreateRNS.ID, Level.OVERWORLD), structures::availableStructures);
-        }
-        return overworld;
+        return dimension(Level.OVERWORLD, null);
     }
 
     @Info("Returns the nether deposit structure set builder.")
     @JSMethod
     public EnableDepositsKubeBuilder nether() {
-        if (nether == null) {
-            nether = new EnableDepositsKubeBuilder(
-                    DepositResources.structureSetId(CreateRNS.ID, Level.NETHER), structures::availableStructures);
-        }
-        return nether;
+        return dimension(Level.NETHER, null);
+    }
+
+    @JSMethod
+    public EnableDepositsKubeBuilder dimension(String id) {
+        return dimension(Utils.parseDimension(id), null);
+    }
+
+    @JSMethod
+    public EnableDepositsKubeBuilder dimension(String id, String placementStrategy) {
+        var strategy = switch (placementStrategy) {
+            case "overworld" -> PlacementStrategy.OVERWORLD;
+            case "nether" -> PlacementStrategy.NETHER;
+            default -> throw new IllegalArgumentException("Unknown placement strategy: " + placementStrategy
+                    + ". Expected overworld or nether");
+        };
+        return dimension(Utils.parseDimension(id), strategy);
+    }
+
+    private EnableDepositsKubeBuilder dimension(ResourceKey<Level> dimension, @Nullable PlacementStrategy strategy) {
+        var builder = dimensions.computeIfAbsent(dimension,
+                key -> new EnableDepositsKubeBuilder(key, structures::availableStructures));
+        if (strategy != null) builder.setPlacementStrategy(strategy);
+        return builder;
     }
 
     public boolean hasConfiguredDimensions() {
-        return (overworld != null && overworld.isValid()) || (nether != null && nether.isValid());
+        return dimensions.values().stream().anyMatch(EnableDepositsKubeBuilder::isValid);
     }
 
     public void assertValid() {
-        var configured = configuredStructureSets();
-        var overworld = configured.get(Level.OVERWORLD);
-        var nether = configured.get(Level.NETHER);
-        if (overworld == null || nether == null) return;
-
-        var overworldIds = overworld.selectedStructures().stream().map(EnableDepositsKubeBuilder.SelectedStructure::id)
-                .collect(Collectors.toSet());
-        for (var selected : nether.selectedStructures()) {
-            if (!overworldIds.contains(selected.id())) continue;
-            var message = "Custom deposit structure " + selected.id()
-                    + " cannot belong to both overworld and nether KubeJS structure sets";
-            overworld.error(message, true);
-            nether.error(message, true);
+        var owners = new HashMap<ResourceLocation, EnableDepositsKubeBuilder>();
+        for (var builder : configuredStructureSets().values()) {
+            for (var selected : builder.selectedStructures()) {
+                var first = owners.putIfAbsent(selected.id(), builder);
+                if (first == null) continue;
+                var message = "Custom deposit structure " + selected.id() + " cannot belong to both "
+                        + first.dimension.location() + " and " + builder.dimension.location();
+                first.error(message, true);
+                builder.error(message, true);
+            }
         }
     }
 
-    public void gatherResources(DepositResources resources, Map<ResourceKey<Level>, Set<ResourceLocation>> selected) {
-        for (var structureSet : configuredStructureSets().values()) structureSet.gatherResources(resources);
+    public void gatherResources(DepositResources resources, Map<ResourceKey<Level>, DimensionSelection> selected) {
+        for (var builder : configuredStructureSets().values()) builder.gatherResources(resources);
         if (selected.isEmpty()) return;
 
         var tagged = new TreeSet<>(Comparator.comparing(ResourceLocation::toString));
-        selected.values().forEach(tagged::addAll);
+        selected.values().forEach(selection -> tagged.addAll(selection.structureIds()));
         for (var structure : DynamicDatapackContent.RESOURCES.structures) {
             if (!selected.containsKey(structure.dimension())) tagged.add(structure.id());
         }
@@ -85,25 +97,28 @@ public class EnableDepositsKubeEvent extends StartupJSObject implements KubeStar
         resources.structureTags.add(new DepositResources.StructureTag(DepositResources.structureTagId(), entries, true));
     }
 
-    public Map<ResourceKey<Level>, Set<ResourceLocation>> selectedStructuresByDimension() {
-        var selected = new LinkedHashMap<ResourceKey<Level>, Set<ResourceLocation>>();
+    public Map<ResourceKey<Level>, DimensionSelection> selectedStructuresByDimension() {
+        var selected = new LinkedHashMap<ResourceKey<Level>, DimensionSelection>();
         for (var entry : configuredStructureSets().entrySet()) {
             var ids = entry.getValue().selectedStructures().stream().map(EnableDepositsKubeBuilder.SelectedStructure::id)
                     .collect(Collectors.toCollection(LinkedHashSet::new));
             // An explicit empty selection still overrides defaults in this dimension.
-            selected.put(entry.getKey(), ids);
+            selected.put(entry.getKey(), new DimensionSelection(entry.getValue().placementStrategy(), ids));
         }
         return selected;
     }
 
     private Map<ResourceKey<Level>, EnableDepositsKubeBuilder> configuredStructureSets() {
         var configured = new LinkedHashMap<ResourceKey<Level>, EnableDepositsKubeBuilder>();
-        if (overworld != null && overworld.isValid()) configured.put(Level.OVERWORLD, overworld);
-        if (nether != null && nether.isValid()) configured.put(Level.NETHER, nether);
+        dimensions.forEach((dimension, builder) -> {
+            if (builder.isValid()) configured.put(dimension, builder);
+        });
         return configured;
     }
 
+    public record DimensionSelection(PlacementStrategy strategy, Set<ResourceLocation> structureIds) {}
+
     public record AvailableStructure(
-            ResourceLocation id, @Nullable Integer weight, @Nullable ResourceKey<Level> builtInDimension, boolean valid
+            @Nullable Integer weight, @Nullable ResourceKey<Level> builtInDimension, boolean hasBiome, boolean valid
     ) {}
 }

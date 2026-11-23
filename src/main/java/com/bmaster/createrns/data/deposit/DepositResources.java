@@ -6,6 +6,7 @@ import com.bmaster.createrns.content.deposit.mining.recipe.DepositDurability;
 import com.bmaster.createrns.content.deposit.worldgen.PlacementStrategy;
 import com.bmaster.createrns.util.codec.ResourceOrTagLocation;
 import com.mojang.logging.annotations.MethodsReturnNonnullByDefault;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
@@ -151,6 +152,12 @@ public final class DepositResources {
         } else {
             return PlacementStrategy.OVERWORLD;
         }
+    }
+
+    public static ResourceLocation miningCategoryId(ResourceKey<Level> dimension) {
+        var id = dimension.location();
+        return CreateRNS.asResource(dimension.equals(Level.OVERWORLD) ? "mining"
+                : "mining_" + id.getNamespace() + "_" + id.getPath());
     }
 
     /// Vanilla dimensions are abbreviated

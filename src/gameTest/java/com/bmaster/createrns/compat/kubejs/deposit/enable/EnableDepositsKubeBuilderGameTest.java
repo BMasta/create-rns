@@ -385,7 +385,7 @@ public class EnableDepositsKubeBuilderGameTest {
         context.structureSet().overworld().deposit(structureId.toString(), false);
         context.structureSet().nether().deposit(structureId.toString(), false);
 
-        assertValidationError(context, "cannot belong to both overworld and nether");
+        assertValidationError(context, "cannot belong to both minecraft:overworld and minecraft:the_nether");
         helper.assertFalse(context.structureSet().hasConfiguredDimensions(), "Conflicting selections are invalidated");
     }
 
@@ -415,6 +415,61 @@ public class EnableDepositsKubeBuilderGameTest {
         assertValidationError(context, "greater than separation");
         context.helper().assertTrue(!overworld.isValid() && !nether.isValid(),
                 "Explicit values must be compatible with the omitted setting's default");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void customDimensionGeneratesMatchingResources(RNSKubeJSBuilderTestContext context) {
+        var helper = context.helper();
+        var event = context.structureSet();
+        var dimension = "mymod:moon";
+        var builder = event.dimension(dimension, "nether");
+        helper.assertTrue(builder == event.dimension(dimension), "Repeated calls reuse the dimension builder");
+        helper.assertTrue(event.nether() == event.dimension("minecraft:the_nether"), "Nether alias");
+
+        var structure = ResourceLocation.parse("mymod:deposit_lunar_iron");
+        context.depositStructures().create(structure.toString()).block("minecraft:iron_block")
+                .scannerIcon("minecraft:iron_ingot").preset("overworld_common").biome("#mymod:lunar_biomes");
+        builder.deposit(structure.toString()).jeiMiningTitle("Lunar Mining");
+        var data = context.assembleData();
+        var json = data.jsonObject(structurePath(structure));
+        helper.assertValueEqual(json.get("placement_strategy").getAsString(), "nether", "Explicit vertical placement");
+        helper.assertValueEqual(json.get("biomes").getAsString(), "#mymod:lunar_biomes", "Structure biome selector");
+        helper.assertValueEqual(data.jsonObject(depositSpecPath(structure)).get("dimension").getAsString(),
+                dimension, "Scanner dimension");
+        var set = data.jsonObject(structureSetPath("mymod_moon_deposits"));
+        assertStructureSetEntry(helper, set.getAsJsonArray("structures"), 0, structure.toString(), 50);
+        assertPlacement(helper, set, 4, 24, dimension.hashCode() & Integer.MAX_VALUE);
+        assertLangValue(helper, context.assembleLang(), "create_rns", "en_us",
+                "create_rns.jei.title.mining_mymod_moon", "Lunar Mining");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void missingBiomeSkipsOnlyTheAffectedStructure(RNSKubeJSBuilderTestContext context) {
+        var builder = context.structureSet().dimension("mymod:moon");
+        for (var name : List.of("missing", "explicit")) {
+            var structure = context.depositStructures().create("mymod:" + name).block("minecraft:iron_block")
+                    .scannerIcon("minecraft:iron_ingot").preset("overworld_common");
+            if (name.equals("explicit")) structure.biome("mymod:lunar_plains");
+            builder.deposit("mymod:" + name, false);
+        }
+
+        assertValidationError(context, "mymod:missing must specify a biome for dimension mymod:moon");
+        var data = context.assembleData();
+        context.helper().assertFalse(data.hasJson(structurePath(ResourceLocation.parse("mymod:missing"))),
+                "Missing selector excludes even a scan-only structure");
+        var json = data.jsonObject(structurePath(ResourceLocation.parse("mymod:explicit")));
+        context.helper().assertValueEqual(json.get("placement_strategy").getAsString(), "overworld",
+                "Other structures still generate with the default strategy");
+    }
+
+    @RNSKubeJSBuilderTest
+    private static void conflictingExplicitStrategiesInvalidateTheDimension(RNSKubeJSBuilderTestContext context) {
+        var event = context.structureSet();
+        var builder = event.dimension("mymod:moon", "nether");
+        assertFatalBuilderError(context.helper(), builder, "Conflicting placement strategies",
+                () -> event.dimension("mymod:moon", "overworld"));
+        assertThrows(context.helper(), IllegalArgumentException.class, "Unknown placement strategy",
+                () -> event.dimension("mymod:moon", "unknown"));
     }
 
     private static BuiltInStructure firstBuiltInStructure(

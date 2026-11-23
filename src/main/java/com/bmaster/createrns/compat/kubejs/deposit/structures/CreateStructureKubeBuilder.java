@@ -1,6 +1,7 @@
 package com.bmaster.createrns.compat.kubejs.deposit.structures;
 
 import com.bmaster.createrns.compat.kubejs.util.JSMethod;
+import com.bmaster.createrns.content.deposit.worldgen.PlacementStrategy;
 import dev.latvian.mods.kubejs.typings.Info;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -13,6 +14,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public final class CreateStructureKubeBuilder extends StructureKubeBuilder<CreateStructureKubeBuilder> {
+    private PlacementStrategy strategy = PlacementStrategy.OVERWORLD;
+
     public CreateStructureKubeBuilder(ResourceLocation id) {
         super(id);
     }
@@ -29,8 +32,14 @@ public final class CreateStructureKubeBuilder extends StructureKubeBuilder<Creat
         return this;
     }
 
-    void setDimension(ResourceKey<Level> dimension) {
+    void setDimension(ResourceKey<Level> dimension, PlacementStrategy strategy) {
         this.dimension = dimension;
+        this.strategy = strategy;
+    }
+
+    @Override
+    protected PlacementStrategy placementStrategy() {
+        return strategy;
     }
 
     @Override

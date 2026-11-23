@@ -55,13 +55,18 @@ Sets the deposit durability values used by the mining recipe.
 
 Default: infinite (even with finite deposits enabled in server config).
 
+### `dimension(id)` (optional)
+Sets the preferred mining dimension and JEI category for this recipe.
+Define a separate recipe for each dimension that needs different yields.
+If a block has no recipe for the current dimension, the miner can fall back to an existing recipe for any dimension.
+
+* `id`: dimension id such as `mymod:moon`
+
 ### `overworld()` (optional)
-Marks this recipe as an overworld recipe. This is the default dimension unless specified otherwise.
-A single recipe can only work in one dimension. Add two recipes if both dimensions are required.
+Shortcut for `.dimension('minecraft:overworld')`
 
 ### `nether()` (optional)
-Marks this recipe as a nether recipe.
-A single recipe can only work in one dimension. Add two recipes if both dimensions are required.
+Shortcut for `.dimension('minecraft:the_nether')`
 
 ## Adding mining recipes (yield builder)
 
@@ -349,8 +354,11 @@ Set to a negative value to have deposits generate underground.
 
 Default: * `-8` for overworld deposits, `-4` for nether deposits.
 
-### `biome(biomeOrTagId)` (optional)
+### `biome(biomeOrTagId)`
 Sets the biome or biome tag in which the deposit structure may generate.
+Structures selected in a custom dimension (or the end) require one explicit biome or biome tag. Only one biome or biome tag is allowed.
+
+***IMPORTANT!*** Choose biomes carefully because a structure can generate in any dimension that has them. Make sure to select ONLY the biomes that correspond to the dimension the deposit is configured for.
 
 ***IMPORTANT!*** The existence of modded biomes cannot be properly validated before the datapack is loaded. If you specify
 a non-existent modded biome, you will get a non-descriptive datapack load error.
@@ -376,7 +384,7 @@ The exact values depend on the selected preset. For reference:
 * rare - redstone, zinc
 
 ***IMPORTANT!*** The preset name identifies the intended dimension defaults, but does not assign the structure to that dimension.
-Dimension is assigned when the structure is selected through `event.overworld()` or `event.nether()` in
+Dimension is assigned when the structure is selected through `event.dimension(id)`, `event.overworld()`, or `event.nether()` in
 `StartupEvents.rnsEnableDeposits`.
 
 #### overworld_common
@@ -440,11 +448,11 @@ Expands to:
 ## Configure deposit generation and visibility
 Create: Rock & Stone adds a custom deposit-enablement event `StartupEvents.rnsEnableDeposits`.
 
-***IMPORTANT!*** Calling either `event.overworld()` or `event.nether()` overrides the default deposits in that dimension.
+***IMPORTANT!*** Configuring deposits in a dimension overrides the defaults.
 Each unconfigured dimension keeps its defaults.
-For default deposits, it also controls if the respective deposit block will be added to the creative menu.
+Disabling built-in deposits also hides the deposit block from the creative menu.
 
-Default deposits (including compat) can be found [here](../src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure).
+Built-in deposits (including compat) can be found [here](../src/generated/builtin_packs/with_compat/create_rns_dynamic_data/data/create_rns/worldgen/structure).
 
 Usage:
 
@@ -460,15 +468,26 @@ StartupEvents.rnsEnableDeposits(event => {
 })
 ```
 
-### `overworld()` / `nether()`
-Configure the structure set for the respective dimension.
+### `dimension(id)` / `dimension(id, placementStrategy)`
+Configure deposit selection for the respective dimension.
 
-***IMPORTANT!*** When called, replaces the default structure set.
-This means that once called, only the deposits specified with `deposit()` will be enabled in the world.
+```js
+event.dimension('mymod:moon', 'overworld')
+  .deposit('mymod:deposit_lunar_iron')
+  .jeiMiningTitle('Lunar Mining')
+```
+
+* `id`: dimension ID for which to configure the deposit selection
+* `placementStrategy`: the rules of how the placement for deposits is decided; can be 'overworld' or 'nether' (default: 'nether' for the Nether, 'overworld' otherwise)
+
+***IMPORTANT!*** When called, replaces the default selection.
 Calling it without adding deposits with `deposit()` essentially removes all deposits from the respective dimension.
 
-For default deposits, not including them in any dimension will also remove the respective deposit block from the creative menu tab.
-The only exception is the depleted deposit block, which is always available.
+### `overworld()`
+Shortcut for `dimension('minecraft:overworld')`
+
+### `nether()`
+Shortcut for `dimension('minecraft:the_nether')`
 
 ### `deposit(structureId, weight)` / `deposit(structureId, enableWorldgen)` / `deposit(structureId, weight, enableWorldgen)`
 Makes deposit scannable in the current dimension. Unless `enableWorldgen` is set to false, also makes it generate in the world.
@@ -482,14 +501,19 @@ Average distance between two deposits in chunks.
 
 * `value`: integer from `1` through `4096`, greater than `separation`
 
-Default: `24` for `event.overworld()`, `8` for `event.nether()`.
+Default: `8` for the Nether and `24` for other dimensions.
 
 ### `separation(value)` (optional)
 Minimum distance between two deposits in chunks. Must be smaller than `spacing`.
 
 * `value`: integer from `0` up to `spacing - 1`
 
-Default: `4` for `event.overworld()`, `2` for `event.nether()`.
+Default: `2` for the Nether and `4` for other dimensions.
+
+### `jeiMiningTitle(title)` (optional)
+Sets the JEI mining category title for this dimension.
+The category contains all mining recipes for that dimension.
+Creates a `create_rns.jei.title.mining_<dimension namespace>_<dimension_path>` lang entry.
 
 ### `salt(value)` (optional)
 A "seed" used for calculating the random spread of deposits across the world.
@@ -497,3 +521,4 @@ A "seed" used for calculating the random spread of deposits across the world.
 * `value`: non-negative integer
 
 Default: `591646342` for `event.overworld()`, `781087034` for `event.nether()`.
+Other dimensions derive salt from the dimension ID.

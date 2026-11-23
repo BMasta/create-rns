@@ -35,6 +35,14 @@ public class MiningRecipeKubeRecipeGameTest {
     }
 
     @RNSKubeJSBuilderTest
+    private static void customMiningDimensionSurvivesCodec(RNSKubeJSBuilderTestContext context) {
+        var recipe = context.miningRecipe("lunar_iron").block(VALID_DEPOSIT_BLOCK)
+                .dimension("mymod:moon").yield(y -> y.item("minecraft:iron_ingot"));
+        var parsed = parseRecipe(context.helper(), serialize(recipe), "custom dimension mining recipe");
+        context.helper().assertValueEqual(parsed.getDimension().location().toString(), "mymod:moon", "Recipe dimension");
+    }
+
+    @RNSKubeJSBuilderTest
     private static void invalidDurabilityValuesAreDroppedFromSerializedJson(RNSKubeJSBuilderTestContext context) {
         var helper = context.helper();
         var recipe = context.miningRecipe("invalid_durability");

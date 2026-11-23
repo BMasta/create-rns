@@ -5,6 +5,7 @@ import com.bmaster.createrns.RNSRegistries;
 import com.bmaster.createrns.compat.kubejs.RNSStartupKubeEvents;
 import com.bmaster.createrns.compat.kubejs.deposit.catalysts.CatalystsKubeEvent;
 import com.bmaster.createrns.compat.kubejs.deposit.enable.EnableDepositsKubeEvent;
+import com.bmaster.createrns.compat.kubejs.deposit.enable.EnableDepositsKubeEvent.DimensionSelection;
 import com.bmaster.createrns.compat.kubejs.deposit.structures.DepositStructuresKubeEvent;
 import com.bmaster.createrns.compat.kubejs.util.KubeStartupError.SourcedError;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
@@ -48,7 +49,7 @@ public final class KubeStartupEventProcessor {
     }
 
     private static Map<ResourceKey<Level>, Set<ResourceLocation>> selectedBlocks(
-            DepositResources resources, Map<ResourceKey<Level>, Set<ResourceLocation>> selectedStructures
+            DepositResources resources, Map<ResourceKey<Level>, DimensionSelection> selectedStructures
     ) {
         if (selectedStructures.isEmpty()) return Map.of();
 
@@ -67,7 +68,7 @@ public final class KubeStartupEventProcessor {
         }
         for (var entry : selectedStructures.entrySet()) {
             var inDimension = blocks.computeIfAbsent(entry.getKey(), dim -> new HashSet<>());
-            for (var id : entry.getValue()) inDimension.add(structureToBlock.get(id));
+            for (var id : entry.getValue().structureIds()) inDimension.add(structureToBlock.get(id));
         }
         // The depleted block has an Overworld recipe but no selectable structure.
         blocks.computeIfAbsent(Level.OVERWORLD, dim -> new HashSet<>())

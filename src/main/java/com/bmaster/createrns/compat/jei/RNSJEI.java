@@ -2,6 +2,7 @@ package com.bmaster.createrns.compat.jei;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSBlocks;
+import com.bmaster.createrns.data.deposit.DepositResources;
 import com.bmaster.createrns.RNSRecipeTypes;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipeLookup;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
@@ -49,9 +50,7 @@ public class RNSJEI implements IModPlugin {
         categories = MiningRecipeLookup.getAllRelevantDimensions(level).stream().collect(Collectors.toMap(
                 d -> d,
                 d -> {
-                    var dimRL = d.location();
-                    var dimSuffix = (d == Level.OVERWORLD ? "" : "_" + dimRL.getNamespace() + "_" + dimRL.getPath());
-                    var categoryRL = CreateRNS.asResource("mining" + dimSuffix);
+                    var categoryRL = DepositResources.miningCategoryId(d);
                     return new MiningRecipeCategory(
                             reg.getJeiHelpers().getGuiHelper(),
                             RecipeType.createRecipeHolderType(categoryRL));

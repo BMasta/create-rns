@@ -2,6 +2,7 @@ package com.bmaster.createrns.compat.kubejs.deposit.structures;
 
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.RNSPacks;
+import com.bmaster.createrns.compat.kubejs.deposit.enable.EnableDepositsKubeEvent.DimensionSelection;
 import com.bmaster.createrns.compat.kubejs.deposit.enable.EnableDepositsKubeEvent.AvailableStructure;
 import com.bmaster.createrns.compat.kubejs.util.JSMethod;
 import com.bmaster.createrns.compat.kubejs.util.StartupJSObject;
@@ -86,11 +87,11 @@ public class DepositStructuresKubeEvent extends StartupJSObject implements KubeS
             var id = entry.id();
             var tweak = tweakedById.get(id);
             var weight = tweak != null && tweak.isValid() ? tweak.structureSetWeight() : entry.weight();
-            structures.put(id, new AvailableStructure(id, weight, entry.dimension(), true));
+            structures.put(id, new AvailableStructure(weight, entry.dimension(), true, true));
         }
         for (var builder : created) {
-            structures.put(builder.id(), new AvailableStructure(builder.id(), builder.structureSetWeight(),
-                    null, builder.isValid()));
+            structures.put(builder.id(), new AvailableStructure(builder.structureSetWeight(), null,
+                    builder.hasBiome(), builder.isValid()));
         }
         return structures;
     }
@@ -98,27 +99,32 @@ public class DepositStructuresKubeEvent extends StartupJSObject implements KubeS
     /** Gathers validated definitions and overrides using selections from the enable-deposits event. */
     public void gatherResources(
             DepositResources resources,
-            Map<ResourceKey<Level>, Set<ResourceLocation>> selectedStructures
+            Map<ResourceKey<Level>, DimensionSelection> selectedStructures
     ) {
-        for (var structure : selectedCustomStructures(selectedStructures)) {
-            structure.gatherResources(resources, true);
+        for (var entry : selectedStructures.entrySet()) {
+            for (var id : entry.getValue().structureIds()) {
+                var structure = createdById.get(id);
+                if (structure == null) continue;
+                structure.setDimension(entry.getKey(), entry.getValue().strategy());
+                structure.gatherResources(resources, true);
+            }
         }
 
         var validTweakIds = new LinkedHashSet<ResourceLocation>();
         for (var structure : tweakedById.values()) {
             if (!structure.isValid()) continue;
             validTweakIds.add(structure.id());
-            var selectedIds = selectedStructures.get(structure.dimension());
-            boolean scannable = selectedIds == null ? structure.defaultScannable() : selectedIds.contains(structure.id());
+            var selection = selectedStructures.get(structure.dimension());
+            boolean scannable = selection == null ? structure.defaultScannable() : selection.structureIds().contains(structure.id());
             structure.gatherResources(resources, scannable);
         }
 
         for (var entry : DynamicDatapackContent.RESOURCES.structures) {
-            var selectedIds = selectedStructures.get(entry.dimension());
-            if (selectedIds == null || validTweakIds.contains(entry.id())) continue;
+            var selection = selectedStructures.get(entry.dimension());
+            if (selection == null || validTweakIds.contains(entry.id())) continue;
 
             var spec = DynamicDatapackContent.RESOURCES.getSpec(entry.id());
-            boolean scannable = selectedIds.contains(entry.id());
+            boolean scannable = selection.structureIds().contains(entry.id());
             resources.specs.add(new DepositResources.Spec(spec.id(), spec.structureId(), spec.dimension(),
                     () -> scannable, spec.scannerIconCandidates(), spec.mapIconCandidates()));
         }
@@ -150,25 +156,6 @@ public class DepositStructuresKubeEvent extends StartupJSObject implements KubeS
                     nether ? RNSPacks.DEFAULT_NETHER_SEPARATION : RNSPacks.DEFAULT_SEPARATION,
                     nether ? RNSPacks.NETHER_SALT : RNSPacks.SALT));
         }
-    }
-
-    private List<CreateStructureKubeBuilder> selectedCustomStructures(
-            Map<ResourceKey<Level>, Set<ResourceLocation>> selectedStructures
-    ) {
-        var selected = new LinkedHashMap<ResourceLocation, CreateStructureKubeBuilder>();
-        for (var dimensionEntry : selectedStructures.entrySet()) {
-            for (var id : dimensionEntry.getValue()) {
-                var structure = createdById.get(id);
-                if (structure == null || !structure.isValid()) continue;
-                var previous = selected.putIfAbsent(id, structure);
-                if (previous != null && !previous.dimension().equals(dimensionEntry.getKey())) {
-                    throw new IllegalStateException("Custom deposit structure " + id
-                            + " cannot belong to both overworld and nether KubeJS structure sets");
-                }
-                structure.setDimension(dimensionEntry.getKey());
-            }
-        }
-        return List.copyOf(selected.values());
     }
 
     private static @Nullable DepositResources.Structure findBuiltInStructure(

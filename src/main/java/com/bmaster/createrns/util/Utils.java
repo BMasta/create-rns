@@ -9,10 +9,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.core.Vec3i;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -110,5 +112,11 @@ public class Utils {
                 ? registryId.getPath()
                 : registryId.getNamespace() + "/" + registryId.getPath();
         return ResourceLocation.fromNamespaceAndPath(tagId.getNamespace(), "tags/" + registryPath + "/" + tagId.getPath());
+    }
+
+    public static ResourceKey<Level> parseDimension(String id) {
+        var location = ResourceLocation.parse(id);
+        if (location.getPath().isEmpty()) throw new IllegalArgumentException("Dimension id must have a path");
+        return ResourceKey.create(Registries.DIMENSION, location);
     }
 }

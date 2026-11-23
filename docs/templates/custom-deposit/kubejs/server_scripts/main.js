@@ -13,6 +13,8 @@ ServerEvents.recipes(event => {
     // If there is only one recipe for a deposit block, it works in any dimension.
     // Use this to create multiple dimension-specific recipes.
     .nether()
+    // Or, for a custom dimension:
+//    .dimension('mymod:moon').
     .replaceWhenDepleted('create_rns:depleted_deposit_block')
     // Applicable only if finite deposits are enabled in server config.
     // Goes from 200000 +-20% uses in the horizontal center of a vein and down to 75000 +-20% on the edges.
