@@ -52,11 +52,7 @@ public class MinerRatesDisplaySourceGameTest {
             var process = miner.process();
             helper.assertTrue(process != null, "Mining process should be initialized");
             var stats = miner.behavior().stats;
-            process.innerProcesses.forEach(innerProcess -> {
-                var catalystStats = stats.catStats.ofInnerProcess(innerProcess);
-                helper.assertTrue(catalystStats.isComputed(),
-                        "Catalyst statistics should be initialized for estimated rates");
-            });
+            helper.assertTrue(stats.minedItems.isEmpty(), "Rates should be available before any item is mined");
 
             var rates = stats.getEstimatedRates(process, miner.behavior().getCurrentProgressIncrement());
             helper.assertValueEqual(rates.size(), 1, "estimated mining rate count");

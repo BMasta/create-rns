@@ -6,11 +6,13 @@ import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.mining.InnerProcess;
 import com.bmaster.createrns.content.deposit.mining.MiningProcess;
 import com.bmaster.createrns.content.deposit.mining.MiningStats;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystReservations;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.Tag;
+import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -37,11 +39,28 @@ public class MiningProcessSerialization {
     }
 
     @GameTest(template = "empty16x16")
+    public void rateEstimatesSkipYieldsWithMissingCatalysts(GameTestHelper helper) {
+        var stats = new MiningStats();
+        var process = createProcess(helper, stats);
+        var preview = stats.getEstimatedRates(process, 1);
+        helper.assertTrue(preview.getOrDefault(Items.COBBLESTONE, 0f) > 0, "Unconditional yield should have a rate");
+        helper.assertFalse(preview.containsKey(Items.RAW_IRON_BLOCK), "Gated yield should be absent");
+        var reservations = new CatalystReservations();
+        var handler = firstInnerProcess(process).catalystHandler;
+        handler.reserve(reservations);
+        helper.assertTrue(handler.consume(reservations), "A miner with no active catalysts can complete its operation");
+        helper.assertValueEqual(stats.getEstimatedRates(process, 1), preview,
+                "Committed and simulated rates for the same available yields");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty16x16")
     public void miningProcessDiskSerializationPreservesProgress(GameTestHelper helper) {
         var level = helper.getLevel();
         var provider = level.registryAccess();
         var original = createProcess(helper, null);
         firstInnerProcess(original).progress = PROGRESS;
+        firstInnerProcess(original).catalystHandler.reserve(new CatalystReservations());
 
         var serialized = original.write(provider, false);
         helper.assertTrue(serialized != null, "Disk serialization should produce a mining process tag");
@@ -50,14 +69,13 @@ public class MiningProcessSerialization {
         helper.assertTrue(serializedInnerProcess.contains("progress"), "Disk serialization should persist progress");
         helper.assertFalse(serializedInnerProcess.contains("remaining_uses"),
                 "Disk serialization should not persist remaining resources");
-        helper.assertFalse(serializedInnerProcess.contains("catalyst_stats"),
-                "Disk serialization should not persist catalyst stats");
 
         var restored = createProcess(helper, null);
         restored.read(serialized, provider, false);
         var restoredInnerProcess = firstInnerProcess(restored);
 
         helper.assertValueEqual(restoredInnerProcess.progress, PROGRESS, "restored mining progress");
+        helper.assertFalse(serializedInnerProcess.contains("catalyst_handler"), "Disk saves omit derived catalyst state");
         helper.succeed();
     }
 
@@ -76,8 +94,6 @@ public class MiningProcessSerialization {
                 "Client sync serialization should not persist progress");
         helper.assertFalse(serializedInnerProcess.contains("remaining_uses"),
                 "Client sync serialization should not persist remaining resources");
-        helper.assertFalse(serializedInnerProcess.contains("catalyst_stats"),
-                "Client sync process data should not include catalyst stats");
 
         var restored = createProcess(helper, null);
         restored.read(serialized, provider, true);
@@ -105,9 +121,6 @@ public class MiningProcessSerialization {
                 "Statistics should identify the initialized deposit block");
         helper.assertValueEqual(stats.remainingResources.ofDeposit(RNSDeposits.IRON_DEPOSIT.get()),
                 expectedRemainingResources, "initialized remaining resources");
-        var catalystStats = stats.catStats.ofDeposit(RNSDeposits.IRON_DEPOSIT.get());
-        helper.assertTrue(catalystStats.isComputed(),
-                "Statistics should initialize catalyst usage for the deposit block");
     }
 
     private static MiningProcess createProcess(GameTestHelper helper, @Nullable MiningStats stats) {

@@ -41,6 +41,7 @@ public class CatalystKubeBuilderGameTest {
         var lang = context.assembleLang();
 
         helper.assertFalse(json.has("chance_multiplier"), "Default chance multiplier should stay omitted");
+        helper.assertFalse(json.has("count_multiplier"), "Default count multiplier should stay omitted");
         helper.assertFalse(json.has("optional"), "Optional flag should stay omitted by default");
         helper.assertFalse(json.has("display_priority"), "Display priority should stay omitted by default");
         helper.assertFalse(json.has("representative_items"), "Representative items should stay omitted by default");
@@ -68,6 +69,7 @@ public class CatalystKubeBuilderGameTest {
                 .displayName("Nested Catalyst")
                 .description("Nested description")
                 .chanceMultiplier(0f)
+                .countMultiplier(2.5)
                 .optional()
                 .displayPriority(4)
                 .displayPriority(9)
@@ -84,6 +86,7 @@ public class CatalystKubeBuilderGameTest {
         var lang = context.assembleLang();
 
         CodecHelper.assertFloat(helper.raw(), json.get("chance_multiplier").getAsFloat(), 0f, "chance multiplier");
+        helper.assertValueEqual(json.get("count_multiplier").getAsDouble(), 2.5, "count multiplier");
         helper.assertTrue(json.get("optional").getAsBoolean(), "Expected explicit optional flag");
         helper.assertValueEqual(json.get("display_priority").getAsInt(), 9, "last display priority wins");
         assertArrayStrings(helper, json.get("representative_items"), "representative items",

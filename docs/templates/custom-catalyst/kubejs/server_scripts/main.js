@@ -10,7 +10,7 @@ ServerEvents.recipes(event => {
     .block('create_rns:iron_deposit_block')
     .id('create_rns:create_rns_iron_deposit_block')
     .replaceWhenDepleted('create_rns:depleted_deposit_block')
-    // This yield only rolls when the custom catalyst is active.
+    // The optional catalyst doubles this yield from one raw iron block to two while active.
     .yield(y => y
       .item('minecraft:raw_iron_block')
       .catalyst('mymod:superheated_overclock')

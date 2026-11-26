@@ -24,7 +24,7 @@ The runtime format is still the same JSON shown below, and datapacks can overrid
   // Only one recipe with the same deposit block and dimension is allowed.
   "deposit_block": "your_pack:tin_deposit_block",
   // Optional (default "minecraft:overworld")
-  // This recipe will be prioritized by deposits in specified dimension. 
+  // This recipe will be prioritized by deposits in specified dimension.
   // Additionally, it will show in a special dimension-specific tab in JEI.
   "dimension": "minecraft:the_nether",
   // Optional (default minecraft:air).
@@ -103,9 +103,12 @@ See [default catalysts](../src/main/resources/data/create_rns/create_rns/catalys
 
 ```json5
 {
-  // Optional (default 100% aka no change).
-  // When catalyst is active, the chance to mine a yield will be multiplied by this value.
+  // Optional (default 1, i.e. no change).
+  // While the catalyst is active, the chance to mine a yield will be multiplied by this value.
   "chance_multiplier": 2.5,
+  // Optional (default 1, i.e. no change).
+  // While the catalyst is active, the number of produced items in yield will be multiplied by this value (rounded down).
+  "count_multiplier": 1.5,
   // Optional (default false).
   "optional": true,
   // Optional (will be shown last by default).
@@ -145,7 +148,7 @@ See [default catalysts](../src/main/resources/data/create_rns/create_rns/catalys
 
 ## Adding a New Deposit Structure
  This process is a lot easier with KubeJS. Please refer to [this example](templates/custom-deposit/kubejs).
- However, if you want to know how the sausage is made, below is the recipe for doing it manually. 
+ However, if you want to know how the sausage is made, below is the recipe for doing it manually.
 
 ### 1. Deposit Spec
 

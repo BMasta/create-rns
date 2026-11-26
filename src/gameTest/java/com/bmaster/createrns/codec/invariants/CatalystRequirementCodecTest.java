@@ -134,21 +134,22 @@ public class CatalystRequirementCodecTest {
 
         helper.assertTrue(fluidRequirement.isSatisfiedBy(List.of(catalyst)),
                 "A fluid catalyst should satisfy the requirement type check");
-        helper.assertTrue(fluidRequirement.useCatalysts(List.of(catalyst), true),
+        var reservations = new CatalystReservations();
+        helper.assertTrue(fluidRequirement.reserve(List.of(catalyst), reservations),
                 "Simulated catalyst usage should succeed when enough fluid is present");
         helper.assertValueEqual(tank.getFluidAmount(), 40, "fluid amount after simulated catalyst usage");
-        helper.assertTrue(fluidRequirement.useCatalysts(List.of(catalyst), false),
+        helper.assertTrue(reservations.consume(List.of(catalyst)),
                 "Executing catalyst usage should succeed when enough fluid is present");
         helper.assertValueEqual(tank.getFluidAmount(), 20, "fluid amount after executing catalyst usage");
 
         var insufficientTank = new FluidTank(1000);
         insufficientTank.fill(new FluidStack(Fluids.LAVA, 10), IFluidHandler.FluidAction.EXECUTE);
-        helper.assertFalse(fluidRequirement.useCatalysts(List.of(new FluidCatalyst(insufficientTank)), false),
+        helper.assertFalse(fluidRequirement.reserve(List.of(new FluidCatalyst(insufficientTank)), new CatalystReservations()),
                 "Catalyst usage should fail when the tank contains too little fluid");
 
         var wrongFluidTank = new FluidTank(1000);
         wrongFluidTank.fill(new FluidStack(Fluids.WATER, 40), IFluidHandler.FluidAction.EXECUTE);
-        helper.assertFalse(fluidRequirement.useCatalysts(List.of(new FluidCatalyst(wrongFluidTank)), false),
+        helper.assertFalse(fluidRequirement.reserve(List.of(new FluidCatalyst(wrongFluidTank)), new CatalystReservations()),
                 "Catalyst usage should fail when the tank contains the wrong fluid");
         helper.assertValueEqual(wrongFluidTank.getFluidAmount(), 40,
                 "Wrong fluid amount after failed catalyst usage");

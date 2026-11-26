@@ -4,9 +4,11 @@ StartupEvents.rnsCatalysts(event => {
     // A JEI tab with your description will be generated for the representative item.
     .representativeItem('minecraft:lava_bucket')
     .description('Achieved by attaching 6 netherite blocks and supplying the mining contraption with lava.')
-    // Multiply the chance of rolling a successful yield by 1.5.
+    // Multiply the chance of producing a yield by 1.5 while the catalyst is active.
     .chanceMultiplier(1.5)
-    // An optional catalyst will only influence the chance of getting a yield.
+    // Double the number of produced items while the catalyst is active.
+    .countMultiplier(2)
+    // The yield will not be disabled while the catalyst is not active.
     .optional()
     // Controls the order in which catalysts are displayed in the miner bearing tooltip and in JEI.
     // See the priorities for the default catalysts here:

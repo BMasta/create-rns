@@ -17,7 +17,6 @@ import java.util.function.Predicate;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class CatalystKubeBuilder extends StartupKubeBuilder {
-    private static final float DEFAULT_CHANCE_MULTIPLIER = 1f;
     private static final int DEFAULT_ATTACHMENT_COUNT = 1;
 
     private final ResourceLocation id;
@@ -27,7 +26,8 @@ public class CatalystKubeBuilder extends StartupKubeBuilder {
     private final List<ResourceLocation> hideIfPresent = new ArrayList<>();
     private final List<DepositResources.CatalystRequirement> requirements = new ArrayList<>();
 
-    private float chanceMultiplier = DEFAULT_CHANCE_MULTIPLIER;
+    private float chanceMultiplier = 1;
+    private double countMultiplier = 1;
     private boolean optional;
     private Integer displayPriority;
     private ResourceLocation playWhenActive;
@@ -72,7 +72,18 @@ public class CatalystKubeBuilder extends StartupKubeBuilder {
         return this;
     }
 
-    @Info("Marks the catalyst as optional. Optional catalysts influence the chance of a yield without being strictly required for it.")
+    @Info("Multiplies the number of items produced by a successful yield while this catalyst is active.")
+    @JSMethod
+    public CatalystKubeBuilder countMultiplier(double value) {
+        if (!Double.isFinite(value) || value < 0) {
+            error("Catalyst count multiplier must be finite and non-negative", true);
+            return this;
+        }
+        countMultiplier = value;
+        return this;
+    }
+
+    @Info("Allows the yield to roll even when this catalyst is inactive.")
     @JSMethod
     public CatalystKubeBuilder optional() {
         optional = true;
@@ -206,7 +217,7 @@ public class CatalystKubeBuilder extends StartupKubeBuilder {
 
     public void gatherResources(DepositResources resources) {
         if (!isValid()) return;
-        resources.catalysts.add(new DepositResources.Catalyst(id, chanceMultiplier, optional, displayPriority,
+        resources.catalysts.add(new DepositResources.Catalyst(id, chanceMultiplier, countMultiplier, optional, displayPriority,
                 representativeItems, hideIfPresent, playWhenActive, requirements));
         if (displayName != null) {
             resources.langEntries.add(new DepositResources.LangEntry(

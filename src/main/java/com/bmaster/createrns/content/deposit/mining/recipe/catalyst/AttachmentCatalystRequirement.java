@@ -34,7 +34,7 @@ public class AttachmentCatalystRequirement extends CatalystRequirement {
     }
 
     @Override
-    public CatalystRequirementType<?> type() {
+    public CatalystRequirementType<AttachmentCatalystRequirement, AttachmentCatalystReservation> type() {
         return CatalystRequirementType.ATTACHMENT;
     }
 
@@ -55,9 +55,8 @@ public class AttachmentCatalystRequirement extends CatalystRequirement {
         return false;
     }
 
-    /// For performance reasons assumes the catalysts are already validated with isSatisfiedBy.
     @Override
-    public boolean useCatalysts(Collection<Catalyst> catalysts, boolean simulate) {
-        return true;
+    public boolean reserve(Collection<Catalyst> catalysts, CatalystReservations reservations) {
+        return isSatisfiedBy(catalysts);
     }
 }

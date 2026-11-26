@@ -34,6 +34,8 @@ public class CatalystRequirementSet {
     public static final Codec<CatalystRequirementSet> CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.floatRange(0f, Float.MAX_VALUE).optionalFieldOf("chance_multiplier", 1f)
                     .forGetter(crs -> crs.chanceMult),
+            Codec.doubleRange(0, Double.MAX_VALUE).optionalFieldOf("count_multiplier", 1d)
+                    .forGetter(crs -> crs.countMult),
             Codec.BOOL.optionalFieldOf("optional", false)
                     .forGetter(crs -> crs.optional),
             Codec.INT.optionalFieldOf("display_priority", Integer.MAX_VALUE)
@@ -61,6 +63,7 @@ public class CatalystRequirementSet {
     }
 
     public final float chanceMult;
+    public final double countMult;
     public final boolean optional;
     public final int displayPriority;
     public final List<Item> representativeItems;
@@ -76,8 +79,17 @@ public class CatalystRequirementSet {
             List<Holder<CatalystRequirementSet>> hideIfPresent, Optional<Holder<SoundEvent>> soundHolder,
             List<CatalystRequirement> requirements
     ) {
+        this(chanceMult, 1d, optional, displayPriority, representativeItems, hideIfPresent, soundHolder, requirements);
+    }
+
+    public CatalystRequirementSet(
+            float chanceMult, double countMult, boolean optional, int displayPriority, List<Item> representativeItems,
+            List<Holder<CatalystRequirementSet>> hideIfPresent, Optional<Holder<SoundEvent>> soundHolder,
+            List<CatalystRequirement> requirements
+    ) {
         if (requirements.isEmpty()) throw new IllegalArgumentException("Catalyst must have at least one requirement");
         this.chanceMult = chanceMult;
+        this.countMult = countMult;
         this.optional = optional;
         this.displayPriority = displayPriority;
         this.representativeItems = representativeItems;
@@ -109,10 +121,23 @@ public class CatalystRequirementSet {
         return true;
     }
 
-    public boolean useCatalysts(List<Catalyst> catalysts, boolean simulate) {
-        if (!useCatalystsNonAtomic(catalysts, true)) return false;
-        if (!simulate) useCatalystsNonAtomic(catalysts, false);
-        return true;
+    public boolean reserve(List<Catalyst> catalysts, CatalystReservations reservations) {
+        if (catalysts.isEmpty()) return false;
+        var updatedRes = reservations.copy();
+
+        boolean allSatisfied = true;
+        for (var cr : requirements) {
+            boolean satisfied = false;
+            if (cr.reserve(catalysts, updatedRes)) {
+                for (var ignored : catalysts) {
+                    satisfied = true;
+                    break;
+                }
+            }
+            if (!satisfied) allSatisfied = false;
+        }
+        if (allSatisfied) reservations.update(updatedRes);
+        return allSatisfied;
     }
 
     public static MutableComponent getNameComponent(Holder<CatalystRequirementSet> holder) {
@@ -131,22 +156,6 @@ public class CatalystRequirementSet {
 
     public static MutableComponent getDescriptionComponent(Holder<CatalystRequirementSet> holder) {
         return Component.translatable(langKey(id(holder), "description"));
-    }
-
-    protected boolean useCatalystsNonAtomic(List<Catalyst> catalysts, boolean simulate) {
-        if (catalysts.isEmpty()) return false;
-        boolean allSatisfied = true;
-        for (var cr : requirements) {
-            boolean satisfied = false;
-            if (cr.useCatalysts(catalysts, simulate)) {
-                for (var ignored : catalysts) {
-                    satisfied = true;
-                    break;
-                }
-            }
-            if (!satisfied) allSatisfied = false;
-        }
-        return allSatisfied;
     }
 
     private static String langKey(ResourceLocation id, String suffix) {

@@ -64,7 +64,7 @@ public class MinerEffectsGenerator {
                 .ifPresent(miner -> {
                     var behaviour = miner.miningBehaviour;
                     var mineHeadPos = behaviour.equipment.mineHeadTipPos;
-                    var crsList = behaviour.getStats().getLastSatisfiedCRSes(behaviour.getProcess());
+                    var crsList = behaviour.getStats().getActiveCRSes(behaviour.getProcess());
                     float pitch = 0.5f + Math.min(1, Math.abs(miner.getTheoreticalSpeed()) / 256f) / 2;
                     RNSSoundEvents.MINING.playClient(p.level(), mineHeadPos, 1, pitch, false);
                     if (behaviour.equipment.mineHeadSize == MineHeadSize.HUGE) {

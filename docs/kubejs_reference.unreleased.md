@@ -113,7 +113,10 @@ If you specify a non-existent or empty tag, KubeJS will not report any errors, b
 
 ### `catalyst(id)` (optional)
 Attaches a catalyst to this yield.
-Depending on the catalyst, it may be required or optional, and may modify the chance of getting a yield.
+Depending on the catalyst configuration, the effects of a catalyst can be:
+1. Disables the yield when not active
+2. Multiplies the chance of getting a yield when active
+3. Multiplies the number of produced items when active
 
 * `id`: id of an existing catalyst such as `create_rns:overclock`.
 
@@ -137,6 +140,7 @@ StartupEvents.rnsCatalysts(event => {
     .displayName('§6Superheated Overclock')
     .description('Achieved by attaching six or more resonators and a fluid container filled with lava to a miner.')
     .chanceMultiplier(1.5)
+    .countMultiplier(2)
     .optional()
     .displayPriority(1100)
     .representativeItem('minecraft:lava_bucket')
@@ -179,14 +183,20 @@ If omitted, make sure to supply the matching `<namespace>.catalyst.<path>.name` 
 * `name`: text shown to the player
 
 ### `chanceMultiplier(value)` (optional)
-Sets the chance multiplier applied while this catalyst is active.
+Multiplies the chance of producing a yield while the catalyst is active. The chance is capped at 100%.
 
 * `value`: decimal greater than or equal to `0`
 
 Default: `1`.
 
+### `countMultiplier(value)` (optional)
+Multiplies the number of produced items while the catalyst is active.
+The number of produced items of the same type is capped at 99.
+
+* `value`: finite decimal greater than or equal to `0` (default `1`)
+
 ### `optional()` (optional)
-Marks the catalyst as optional. Optional catalysts influence the chance of a yield without being strictly required for it.
+Marks the catalyst as optional. Optional catalysts don't disable a yield when inactive.
 
 Default: required.
 

@@ -1,10 +1,10 @@
 package com.bmaster.createrns.content.deposit.mining;
 
-import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.info.DepositDurabilityManager;
 import com.bmaster.createrns.content.deposit.mining.recipe.MiningRecipe;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.Catalyst;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystHandler;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystReservations;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -49,24 +49,17 @@ public class InnerProcess {
 
         progress = progress - maxProgress; // Keep the extra progress
 
-        // For each yield, simulate using catalysts and roll for spoils
+        // For each yield, reserve required resources and roll for items
         var spoils = new HashSet<ItemStack>();
         var yields = recipe.getYields();
-        var catalystStats = stats.catStats.ofInnerProcess(this);
-        var chances = catalystHandler.useCatalysts(catalystStats, true);
-        for (var e : chances.int2FloatEntrySet()) {
+        var reservations = new CatalystReservations();
+        var perYieldEffects = catalystHandler.reserve(reservations);
+        for (var e : perYieldEffects.entrySet()) {
             int yieldIdx = e.getIntKey();
-            float chance = e.getFloatValue();
-            if (chance > 0) {
-                var chanceRoll = (chance < 1f) ? level.random.nextFloat() : 0;
-                if (chance > chanceRoll) {
-                    var myPrecious = yields.get(yieldIdx).roll(level.random);
-                    spoils.add(myPrecious);
-                    if (chance < 1) {
-                        CreateRNS.LOGGER.trace("Successfully rolled for {} ({}% chance)", myPrecious, (int) (chance * 100));
-                    }
-                }
-            }
+            var effects = e.getValue();
+            var myPrecious = yields.get(yieldIdx).roll(level.random, effects);
+            if (myPrecious.isEmpty()) continue;
+            spoils.add(myPrecious);
         }
 
         if (spoils.isEmpty()) return spoils;
@@ -80,8 +73,8 @@ public class InnerProcess {
         if (stats.isStarted()) stats.remainingResources.computeIfPresent(recipe.getDepositBlock(),
                 (k, v) -> v > 0 ? v - 1 : v);
 
-        // Use catalysts
-        catalystHandler.useCatalysts(catalystStats, false);
+        // Consume reserved resources
+        if (!catalystHandler.consume(reservations)) return Set.of();
 
         return spoils;
     }
@@ -91,6 +84,7 @@ public class InnerProcess {
         var dbRL = BuiltInRegistries.BLOCK.getKey(recipe.getDepositBlock());
         root.putString("deposit_block", dbRL.toString());
         if (!clientPacket) root.putInt("progress", progress);
+        else root.put("catalyst_handler", catalystHandler.serializeNBT(provider));
 
         return root;
 
@@ -98,7 +92,7 @@ public class InnerProcess {
 
     public void read(CompoundTag nbt, HolderLookup.Provider provider, boolean clientPacket) {
         if (!clientPacket) this.progress = nbt.getInt("progress");
-
+        else catalystHandler.deserializeNBT(provider, nbt.getCompound("catalyst_handler"));
     }
 
     /// Returns 0 if deposit is infinite. Only callable on server side

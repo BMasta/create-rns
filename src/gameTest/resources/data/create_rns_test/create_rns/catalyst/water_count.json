@@ -1,0 +1,7 @@
+{
+  "count_multiplier": 0.58,
+  "optional": true,
+  "requirements": [
+    { "type": "fluid", "consume": { "id": "minecraft:water", "amount": 1 } }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "requirements": [
+    { "type": "fluid", "consume": { "id": "minecraft:water", "amount": 1 } }
+  ]
+}

@@ -3,7 +3,6 @@ package com.bmaster.createrns.util;
 import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.content.deposit.mining.IHaveAdaptiveGoggleInformation.Context;
 import com.bmaster.createrns.content.deposit.mining.IMinerHolderBE;
-import com.bmaster.createrns.content.deposit.mining.MiningStats.RateEstimationStatus;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.infrastructure.ServerConfig;
 import com.simibubi.create.content.kinetics.base.IRotate;
@@ -82,7 +81,6 @@ public class GoggleTooltipModifiers {
                             .withStyle(ChatFormatting.GREEN))
                     .forGoggles(tooltip, 1);
         }
-        addEstimationComponent(stats.getRateEstimationStatus(process), tooltip);
 
         return true;
     }
@@ -123,7 +121,7 @@ public class GoggleTooltipModifiers {
 
         // Add active CRSes
         boolean lineAdded = false;
-        var activeCRSes = stats.getLastSatisfiedCRSes(process);
+        var activeCRSes = stats.getActiveCRSes(process);
         for (var crs : activeCRSes) {
             var comp = CatalystRequirementSet.getNameComponent(activeCRSes, crs);
             if (comp != null) {
@@ -134,8 +132,6 @@ public class GoggleTooltipModifiers {
                 CreateRNS.lang().add(comp).forGoggles(tooltip);
             }
         }
-
-        addEstimationComponent(stats.getRateEstimationStatus(process), tooltip);
 
         return true;
     }
@@ -169,18 +165,5 @@ public class GoggleTooltipModifiers {
                 .forGoggles(tooltip, 1);
 
         return true;
-    }
-
-    protected static void addEstimationComponent(RateEstimationStatus status, List<Component> tooltip) {
-        if (status == RateEstimationStatus.ALL) return;
-        var statusTag = switch (status) {
-            case NONE -> "none_estimated";
-            case SOME -> "some_estimated";
-            default -> throw new IllegalStateException("Unexpected value: " + status);
-        };
-        CreateRNS.lang()
-                .add(CreateRNS.translatable("mining.tooltip." + statusTag)
-                        .withStyle(ChatFormatting.DARK_GRAY))
-                .forGoggles(tooltip, 1);
     }
 }

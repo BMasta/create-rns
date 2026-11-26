@@ -352,6 +352,7 @@ public final class DepositResources {
     public record Catalyst(
             ResourceLocation id,
             float chanceMultiplier,
+            double countMultiplier,
             boolean optional,
             @Nullable Integer displayPriority,
             List<ResourceLocation> representativeItems,
@@ -363,6 +364,13 @@ public final class DepositResources {
             representativeItems = List.copyOf(representativeItems);
             hideIfPresent = List.copyOf(hideIfPresent);
             requirements = List.copyOf(requirements);
+        }
+
+        public Catalyst(ResourceLocation id, float chanceMultiplier, boolean optional, @Nullable Integer displayPriority,
+                       List<ResourceLocation> representativeItems, List<ResourceLocation> hideIfPresent,
+                       @Nullable ResourceLocation playWhenActive, List<CatalystRequirement> requirements) {
+            this(id, chanceMultiplier, 1d, optional, displayPriority, representativeItems, hideIfPresent,
+                    playWhenActive, requirements);
         }
     }
 

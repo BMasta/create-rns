@@ -1,5 +1,7 @@
 package com.bmaster.createrns.content.deposit.mining.recipe;
 
+import com.bmaster.createrns.CreateRNS;
+import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystHandler.CatalystEffects;
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
 import com.bmaster.createrns.util.codec.ItemWithFallbacks;
 import com.mojang.datafixers.util.Pair;
@@ -22,6 +24,7 @@ import net.minecraft.world.item.Items;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 @MethodsReturnNonnullByDefault
@@ -55,30 +58,59 @@ public class Yield {
 
     private final List<ResourceLocation> crsIds;
     private final List<Holder<CatalystRequirementSet>> crsList;
-    private int totalWeight = 0;
+    private long totalWeight = 0;
 
-    public int getTotalWeight() {
+    protected Yield(
+            float chance, List<WeightedItemStack> items, List<Holder<CatalystRequirementSet>> crsList,
+            int slotColor
+    ) {
+        this.chance = chance;
+        this.items = items;
+
+        var idSet = new HashSet<>();
+        this.crsIds = new ArrayList<>();
+        this.crsList = new ArrayList<>();
+        for (var crs : crsList) {
+            var id = CatalystRequirementSet.id(crs);
+            if (!idSet.add(id)) continue;
+            this.crsIds.add(id);
+            this.crsList.add(crs);
+        }
+        this.slotColor = slotColor;
+    }
+
+    public long getTotalWeight() {
         if (totalWeight == 0) {
             totalWeight = items.stream()
-                    .map(y -> y.weight)
-                    .reduce(Integer::sum)
+                    .map(y -> (long) y.weight)
+                    .reduce(Long::sum)
                     .orElseThrow();
         }
         return totalWeight;
     }
 
-    public ItemStack roll(RandomSource rng) {
-        var result = items.getLast();
+    public ItemStack roll(RandomSource rng, CatalystEffects catalystEffects) {
+        float scaledChance = Math.min(chance * catalystEffects.chanceMult(), 1);
+        if (scaledChance <= 0 || scaledChance <= rng.nextFloat()) return ItemStack.EMPTY;
+
         float threshold = rng.nextFloat();
         float accChance = 0;
-        for (var t : items) {
-            accChance += (float) t.weight / getTotalWeight();
+        ItemStack result = items.getLast().itemStack(catalystEffects.countMult());
+
+        for (var wis : items) {
+            accChance += (float) wis.weight / getTotalWeight();
             if (accChance > threshold) {
-                result = t;
-                if (result.item != Items.AIR) break;
+                if (wis.item != Items.AIR) result = wis.itemStack(catalystEffects.countMult());
+
+                break;
             }
         }
-        return result.itemStack();
+        if (scaledChance < 1 && !result.isEmpty()) {
+            CreateRNS.LOGGER.trace("Successfully rolled for {} {} ({}% chance)",
+                    result.getCount(), result.getItem(), (int) (scaledChance * 100));
+        }
+
+        return result;
     }
 
     public boolean initialize(RegistryAccess access) {
@@ -96,21 +128,9 @@ public class Yield {
         return crsList;
     }
 
-    protected Yield(
-            float chance, List<WeightedItemStack> items, List<Holder<CatalystRequirementSet>> crsList,
-            int slotColor
-    ) {
-        this.chance = chance;
-        this.items = items;
-        this.crsList = List.copyOf(crsList);
-        this.crsIds = this.crsList.stream()
-                .map(CatalystRequirementSet::id)
-                .toList();
-        this.slotColor = slotColor;
-    }
-
     public static class WeightedItemStack {
         public static final int DEFAULT_WEIGHT = 1;
+        private static final double COUNT_ROUNDING_TOLERANCE = 0.01;
         private static final MapCodec<ItemWithFallbacks> STRICT_ITEM_FIELD = ItemWithFallbacks.STRICT_RESOLVABLE_CODEC.fieldOf("item");
         private static final MapCodec<ItemWithFallbacks> LENIENT_ITEM_FIELD = ItemWithFallbacks.LENIENT_CODEC.fieldOf("item");
 
@@ -159,8 +179,18 @@ public class Yield {
         }
 
         public ItemStack itemStack() {
+            return itemStack(1d);
+        }
+
+        public int scaledCount(double multiplier) {
+            double rounded = Math.floor(count * multiplier + COUNT_ROUNDING_TOLERANCE);
+            return (int) Math.min(rounded, Item.ABSOLUTE_MAX_STACK_SIZE);
+        }
+
+        private ItemStack itemStack(double multiplier) {
             if (item == Items.AIR) return ItemStack.EMPTY;
-            return new ItemStack(item, count);
+            int scaledCount = scaledCount(multiplier);
+            return scaledCount == 0 ? ItemStack.EMPTY : new ItemStack(item, scaledCount);
         }
     }
 }

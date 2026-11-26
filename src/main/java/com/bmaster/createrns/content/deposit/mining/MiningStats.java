@@ -1,11 +1,9 @@
 package com.bmaster.createrns.content.deposit.mining;
 
 import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystRequirementSet;
-import com.bmaster.createrns.content.deposit.mining.recipe.catalyst.CatalystUsageStats;
 import com.bmaster.createrns.util.Utils;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.Holder;
@@ -23,7 +21,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
@@ -37,7 +34,6 @@ public class MiningStats implements INBTSerializable<CompoundTag> {
     public long minedResources = 0;
     public long consumedResources = 0;
     public final PerDepositResourceStat remainingResources = new PerDepositResourceStat();
-    public final PerDepositCatalystUsageStats catStats = new PerDepositCatalystUsageStats();
     public final Object2LongOpenHashMap<Item> minedItems = new Object2LongOpenHashMap<>();
 
     private boolean gracePeriod = true;
@@ -80,7 +76,6 @@ public class MiningStats implements INBTSerializable<CompoundTag> {
         minedResources = 0;
         consumedResources = 0;
         remainingResources.clear();
-        catStats.clear();
         minedItems.clear();
     }
 
@@ -106,27 +101,13 @@ public class MiningStats implements INBTSerializable<CompoundTag> {
         ));
     }
 
-    public List<Holder<CatalystRequirementSet>> getLastSatisfiedCRSes(MiningProcess process) {
+    public List<Holder<CatalystRequirementSet>> getActiveCRSes(MiningProcess process) {
         return process.innerProcesses.stream()
-                .flatMap(ip -> {
-                    var cs = catStats.ofInnerProcess(ip);
-                    return cs.lastTickedCRSes != null ? cs.lastTickedCRSes.stream() : Stream.of();
-                })
+                .flatMap(ip -> ip.catalystHandler.getCurrentActiveCRSes().stream())
                 .distinct()
                 .map(crsId -> CatalystRequirementSet.get(process.level.registryAccess(), crsId))
                 .sorted(Comparator.comparingInt(crs -> crs.value().displayPriority))
                 .toList();
-    }
-
-    public RateEstimationStatus getRateEstimationStatus(MiningProcess process) {
-        boolean anyEstimated = false;
-        boolean allEstimated = true;
-        for (var ip : process.innerProcesses) {
-            if (!catStats.ofInnerProcess(ip).isComputed()) allEstimated = false;
-            else anyEstimated = true;
-            if (anyEstimated && !allEstimated) return RateEstimationStatus.SOME;
-        }
-        return (allEstimated) ? RateEstimationStatus.ALL : RateEstimationStatus.NONE;
     }
 
     public LinkedHashMap<Item, Float> getEstimatedRates(MiningProcess process, int progressPerTick) {
@@ -135,16 +116,17 @@ public class MiningStats implements INBTSerializable<CompoundTag> {
         long elapsedTicks = getElapsedTicks(process.level);
         float uptime = elapsedTicks > 0 ? (float) getUptimeTicks() / elapsedTicks : 1;
 
-        for (var p : process.innerProcesses) {
-            var cs = catStats.ofInnerProcess(p);
-            if (!cs.isComputed()) continue;
-            var ys = p.recipe.getYields();
-            for (int i = 0; i < ys.size(); ++i) {
-                float chance = Math.min(cs.getLastComputedChance(i), 1f);
+        for (var ip : process.innerProcesses) {
+            var yields = ip.recipe.getYields();
+            for (int i = 0; i < yields.size(); ++i) {
+                var y = yields.get(i);
+                var effects = ip.catalystHandler.getCurrentCatalystEffects(i);
+                float chance = Math.min(y.chance * effects.chanceMult(), 1f);
                 if (chance <= 0f) continue;
-                var y = ys.get(i);
-                for (var wis : ys.get(i).items) {
-                    rates.addTo(wis.item, (float) wis.count * wis.weight / y.getTotalWeight() / p.maxProgress * chance * uptime);
+                for (var wis : y.items) {
+                    float count = wis.scaledCount(effects.countMult());
+                    float rate = count * chance * wis.weight / y.getTotalWeight() * uptime / ip.maxProgress;
+                    rates.addTo(wis.item, rate);
                 }
             }
         }
@@ -187,14 +169,6 @@ public class MiningStats implements INBTSerializable<CompoundTag> {
         }
         nbt.put("mined_items", minedItemsTag);
 
-        var catUsageStatsTag = new CompoundTag();
-        for (var e : catStats.object2ObjectEntrySet()) {
-            catUsageStatsTag.put(
-                    BuiltInRegistries.BLOCK.getKey(e.getKey()).toString(),
-                    e.getValue().serializeNBT(provider));
-        }
-        nbt.put("catalyst_usage", catUsageStatsTag);
-
         return nbt;
     }
 
@@ -222,31 +196,6 @@ public class MiningStats implements INBTSerializable<CompoundTag> {
             var item = Utils.registryEntryFromString(BuiltInRegistries.ITEM, itemIdString);
             if (item == null) continue;
             minedItems.put(item, minedItemsTag.getLong(itemIdString));
-        }
-
-        catStats.clear();
-        var catStatsTag = tag.getCompound("catalyst_usage");
-        for (var blockIdString : catStatsTag.getAllKeys()) {
-            var block = Utils.registryEntryFromString(BuiltInRegistries.BLOCK, blockIdString);
-            if (block == null) continue;
-            var cs = new CatalystUsageStats();
-            cs.deserializeNBT(provider, catStatsTag.getCompound(blockIdString));
-            catStats.put(block, cs);
-        }
-    }
-
-    public static class PerDepositCatalystUsageStats extends Object2ObjectOpenHashMap<Block, CatalystUsageStats> {
-        public CatalystUsageStats ofDeposit(Block block) {
-            return super.computeIfAbsent(block, b -> new CatalystUsageStats());
-        }
-
-        public CatalystUsageStats ofInnerProcess(InnerProcess ip) {
-            return ofDeposit(ip.recipe.getDepositBlock());
-        }
-
-        public void recompute(InnerProcess ip) {
-            // Simulate catalyst usage, so that catalyst handler can record which catalysts were used
-            ip.catalystHandler.useCatalysts(ofInnerProcess(ip), true);
         }
     }
 

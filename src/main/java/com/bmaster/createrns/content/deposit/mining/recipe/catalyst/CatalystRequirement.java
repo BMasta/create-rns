@@ -16,11 +16,11 @@ public abstract class CatalystRequirement {
             CatalystRequirementType::mapCodec
     );
 
-    public abstract CatalystRequirementType<?> type();
+    public abstract CatalystRequirementType<? extends CatalystRequirement, ? extends CatalystReservation> type();
 
     public abstract Set<Class<? extends Catalyst>> relevantCatalystTypes();
 
     public abstract boolean isSatisfiedBy(Collection<Catalyst> catalysts);
 
-    public abstract boolean useCatalysts(Collection<Catalyst> catalysts, boolean simulate);
+    public abstract boolean reserve(Collection<Catalyst> catalysts, CatalystReservations reservations);
 }

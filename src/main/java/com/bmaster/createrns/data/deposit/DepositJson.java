@@ -18,13 +18,15 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public final class DepositJson {
-    private static final float DEFAULT_CHANCE_MULTIPLIER = 1f;
     private static final int DEFAULT_ATTACHMENT_COUNT = 1;
 
     public static JsonObject catalyst(DepositResources.Catalyst catalyst) {
         var root = new JsonObject();
-        if (catalyst.chanceMultiplier() != DEFAULT_CHANCE_MULTIPLIER) {
+        if (catalyst.chanceMultiplier() != 1) {
             root.addProperty("chance_multiplier", catalyst.chanceMultiplier());
+        }
+        if (catalyst.countMultiplier() != 1) {
+            root.addProperty("count_multiplier", catalyst.countMultiplier());
         }
         if (catalyst.optional()) root.addProperty("optional", true);
         if (catalyst.displayPriority() != null) root.addProperty("display_priority", catalyst.displayPriority());

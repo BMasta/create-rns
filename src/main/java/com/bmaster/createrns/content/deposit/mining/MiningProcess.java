@@ -53,7 +53,6 @@ public class MiningProcess {
 
         if (stats != null && !l.isClientSide) {
             stats.remainingResources.clear();
-            stats.catStats.clear();
         }
         for (var e : depBlockCounts.entrySet()) {
             var db = e.getKey();
@@ -70,7 +69,6 @@ public class MiningProcess {
             // Clients receive stats from the server
             if (stats != null && !l.isClientSide) {
                 stats.remainingResources.put(db, ip.getRemainingResources());
-                stats.catStats.recompute(ip);
             }
         }
     }

@@ -1,0 +1,7 @@
+{
+  "count_multiplier": 3,
+  "optional": true,
+  "requirements": [
+    { "type": "fluid", "consume": { "id": "minecraft:lava", "amount": 1 } }
+  ]
+}

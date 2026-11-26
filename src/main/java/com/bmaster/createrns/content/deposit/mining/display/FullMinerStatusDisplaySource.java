@@ -51,7 +51,7 @@ public class FullMinerStatusDisplaySource extends TwoColumnDisplaySource {
             res.add(row("remaining", MinerDisplaySourceFormatter.formatCount(stats.getTotalRemainingResources())));
         }
         if (process != null && style == Style.WITH_CATALYSTS) {
-            var activeCRSes = stats.getLastSatisfiedCRSes(process);
+            var activeCRSes = stats.getActiveCRSes(process);
             int cnt = 0;
             for (int i = 0; i < activeCRSes.size(); ++i) {
                 var crsName = CatalystRequirementSet.getNameComponent(activeCRSes, activeCRSes.get(i));

@@ -3,9 +3,7 @@ package com.bmaster.createrns.content.deposit.mining.recipe.catalyst;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Collection;
@@ -28,7 +26,7 @@ public class FluidCatalystRequirement extends CatalystRequirement {
     }
 
     @Override
-    public CatalystRequirementType<?> type() {
+    public CatalystRequirementType<FluidCatalystRequirement, FluidCatalystReservation> type() {
         return CatalystRequirementType.FLUID;
     }
 
@@ -46,28 +44,16 @@ public class FluidCatalystRequirement extends CatalystRequirement {
     }
 
     @Override
-    public boolean useCatalysts(Collection<Catalyst> catalysts, boolean simulate) {
-        // Simulate
-        var fluid = fluidStack.getFluid();
-        if (fluid == Fluids.EMPTY) return false;
-        var amountToDrain = fluidStack.getAmount();
-        for (var c : catalysts) {
-            if (!(c instanceof FluidCatalyst fluidCat)) continue;
-            amountToDrain -= fluidCat.tank.drain(fluidStack.copyWithAmount(amountToDrain), IFluidHandler.FluidAction.SIMULATE)
-                    .getAmount();
-            if (amountToDrain <= 0) break;
-        }
-        if (amountToDrain > 0) return false;
-        if (simulate) return true;
+    public boolean reserve(Collection<Catalyst> catalysts, CatalystReservations reservations) {
+        var res = reservations.getForType(type());
+        var reservedStack = res.getMatchingFluidStack(fluidStack).orElse(null);
+        var reservedAmount = reservedStack != null ? reservedStack.getAmount() : 0;
 
-        // Drain
-        amountToDrain = fluidStack.getAmount();
-        for (var c : catalysts) {
-            if (!(c instanceof FluidCatalyst fluidCat)) continue;
-            amountToDrain -= fluidCat.tank.drain(fluidStack.copyWithAmount(amountToDrain), IFluidHandler.FluidAction.EXECUTE)
-                    .getAmount();
-            if (amountToDrain <= 0) break;
+        if (FluidCatalystReservation.drain(catalysts, fluidStack.copyWithAmount(fluidStack.getAmount() + reservedAmount), true)) {
+            if (reservedStack == null) res.addFluidStack(fluidStack.copy());
+            else reservedStack.grow(fluidStack.getAmount());
+            return true;
         }
-        return true;
+        return false;
     }
 }

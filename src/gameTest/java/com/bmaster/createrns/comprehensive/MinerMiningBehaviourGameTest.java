@@ -228,7 +228,7 @@ public class MinerMiningBehaviourGameTest {
 
         h.runAtTickTime(ticksToMine + 1, () -> {
             var process = miner.process();
-            var activeCRSes = miner.behavior().stats.getLastSatisfiedCRSes(process);
+            var activeCRSes = miner.behavior().stats.getActiveCRSes(process);
             h.assertTrue(activeCRSes.size() == 2, "Unexpected number of active catalysts: " +
                     activeCRSes.size() + "(2 expected)");
             h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.unwrapKey()
@@ -274,7 +274,7 @@ public class MinerMiningBehaviourGameTest {
 
         h.runAtTickTime(ticksToMine + 1, () -> {
             var process = miner.process();
-            var activeCRSes = miner.behavior().stats.getLastSatisfiedCRSes(process);
+            var activeCRSes = miner.behavior().stats.getActiveCRSes(process);
             h.assertTrue(activeCRSes.size() == 4, "Unexpected number of active catalysts: " +
                     activeCRSes.size() + "(4 expected)");
             h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.unwrapKey()
@@ -317,7 +317,7 @@ public class MinerMiningBehaviourGameTest {
 
         h.runAtTickTime(ticksToMine + 1, () -> {
             var process = miner.process();
-            var activeCRSes = miner.behavior().stats.getLastSatisfiedCRSes(process);
+            var activeCRSes = miner.behavior().stats.getActiveCRSes(process);
             h.assertTrue(activeCRSes.size() == 1, "Unexpected number of active catalysts: " +
                     activeCRSes.size() + "(1 expected)");
             h.assertTrue(activeCRSes.stream().anyMatch(crs -> crs.unwrapKey()
