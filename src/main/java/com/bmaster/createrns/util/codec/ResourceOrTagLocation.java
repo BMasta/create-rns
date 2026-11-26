@@ -25,6 +25,14 @@ public record ResourceOrTagLocation(ResourceLocation id, boolean isTag) implemen
             ResourceOrTagLocation::new
     );
 
+    public static ResourceOrTagLocation ofResource(ResourceLocation id) {
+        return new ResourceOrTagLocation(id, false);
+    }
+
+    public static ResourceOrTagLocation ofTag(ResourceLocation id) {
+        return new ResourceOrTagLocation(id, true);
+    }
+
     public static ResourceOrTagLocation withDefaultNamespace(String path, boolean isTag) {
         return new ResourceOrTagLocation(ResourceLocation.withDefaultNamespace(path), isTag);
     }

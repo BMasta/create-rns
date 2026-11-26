@@ -1,5 +1,6 @@
 package com.bmaster.createrns.data.deposit;
 
+import com.bmaster.createrns.CreateRNS;
 import com.bmaster.createrns.data.deposit.DepositBlockBuilder.DepositBuildingContext;
 import com.bmaster.createrns.data.deposit.DepositResources.StructurePreset;
 import com.bmaster.createrns.data.deposit.DepositResources.WeightedTemplate;
@@ -26,6 +27,8 @@ public class DepositStructureBuilder {
     public int weight = 2;
     public final List<WeightedTemplate> templates = new ArrayList<>();
     public final List<ResourceOrTagLocation> scannerIconItemCandidates = new ArrayList<>();
+
+    private final DepositBlockBuilder.DepositBuildingContext ctx;
 
     public DepositStructureBuilder dimension(ResourceKey<Level> dimension) {
         this.dimension = dimension;
@@ -90,7 +93,15 @@ public class DepositStructureBuilder {
         return this;
     }
 
+    public DepositStructureBuilder scannerIconDepositBlock() {
+        scannerIconItemCandidates.add(ResourceOrTagLocation.ofResource(
+                DepositResources.blockId(CreateRNS.ID, ctx.depositKeyword)));
+        return this;
+    }
+
+
     private DepositStructureBuilder(DepositBuildingContext ctx) {
-        ctx.structureBuilders.add(this);
+        this.ctx = ctx;
+        this.ctx.structureBuilders.add(this);
     }
 }
